@@ -1,0 +1,48 @@
+{
+  "name": "sparql-engine",
+  "version": "1.0.0",
+  "description": "A framework for building SPARQL query engines in Javascript",
+  "main": "src/api.js",
+  "scripts": {
+    "lint": "standard",
+    "test": "mocha tests/**/*-test.js",
+    "doc": "docma -c ./docma.json"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Callidon/sparql-engine.git"
+  },
+  "keywords": [
+    "sparql",
+    "engine",
+    "sparql",
+    "query",
+    "framework",
+    "sparql",
+    "1.1"
+  ],
+  "author": "Thomas Minier <thomas.minier@univ-nantes.fr>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Callidon/sparql-engine/issues"
+  },
+  "contributors": [
+    "Corentin Marionneau <corentin.marionneau@gmail.com> (https://github.com/Slaanaroth)",
+    "Merlin Barzilai (https://github.com/Rintarou)"
+  ],
+  "homepage": "https://github.com/Callidon/sparql-engine#readme",
+  "devDependencies": {
+    "chai": "^4.1.2",
+    "docma": "^2.1.0",
+    "mocha": "^5.2.0",
+    "standard": "^11.0.1"
+  },
+  "dependencies": {
+    "asynciterator": "^2.0.0",
+    "ldf-client": "^2.0.5",
+    "lodash": "^4.17.10",
+    "moment": "^2.22.2",
+    "n3": "^1.0.0-beta.1",
+    "sparqljs": "^2.0.3"
+  }
+}
