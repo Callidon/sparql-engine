@@ -34,6 +34,9 @@
   "devDependencies": {
     "chai": "^4.1.2",
     "docma": "^2.1.0",
+    "level": "^4.0.0",
+    "levelgraph": "^2.1.1",
+    "levelgraph-n3": "^2.1.0",
     "mocha": "^5.2.0",
     "standard": "^11.0.1"
   },
@@ -44,5 +47,12 @@
     "moment": "^2.22.2",
     "n3": "^1.0.0-beta.1",
     "sparqljs": "^2.0.3"
+  },
+  "standard": {
+    "env": [
+      "node",
+      "mocha",
+      "chai"
+    ]
   }
 }

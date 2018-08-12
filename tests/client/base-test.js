@@ -1,4 +1,4 @@
-/* file : api.js
+/* file : base-test.js
 MIT License
 
 Copyright (c) 2018 Thomas Minier
@@ -24,13 +24,39 @@ SOFTWARE.
 
 'use strict'
 
-const PlanBuilder = require('./engine/plan-builder.js')
-const BGPExecutor = require('./engine/executors/bgp-executor.js')
-const GraphExecutor = require('./engine/executors/graph-executor.js')
+const expect = require('chai').expect
+const { getDB, LevelGraphEngine } = require('../utils.js')
 
-// expose main classes and extension points
-module.exports = {
-  PlanBuilder,
-  BGPExecutor,
-  GraphExecutor
-}
+describe('Basic SPARQL queries', () => {
+  let engine = null
+  before(done => {
+    getDB('./tests/data/dblp.nt')
+      .then(db => {
+        engine = new LevelGraphEngine(db)
+        done()
+      })
+  })
+
+  it('should evaluate simple SPARQL queries', done => {
+    const query = `
+    PREFIX dblp-pers: <https://dblp.org/pers/m/>
+    PREFIX dblp-rdf: <https://dblp.uni-trier.de/rdf/schema-2017-04-18#>
+    PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+    SELECT ?name ?article WHERE {
+      ?s rdf:type dblp-rdf:Person .
+      ?s dblp-rdf:primaryFullPersonName ?name .
+      ?s dblp-rdf:authorOf ?article .
+    }`
+    const results = []
+
+    const iterator = engine.execute(query)
+    iterator.on('error', done)
+    iterator.on('data', b => {
+      results.push(b)
+    })
+    iterator.on('end', () => {
+      expect(results.length).to.equal(5)
+      done()
+    })
+  })
+}).timeout(20000)
