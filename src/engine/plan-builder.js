@@ -26,7 +26,7 @@ SOFTWARE.
 
 const { Parser } = require('sparqljs')
 const AsyncIterator = require('asynciterator')
-const ValuesOperator = require('../operators/values-operator.js')
+// const ValuesOperator = require('../operators/values-operator.js')
 const GroupByOperator = require('../operators/gb-operator.js')
 const OperationOperator = require('../operators/op-operator.js')
 const AggrOperator = require('../operators/agg-operator.js')
@@ -51,24 +51,24 @@ const queryConstructors = {
   ASK: AskOperator
 }
 
-function replaceValues (bgp, val) {
-  var bgpCopy = _.cloneDeep(bgp)
-  for (let i = 0; i < bgpCopy.triples.length; i++) {
-    var tp = bgpCopy.triples[i]
-    for (var variable in val) {
-      if (tp.subject === variable) {
-        tp.subject = val[variable]
-      }
-      if (tp.predicate === variable) {
-        tp.predicate = val[variable]
-      }
-      if (tp.object === variable) {
-        tp.object = val[variable]
-      }
-    }
-  }
-  return bgpCopy
-}
+// function replaceValues (bgp, val) {
+//   var bgpCopy = _.cloneDeep(bgp)
+//   for (let i = 0; i < bgpCopy.triples.length; i++) {
+//     var tp = bgpCopy.triples[i]
+//     for (var variable in val) {
+//       if (tp.subject === variable) {
+//         tp.subject = val[variable]
+//       }
+//       if (tp.predicate === variable) {
+//         tp.predicate = val[variable]
+//       }
+//       if (tp.object === variable) {
+//         tp.object = val[variable]
+//       }
+//     }
+//   }
+//   return bgpCopy
+// }
 
 /**
  * A PlanBuilder builds a physical query execution plan of a SPARQL query,
@@ -430,13 +430,13 @@ class PlanBuilder {
     const iterators = bindingsLists.map(bList => {
       // for each value to bind in the VALUES clause
       const unionBranches = bList.map(bindings => {
-        // BIND each group with the set of bindings
+        // BIND each group with the set of bindings and then evaluates it
         const temp = others.map(g => deepApplyBindings(g, bindings))
         return extendByBindings(this._buildWhere(source.clone(), temp, options), bindings)
       })
       return new UnionOperator(...unionBranches)
     })
-    // users may input more than one VALUES clause
+    // Users may use more than one VALUES clause
     if (iterators.length > 1) {
       return new UnionOperator(...iterators)
     }
