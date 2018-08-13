@@ -1,4 +1,4 @@
-/* file : base-test.js
+/* file : bind-test.js
 MIT License
 
 Copyright (c) 2018 Thomas Minier
@@ -27,7 +27,7 @@ SOFTWARE.
 const expect = require('chai').expect
 const { getDB, LevelGraphEngine } = require('../utils.js')
 
-describe('Basic SPARQL queries', () => {
+describe('SPARQL BIND', () => {
   let engine = null
   before(done => {
     getDB('./tests/data/dblp.nt')
@@ -39,21 +39,24 @@ describe('Basic SPARQL queries', () => {
 
   after(done => engine._db.close(done))
 
-  it('should evaluate simple SPARQL queries', done => {
+  it('should evaluates BIND clauses', done => {
     const query = `
     PREFIX dblp-pers: <https://dblp.org/pers/m/>
     PREFIX dblp-rdf: <https://dblp.uni-trier.de/rdf/schema-2017-04-18#>
     PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-    SELECT ?name ?article WHERE {
+    SELECT ?s ?name ?article WHERE {
       ?s rdf:type dblp-rdf:Person .
       ?s dblp-rdf:primaryFullPersonName ?name .
       ?s dblp-rdf:authorOf ?article .
+      BIND (dblp-pers:Minier:Thomas AS ?s)
     }`
     const results = []
 
     const iterator = engine.execute(query)
     iterator.on('error', done)
     iterator.on('data', b => {
+      expect(b).to.have.all.keys('?s', '?name', '?article')
+      expect(b['?s']).to.equal('https://dblp.org/pers/m/Minier:Thomas')
       results.push(b)
     })
     iterator.on('end', () => {

@@ -41,6 +41,7 @@ const ConstructOperator = require('../operators/modifiers/construct-operator.js'
 const DescribeOperator = require('../operators/modifiers/describe-operator.js')
 // utils
 const _ = require('lodash')
+const { deepApplyBindings, extendByBindings } = require('../utils.js')
 const { transformPath } = require('./property-paths.js')
 
 const queryConstructors = {
@@ -119,10 +120,10 @@ class PlanBuilder {
     }
     options.prefixes = query.prefixes
 
-    // Handle VALUES clauses
-    if (query.values != null) {
-      query.where.push({type: 'values', values: query.values})
-    }
+    // DEPRECATED: old behaviour to handle VALUES
+    // if (query.values != null) {
+    //   query.where.push({type: 'values', values: query.values})
+    // }
 
     // Create an iterator that projects the bindings according to the query type
     if (query.base != null) {
@@ -210,6 +211,17 @@ class PlanBuilder {
         return 0
       }
     })
+
+    // Handle VALUES clauses using query rewriting
+    if (_.some(groups, g => g.type === 'values')) {
+      return this._buildValues(source, groups, options)
+    }
+
+    // Handle BIND clauses
+    if (_.some(groups, g => g.type === 'bind')) {
+      return this._buildBind(source, groups, options)
+    }
+    // TODO: what is this for?
     var newGroups = []
     var prec = null
     for (let i = 0; i < groups.length; i++) {
@@ -223,30 +235,31 @@ class PlanBuilder {
       prec = groups[i]
     }
     groups = newGroups
-    if (groups[0].type === 'values') {
-      var vals = groups[0].values
-      var bgpIndex = _.findIndex(groups, {'type': 'bgp'})
-      var union = {type: 'union', patterns: []}
-      for (let i = 0; i < vals.length; i++) {
-        for (var val in vals[i]) {
-          if (vals[i][val] == null) {
-            delete vals[i][val]
-          }
-        }
-        var newBGP = replaceValues(groups[bgpIndex], vals[i])
-        var unit = _.cloneDeep(groups.slice(1, -1))
-        unit[bgpIndex - 1] = newBGP
-        union.patterns.push({type: 'group', patterns: unit, value: vals[i]})
-      }
-      return new UnionOperator(...union.patterns.map(patternToken => {
-        var unionIter = this._buildGroup(source.clone(), patternToken, options)
-        return new ValuesOperator(unionIter, patternToken.value, options)
-      }))
-    } else {
-      return groups.reduce((source, group) => {
-        return this._buildGroup(source, group, options)
-      }, source)
-    }
+    // DEPRECATED: old behaviour to handle VALUES
+    // if (groups[0].type === 'values') {
+    //   var vals = groups[0].values
+    //   var bgpIndex = _.findIndex(groups, {'type': 'bgp'})
+    //   var union = {type: 'union', patterns: []}
+    //   for (let i = 0; i < vals.length; i++) {
+    //     for (var val in vals[i]) {
+    //       if (vals[i][val] == null) {
+    //         delete vals[i][val]
+    //       }
+    //     }
+    //     var newBGP = replaceValues(groups[bgpIndex], vals[i])
+    //     var unit = _.cloneDeep(groups.slice(1, -1))
+    //     unit[bgpIndex - 1] = newBGP
+    //     union.patterns.push({type: 'group', patterns: unit, value: vals[i]})
+    //   }
+    //   return new UnionOperator(...union.patterns.map(patternToken => {
+    //     var unionIter = this._buildGroup(source.clone(), patternToken, options)
+    //     return new ValuesOperator(unionIter, patternToken.value, options)
+    //   }))
+    // } else {
+    return groups.reduce((source, group) => {
+      return this._buildGroup(source, group, options)
+    }, source)
+    // }
   }
 
   /**
@@ -300,8 +313,6 @@ class PlanBuilder {
         return new UnionOperator(...group.patterns.map(patternToken => {
           return this._buildGroup(source.clone(), patternToken, childOptions)
         }))
-      case 'bind':
-        return new OperationOperator(source, group, options, true)
       case 'filter':
       // A set of bindings does not match the filter
       // if it evaluates to 0/false, or errors
@@ -401,6 +412,55 @@ class PlanBuilder {
       }, options)
     }
     return iterator
+  }
+
+  /**
+   * Build an iterator which evaluates a SPARQL query with VALUES clause(s).
+   * It rely on a query rewritiing approach:
+   * ?s ?p ?o . VALUES ?s { :1 :2 } becomes {:1 ?p ?o} UNION {:2 ?p ?o}
+   * @param  {AsyncIterator} source  - Source iterator
+   * @param  {Object[]} groups  - Query body, i.e., WHERE clause
+   * @param  {Object} options - Execution options
+   * @return {AsyncIterator} An iterator which evaluates a SPARQL query with VALUES clause(s)
+   */
+  _buildValues (source, groups, options) {
+    let [ values, others ] = _.partition(groups, g => g.type === 'values')
+    const bindingsLists = values.map(g => g.values)
+    // for each VALUES clause
+    const iterators = bindingsLists.map(bList => {
+      // for each value to bind in the VALUES clause
+      const unionBranches = bList.map(bindings => {
+        // BIND each group with the set of bindings
+        const temp = others.map(g => deepApplyBindings(g, bindings))
+        return extendByBindings(this._buildWhere(source.clone(), temp, options), bindings)
+      })
+      return new UnionOperator(...unionBranches)
+    })
+    // users may input more than one VALUES clause
+    if (iterators.length > 1) {
+      return new UnionOperator(...iterators)
+    }
+    return iterators[0]
+  }
+
+  /**
+   * Build an iterator which evaluates a SPARQL query with BIND clause(s).
+   * It recursively bounds all subqueries with the BIND expressions,
+   * evaluates the subqueries and then extends bindings produced with the original ones
+   * @param  {AsyncIterator} source  - Source iterator
+   * @param  {Object[]} groups  - Query body, i.e., WHERE clause
+   * @param  {Object} options - Execution options
+   * @return {AsyncIterator} An iterator which evaluates a SPARQL query with BIND clause(s)
+   */
+  _buildBind (source, groups, options) {
+    let [ binds, others ] = _.partition(groups, g => g.type === 'bind')
+    // extract bindings
+    const bindings = binds.reduce((acc, g) => {
+      acc[g.variable] = g.expression
+      return acc
+    }, {})
+    others = others.map(g => deepApplyBindings(g, bindings))
+    return extendByBindings(this._buildWhere(source, others, options), bindings)
   }
 }
 

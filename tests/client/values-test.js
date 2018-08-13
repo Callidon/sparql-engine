@@ -1,4 +1,4 @@
-/* file : base-test.js
+/* file : values-test.js
 MIT License
 
 Copyright (c) 2018 Thomas Minier
@@ -27,7 +27,7 @@ SOFTWARE.
 const expect = require('chai').expect
 const { getDB, LevelGraphEngine } = require('../utils.js')
 
-describe('Basic SPARQL queries', () => {
+describe('SPARQL VALUES', () => {
   let engine = null
   before(done => {
     getDB('./tests/data/dblp.nt')
@@ -39,25 +39,32 @@ describe('Basic SPARQL queries', () => {
 
   after(done => engine._db.close(done))
 
-  it('should evaluate simple SPARQL queries', done => {
+  it('should evaluates VALUES clauses', done => {
     const query = `
     PREFIX dblp-pers: <https://dblp.org/pers/m/>
     PREFIX dblp-rdf: <https://dblp.uni-trier.de/rdf/schema-2017-04-18#>
+    PREFIX esws: <https://dblp.org/rec/conf/esws/>
     PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
     SELECT ?name ?article WHERE {
       ?s rdf:type dblp-rdf:Person .
       ?s dblp-rdf:primaryFullPersonName ?name .
       ?s dblp-rdf:authorOf ?article .
+      VALUES ?article { esws:MinierSMV18a esws:MinierMSM17 }
     }`
     const results = []
 
     const iterator = engine.execute(query)
     iterator.on('error', done)
     iterator.on('data', b => {
+      expect(b).to.have.all.keys('?name', '?article')
+      expect(b['?article']).to.be.oneOf([
+        'https://dblp.org/rec/conf/esws/MinierMSM17',
+        'https://dblp.org/rec/conf/esws/MinierSMV18a'
+      ])
       results.push(b)
     })
     iterator.on('end', () => {
-      expect(results.length).to.equal(5)
+      expect(results.length).to.equal(2)
       done()
     })
   })

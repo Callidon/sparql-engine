@@ -42,11 +42,22 @@ function getDB (filePath) {
   // cleanup db first
   const db = levelgraphN3(levelgraph(level('testing_db')))
   return new Promise((resolve, reject) => {
-    const stream = fs.createReadStream(filePath)
-      .pipe(db.n3.putStream())
+    // first, check if DB is not empty to avoid duplicated insertion
+    db.get({ limit: 1 }, (err, list) => {
+      if (err) {
+        reject(err)
+      } else if (list.length > 0) {
+        resolve(db)
+      } else {
+        const stream = fs.createReadStream(filePath)
+          .pipe(db.n3.putStream())
 
-    stream.on('finish', () => {
-      resolve(db)
+        stream.on('err', reject)
+
+        stream.on('finish', () => {
+          resolve(db)
+        })
+      }
     })
   })
 }

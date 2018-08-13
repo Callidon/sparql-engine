@@ -25,6 +25,7 @@ SOFTWARE.
 'use strict'
 
 const { Duplex, PassThrough } = require('stream')
+const { assign } = require('lodash')
 
 /**
  * Return a high-order function to apply bindings to a given triple pattern
@@ -32,26 +33,55 @@ const { Duplex, PassThrough } = require('stream')
  * @return {function} Function callbale with a set of bindings,
  * which returns `null` if no substitution was found, otheriwse returns a RDF triple
  */
-function applyBindings (triple) {
+function applyBindings (triple, bindings) {
   const subjVar = triple.subject.startsWith('?')
   const predVar = triple.predicate.startsWith('?')
   const objVar = triple.object.startsWith('?')
-  return bindings => {
-    const newTriple = Object.assign({}, triple)
-    if (subjVar) {
-      if (!(triple.subject in bindings)) return null
-      newTriple.subject = bindings[triple.subject]
-    }
-    if (predVar) {
-      if (!(triple.predicate in bindings)) return null
-      newTriple.predicate = bindings[triple.predicate]
-    }
-    if (objVar) {
-      if (!(triple.object in bindings)) return null
-      newTriple.object = bindings[triple.object]
-    }
-    return newTriple
+  const newTriple = Object.assign({}, triple)
+  if (subjVar && triple.subject in bindings) {
+    newTriple.subject = bindings[triple.subject]
   }
+  if (predVar && triple.predicate in bindings) {
+    newTriple.predicate = bindings[triple.predicate]
+  }
+  if (objVar && triple.object in bindings) {
+    newTriple.object = bindings[triple.object]
+  }
+  return newTriple
+}
+
+/**
+ * Recusrively apply bindings to every triple in a SPARQL group pattern
+ * @param  {Object} group - SPARQL group pattern to process
+ * @param  {Object} bindings - Set of bindings to use
+ * @return {Object} A new SPARQL group pattern with triples bounded
+ */
+function deepApplyBindings (group, bindings) {
+  switch (group.type) {
+    case 'bgp':
+      return {
+        type: 'bgp',
+        triples: group.triples.map(t => applyBindings(t, bindings))
+      }
+    case 'group':
+    case 'union':
+      return {
+        type: group.type,
+        patterns: group.patterns.map(g => deepApplyBindings(g, bindings))
+      }
+    default:
+      return group
+  }
+}
+
+/**
+ * Extends all set of bindings produced by an iterator with another set of bindings
+ * @param  {[type]} iterator    [description]
+ * @param  {[type]} bindings [description]
+ * @return {[type]}             [description]
+ */
+function extendByBindings (iterator, bindings) {
+  return iterator.map(b => assign(b, bindings))
 }
 
 /**
@@ -86,5 +116,7 @@ class MultiTransform extends Duplex {
 
 module.exports = {
   applyBindings,
+  deepApplyBindings,
+  extendByBindings,
   MultiTransform
 }
