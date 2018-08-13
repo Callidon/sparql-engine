@@ -28,23 +28,21 @@ const { Duplex, PassThrough } = require('stream')
 const { assign } = require('lodash')
 
 /**
- * Return a high-order function to apply bindings to a given triple pattern
- * @param  {Object} triple   - A triple pattern on which bindings will be inkected
- * @return {function} Function callbale with a set of bindings,
- * which returns `null` if no substitution was found, otheriwse returns a RDF triple
+ * Bound a triple pattern using a set of bindings, i.e., substitute variables in the triple pattern
+ * using the set of bindings provided
+ * @param {Object} triple  - Triple pattern
+ * @param {Object} bindings - Set of bindings
+ * @return {function} An new, bounded triple pattern
  */
 function applyBindings (triple, bindings) {
-  const subjVar = triple.subject.startsWith('?')
-  const predVar = triple.predicate.startsWith('?')
-  const objVar = triple.object.startsWith('?')
   const newTriple = Object.assign({}, triple)
-  if (subjVar && triple.subject in bindings) {
+  if (triple.subject.startsWith('?') && triple.subject in bindings) {
     newTriple.subject = bindings[triple.subject]
   }
-  if (predVar && triple.predicate in bindings) {
+  if (triple.predicate.startsWith('?') && triple.predicate in bindings) {
     newTriple.predicate = bindings[triple.predicate]
   }
-  if (objVar && triple.object in bindings) {
+  if (triple.object.startsWith('?') && triple.object in bindings) {
     newTriple.object = bindings[triple.object]
   }
   return newTriple
@@ -76,9 +74,9 @@ function deepApplyBindings (group, bindings) {
 
 /**
  * Extends all set of bindings produced by an iterator with another set of bindings
- * @param  {[type]} iterator    [description]
- * @param  {[type]} bindings [description]
- * @return {[type]}             [description]
+ * @param  {AsyncIterator} iterator - Source terator
+ * @param  {Object} bindings - Bindings added to each set of bindings procuded by the iterator
+ * @return {AsyncIterator} An iterator that extends bindins produced by the source iterator
  */
 function extendByBindings (iterator, bindings) {
   return iterator.map(b => assign(b, bindings))
