@@ -33,6 +33,7 @@ const _ = require('lodash')
  * @extends TransformIterator
  * @author Thomas Minier
  * @author Corentin Marionneau
+ * @see {@link https://www.w3.org/TR/2013/REC-sparql11-query-20130321/#select}
  */
 class SelectOperator extends TransformIterator {
   constructor (source, query, options) {
