@@ -38,37 +38,16 @@ const SparqlExpressionEvaluator = require('../utils/SparqlExpressionEvaluator.js
 const SelectOperator = require('../operators/modifiers/select-operator.js')
 const AskOperator = require('../operators/modifiers/ask-operator.js')
 const ConstructOperator = require('../operators/modifiers/construct-operator.js')
-const DescribeOperator = require('../operators/modifiers/describe-operator.js')
 // utils
 const _ = require('lodash')
-const { deepApplyBindings, extendByBindings } = require('../utils.js')
+const { deepApplyBindings, extendByBindings, rdf } = require('../utils.js')
 const { transformPath } = require('./property-paths.js')
 
 const queryConstructors = {
   SELECT: SelectOperator,
   CONSTRUCT: ConstructOperator,
-  DESCRIBE: DescribeOperator,
   ASK: AskOperator
 }
-
-// function replaceValues (bgp, val) {
-//   var bgpCopy = _.cloneDeep(bgp)
-//   for (let i = 0; i < bgpCopy.triples.length; i++) {
-//     var tp = bgpCopy.triples[i]
-//     for (var variable in val) {
-//       if (tp.subject === variable) {
-//         tp.subject = val[variable]
-//       }
-//       if (tp.predicate === variable) {
-//         tp.predicate = val[variable]
-//       }
-//       if (tp.object === variable) {
-//         tp.object = val[variable]
-//       }
-//     }
-//   }
-//   return bgpCopy
-// }
 
 /**
  * A PlanBuilder builds a physical query execution plan of a SPARQL query,
@@ -120,6 +99,28 @@ class PlanBuilder {
     }
     options.prefixes = query.prefixes
 
+    // rewrite a DESCRIBE query into a CONSTRUCT query
+    if (query.queryType === 'DESCRIBE') {
+      const template = []
+      const where = [{
+        type: 'bgp',
+        triples: []
+      }]
+      query.variables.forEach(v => {
+        const triple = rdf.triple(v, `?pred__describe__${v}`, `?obj__describe__${v}`)
+        template.push(triple)
+        where[0].triples.push(triple)
+      })
+      const construct = {
+        prefixes: query.prefixes,
+        queryType: 'CONSTRUCT',
+        template,
+        type: 'query',
+        where: query.where.concat(where)
+      }
+      return this.build(construct, options, source)
+    }
+
     // DEPRECATED: old behaviour to handle VALUES
     // if (query.values != null) {
     //   query.where.push({type: 'values', values: query.values})
@@ -133,10 +134,9 @@ class PlanBuilder {
     // Handles WHERE clause
     let graphIterator
     if (query.patterns != null || (query.where != null && query.where.length > 0)) {
-      graphIterator = this._buildWhere(source,
-        query.patterns || query.where, options)
+      graphIterator = this._buildWhere(source, query.patterns || query.where, options)
     } else {
-      graphIterator = new AsyncIterator.SingletonIterator({})
+      graphIterator = AsyncIterator.single({})
     }
 
     // Handles GROUP BY
@@ -221,7 +221,8 @@ class PlanBuilder {
     if (_.some(groups, g => g.type === 'bind')) {
       return this._buildBind(source, groups, options)
     }
-    // TODO: what is this for?
+
+    // merge BGPs on the same level
     var newGroups = []
     var prec = null
     for (let i = 0; i < groups.length; i++) {
