@@ -155,11 +155,16 @@ function deepApplyBindings (group, bindings) {
         triples: group.triples.map(t => applyBindings(t, bindings))
       }
     case 'group':
+    case 'optional':
+    case 'service':
     case 'union':
       return {
         type: group.type,
         patterns: group.patterns.map(g => deepApplyBindings(g, bindings))
       }
+    case 'query':
+      group.where = group.where.map(g => deepApplyBindings(g, bindings))
+      return group
     default:
       return group
   }
