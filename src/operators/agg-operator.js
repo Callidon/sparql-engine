@@ -26,7 +26,7 @@ SOFTWARE.
 
 const { TransformIterator } = require('asynciterator')
 const _ = require('lodash')
-const utils = require('../formatters/utils')
+const utils = require('../utils.js')
 
 /**
  * GroupByOperator applies a DISTINCT modifier on the output of another operator.

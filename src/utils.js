@@ -26,6 +26,99 @@ SOFTWARE.
 
 const { Duplex, PassThrough } = require('stream')
 const { assign } = require('lodash')
+const n3utils = require('n3').Util
+
+function IRIDescriptor (variable, iri) {
+  return {
+    type: 'iri',
+    variable,
+    value: iri
+  }
+}
+
+function RawLiteralDescriptor (variable, literal) {
+  return {
+    type: 'literal',
+    variable,
+    value: literal
+  }
+}
+
+function TypedLiteralDescriptor (variable, literal, type) {
+  return {
+    type: 'literal+type',
+    variable,
+    value: literal,
+    datatype: type
+  }
+}
+
+function LangLiteralDescriptor (variable, literal, lang) {
+  return {
+    type: 'literal+lang',
+    variable,
+    value: literal,
+    lang
+  }
+}
+
+function stripDatatype (datatype) {
+  if (datatype.startsWith('<') && datatype.endsWith('>')) {
+    return datatype.slice(1, datatype.length - 1)
+  }
+  return datatype
+}
+
+/**
+ * Parse a solution binding and return a descriptor with its type and value
+ * @param  {string} variable - The SPARQL variable that the binding bound
+ * @param  {string} binding - The binding in string format (i.e., URI or Literal)
+ * @return {Object} A descriptor for the binding
+ */
+function parseBinding (variable, binding) {
+  if (n3utils.isIRI(binding)) {
+    return IRIDescriptor(variable, binding)
+  } else if (n3utils.isLiteral(binding)) {
+    const value = n3utils.getLiteralValue(binding)
+    const lang = n3utils.getLiteralLanguage(binding)
+    const type = stripDatatype(n3utils.getLiteralType(binding))
+    if (lang !== null && lang !== undefined && lang !== '') {
+      return LangLiteralDescriptor(variable, value, lang)
+    } else if (binding.indexOf('^^') > -1) {
+      return TypedLiteralDescriptor(variable, value, type)
+    }
+    return RawLiteralDescriptor(variable, value)
+  } else {
+    throw new Error(`Binding with unexpected type encoutered during formatting: ${binding}`)
+  }
+}
+
+/**
+ * Create a RDF triple in Object representation
+ * @param  {string} subj - Triple's subject
+ * @param  {string} pred - Triple's predicate
+ * @param  {string} obj  - Triple's object
+ * @return {Object} A RDF triple in Object representation
+ */
+function triple (subj, pred, obj) {
+  return {
+    subject: subj,
+    predicate: pred,
+    object: obj
+  }
+}
+
+/**
+ * Return True if a string is a SPARQL variable
+ * @param  {string}  str - String to test
+ * @return {Boolean} True if the string is a SPARQL variable, False otherwise
+ */
+function isVariable (str) {
+  if (typeof str !== 'string') {
+    return false
+  }
+  return str.startsWith('?')
+}
 
 /**
  * Bound a triple pattern using a set of bindings, i.e., substitute variables in the triple pattern
@@ -113,8 +206,13 @@ class MultiTransform extends Duplex {
 }
 
 module.exports = {
+  rdf: {
+    isVariable,
+    triple
+  },
   applyBindings,
   deepApplyBindings,
   extendByBindings,
+  parseBinding,
   MultiTransform
 }

@@ -27,7 +27,7 @@ SOFTWARE.
 const { TransformIterator } = require('asynciterator')
 const _ = require('lodash')
 const moment = require('moment')
-const utils = require('../formatters/utils')
+const utils = require('../utils.js')
 const crypto = require('crypto')
 
 /**
