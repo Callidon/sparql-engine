@@ -25,13 +25,16 @@ SOFTWARE.
 'use strict'
 
 /**
- * A ServiceExecutor is responsible for evaluation a GRAPH or a SERVICE clause in a SPARQL query.
- * It is the second extension point of the SPARQL engine.
+ * A ServiceExecutor is responsible for evaluation a SERVICE clause in a SPARQL query.
  * @abstract
  * @author Thomas Minier
  * @author Corentin Marionneau
  */
 class ServiceExecutor {
+  constructor (dataset) {
+    this._dataset = dataset
+  }
+
   /**
    * Build an iterator to evaluate a GRAPH/SERVICE clause
    * @private
