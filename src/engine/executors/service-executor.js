@@ -41,7 +41,7 @@ class ServiceExecutor {
    * @param  {AsyncIterator}  source  - Source iterator
    * @param  {Object}         node    - Service clause
    * @param  {Object}         options - Execution options
-   * @return {AsyncIterator} An iterator used to evaluate a a GRAPH/SERVICE clause
+   * @return {AsyncIterator} An iterator used to evaluate a SERVICE clause
    */
   buildIterator (source, node, options) {
     let subquery
@@ -61,12 +61,12 @@ class ServiceExecutor {
   }
 
   /**
-   * Returns an iterator used to evaluate a GRAPH/SERVICE clause
+   * Returns an iterator used to evaluate a SERVICE clause
    * @param  {AsyncIterator}  source    - Source iterator
    * @param  {*}              graph       - Graph used to evaluate the subquery
    * @param  {Object}         subquery  - Subquery to be evaluated
    * @param  {Object}         options   - Execution options
-   * @return {AsyncIterator} An iterator used to evaluate a a GRAPH/SERVICE clause
+   * @return {AsyncIterator} An iterator used to evaluate a SERVICE clause
    */
   _execute (source, graph, subquery, options) {
     throw new Error('A valid ServiceExecutor must implements an "execute" method')
