@@ -24,16 +24,48 @@ SOFTWARE.
 
 'use strict'
 
-const AsyncIterator = require('asynciterator')
+const { ClonedIterator, MultiTransformIterator, SingletonIterator } = require('asynciterator')
+const { applyBindings } = require('../../utils.js')
+const { assign, some, size } = require('lodash')
+
+/**
+ * Basic iterator used to evaluate Basic graph patterns using the "evalBGP" method
+ * available
+ * @extends MultiTransformIterator
+ */
+class BaseBGPIterator extends MultiTransformIterator {
+  constructor (source, bgp, dataset, graph, options) {
+    super(source)
+    this._bgp = bgp
+    this._dataset = dataset
+    this._graph = graph
+    this._options = options
+  }
+
+  _createTransformer (bindings) {
+    // bound the BGP using incoming bindings, then delegate execution to the dataset
+    let boundedBGP = this._bgp.map(t => applyBindings(t, bindings))
+    const hasVars = boundedBGP.map(p => some(p, v => v.startsWith('?')))
+      .reduce((acc, v) => acc && v, true)
+    return this._dataset.evalBGP(this._graph, boundedBGP, this._options)
+      .map(item => {
+        if (size(item) === 0 && hasVars) return null
+        return assign(item, bindings)
+      })
+  }
+}
 
 /**
  * A BGPExecutor is responsible for evaluation BGP in a SPARQL query.
- * It is the main extension point of the SPARQL engine.
- * @abstract
+ * Users can extend this class and overrides the "_execute" method to customize BGP evaluation.
  * @author Thomas Minier
  * @author Corentin Marionneau
  */
 class BGPExecutor {
+  constructor (dataset) {
+    this._dataset = dataset
+  }
+
   /**
    * Returns True if the input iterator if the starting iterator in a pipeline
    * @private
@@ -45,14 +77,14 @@ class BGPExecutor {
     let typeFound = false
     let tested = source
     while (!typeFound) {
-      if (tested instanceof AsyncIterator.ClonedIterator) {
+      if (tested instanceof ClonedIterator) {
         if (tested._source != null) {
           tested = tested._source
         } else {
           isJoinIdentity = true
           typeFound = true
         }
-      } else if (tested instanceof AsyncIterator.SingletonIterator) {
+      } else if (tested instanceof SingletonIterator) {
         isJoinIdentity = true
         typeFound = true
       } else {
@@ -65,25 +97,28 @@ class BGPExecutor {
   /**
    * Build an iterator to evaluate a BGP
    * @private
-   * @param  {AsyncIterator}  source  - Source iterator
-   * @param  {Object[]}  patterns     - Set of triple patterns
-   * @param  {Object}  options        - Execution options
+   * @param  {AsyncIterator}  source    - Source iterator
+   * @param  {Object[]}       patterns  - Set of triple patterns
+   * @param  {Object}         options   - Execution options
    * @return {AsyncIterator} An iterator used to evaluate a Basic Graph pattern
    */
-  _buildIterator (source, patterns, options) {
-    return this.execute(source, patterns, options, this._isJoinIdentity(source))
+  buildIterator (source, patterns, options) {
+    // select the graph to use for BGP evaluation
+    const graph = ('_graph' in options) ? options._graph : this._dataset.getDefaultGraph()
+    return this._execute(source, graph, patterns, options, this._isJoinIdentity(source))
   }
 
   /**
    * Returns an iterator used to evaluate a Basic Graph pattern
-   * @param  {AsyncIterator}  source  - Source iterator
-   * @param  {Object[]}  patterns     - Set of triple patterns
-   * @param  {Object}  options        - Execution options
-   * @param  {Boolean} isJoinIdentity - True if the source iterator is the starting iterator of the pipeline
+   * @param  {AsyncIterator}  source         - Source iterator
+   * @param  {*}              graph          - The graph on which the BGP should be executed
+   * @param  {Object[]}       patterns       - Set of triple patterns
+   * @param  {Object}         options        - Execution options
+   * @param  {Boolean}        isJoinIdentity - True if the source iterator is the starting iterator of the pipeline
    * @return {AsyncIterator} An iterator used to evaluate a Basic Graph pattern
    */
-  execute (source, patterns, options, isJoinIdentity) {
-    throw new Error('A valid BGPExecutor must implements an "execute" method')
+  _execute (source, graph, patterns, options, isJoinIdentity) {
+    return new BaseBGPIterator(source, patterns, this._dataset, graph, options)
   }
 }
 

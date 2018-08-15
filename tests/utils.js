@@ -28,10 +28,9 @@ const level = require('level')
 const levelgraph = require('levelgraph')
 const levelgraphN3 = require('levelgraph-n3')
 const fs = require('fs')
-const { PlanBuilder, BGPExecutor } = require('../src/api.js')
-const { MultiTransformIterator, TransformIterator } = require('asynciterator')
-const { assign, mapKeys, some, size } = require('lodash')
-const rdf = require('ldf-client/lib/util/RdfUtil')
+const { Dataset, PlanBuilder } = require('../src/api.js')
+const { TransformIterator } = require('asynciterator')
+const { mapKeys } = require('lodash')
 
 /**
  * Build a LevelGraph store from a RDF file
@@ -62,22 +61,19 @@ function getDB (filePath) {
   })
 }
 
-/**
- * Evaluates BGP over a LevelGraph DB
- * @extends MultiTransformIterator
- */
-class LevelGraphIterator extends MultiTransformIterator {
-  constructor (source, bgp, db) {
-    super(source)
-    this._bgp = bgp
+class LevelGraphDataset extends Dataset {
+  constructor (db) {
+    super()
     this._db = db
   }
 
-  _createTransformer (bindings) {
-    let boundedBGP = this._bgp.map(p => rdf.applyBindings(bindings, p))
-    const hasVars = boundedBGP.map(p => some(p, v => v.startsWith('?')))
-      .reduce((acc, v) => acc && v, true)
-    boundedBGP = boundedBGP.map(t => {
+  getDefaultGraph () {
+    return this._db
+  }
+
+  evalBGP (graph, bgp) {
+    // rewrite variables using levelgraph API
+    bgp = bgp.map(t => {
       if (t.subject.startsWith('?')) {
         t.subject = this._db.v(t.subject.substring(1))
       }
@@ -89,35 +85,21 @@ class LevelGraphIterator extends MultiTransformIterator {
       }
       return t
     })
-    const stream = this._db.searchStream(boundedBGP)
-    return new TransformIterator(stream)
+    return new TransformIterator(graph.searchStream(bgp))
       .map(item => {
-        if (size(item) === 0 && hasVars) return null
-        // fix '?' prefixes removed by levelgraph
-        item = mapKeys(item, (value, key) => {
+        // fix '?' prefixes (removed by levelgraph)
+        return mapKeys(item, (value, key) => {
           return '?' + key
         })
-        return assign(item, bindings)
       })
-  }
-}
-
-class LevelGraphExecutor extends BGPExecutor {
-  constructor (db) {
-    super()
-    this._db = db
-  }
-
-  execute (source, patterns, options, isJoinIdentity) {
-    return new LevelGraphIterator(source, patterns, this._db)
   }
 }
 
 class LevelGraphEngine {
   constructor (db) {
     this._db = db
-    this._builder = new PlanBuilder()
-    this._builder.setExecutor(new LevelGraphExecutor(this._db))
+    this._dataset = new LevelGraphDataset(this._db)
+    this._builder = new PlanBuilder(this._dataset)
   }
 
   execute (query) {
@@ -127,5 +109,6 @@ class LevelGraphEngine {
 
 module.exports = {
   getDB,
+  LevelGraphDataset,
   LevelGraphEngine
 }

@@ -24,13 +24,15 @@ SOFTWARE.
 
 'use strict'
 
+const Dataset = require('./engine/dataset.js')
 const PlanBuilder = require('./engine/plan-builder.js')
 const BGPExecutor = require('./engine/executors/bgp-executor.js')
-const GraphExecutor = require('./engine/executors/graph-executor.js')
+const ServiceExecutor = require('./engine/executors/service-executor.js')
 
 // expose main classes and extension points
 module.exports = {
+  Dataset,
   PlanBuilder,
   BGPExecutor,
-  GraphExecutor
+  ServiceExecutor
 }

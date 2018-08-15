@@ -1,4 +1,4 @@
-/* file : graph-executor.js
+/* file : service-executor.js
 MIT License
 
 Copyright (c) 2018 Thomas Minier
@@ -25,13 +25,13 @@ SOFTWARE.
 'use strict'
 
 /**
- * A GraphExecutor is responsible for evaluation a GRAPH or a SERVICE clause in a SPARQL query.
+ * A ServiceExecutor is responsible for evaluation a GRAPH or a SERVICE clause in a SPARQL query.
  * It is the second extension point of the SPARQL engine.
  * @abstract
  * @author Thomas Minier
  * @author Corentin Marionneau
  */
-class GraphExecutor {
+class ServiceExecutor {
   /**
    * Build an iterator to evaluate a GRAPH/SERVICE clause
    * @private
@@ -40,7 +40,7 @@ class GraphExecutor {
    * @param  {Object}         options - Execution options
    * @return {AsyncIterator} An iterator used to evaluate a a GRAPH/SERVICE clause
    */
-  _buildIterator (source, node, options) {
+  buildIterator (source, node, options) {
     let subquery
     if (node.patterns[0].type === 'query') {
       subquery = node.patterns[0]
@@ -53,20 +53,21 @@ class GraphExecutor {
         where: node.patterns
       }
     }
-    return this.execute(source, node.name, subquery, options)
+    const graph = (node.name === 'DEFAULT') ? this._dataset.getDefaultGraph() : this._dataset.getNamedGraph(node.name)
+    return this._execute(source, graph, subquery, options)
   }
 
   /**
    * Returns an iterator used to evaluate a GRAPH/SERVICE clause
    * @param  {AsyncIterator}  source    - Source iterator
-   * @param  {string}         uri       - Graph/Service URI
+   * @param  {*}              uri       - Graph used to evaluate the subquery
    * @param  {Object}         subquery  - Subquery to be evaluated
    * @param  {Object}         options   - Execution options
    * @return {AsyncIterator} An iterator used to evaluate a a GRAPH/SERVICE clause
    */
-  execute (source, uri, subquery, options) {
-    throw new Error('A valid GraphExecutor must implements an "execute" method')
+  _execute (source, graph, subquery, options) {
+    throw new Error('A valid ServiceExecutor must implements an "execute" method')
   }
 }
 
-module.exports = GraphExecutor
+module.exports = ServiceExecutor

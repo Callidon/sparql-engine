@@ -38,6 +38,8 @@ const SparqlExpressionEvaluator = require('../utils/SparqlExpressionEvaluator.js
 const SelectOperator = require('../operators/modifiers/select-operator.js')
 const AskOperator = require('../operators/modifiers/ask-operator.js')
 const ConstructOperator = require('../operators/modifiers/construct-operator.js')
+// executors
+const BGPExecutor = require('./executors/bgp-executor.js')
 // utils
 const _ = require('lodash')
 const { deepApplyBindings, extendByBindings, rdf } = require('../utils.js')
@@ -56,10 +58,10 @@ const queryConstructors = {
  * @author Corentin Marionneau
  */
 class PlanBuilder {
-  constructor (prefixes = {}) {
-    this._dispatcher = null
+  constructor (dataset, prefixes = {}) {
+    this._dataset = dataset
     this._parser = new Parser(prefixes)
-    this._executor = null
+    this._executor = new BGPExecutor(this._dataset)
     this._serviceExecutor = null
   }
 
@@ -295,7 +297,7 @@ class PlanBuilder {
           return this._buildWhere(source, groups, childOptions)
         } else {
           // delegate BGP evaluation to an executor
-          return this._executor._buildIterator(source, bgp, options)
+          return this._executor.buildIterator(source, bgp, options)
         }
       case 'query':
         return this.build(group, options, source)
@@ -304,7 +306,7 @@ class PlanBuilder {
           throw new Error('A PlanBuilder cannot evaluate a Service clause without setting a Service Executor')
         }
         // delegate SERVICE evaluation to an executor
-        return this._serviceExecutor._buildIterator(source, group, options)
+        return this._serviceExecutor.buildIterator(source, group, options)
       case 'group':
         return this._buildWhere(source, group.patterns, childOptions)
       case 'optional':
