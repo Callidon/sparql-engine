@@ -36,10 +36,10 @@ class ServiceExecutor {
   }
 
   /**
-   * Build an iterator to evaluate a GRAPH/SERVICE clause
+   * Build an iterator to evaluate a SERVICE clause
    * @private
    * @param  {AsyncIterator}  source  - Source iterator
-   * @param  {string}         uri     - Graph/Service URI
+   * @param  {Object}         node    - Service clause
    * @param  {Object}         options - Execution options
    * @return {AsyncIterator} An iterator used to evaluate a a GRAPH/SERVICE clause
    */
@@ -63,7 +63,7 @@ class ServiceExecutor {
   /**
    * Returns an iterator used to evaluate a GRAPH/SERVICE clause
    * @param  {AsyncIterator}  source    - Source iterator
-   * @param  {*}              uri       - Graph used to evaluate the subquery
+   * @param  {*}              graph       - Graph used to evaluate the subquery
    * @param  {Object}         subquery  - Subquery to be evaluated
    * @param  {Object}         options   - Execution options
    * @return {AsyncIterator} An iterator used to evaluate a a GRAPH/SERVICE clause
