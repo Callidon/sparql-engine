@@ -60,11 +60,10 @@ class GraphExecutor {
         where: node.patterns
       }
     }
-    // handle variable in graph IRI
+    // handle the case where the GRAPh IRI is a SPARQL variable
     if (rdf.isVariable(node.name)) {
-      const graphs = this._dataset.getAllGraphs()
       // execute the subquery using each graph, and bound the graph var to the graph iri
-      const iterators = graphs.map(g => {
+      const iterators = this._dataset.getAllGraphs().map(g => {
         const bindings = {}
         bindings[node.name] = g.iri
         return extendByBindings(this._execute(source.clone(), g, subquery, options), bindings)
