@@ -99,6 +99,10 @@ class LevelGraphEngine {
     this._builder = new PlanBuilder(this._dataset)
   }
 
+  addNamedGraph (iri, db) {
+    this._dataset.addNamedGraph(iri, new LevelGraph(db))
+  }
+
   execute (query) {
     return this._builder.build(query)
   }

@@ -35,7 +35,7 @@ describe('GRAPH queries', () => {
     getDB('./tests/data/dblp.nt')
       .then(db => {
         engine = new LevelGraphEngine(db)
-        engine._dataset.addNamedGraph(GRAPH_IRI, engine._db)
+        engine.addNamedGraph(GRAPH_IRI, db)
         done()
       })
   })
