@@ -1,4 +1,4 @@
-/* file : dataset.js
+/* file : graph.js
 MIT License
 
 Copyright (c) 2018 Thomas Minier
@@ -25,33 +25,44 @@ SOFTWARE.
 'use strict'
 
 /**
- * An abstraction over an RDF datasets, i.e., a collection of RDF graphs.
- * This class is the main extension point of the sparql engine,
- * and users should subclass it in order to connect the query engine
- * to the underlying database.
+ * An abstract RDF Graph, accessed through a RDF Dataset
  * @abstract
  * @author Thomas Minier
  */
-class Dataset {
-  setDefaultGraph (g) {
-    throw new Error('A valid Dataset must implements a "setDefaultGraph" method')
+class Graph {
+  constructor () {
+    this._iri = null
   }
 
-  getDefaultGraph () {
-    throw new Error('A valid Dataset must implements a "getDefaultGraph" method')
+  get iri () {
+    return this._iri
   }
 
-  addNamedGraph (iri, g) {
-    throw new Error('A valid Dataset must implements a "addNamedGraph" method')
+  set iri (value) {
+    this._iri = value
   }
 
-  getNamedGraph (iri) {
-    throw new Error('A valid Dataset must implements a "getNamedGraph" method')
+  insert (graph, triples, options) {
+    throw new Error('A Graph must implements an "insert" method to support SPARQL INSERT queries')
   }
 
-  getAllGraphs () {
-    throw new Error('A valid Dataset must implements a "getAllGraphs" method')
+  delete (graph, triple, options) {
+    throw new Error('A Graph must implements a "delete" method to support SPARQL DELETE queries')
+  }
+
+  /**
+   * Evaluates a Basic Graph pattern, i.e., a set of triple patterns, on the Graph using an iterator.
+   * @param  {Object[]} bgp - The set of triple patterns to evaluate
+   * @param  {Object} options - Execution options
+   * @return {AsyncIterator} An iterator which evaluates the Basic Graph pattern on the Graph
+   */
+  evalBGP (bgp, options) {
+    throw new Error('A Graph must implements an "evalBGP" method to support SPARQL queries')
+  }
+
+  clear (graph) {
+    throw new Error('A Graph must implements a "clear" method to support SPARQL CLEAR queries')
   }
 }
 
-module.exports = Dataset
+module.exports = Graph

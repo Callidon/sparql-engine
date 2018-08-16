@@ -1,4 +1,4 @@
-/* file : dataset.js
+/* file : hashmap-dataset.js
 MIT License
 
 Copyright (c) 2018 Thomas Minier
@@ -24,34 +24,46 @@ SOFTWARE.
 
 'use strict'
 
+const Dataset = require('./dataset.js')
+
 /**
- * An abstraction over an RDF datasets, i.e., a collection of RDF graphs.
- * This class is the main extension point of the sparql engine,
- * and users should subclass it in order to connect the query engine
- * to the underlying database.
- * @abstract
+ * A simple Dataset backed by a HashMap
+ * @extends Dataset
  * @author Thomas Minier
  */
-class Dataset {
+class HashMapDataset extends Dataset {
+  constructor (defaultGraph) {
+    super()
+    this._defaultGraph = defaultGraph
+    this._namedGraphs = new Map()
+  }
+
   setDefaultGraph (g) {
-    throw new Error('A valid Dataset must implements a "setDefaultGraph" method')
+    this._defaultGraph = g
   }
 
   getDefaultGraph () {
-    throw new Error('A valid Dataset must implements a "getDefaultGraph" method')
+    return this._defaultGraph
   }
 
   addNamedGraph (iri, g) {
-    throw new Error('A valid Dataset must implements a "addNamedGraph" method')
+    this._namedGraphs.set(iri, g)
   }
 
   getNamedGraph (iri) {
-    throw new Error('A valid Dataset must implements a "getNamedGraph" method')
+    if (!this._namedGraphs.has(iri)) {
+      throw new Error(`Unknown graph with iri ${iri}`)
+    }
+    return this._namedGraphs.get(iri)
   }
 
   getAllGraphs () {
-    throw new Error('A valid Dataset must implements a "getAllGraphs" method')
+    const graphs = [this.getDefaultGraph()]
+    for (let iri of this._namedGraphs.keys()) {
+      graphs.push(this.getNamedGraph(iri))
+    }
+    return graphs
   }
 }
 
-module.exports = Dataset
+module.exports = HashMapDataset

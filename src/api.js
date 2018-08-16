@@ -25,6 +25,8 @@ SOFTWARE.
 'use strict'
 
 const Dataset = require('./engine/dataset.js')
+const HashMapDataset = require('./engine/hashmap-dataset.js')
+const Graph = require('./engine/graph.js')
 const PlanBuilder = require('./engine/plan-builder.js')
 const BGPExecutor = require('./engine/executors/bgp-executor.js')
 const ServiceExecutor = require('./engine/executors/service-executor.js')
@@ -32,6 +34,8 @@ const ServiceExecutor = require('./engine/executors/service-executor.js')
 // expose main classes and extension points
 module.exports = {
   Dataset,
+  HashMapDataset,
+  Graph,
   PlanBuilder,
   BGPExecutor,
   ServiceExecutor

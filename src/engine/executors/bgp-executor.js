@@ -34,10 +34,9 @@ const { assign, some, size } = require('lodash')
  * @extends MultiTransformIterator
  */
 class BaseBGPIterator extends MultiTransformIterator {
-  constructor (source, bgp, dataset, graph, options) {
+  constructor (source, bgp, graph, options) {
     super(source)
     this._bgp = bgp
-    this._dataset = dataset
     this._graph = graph
     this._options = options
   }
@@ -47,7 +46,7 @@ class BaseBGPIterator extends MultiTransformIterator {
     let boundedBGP = this._bgp.map(t => applyBindings(t, bindings))
     const hasVars = boundedBGP.map(p => some(p, v => v.startsWith('?')))
       .reduce((acc, v) => acc && v, true)
-    return this._dataset.evalBGP(this._graph, boundedBGP, this._options)
+    return this._graph.evalBGP(boundedBGP, this._options)
       .map(item => {
         if (size(item) === 0 && hasVars) return null
         return assign(item, bindings)
@@ -104,21 +103,24 @@ class BGPExecutor {
    */
   buildIterator (source, patterns, options) {
     // select the graph to use for BGP evaluation
-    const graph = ('_graph' in options) ? options._graph : this._dataset.getDefaultGraph()
+    let graph = this._dataset.getDefaultGraph()
+    if ('_graph' in options && options._graph !== 'DEFAULT') {
+      graph = this._dataset.getNamedGraph(options._graph)
+    }
     return this._execute(source, graph, patterns, options, this._isJoinIdentity(source))
   }
 
   /**
    * Returns an iterator used to evaluate a Basic Graph pattern
    * @param  {AsyncIterator}  source         - Source iterator
-   * @param  {*}              graph          - The graph on which the BGP should be executed
+   * @param  {Graph}          graph          - The graph on which the BGP should be executed
    * @param  {Object[]}       patterns       - Set of triple patterns
    * @param  {Object}         options        - Execution options
    * @param  {Boolean}        isJoinIdentity - True if the source iterator is the starting iterator of the pipeline
    * @return {AsyncIterator} An iterator used to evaluate a Basic Graph pattern
    */
   _execute (source, graph, patterns, options, isJoinIdentity) {
-    return new BaseBGPIterator(source, patterns, this._dataset, graph, options)
+    return new BaseBGPIterator(source, patterns, graph, options)
   }
 }
 

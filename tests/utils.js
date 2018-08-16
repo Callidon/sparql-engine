@@ -28,7 +28,7 @@ const level = require('level')
 const levelgraph = require('levelgraph')
 const levelgraphN3 = require('levelgraph-n3')
 const fs = require('fs')
-const { Dataset, PlanBuilder } = require('../src/api.js')
+const { HashMapDataset, Graph, PlanBuilder } = require('../src/api.js')
 const { TransformIterator } = require('asynciterator')
 const { mapKeys } = require('lodash')
 
@@ -61,17 +61,13 @@ function getDB (filePath) {
   })
 }
 
-class LevelGraphDataset extends Dataset {
+class LevelGraph extends Graph {
   constructor (db) {
     super()
     this._db = db
   }
 
-  getDefaultGraph () {
-    return this._db
-  }
-
-  evalBGP (graph, bgp) {
+  evalBGP (bgp) {
     // rewrite variables using levelgraph API
     bgp = bgp.map(t => {
       if (t.subject.startsWith('?')) {
@@ -85,7 +81,7 @@ class LevelGraphDataset extends Dataset {
       }
       return t
     })
-    return new TransformIterator(graph.searchStream(bgp))
+    return new TransformIterator(this._db.searchStream(bgp))
       .map(item => {
         // fix '?' prefixes (removed by levelgraph)
         return mapKeys(item, (value, key) => {
@@ -98,7 +94,8 @@ class LevelGraphDataset extends Dataset {
 class LevelGraphEngine {
   constructor (db) {
     this._db = db
-    this._dataset = new LevelGraphDataset(this._db)
+    this._graph = new LevelGraph(this._db)
+    this._dataset = new HashMapDataset(this._graph)
     this._builder = new PlanBuilder(this._dataset)
   }
 
@@ -109,6 +106,5 @@ class LevelGraphEngine {
 
 module.exports = {
   getDB,
-  LevelGraphDataset,
   LevelGraphEngine
 }

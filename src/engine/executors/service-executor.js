@@ -31,10 +31,6 @@ SOFTWARE.
  * @author Corentin Marionneau
  */
 class ServiceExecutor {
-  constructor (dataset) {
-    this._dataset = dataset
-  }
-
   /**
    * Build an iterator to evaluate a SERVICE clause
    * @private
@@ -56,19 +52,18 @@ class ServiceExecutor {
         where: node.patterns
       }
     }
-    const graph = (node.name === 'DEFAULT') ? this._dataset.getDefaultGraph() : this._dataset.getNamedGraph(node.name)
-    return this._execute(source, graph, subquery, options)
+    return this._execute(source, node.name, subquery, options)
   }
 
   /**
    * Returns an iterator used to evaluate a SERVICE clause
    * @param  {AsyncIterator}  source    - Source iterator
-   * @param  {*}              graph       - Graph used to evaluate the subquery
+   * @param  {string}         iri       - Iri of the SERVICE clause
    * @param  {Object}         subquery  - Subquery to be evaluated
    * @param  {Object}         options   - Execution options
    * @return {AsyncIterator} An iterator used to evaluate a SERVICE clause
    */
-  _execute (source, graph, subquery, options) {
+  _execute (source, iri, subquery, options) {
     throw new Error('A valid ServiceExecutor must implements an "execute" method')
   }
 }
