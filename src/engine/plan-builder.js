@@ -40,6 +40,7 @@ const AskOperator = require('../operators/modifiers/ask-operator.js')
 const ConstructOperator = require('../operators/modifiers/construct-operator.js')
 // executors
 const BGPExecutor = require('./executors/bgp-executor.js')
+const GraphExecutor = require('./executors/graph-executor.js')
 // utils
 const _ = require('lodash')
 const { deepApplyBindings, extendByBindings, rdf } = require('../utils.js')
@@ -62,6 +63,7 @@ class PlanBuilder {
     this._dataset = dataset
     this._parser = new Parser(prefixes)
     this._executor = new BGPExecutor(this._dataset)
+    this._graphExecutor = new GraphExecutor(this._dataset, this)
     this._serviceExecutor = null
   }
 
@@ -279,7 +281,7 @@ class PlanBuilder {
     switch (group.type) {
       case 'bgp':
         if (_.isNull(this._executor)) {
-          throw new Error('A PlanBuilder cannot evaluate a Basic Graph Pattern without setting a BGPExecutor')
+          throw new Error('A PlanBuilder cannot evaluate a Basic Graph Pattern without a BGPExecutor')
         }
         var copyGroup = Object.assign({}, group)
         // evaluate possible Property paths
@@ -301,9 +303,14 @@ class PlanBuilder {
         }
       case 'query':
         return this.build(group, options, source)
+      case 'graph':
+        if (_.isNull(this._graphExecutor)) {
+          throw new Error('A PlanBuilder cannot evaluate a GRAPH clause without a GraphExecutor')
+        }
+        return this._graphExecutor.buildIterator(source, group, options)
       case 'service':
         if (_.isNull(this._serviceExecutor)) {
-          throw new Error('A PlanBuilder cannot evaluate a Service clause without setting a Service Executor')
+          throw new Error('A PlanBuilder cannot evaluate a SERVICE clause without a ServiceExecutor')
         }
         // delegate SERVICE evaluation to an executor
         return this._serviceExecutor.buildIterator(source, group, options)

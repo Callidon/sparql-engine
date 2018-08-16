@@ -26,6 +26,8 @@ SOFTWARE.
 
 const Dataset = require('./dataset.js')
 
+const DEFAULT_GRAPH_IRI = 'urn:sparql-engine:DefaultGraph'
+
 /**
  * A simple Dataset backed by a HashMap
  * @extends Dataset
@@ -34,11 +36,13 @@ const Dataset = require('./dataset.js')
 class HashMapDataset extends Dataset {
   constructor (defaultGraph) {
     super()
+    defaultGraph.iri = DEFAULT_GRAPH_IRI
     this._defaultGraph = defaultGraph
     this._namedGraphs = new Map()
   }
 
   setDefaultGraph (g) {
+    g.iri = DEFAULT_GRAPH_IRI
     this._defaultGraph = g
   }
 
@@ -47,11 +51,14 @@ class HashMapDataset extends Dataset {
   }
 
   addNamedGraph (iri, g) {
+    g.iri = iri
     this._namedGraphs.set(iri, g)
   }
 
   getNamedGraph (iri) {
-    if (!this._namedGraphs.has(iri)) {
+    if (iri === DEFAULT_GRAPH_IRI) {
+      return this.getDefaultGraph()
+    } else if (!this._namedGraphs.has(iri)) {
       throw new Error(`Unknown graph with iri ${iri}`)
     }
     return this._namedGraphs.get(iri)
@@ -59,9 +66,9 @@ class HashMapDataset extends Dataset {
 
   getAllGraphs () {
     const graphs = [this.getDefaultGraph()]
-    for (let iri of this._namedGraphs.keys()) {
-      graphs.push(this.getNamedGraph(iri))
-    }
+    this._namedGraphs.forEach(g => {
+      graphs.push(g)
+    })
     return graphs
   }
 }

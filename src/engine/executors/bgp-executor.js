@@ -104,7 +104,7 @@ class BGPExecutor {
   buildIterator (source, patterns, options) {
     // select the graph to use for BGP evaluation
     let graph = this._dataset.getDefaultGraph()
-    if ('_graph' in options && options._graph !== 'DEFAULT') {
+    if ('_graph' in options) {
       graph = this._dataset.getNamedGraph(options._graph)
     }
     return this._execute(source, graph, patterns, options, this._isJoinIdentity(source))
