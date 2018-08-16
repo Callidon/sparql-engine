@@ -103,6 +103,8 @@ describe('GRAPH queries', () => {
       'https://dblp.org/rec/conf/esws/MinierMSM17a',
       'https://dblp.org/rec/conf/esws/MinierMSM17a'
     ]
+    let nbDefault = 0
+    let nbNamedGraph = 0
     const results = []
 
     const iterator = engine.execute(query)
@@ -110,6 +112,11 @@ describe('GRAPH queries', () => {
     iterator.on('data', b => {
       expect(b).to.have.all.keys(['?name', '?article', '?graph'])
       expect(b['?graph']).to.be.oneOf(['urn:sparql-engine:DefaultGraph', GRAPH_IRI])
+      if (b['?graph'] === 'urn:sparql-engine:DefaultGraph') {
+        nbDefault++
+      } else {
+        nbNamedGraph++
+      }
       expect(b['?name']).to.equal('"Thomas Minier"@en')
       expect(b['?article']).to.be.oneOf(expectedArticles)
       const index = expectedArticles.findIndex(v => v === b['?article'])
@@ -119,6 +126,8 @@ describe('GRAPH queries', () => {
     iterator.on('end', () => {
       expect(results.length).to.equal(10)
       expect(expectedArticles.length).to.equal(0)
+      expect(nbDefault).to.equal(5)
+      expect(nbNamedGraph).to.equal(5)
       done()
     })
   })
