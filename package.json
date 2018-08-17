@@ -14,12 +14,11 @@
   },
   "keywords": [
     "sparql",
-    "engine",
-    "sparql",
+    "sparql engine",
+    "sparql query",
     "query",
     "framework",
-    "sparql",
-    "1.1"
+    "sparql 1.1",
   ],
   "author": "Thomas Minier <thomas.minier@univ-nantes.fr>",
   "license": "MIT",
