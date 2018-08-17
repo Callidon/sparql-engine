@@ -68,14 +68,15 @@ Similarly, to support the [SPARQL UPDATE protocol](https://www.w3.org/TR/2013/RE
       of Basic Graph patterns, i.e., set of triples patterns.
     */
     evalBGP (bgp, options) {
-      this._db.searchBasicGraphPattern(bgp)
+      // This method must return an AsyncIterator
+      return this._db.searchBasicGraphPattern(bgp)
     }
   }
 ```
 
 ## RDF Datasets
 
-Once you have your subclass of `Graph` read, you need to build a collection of RDF Graphs, called a [RDF Dataset](https://www.w3.org/TR/rdf11-concepts/#section-dataset). You can build your own implementation of a Dataset by subclassing [`Dataset`](), but a default implementation based on a HashMap is already available.
+Once you have your subclass of `Graph` ready, you need to build a collection of RDF Graphs, called a [RDF Dataset](https://www.w3.org/TR/rdf11-concepts/#section-dataset). You can build your own implementation of a Dataset by subclassing [`Dataset`](), but a default implementation based on a HashMap is already available.
 
 ```javascript
  const { HashMapDataset } = require('sparql-engine')
