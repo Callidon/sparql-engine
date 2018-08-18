@@ -27,7 +27,7 @@ SOFTWARE.
 const expect = require('chai').expect
 const { getDB, LevelGraphEngine } = require('../utils.js')
 
-describe('SPARQL queries with FILTER', () => {
+describe('FILTER SPARQL queries', () => {
   let engine = null
   before(done => {
     getDB('./tests/data/dblp.nt')
@@ -54,9 +54,65 @@ describe('SPARQL queries with FILTER', () => {
       expectedNb: 1
     },
     {
-      name: '+',
+      name: '!=',
       query: `
       PREFIX dblp-pers: <https://dblp.org/pers/m/>
+      PREFIX dblp-rdf: <https://dblp.uni-trier.de/rdf/schema-2017-04-18#>
+      PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+      SELECT ?name ?article WHERE {
+        ?s rdf:type dblp-rdf:Person .
+        ?s dblp-rdf:primaryFullPersonName ?name .
+        FILTER(?name != "Thomas Minier")
+      }`,
+      expectedNb: 1
+    },
+    {
+      name: '<',
+      query: `
+      PREFIX dblp-rdf: <https://dblp.uni-trier.de/rdf/schema-2017-04-18#>
+      PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+      SELECT ?name ?article WHERE {
+        ?s rdf:type dblp-rdf:Person .
+        FILTER(10 < 20)
+      }`,
+      expectedNb: 1
+    },
+    {
+      name: '>',
+      query: `
+      PREFIX dblp-rdf: <https://dblp.uni-trier.de/rdf/schema-2017-04-18#>
+      PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+      SELECT ?name ?article WHERE {
+        ?s rdf:type dblp-rdf:Person .
+        FILTER(10 > 20)
+      }`,
+      expectedNb: 0
+    },
+    {
+      name: '<=',
+      query: `
+      PREFIX dblp-rdf: <https://dblp.uni-trier.de/rdf/schema-2017-04-18#>
+      PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+      SELECT ?name ?article WHERE {
+        ?s rdf:type dblp-rdf:Person .
+        FILTER(10 <= 10)
+      }`,
+      expectedNb: 1
+    },
+    {
+      name: '<=',
+      query: `
+      PREFIX dblp-rdf: <https://dblp.uni-trier.de/rdf/schema-2017-04-18#>
+      PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+      SELECT ?name ?article WHERE {
+        ?s rdf:type dblp-rdf:Person .
+        FILTER(20 >= 10)
+      }`,
+      expectedNb: 1
+    },
+    {
+      name: '+',
+      query: `
       PREFIX dblp-rdf: <https://dblp.uni-trier.de/rdf/schema-2017-04-18#>
       PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
       SELECT ?name ?article WHERE {
@@ -64,13 +120,162 @@ describe('SPARQL queries with FILTER', () => {
         FILTER(10 + 10 = 20)
       }`,
       expectedNb: 1
+    },
+    {
+      name: '-',
+      query: `
+      PREFIX dblp-rdf: <https://dblp.uni-trier.de/rdf/schema-2017-04-18#>
+      PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+      SELECT ?name ?article WHERE {
+        ?s rdf:type dblp-rdf:Person .
+        FILTER(10 - 10 = 20)
+      }`,
+      expectedNb: 0
+    },
+    {
+      name: '*',
+      query: `
+      PREFIX dblp-rdf: <https://dblp.uni-trier.de/rdf/schema-2017-04-18#>
+      PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+      SELECT ?name ?article WHERE {
+        ?s rdf:type dblp-rdf:Person .
+        FILTER(10 * 10 > 20)
+      }`,
+      expectedNb: 1
+    },
+    {
+      name: '/',
+      query: `
+      PREFIX dblp-rdf: <https://dblp.uni-trier.de/rdf/schema-2017-04-18#>
+      PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+      SELECT ?name ?article WHERE {
+        ?s rdf:type dblp-rdf:Person .
+        FILTER(10 / 2 = 5.0)
+      }`,
+      expectedNb: 1
+    },
+    {
+      name: '&&',
+      query: `
+      PREFIX dblp-pers: <https://dblp.org/pers/m/>
+      PREFIX dblp-rdf: <https://dblp.uni-trier.de/rdf/schema-2017-04-18#>
+      PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+      SELECT ?name ?article WHERE {
+        ?s rdf:type dblp-rdf:Person .
+        ?s dblp-rdf:primaryFullPersonName ?name .
+        FILTER(?name = "Thomas Minier"@en && 10 < 20)
+      }`,
+      expectedNb: 1
+    },
+    {
+      name: '||',
+      query: `
+      PREFIX dblp-pers: <https://dblp.org/pers/m/>
+      PREFIX dblp-rdf: <https://dblp.uni-trier.de/rdf/schema-2017-04-18#>
+      PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+      SELECT ?name ?article WHERE {
+        ?s rdf:type dblp-rdf:Person .
+        ?s dblp-rdf:primaryFullPersonName ?name .
+        FILTER(?name = "Thomas Minier"@en || 10 < 20)
+      }`,
+      expectedNb: 1
+    },
+    {
+      name: '!',
+      query: `
+      PREFIX dblp-pers: <https://dblp.org/pers/m/>
+      PREFIX dblp-rdf: <https://dblp.uni-trier.de/rdf/schema-2017-04-18#>
+      PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+      SELECT ?name ?article WHERE {
+        ?s rdf:type dblp-rdf:Person .
+        ?s dblp-rdf:primaryFullPersonName ?name .
+        FILTER(!(?name = "Thomas Minier"@en))
+      }`,
+      expectedNb: 0
+    },
+    {
+      name: 'lang',
+      query: `
+      PREFIX dblp-pers: <https://dblp.org/pers/m/>
+      PREFIX dblp-rdf: <https://dblp.uni-trier.de/rdf/schema-2017-04-18#>
+      PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+      SELECT ?name ?article WHERE {
+        ?s rdf:type dblp-rdf:Person .
+        ?s dblp-rdf:primaryFullPersonName ?name .
+        FILTER(lang(?name) = "en")
+      }`,
+      expectedNb: 1
+    },
+    {
+      name: 'langmatches',
+      query: `
+      PREFIX dblp-pers: <https://dblp.org/pers/m/>
+      PREFIX dblp-rdf: <https://dblp.uni-trier.de/rdf/schema-2017-04-18#>
+      PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+      SELECT ?name ?article WHERE {
+        ?s rdf:type dblp-rdf:Person .
+        ?s dblp-rdf:primaryFullPersonName ?name .
+        FILTER(langmatches(lang(?name), "EN"))
+      }`,
+      expectedNb: 1
+    },
+    {
+      name: 'contains',
+      query: `
+      PREFIX dblp-pers: <https://dblp.org/pers/m/>
+      PREFIX dblp-rdf: <https://dblp.uni-trier.de/rdf/schema-2017-04-18#>
+      PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+      SELECT ?name ?article WHERE {
+        ?s rdf:type dblp-rdf:Person .
+        ?s dblp-rdf:primaryFullPersonName ?name .
+        FILTER(contains(?name, "Thomas"))
+      }`,
+      expectedNb: 1
+    },
+    {
+      name: 'strstarts',
+      query: `
+      PREFIX dblp-pers: <https://dblp.org/pers/m/>
+      PREFIX dblp-rdf: <https://dblp.uni-trier.de/rdf/schema-2017-04-18#>
+      PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+      SELECT ?name ?article WHERE {
+        ?s rdf:type dblp-rdf:Person .
+        ?s dblp-rdf:primaryFullPersonName ?name .
+        FILTER(strstarts(?name, "Thomas"))
+      }`,
+      expectedNb: 1
+    },
+    {
+      name: 'strends',
+      query: `
+      PREFIX dblp-pers: <https://dblp.org/pers/m/>
+      PREFIX dblp-rdf: <https://dblp.uni-trier.de/rdf/schema-2017-04-18#>
+      PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+      SELECT ?name ?article WHERE {
+        ?s rdf:type dblp-rdf:Person .
+        ?s dblp-rdf:primaryFullPersonName ?name .
+        FILTER(strends(?name, "Norris"))
+      }`,
+      expectedNb: 0
+    },
+    {
+      name: 'bound',
+      query: `
+      PREFIX dblp-pers: <https://dblp.org/pers/m/>
+      PREFIX dblp-rdf: <https://dblp.uni-trier.de/rdf/schema-2017-04-18#>
+      PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+      SELECT ?name ?article WHERE {
+        ?s rdf:type dblp-rdf:Person .
+        ?s dblp-rdf:primaryFullPersonName ?name .
+        FILTER(bound(?toto))
+      }`,
+      expectedNb: 0
     }
   ]
 
   data.forEach(d => {
     it(`should evaluate the "${d.name}" FILTER`, done => {
       const results = []
-
       const iterator = engine.execute(d.query)
       iterator.on('error', done)
       iterator.on('data', b => {

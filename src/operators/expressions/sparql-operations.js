@@ -26,7 +26,7 @@ SOFTWARE.
 
 const N3Util = require('n3').Util
 const { parseTerm, XSD } = require('../../utils.js').rdf
-const { isString } = require('lodash')
+const { isNull, isString } = require('lodash')
 
 const XSD_BOOLEAN = XSD('boolean')
 const XSD_TRUE = '"true"^^' + XSD_BOOLEAN
@@ -143,8 +143,7 @@ const SPARQL_OPERATIONS = {
   },
 
   'bound': function (a) {
-    if (!a.startWith('?')) { throw new Error('BOUND expects a variable but got: ' + a) }
-    return a in this ? XSD_TRUE : XSD_FALSE
+    return !isNull(a)
   },
 
   'isiri': function (a) {

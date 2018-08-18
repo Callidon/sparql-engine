@@ -42,6 +42,7 @@ function compileTerm (term) {
         case XSD('integer'):
         case XSD('number'):
         case XSD('float'):
+        case XSD('decimal'):
           return Number(parsed.value)
         case XSD('boolean'):
           return parsed.value === '"true"'
@@ -83,7 +84,7 @@ class FilterOperator extends TransformIterator {
       throw new Error(`Unsupported SPARQL operations: ${expression.operator}`)
     }
     const operation = operations[expression.operator]
-    // operation case: compile each argulents, then evaluate the expression
+    // operation case: compile each argument, then evaluate the expression
     return bindings => {
       return operation(...args.map(arg => arg(bindings)))
     }
