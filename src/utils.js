@@ -28,35 +28,31 @@ const { Duplex, PassThrough } = require('stream')
 const { assign } = require('lodash')
 const n3utils = require('n3').Util
 
-function IRIDescriptor (variable, iri) {
+function IRIDescriptor (iri) {
   return {
     type: 'iri',
-    variable,
     value: iri
   }
 }
 
-function RawLiteralDescriptor (variable, literal) {
+function RawLiteralDescriptor (literal) {
   return {
     type: 'literal',
-    variable,
     value: literal
   }
 }
 
-function TypedLiteralDescriptor (variable, literal, type) {
+function TypedLiteralDescriptor (literal, type) {
   return {
     type: 'literal+type',
-    variable,
     value: literal,
     datatype: type
   }
 }
 
-function LangLiteralDescriptor (variable, literal, lang) {
+function LangLiteralDescriptor (literal, lang) {
   return {
     type: 'literal+lang',
-    variable,
     value: literal,
     lang
   }
@@ -70,27 +66,38 @@ function stripDatatype (datatype) {
 }
 
 /**
+ * Parse a RDF term in string format and return a descriptor with its type and value
+ * @param  {string} binding - The binding in string format (i.e., URI or Literal)
+ * @return {Object} A descriptor for the term
+ */
+function parseTerm (term) {
+  if (n3utils.isIRI(term)) {
+    return IRIDescriptor(term)
+  } else if (n3utils.isLiteral(term)) {
+    const value = n3utils.getLiteralValue(term)
+    const lang = n3utils.getLiteralLanguage(term)
+    const type = stripDatatype(n3utils.getLiteralType(term))
+    if (lang !== null && lang !== undefined && lang !== '') {
+      return LangLiteralDescriptor(value, lang)
+    } else if (term.indexOf('^^') > -1) {
+      return TypedLiteralDescriptor(value, type)
+    }
+    return RawLiteralDescriptor(value)
+  } else {
+    throw new Error(`Unknown RDF Term encoutered during parsing: ${term}`)
+  }
+}
+
+/**
  * Parse a solution binding and return a descriptor with its type and value
  * @param  {string} variable - The SPARQL variable that the binding bound
  * @param  {string} binding - The binding in string format (i.e., URI or Literal)
  * @return {Object} A descriptor for the binding
  */
 function parseBinding (variable, binding) {
-  if (n3utils.isIRI(binding)) {
-    return IRIDescriptor(variable, binding)
-  } else if (n3utils.isLiteral(binding)) {
-    const value = n3utils.getLiteralValue(binding)
-    const lang = n3utils.getLiteralLanguage(binding)
-    const type = stripDatatype(n3utils.getLiteralType(binding))
-    if (lang !== null && lang !== undefined && lang !== '') {
-      return LangLiteralDescriptor(variable, value, lang)
-    } else if (binding.indexOf('^^') > -1) {
-      return TypedLiteralDescriptor(variable, value, type)
-    }
-    return RawLiteralDescriptor(variable, value)
-  } else {
-    throw new Error(`Binding with unexpected type encoutered during formatting: ${binding}`)
-  }
+  const parsed = parseTerm(binding)
+  parsed.variable = variable
+  return parsed
 }
 
 /**
@@ -118,6 +125,10 @@ function isVariable (str) {
     return false
   }
   return str.startsWith('?')
+}
+
+function XSD (term) {
+  return `http://www.w3.org/2001/XMLSchema#${term}`
 }
 
 /**
@@ -212,8 +223,10 @@ class MultiTransform extends Duplex {
 
 module.exports = {
   rdf: {
+    XSD,
     isVariable,
-    triple
+    triple,
+    parseTerm
   },
   applyBindings,
   deepApplyBindings,

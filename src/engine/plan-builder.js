@@ -33,6 +33,7 @@ const AggrOperator = require('../operators/agg-operator.js')
 const UnionOperator = require('../operators/union-operator.js')
 const SortIterator = require('ldf-client/lib/sparql/SortIterator')
 const DistinctIterator = require('../operators/distinct-operator.js')
+const FilterOperator = require('../operators/expressions/filter-operator.js')
 const SparqlExpressionEvaluator = require('../utils/SparqlExpressionEvaluator.js')
 // solution modifiers
 const SelectOperator = require('../operators/modifiers/select-operator.js')
@@ -326,11 +327,11 @@ class PlanBuilder {
       case 'filter':
       // A set of bindings does not match the filter
       // if it evaluates to 0/false, or errors
-
-        var evaluate = new SparqlExpressionEvaluator(group.expression)
-        return source.filter(bindings => {
-          try { return !/^"false"|^"0"/.test(evaluate(bindings)) } catch (error) { return false }
-        })
+        return new FilterOperator(source, group.expression)
+        // var evaluate = new SparqlExpressionEvaluator(group.expression)
+        // return source.filter(bindings => {
+        //   try { return !/^"false"|^"0"/.test(evaluate(bindings)) } catch (error) { return false }
+        // })
       default:
         throw new Error(`Unsupported SPARQL clause fround in query: ${group.type}`)
     }

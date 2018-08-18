@@ -3,7 +3,7 @@
 var N3Util = require('n3').Util,
   createErrorType = require('ldf-client/lib/util/CustomError')
 
-const utils = require('../formatters/utils')
+const utils = require('../utils.js')
 
 var XSD = 'http://www.w3.org/2001/XMLSchema#',
   XSD_INTEGER = XSD + 'integer',
