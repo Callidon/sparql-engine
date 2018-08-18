@@ -29,6 +29,30 @@ const terms = require('../../rdf-terms.js')
 const { isNull } = require('lodash')
 
 /**
+ * Test if Two RDF Terms are equal
+ * @see https://www.w3.org/TR/sparql11-query/#func-RDFterm-equal
+ * @param {Object} a - Left Term
+ * @param {Object} b - Right term
+ * @return {Object} A RDF Literal with the results of the test
+ */
+function RDFTermEqual (a, b) {
+  if (a.type !== b.type) {
+    return terms.BooleanDescriptor(false)
+  }
+  switch (a.type) {
+    case 'iri':
+    case 'literal':
+      return terms.BooleanDescriptor(a.value === b.value)
+    case 'literal+type':
+      return terms.BooleanDescriptor(a.value === b.value && a.datatype === b.datatype)
+    case 'literal+lang':
+      return terms.BooleanDescriptor(a.value === b.value && a.lang === b.lang)
+    default:
+      return terms.BooleanDescriptor(false)
+  }
+}
+
+/**
  * Implementation of SPARQL operations found in FILTERS
  * All arguments are pre-compiled from string to an intermediate representation.
  * All possible intermediate representation are gathered in the `src/rdf-terms.js` file,
@@ -38,6 +62,9 @@ const { isNull } = require('lodash')
  * @author Corentin Marionneau
  */
 const SPARQL_OPERATIONS = {
+  /*
+    XQuery & XPath functions https://www.w3.org/TR/sparql11-query/#OperatorMapping
+  */
   '+': function (a, b) {
     return terms.NumericOperation(a.asJS + b.asJS, a.datatype)
   },
@@ -55,7 +82,7 @@ const SPARQL_OPERATIONS = {
   },
 
   '=': function (a, b) {
-    return terms.BooleanDescriptor(a.asJS === b.asJS)
+    return RDFTermEqual(a, b)
   },
 
   '!=': function (a, b) {
@@ -90,62 +117,28 @@ const SPARQL_OPERATIONS = {
     return terms.BooleanDescriptor(a.asJS || b.asJS)
   },
 
-  'lang': function (a) {
-    if (a.type === 'literal+lang') {
-      return terms.RawLiteralDescriptor(a.lang.toLowerCase())
-    }
-    return terms.RawLiteralDescriptor('')
-  },
-
-  'langmatches': function (langTag, langRange) {
-    // Implements https://tools.ietf.org/html/rfc4647#section-3.3.1
-    langTag = langTag.value.toLowerCase()
-    langRange = langRange.value.toLowerCase()
-    const test = langTag === langRange ||
-                  langRange === '*' ||
-                  langTag.substr(1, langRange.length + 1) === langRange + '-'
-    return terms.BooleanDescriptor(test)
-  },
-
-  'contains': function (string, substring) {
-    const a = string.value
-    const b = substring.value
-    return terms.BooleanDescriptor(a.indexOf(b) >= 0)
-  },
-
-  'strstarts': function (string, substring) {
-    const a = string.value
-    const b = substring.value
-    return terms.BooleanDescriptor(a.startsWith(b))
-  },
-
-  'strends': function (string, substring) {
-    const a = string.value
-    const b = substring.value
-    return terms.BooleanDescriptor(a.endsWith(b))
-  },
-
-  'regex': function (subject, pattern) {
-    return new RegExp(pattern).test(subject)
-  },
-
-  'str': function (a) {
-    return a.type.startsWith('literal') ? a : terms.RawLiteralDescriptor(a)
-  },
-
-  'http://www.w3.org/2001/XMLSchema#integer': function (a) {
-    return terms.NumericOperation(Math.floor(a.asJS), XSD('integer'))
-  },
-
-  'http://www.w3.org/2001/XMLSchema#double': function (a) {
-    a = a.value.toFixed()
-    if (a.indexOf('.') < 0) a += '.0'
-    return terms.NumericOperation(a, XSD('double'))
-  },
-
+  /*
+    SPARQL Functiona forms https://www.w3.org/TR/sparql11-query/#func-forms
+  */
   'bound': function (a) {
     return terms.BooleanDescriptor(!isNull(a))
   },
+
+  'sameterm': function (a, b) {
+    return RDFTermEqual(a, b)
+  },
+
+  'in': function (a, b) {
+    return terms.BooleanDescriptor(b.some(elt => a.asJS === b.asJS))
+  },
+
+  'notin': function (a, b) {
+    return terms.BooleanDescriptor(!b.some(elt => a.asJS === b.asJS))
+  },
+
+  /*
+    Functions on RDF Terms https://www.w3.org/TR/sparql11-query/#func-rdfTerms
+  */
 
   'isiri': function (a) {
     return terms.BooleanDescriptor(a.type === 'iri')
@@ -163,46 +156,15 @@ const SPARQL_OPERATIONS = {
     return terms.BooleanDescriptor(!isNaN(a.asJS))
   },
 
-  'abs': function (a) {
-    return terms.NumericOperation(Math.abs(a.asJS), XSD('integer'))
+  'str': function (a) {
+    return a.type.startsWith('literal') ? a : terms.RawLiteralDescriptor(a)
   },
 
-  'ceil': function (a) {
-    return terms.NumericOperation(Math.ceil(a.asJS), XSD('integer'))
-  },
-
-  'floor': function (a) {
-    return terms.NumericOperation(Math.floor(a.asJS), XSD('integer'))
-  },
-
-  'round': function (a) {
-    return terms.NumericOperation(Math.round(a.asJS), XSD('integer'))
-  },
-
-  'sameterm': function (a, b) {
-    // is one of the Term is alreay parsed, no need to parse it again
-    if (a.type !== b.type) {
-      return terms.BooleanDescriptor(false)
+  'lang': function (a) {
+    if (a.type === 'literal+lang') {
+      return terms.RawLiteralDescriptor(a.lang.toLowerCase())
     }
-    switch (a.type) {
-      case 'iri':
-      case 'literal':
-        return terms.BooleanDescriptor(a.value === b.value)
-      case 'literal+type':
-        return terms.BooleanDescriptor(a.value === b.value && a.datatype === b.datatype)
-      case 'literal+lang':
-        return terms.BooleanDescriptor(a.value === b.value && a.lang === b.lang)
-      default:
-        return terms.BooleanDescriptor(false)
-    }
-  },
-
-  'in': function (a, b) {
-    return terms.BooleanDescriptor(b.some(elt => a.asJS === b.asJS))
-  },
-
-  'notin': function (a, b) {
-    return terms.BooleanDescriptor(!b.some(elt => a.asJS === b.asJS))
+    return terms.RawLiteralDescriptor('')
   },
 
   'datatype': function (a) {
@@ -216,7 +178,87 @@ const SPARQL_OPERATIONS = {
       default:
         return terms.RawLiteralDescriptor('')
     }
+  },
+
+  'iri': function (a) {
+    return terms.IRIDescriptor(a.value)
+  },
+
+  'strdt': function (x, datatype) {
+    return terms.TypedLiteralDescriptor(x.value, datatype.value)
+  },
+
+  'strlang': function (x, lang) {
+    return terms.LangLiteralDescriptor(x.value, lang.value)
+  },
+
+  /*
+    Functions on Strings https://www.w3.org/TR/sparql11-query/#func-strings
+  */
+
+  'strlen': function (a) {
+    return terms.NumericOperation(a.value.length, XSD('integer'))
+  },
+
+  'strstarts': function (string, substring) {
+    const a = string.value
+    const b = substring.value
+    return terms.BooleanDescriptor(a.startsWith(b))
+  },
+
+  'strends': function (string, substring) {
+    const a = string.value
+    const b = substring.value
+    return terms.BooleanDescriptor(a.endsWith(b))
+  },
+
+  'contains': function (string, substring) {
+    const a = string.value
+    const b = substring.value
+    return terms.BooleanDescriptor(a.indexOf(b) >= 0)
+  },
+
+  'langmatches': function (langTag, langRange) {
+    // Implements https://tools.ietf.org/html/rfc4647#section-3.3.1
+    langTag = langTag.value.toLowerCase()
+    langRange = langRange.value.toLowerCase()
+    const test = langTag === langRange ||
+                  langRange === '*' ||
+                  langTag.substr(1, langRange.length + 1) === langRange + '-'
+    return terms.BooleanDescriptor(test)
+  },
+
+  'regex': function (subject, pattern) {
+    return new RegExp(pattern).test(subject)
+  },
+
+  /*
+    Functions on Numerics https://www.w3.org/TR/sparql11-query/#func-numerics
+  */
+
+  'abs': function (a) {
+    return terms.NumericOperation(Math.abs(a.asJS), XSD('integer'))
+  },
+
+  'round': function (a) {
+    return terms.NumericOperation(Math.round(a.asJS), XSD('integer'))
+  },
+
+  'ceil': function (a) {
+    return terms.NumericOperation(Math.ceil(a.asJS), XSD('integer'))
+  },
+
+  'floor': function (a) {
+    return terms.NumericOperation(Math.floor(a.asJS), XSD('integer'))
   }
+
+  /*
+    Functions on Dates and Times https://www.w3.org/TR/sparql11-query/#func-date-time
+  */
+
+  /*
+    Hash Functions https://www.w3.org/TR/sparql11-query/#func-hash
+  */
 }
 
 module.exports = SPARQL_OPERATIONS

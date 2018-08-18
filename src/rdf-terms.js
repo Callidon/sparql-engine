@@ -96,7 +96,7 @@ function BooleanDescriptor (value) {
 function NumericOperation (value, type) {
   return {
     type: 'literal+type',
-    value: `"${value}"`,
+    value: value.toString(),
     datatype: type,
     asRDF: `"${value}"^^${type}`,
     asJS: value

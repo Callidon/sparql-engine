@@ -150,7 +150,7 @@ describe('FILTER SPARQL queries', () => {
       PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
       SELECT ?name ?article WHERE {
         ?s rdf:type dblp-rdf:Person .
-        FILTER(10 / 2 = 5.0)
+        FILTER(10 / 2 = 5)
       }`,
       expectedNb: 1
     },
