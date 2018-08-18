@@ -38,6 +38,8 @@ function termToJS (value, type) {
       return Number(value)
     case 'http://www.w3.org/2001/XMLSchema#boolean':
       return value === '"true"'
+    case 'http://www.w3.org/2001/XMLSchema#dateTime':
+      return Date.parse(value)
     default:
       throw new Error(`Unknown Datatype found during RDF Term parsing: ${value} (datatype: ${type})`)
   }
