@@ -26,37 +26,8 @@ SOFTWARE.
 
 const { Duplex, PassThrough } = require('stream')
 const { assign } = require('lodash')
+const terms = require('./rdf-terms.js')
 const n3utils = require('n3').Util
-
-function IRIDescriptor (iri) {
-  return {
-    type: 'iri',
-    value: iri
-  }
-}
-
-function RawLiteralDescriptor (literal) {
-  return {
-    type: 'literal',
-    value: literal
-  }
-}
-
-function TypedLiteralDescriptor (literal, type) {
-  return {
-    type: 'literal+type',
-    value: literal,
-    datatype: type
-  }
-}
-
-function LangLiteralDescriptor (literal, lang) {
-  return {
-    type: 'literal+lang',
-    value: literal,
-    lang
-  }
-}
 
 function stripDatatype (datatype) {
   if (datatype.startsWith('<') && datatype.endsWith('>')) {
@@ -73,17 +44,17 @@ function stripDatatype (datatype) {
 function parseTerm (term) {
   let parsed = null
   if (n3utils.isIRI(term)) {
-    parsed = IRIDescriptor(term)
+    parsed = terms.IRIDescriptor(term)
   } else if (n3utils.isLiteral(term)) {
     const value = n3utils.getLiteralValue(term)
     const lang = n3utils.getLiteralLanguage(term)
     const type = stripDatatype(n3utils.getLiteralType(term))
     if (lang !== null && lang !== undefined && lang !== '') {
-      parsed = LangLiteralDescriptor(value, lang)
+      parsed = terms.LangLiteralDescriptor(value, lang)
     } else if (term.indexOf('^^') > -1) {
-      parsed = TypedLiteralDescriptor(value, type)
+      parsed = terms.TypedLiteralDescriptor(value, type)
     } else {
-      parsed = RawLiteralDescriptor(value)
+      parsed = terms.RawLiteralDescriptor(value)
     }
   } else {
     throw new Error(`Unknown RDF Term encoutered during parsing: ${term}`)

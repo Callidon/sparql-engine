@@ -25,40 +25,14 @@ SOFTWARE.
 'use strict'
 
 const operations = require('./sparql-operations.js')
-const { parseTerm, isVariable, XSD } = require('../../utils.js').rdf
+const { parseTerm, isVariable } = require('../../utils.js').rdf
 const { TransformIterator } = require('asynciterator')
 const { isString } = require('lodash')
-
-function compileTerm (term) {
-  const parsed = parseTerm(term)
-  switch (parsed.type) {
-    case 'iri':
-    case 'bnode':
-    case 'literal':
-    case 'literal+lang':
-      return term
-    case 'literal+type': {
-      switch (parsed.datatype) {
-        case XSD('integer'):
-        case XSD('number'):
-        case XSD('float'):
-        case XSD('decimal'):
-          return Number(parsed.value)
-        case XSD('boolean'):
-          return parsed.value === '"true"'
-        default:
-          throw new Error(`Unknown Datatype found during Filter compilation: ${term} (datatype: ${parsed.datatype})`)
-      }
-    }
-    default:
-      throw new Error(`Unknown RDF Term type found during Filter compilation: ${term} (type: ${parsed.type})`)
-  }
-}
 
 function bindArgument (variable) {
   return bindings => {
     if (variable in bindings) {
-      return compileTerm(bindings[variable])
+      return parseTerm(bindings[variable])
     }
     return null
   }
@@ -76,7 +50,7 @@ class FilterOperator extends TransformIterator {
       if (isVariable(expression)) {
         return bindArgument(expression)
       }
-      const compiledTerm = compileTerm(expression)
+      const compiledTerm = parseTerm(expression)
       return () => compiledTerm
     }
     const args = expression.args.map(arg => this._compileExpression(arg))
@@ -92,7 +66,7 @@ class FilterOperator extends TransformIterator {
 
   _transform (bindings, done) {
     const test = this._expression(bindings)
-    if (typeof test === 'boolean' && test) {
+    if (test.asJS) {
       this._push(bindings)
     }
     done()

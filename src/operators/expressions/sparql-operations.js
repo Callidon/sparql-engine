@@ -26,7 +26,8 @@ SOFTWARE.
 
 const N3Util = require('n3').Util
 const { parseTerm } = require('../../utils.js').rdf
-const { isNull, isString } = require('lodash')
+const terms = require('../../rdf-terms.js')
+const { isNull } = require('lodash')
 
 /**
  * Implementation of SPARQL operations found in FILTERS
@@ -38,55 +39,55 @@ const { isNull, isString } = require('lodash')
  */
 const SPARQL_OPERATIONS = {
   '+': function (a, b) {
-    return a + b
+    return terms.NumericOperation(a.asJS + b.asJS, a.datatype)
   },
 
   '-': function (a, b) {
-    return a - b
+    return terms.NumericOperation(a.asJS - b.asJS, a.datatype)
   },
 
   '*': function (a, b) {
-    return a * b
+    return terms.NumericOperation(a.asJS * b.asJS, a.datatype)
   },
 
   '/': function (a, b) {
-    return a / b
+    return terms.NumericOperation(a.asJS / b.asJS, a.datatype)
   },
 
   '=': function (a, b) {
-    return a === b
+    return terms.BooleanDescriptor(a.asJS === b.asJS)
   },
 
   '!=': function (a, b) {
-    return a !== b
+    return terms.BooleanDescriptor(a.asJS !== b.asJS)
   },
 
   '<': function (a, b) {
-    return a < b
+    return terms.BooleanDescriptor(a.asJS < b.asJS)
   },
 
   '<=': function (a, b) {
-    return a <= b
+    return terms.BooleanDescriptor(a.asJS <= b.asJS)
   },
 
   '>': function (a, b) {
-    return a > b
+    return terms.BooleanDescriptor(a.asJS > b.asJS)
   },
 
   '>=': function (a, b) {
-    return a >= b
+    return terms.BooleanDescriptor(a.asJS >= b.asJS)
   },
 
   '!': function (a) {
-    return !a
+    return terms.BooleanDescriptor(!a.asJS)
   },
 
   '&&': function (a, b) {
-    return a && b
+    return terms.BooleanDescriptor(a.asJS && b.asJS)
   },
 
   '||': function (a, b) {
-    return a || b
+    return terms.BooleanDescriptor(a.asJS || b.asJS)
   },
 
   'lang': function (a) {
@@ -176,11 +177,6 @@ const SPARQL_OPERATIONS = {
 
   'sameterm': function (a, b) {
     // is one of the Term is alreay parsed, no need to parse it again
-    if ((!isString(a)) || (!isString(b))) {
-      return a === b
-    }
-    a = parseTerm(a)
-    b = parseTerm(b)
     if (a.type !== b.type) {
       return false
     }
