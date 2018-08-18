@@ -71,20 +71,56 @@ function stripDatatype (datatype) {
  * @return {Object} A descriptor for the term
  */
 function parseTerm (term) {
+  let parsed = null
   if (n3utils.isIRI(term)) {
-    return IRIDescriptor(term)
+    parsed = IRIDescriptor(term)
   } else if (n3utils.isLiteral(term)) {
     const value = n3utils.getLiteralValue(term)
     const lang = n3utils.getLiteralLanguage(term)
     const type = stripDatatype(n3utils.getLiteralType(term))
     if (lang !== null && lang !== undefined && lang !== '') {
-      return LangLiteralDescriptor(value, lang)
+      parsed = LangLiteralDescriptor(value, lang)
     } else if (term.indexOf('^^') > -1) {
-      return TypedLiteralDescriptor(value, type)
+      parsed = TypedLiteralDescriptor(value, type)
+    } else {
+      parsed = RawLiteralDescriptor(value)
     }
-    return RawLiteralDescriptor(value)
   } else {
     throw new Error(`Unknown RDF Term encoutered during parsing: ${term}`)
+  }
+  // add original and JS version of the RDF term
+  parsed.asRDF = term
+  parsed.asJS = termToJS(parsed)
+  return parsed
+}
+
+/**
+ * Parse a RDF Term to its Javascript representation
+ * @param  {string} term - RDF Term to parse
+ * @return {String|Number|Date} Javascript representationof the term
+ */
+function termToJS (parsed) {
+  switch (parsed.type) {
+    case 'iri':
+    case 'bnode':
+    case 'literal':
+    case 'literal+lang':
+      return parsed.asRDF
+    case 'literal+type': {
+      switch (parsed.datatype) {
+        case XSD('integer'):
+        case XSD('number'):
+        case XSD('float'):
+        case XSD('decimal'):
+          return Number(parsed.value)
+        case XSD('boolean'):
+          return parsed.value === '"true"'
+        default:
+          throw new Error(`Unknown Datatype found during RDF Term parsing: ${parsed.asRDF} (datatype: ${parsed.datatype})`)
+      }
+    }
+    default:
+      throw new Error(`Unknown RDF Term type found during RDF Term parsing: ${parsed.asRDF} (type: ${parsed.type})`)
   }
 }
 
@@ -226,7 +262,8 @@ module.exports = {
     XSD,
     isVariable,
     triple,
-    parseTerm
+    parseTerm,
+    termToJS
   },
   applyBindings,
   deepApplyBindings,

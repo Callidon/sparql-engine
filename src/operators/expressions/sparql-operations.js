@@ -25,12 +25,8 @@ SOFTWARE.
 'use strict'
 
 const N3Util = require('n3').Util
-const { parseTerm, XSD } = require('../../utils.js').rdf
+const { parseTerm } = require('../../utils.js').rdf
 const { isNull, isString } = require('lodash')
-
-const XSD_BOOLEAN = XSD('boolean')
-const XSD_TRUE = '"true"^^' + XSD_BOOLEAN
-const XSD_FALSE = '"false"^^' + XSD_BOOLEAN
 
 /**
  * Implementation of SPARQL operations found in FILTERS
