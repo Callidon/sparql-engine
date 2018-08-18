@@ -24,49 +24,22 @@ SOFTWARE.
 
 'use strict'
 
-const operations = require('./sparql-operations.js')
-const { parseTerm, isVariable } = require('../../utils.js').rdf
+const SPARQLExpression = require('./expressions/sparql-expression.js')
 const { TransformIterator } = require('asynciterator')
-const { isString } = require('lodash')
 
-function bindArgument (variable) {
-  return bindings => {
-    if (variable in bindings) {
-      return parseTerm(bindings[variable])
-    }
-    return null
-  }
-}
-
+/**
+ * Evaluate SPARQL Filter clauses
+ * @extends TransformIterator
+ * @author Thomas Minier
+ */
 class FilterOperator extends TransformIterator {
   constructor (source, expression) {
     super(source)
-    this._expression = this._compileExpression(expression)
-  }
-
-  _compileExpression (expression) {
-    // simple case: the expression is a SPARQL variable or a RDF term
-    if (isString(expression)) {
-      if (isVariable(expression)) {
-        return bindArgument(expression)
-      }
-      const compiledTerm = parseTerm(expression)
-      return () => compiledTerm
-    }
-    const args = expression.args.map(arg => this._compileExpression(arg))
-    if (!(expression.operator in operations)) {
-      throw new Error(`Unsupported SPARQL operations: ${expression.operator}`)
-    }
-    const operation = operations[expression.operator]
-    // operation case: compile each argument, then evaluate the expression
-    return bindings => {
-      return operation(...args.map(arg => arg(bindings)))
-    }
+    this._expression = new SPARQLExpression(expression)
   }
 
   _transform (bindings, done) {
-    const test = this._expression(bindings)
-    if (test.asJS) {
+    if (this._expression.evaluate(bindings)) {
       this._push(bindings)
     }
     done()

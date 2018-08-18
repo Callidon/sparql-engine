@@ -24,7 +24,6 @@ SOFTWARE.
 
 'use strict'
 
-const N3Util = require('n3').Util
 const { RDF, XSD } = require('../../utils.js').rdf
 const terms = require('../../rdf-terms.js')
 const { isNull } = require('lodash')

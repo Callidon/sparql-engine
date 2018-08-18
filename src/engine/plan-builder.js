@@ -33,7 +33,7 @@ const AggrOperator = require('../operators/agg-operator.js')
 const UnionOperator = require('../operators/union-operator.js')
 const SortIterator = require('ldf-client/lib/sparql/SortIterator')
 const DistinctIterator = require('../operators/distinct-operator.js')
-const FilterOperator = require('../operators/expressions/filter-operator.js')
+const FilterOperator = require('../operators/filter-operator.js')
 const SparqlExpressionEvaluator = require('../utils/SparqlExpressionEvaluator.js')
 // solution modifiers
 const SelectOperator = require('../operators/modifiers/select-operator.js')
