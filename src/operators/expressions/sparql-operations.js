@@ -25,15 +25,16 @@ SOFTWARE.
 'use strict'
 
 const N3Util = require('n3').Util
-const { parseTerm } = require('../../utils.js').rdf
+const { RDF, XSD } = require('../../utils.js').rdf
 const terms = require('../../rdf-terms.js')
 const { isNull } = require('lodash')
 
 /**
  * Implementation of SPARQL operations found in FILTERS
- * All arguments are pre-compiled from string to Javascript native type (string, number, etc)
- * based on the RDF terms nature and Literal's datatype, e.g., xsd:integers are parsed to Integer.
- * Thus, there is no need to do additional parsing on arguments.
+ * All arguments are pre-compiled from string to an intermediate representation.
+ * All possible intermediate representation are gathered in the `src/rdf-terms.js` file,
+ * and are used to represents RDF Terms.
+ * Each SPARQL operation is also expected to return the same kind of intermediate representation.
  * @author Thomas Minier
  * @author Corentin Marionneau
  */
@@ -91,7 +92,10 @@ const SPARQL_OPERATIONS = {
   },
 
   'lang': function (a) {
-    return `"${N3Util.getLiteralLanguage(a).toLowerCase()}"`
+    if (a.type === 'literal+lang') {
+      return terms.RawLiteralDescriptor(a.lang.toLowerCase())
+    }
+    return terms.RawLiteralDescriptor('')
   },
 
   'langmatches': function (langTag, langRange) {
@@ -104,21 +108,21 @@ const SPARQL_OPERATIONS = {
   },
 
   'contains': function (string, substring) {
-    const a = String(parseTerm(string).value)
-    const b = String(parseTerm(substring).value)
-    return a.indexOf(b) >= 0
+    const a = string.value
+    const b = substring.value
+    return terms.BooleanDescriptor(a.indexOf(b) >= 0)
   },
 
   'strstarts': function (string, substring) {
-    const a = String(parseTerm(string).value)
-    const b = String(parseTerm(substring).value)
-    return a.startsWith(b)
+    const a = string.value
+    const b = substring.value
+    return terms.BooleanDescriptor(a.startsWith(b))
   },
 
   'strends': function (string, substring) {
-    const a = String(parseTerm(string).value)
-    const b = String(parseTerm(substring).value)
-    return a.endsWith(b)
+    const a = string.value
+    const b = substring.value
+    return terms.BooleanDescriptor(a.endsWith(b))
   },
 
   'regex': function (subject, pattern) {
@@ -126,79 +130,92 @@ const SPARQL_OPERATIONS = {
   },
 
   'str': function (a) {
-    return N3Util.isLiteral(a) ? a : '"' + a + '"'
+    return a.type.startsWith('literal') ? a : terms.RawLiteralDescriptor(a)
   },
 
   'http://www.w3.org/2001/XMLSchema#integer': function (a) {
-    return '"' + Math.floor(a) + '"^^http://www.w3.org/2001/XMLSchema#integer'
+    return terms.NumericOperation(Math.floor(a.asJS), XSD('integer'))
   },
 
   'http://www.w3.org/2001/XMLSchema#double': function (a) {
-    a = a.toFixed()
+    a = a.value.toFixed()
     if (a.indexOf('.') < 0) a += '.0'
-    return '"' + a + '"^^http://www.w3.org/2001/XMLSchema#double'
+    return terms.NumericOperation(a, XSD('double'))
   },
 
   'bound': function (a) {
-    return !isNull(a)
+    return terms.BooleanDescriptor(!isNull(a))
   },
 
   'isiri': function (a) {
-    return N3Util.isIRI(a)
+    return terms.BooleanDescriptor(a.type === 'iri')
   },
 
   'isblank': function (a) {
-    return N3Util.isBlank(a)
+    return terms.BooleanDescriptor(a.type === 'bnode')
   },
 
   'isliteral': function (a) {
-    return !N3Util.isIRI(a) && !N3Util.isBlank(a)
+    return terms.BooleanDescriptor(a.type === 'literal' || a.type === 'literal+type' || a.type === 'literal+lang')
   },
 
   'isnumeric': function (a) {
-    return !isNaN(Number(a))
+    return terms.BooleanDescriptor(!isNaN(a.asJS))
   },
 
   'abs': function (a) {
-    return Math.abs(Number(a))
+    return terms.NumericOperation(Math.abs(a.asJS), XSD('integer'))
   },
 
   'ceil': function (a) {
-    return Math.ceil(Number(a))
+    return terms.NumericOperation(Math.ceil(a.asJS), XSD('integer'))
   },
 
   'floor': function (a) {
-    return Math.floor(Number(a))
+    return terms.NumericOperation(Math.floor(a.asJS), XSD('integer'))
   },
 
   'round': function (a) {
-    return Math.round(Number(a))
+    return terms.NumericOperation(Math.round(a.asJS), XSD('integer'))
   },
 
   'sameterm': function (a, b) {
     // is one of the Term is alreay parsed, no need to parse it again
     if (a.type !== b.type) {
-      return false
+      return terms.BooleanDescriptor(false)
     }
     switch (a.type) {
       case 'iri':
       case 'literal':
-        return a.value === b.value
+        return terms.BooleanDescriptor(a.value === b.value)
       case 'literal+type':
-        return a.value === b.value && a.datatype === b.datatype
+        return terms.BooleanDescriptor(a.value === b.value && a.datatype === b.datatype)
       case 'literal+lang':
-        return a.value === b.value && a.lang === b.lang
+        return terms.BooleanDescriptor(a.value === b.value && a.lang === b.lang)
       default:
-        return false
+        return terms.BooleanDescriptor(false)
     }
   },
 
   'in': function (a, b) {
-    return b.some(elt => a === b)
+    return terms.BooleanDescriptor(b.some(elt => a.asJS === b.asJS))
   },
 
   'notin': function (a, b) {
-    return !b.some(elt => a === b)
+    return terms.BooleanDescriptor(!b.some(elt => a.asJS === b.asJS))
+  },
+
+  'datatype': function (a) {
+    switch (a.type) {
+      case 'literal':
+        return terms.IRIDescriptor(XSD('string'))
+      case 'literal+type':
+        return terms.IRIDescriptor(a.datatype)
+      case 'literal+lang':
+        return terms.IRIDescriptor(RDF('langString'))
+      default:
+        return terms.RawLiteralDescriptor('')
+    }
   }
 }
 

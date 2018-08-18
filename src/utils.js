@@ -59,40 +59,7 @@ function parseTerm (term) {
   } else {
     throw new Error(`Unknown RDF Term encoutered during parsing: ${term}`)
   }
-  // add original and JS version of the RDF term
-  parsed.asRDF = term
-  parsed.asJS = termToJS(parsed)
   return parsed
-}
-
-/**
- * Parse a RDF Term to its Javascript representation
- * @param  {string} term - RDF Term to parse
- * @return {String|Number|Date} Javascript representationof the term
- */
-function termToJS (parsed) {
-  switch (parsed.type) {
-    case 'iri':
-    case 'bnode':
-    case 'literal':
-    case 'literal+lang':
-      return parsed.asRDF
-    case 'literal+type': {
-      switch (parsed.datatype) {
-        case XSD('integer'):
-        case XSD('number'):
-        case XSD('float'):
-        case XSD('decimal'):
-          return Number(parsed.value)
-        case XSD('boolean'):
-          return parsed.value === '"true"'
-        default:
-          throw new Error(`Unknown Datatype found during RDF Term parsing: ${parsed.asRDF} (datatype: ${parsed.datatype})`)
-      }
-    }
-    default:
-      throw new Error(`Unknown RDF Term type found during RDF Term parsing: ${parsed.asRDF} (type: ${parsed.type})`)
-  }
 }
 
 /**
@@ -136,6 +103,10 @@ function isVariable (str) {
 
 function XSD (term) {
   return `http://www.w3.org/2001/XMLSchema#${term}`
+}
+
+function RDF (term) {
+  return `http://www.w3.org/1999/02/22-rdf-syntax-ns#${term}`
 }
 
 /**
@@ -230,11 +201,11 @@ class MultiTransform extends Duplex {
 
 module.exports = {
   rdf: {
+    RDF,
     XSD,
     isVariable,
     triple,
-    parseTerm,
-    termToJS
+    parseTerm
   },
   applyBindings,
   deepApplyBindings,

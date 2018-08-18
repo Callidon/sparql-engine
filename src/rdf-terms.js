@@ -24,17 +24,41 @@ SOFTWARE.
 
 'use strict'
 
+/**
+ * Parse a RDF Term to its Javascript representation
+ * @param  {string} term - RDF Term to parse
+ * @return {String|Number|Date} Javascript representationof the term
+ */
+function termToJS (value, type) {
+  switch (type) {
+    case 'http://www.w3.org/2001/XMLSchema#integer':
+    case 'http://www.w3.org/2001/XMLSchema#number':
+    case 'http://www.w3.org/2001/XMLSchema#float':
+    case 'http://www.w3.org/2001/XMLSchema#decimal':
+      return Number(value)
+    case 'http://www.w3.org/2001/XMLSchema#boolean':
+      return value === '"true"'
+    default:
+      throw new Error(`Unknown Datatype found during RDF Term parsing: ${value} (datatype: ${type})`)
+  }
+}
+
 function IRIDescriptor (iri) {
   return {
     type: 'iri',
-    value: iri
+    value: iri,
+    asRDF: iri,
+    asJS: iri
   }
 }
 
 function RawLiteralDescriptor (literal) {
+  const rdf = `"${literal}"`
   return {
     type: 'literal',
-    value: literal
+    value: literal,
+    asRDF: rdf,
+    asJS: rdf
   }
 }
 
@@ -42,15 +66,20 @@ function TypedLiteralDescriptor (literal, type) {
   return {
     type: 'literal+type',
     value: literal,
-    datatype: type
+    datatype: type,
+    asRDF: `"${literal}"^^${type}`,
+    asJS: termToJS(literal, type)
   }
 }
 
 function LangLiteralDescriptor (literal, lang) {
+  const rdf = `"${literal}"@${lang}`
   return {
     type: 'literal+lang',
     value: literal,
-    lang
+    lang,
+    asRDF: rdf,
+    asJS: rdf
   }
 }
 
