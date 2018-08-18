@@ -100,11 +100,12 @@ const SPARQL_OPERATIONS = {
 
   'langmatches': function (langTag, langRange) {
     // Implements https://tools.ietf.org/html/rfc4647#section-3.3.1
-    langTag = langTag.toLowerCase().replace(/^"(.*)"$/, '$1')
-    langRange = langRange.toLowerCase().replace(/^"(.*)"$/, '$1')
-    return langTag === langRange ||
-           (langRange = N3Util.getLiteralValue(langRange)) === '*' ||
-           langTag.substr(1, langRange.length + 1) === langRange + '-'
+    langTag = langTag.value.toLowerCase()
+    langRange = langRange.value.toLowerCase()
+    const test = langTag === langRange ||
+                  langRange === '*' ||
+                  langTag.substr(1, langRange.length + 1) === langRange + '-'
+    return terms.BooleanDescriptor(test)
   },
 
   'contains': function (string, substring) {
