@@ -27,7 +27,7 @@ SOFTWARE.
 const aggregates = require('./sparql-aggregates.js')
 const operations = require('./sparql-operations.js')
 const { parseTerm, isVariable } = require('../../utils.js').rdf
-const { isString } = require('lodash')
+const { isArray, isString } = require('lodash')
 
 function bindArgument (variable) {
   return bindings => {
@@ -55,7 +55,11 @@ class SPARQLExpression {
       }
       const compiledTerm = parseTerm(expression)
       return () => compiledTerm
-    } if (expression.type === 'operation') {
+    } if (isArray(expression)) {
+      // IN and NOT IN expressions accept arrays as argument
+      const compiledTerms = expression.map(parseTerm)
+      return () => compiledTerms
+    } else if (expression.type === 'operation') {
       // operation case: recursively compile each argument, then evaluate the expression
       const args = expression.args.map(arg => this._compileExpression(arg))
       if (!(expression.operator in operations)) {

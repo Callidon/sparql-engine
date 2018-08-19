@@ -140,11 +140,11 @@ const SPARQL_OPERATIONS = {
   },
 
   'in': function (a, b) {
-    return terms.BooleanDescriptor(b.some(elt => a.asJS === b.asJS))
+    return terms.BooleanDescriptor(b.some(elt => a.asJS === elt.asJS))
   },
 
   'notin': function (a, b) {
-    return terms.BooleanDescriptor(!b.some(elt => a.asJS === b.asJS))
+    return terms.BooleanDescriptor(!b.some(elt => a.asJS === elt.asJS))
   },
 
   /*
@@ -160,7 +160,7 @@ const SPARQL_OPERATIONS = {
   },
 
   'isliteral': function (a) {
-    return terms.BooleanDescriptor(a.type === 'literal' || a.type === 'literal+type' || a.type === 'literal+lang')
+    return terms.BooleanDescriptor(a.type.startsWith('literal'))
   },
 
   'isnumeric': function (a) {
@@ -168,7 +168,7 @@ const SPARQL_OPERATIONS = {
   },
 
   'str': function (a) {
-    return a.type.startsWith('literal') ? a : terms.RawLiteralDescriptor(a)
+    return a.type.startsWith('literal') ? a : terms.RawLiteralDescriptor(a.value)
   },
 
   'lang': function (a) {

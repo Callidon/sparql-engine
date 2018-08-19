@@ -194,6 +194,95 @@ describe('FILTER SPARQL queries', () => {
       expectedNb: 0
     },
     {
+      name: 'IN',
+      query: `
+      PREFIX esws: <https://dblp.org/rec/conf/esws/>
+      PREFIX dblp-rdf: <https://dblp.uni-trier.de/rdf/schema-2017-04-18#>
+      PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+      SELECT * WHERE {
+        ?s rdf:type dblp-rdf:Person .
+        ?s dblp-rdf:authorOf ?article .
+        FILTER(?article IN (esws:MinierSMV18a, esws:MinierSMV18, esws:MinierMSM17))
+      }`,
+      expectedNb: 3
+    },
+    {
+      name: 'NOT IN',
+      query: `
+      PREFIX esws: <https://dblp.org/rec/conf/esws/>
+      PREFIX dblp-rdf: <https://dblp.uni-trier.de/rdf/schema-2017-04-18#>
+      PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+      SELECT * WHERE {
+        ?s rdf:type dblp-rdf:Person .
+        ?s dblp-rdf:authorOf ?article .
+        FILTER(?article NOT IN (esws:MinierSMV18a, esws:MinierSMV18, esws:MinierMSM17))
+      }`,
+      expectedNb: 2
+    },
+    {
+      name: 'isIRI',
+      query: `
+      PREFIX dblp-pers: <https://dblp.org/pers/m/>
+      PREFIX dblp-rdf: <https://dblp.uni-trier.de/rdf/schema-2017-04-18#>
+      PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+      SELECT * WHERE {
+        ?s rdf:type dblp-rdf:Person .
+        FILTER(isIRI(?s))
+      }`,
+      expectedNb: 1
+    },
+    {
+      name: 'isBlank',
+      query: `
+      PREFIX dblp-pers: <https://dblp.org/pers/m/>
+      PREFIX dblp-rdf: <https://dblp.uni-trier.de/rdf/schema-2017-04-18#>
+      PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+      SELECT * WHERE {
+        ?s rdf:type dblp-rdf:Person .
+        ?s dblp-rdf:primaryFullPersonName ?name .
+        FILTER(isBlank(?name))
+      }`,
+      expectedNb: 0
+    },
+    {
+      name: 'isLiteral',
+      query: `
+      PREFIX dblp-pers: <https://dblp.org/pers/m/>
+      PREFIX dblp-rdf: <https://dblp.uni-trier.de/rdf/schema-2017-04-18#>
+      PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+      SELECT * WHERE {
+        ?s rdf:type dblp-rdf:Person .
+        ?s dblp-rdf:primaryFullPersonName ?name .
+        FILTER(isLiteral(?name))
+      }`,
+      expectedNb: 1
+    },
+    {
+      name: 'isNumeric',
+      query: `
+      PREFIX dblp-pers: <https://dblp.org/pers/m/>
+      PREFIX dblp-rdf: <https://dblp.uni-trier.de/rdf/schema-2017-04-18#>
+      PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+      SELECT * WHERE {
+        ?s rdf:type dblp-rdf:Person .
+        ?s dblp-rdf:primaryFullPersonName ?name .
+        FILTER(!isNumeric(?name) && isNumeric(10))
+      }`,
+      expectedNb: 1
+    },
+    {
+      name: 'str',
+      query: `
+      PREFIX dblp-pers: <https://dblp.org/pers/m/>
+      PREFIX dblp-rdf: <https://dblp.uni-trier.de/rdf/schema-2017-04-18#>
+      PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+      SELECT * WHERE {
+        ?s rdf:type dblp-rdf:Person .
+        FILTER(str(?s) = "https://dblp.org/pers/m/Minier:Thomas")
+      }`,
+      expectedNb: 1
+    },
+    {
       name: 'lang',
       query: `
       PREFIX dblp-pers: <https://dblp.org/pers/m/>
@@ -203,6 +292,17 @@ describe('FILTER SPARQL queries', () => {
         ?s rdf:type dblp-rdf:Person .
         ?s dblp-rdf:primaryFullPersonName ?name .
         FILTER(lang(?name) = "en")
+      }`,
+      expectedNb: 1
+    },
+    {
+      name: 'datatype',
+      query: `
+      PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+      PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+      SELECT * WHERE {
+        ?s rdfs:label ?label
+        FILTER(datatype(?label) = xsd:string)
       }`,
       expectedNb: 1
     },
