@@ -52,6 +52,17 @@ function RDFTermEqual (a, b) {
   }
 }
 
+function cloneLiteral (base, newValue) {
+  switch (base.type) {
+    case 'literal+type':
+      return terms.TypedLiteralDescriptor(newValue, base.datatype)
+    case 'literal+lang':
+      return terms.LangLiteralDescriptor(newValue, base.lang)
+    default:
+      return terms.RawLiteralDescriptor(newValue)
+  }
+}
+
 /**
  * Implementation of SPARQL operations found in FILTERS
  * All arguments are pre-compiled from string to an intermediate representation.
@@ -118,7 +129,7 @@ const SPARQL_OPERATIONS = {
   },
 
   /*
-    SPARQL Functiona forms https://www.w3.org/TR/sparql11-query/#func-forms
+    SPARQL Functional forms https://www.w3.org/TR/sparql11-query/#func-forms
   */
   'bound': function (a) {
     return terms.BooleanDescriptor(!isNull(a))
@@ -200,6 +211,25 @@ const SPARQL_OPERATIONS = {
     return terms.NumericOperation(a.value.length, XSD('integer'))
   },
 
+  'substr': function (str, index, length = null) {
+    if (index.asJS < 1) {
+      throw new Error('SUBSTR error: the index of the first character in a string is 1 (according to the SPARQL W3C specs)')
+    }
+    let value = str.value.substring(index.asJS - 1)
+    if (length !== null) {
+      value = value.substring(0, length.asJS)
+    }
+    return cloneLiteral(str, value)
+  },
+
+  'ucase': function (a) {
+    return cloneLiteral(a, a.value.toUpperCase())
+  },
+
+  'lcase': function (a) {
+    return cloneLiteral(a, a.value.toLowerCase())
+  },
+
   'strstarts': function (string, substring) {
     const a = string.value
     const b = substring.value
@@ -218,6 +248,29 @@ const SPARQL_OPERATIONS = {
     return terms.BooleanDescriptor(a.indexOf(b) >= 0)
   },
 
+  'strbefore': function (str, token) {
+    const index = str.value.indexOf(token.value)
+    const value = (index > -1) ? str.value.substring(0, index) : ''
+    return cloneLiteral(str, value)
+  },
+
+  'strafter': function (str, token) {
+    const index = str.value.indexOf(token.value)
+    const value = (index > -1) ? str.value.substring(index + token.value.length) : ''
+    return cloneLiteral(str, value)
+  },
+
+  'encode_for_uri': function (a) {
+    return terms.RawLiteralDescriptor(encodeURIComponent(a.value))
+  },
+
+  'concat': function (a, b) {
+    if (a.type !== b.type) {
+      return terms.RawLiteralDescriptor(a.value + b.value)
+    }
+    return cloneLiteral(a, a.value + b.value)
+  },
+
   'langmatches': function (langTag, langRange) {
     // Implements https://tools.ietf.org/html/rfc4647#section-3.3.1
     langTag = langTag.value.toLowerCase()
@@ -228,8 +281,9 @@ const SPARQL_OPERATIONS = {
     return terms.BooleanDescriptor(test)
   },
 
-  'regex': function (subject, pattern) {
-    return new RegExp(pattern).test(subject)
+  'regex': function (subject, pattern, flags = null) {
+    let regexp = (flags === null) ? new RegExp(pattern.value) : new RegExp(pattern.value, flags.value)
+    return terms.BooleanDescriptor(regexp.test(subject.value))
   },
 
   /*
