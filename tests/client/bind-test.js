@@ -39,28 +39,76 @@ describe('SPARQL BIND', () => {
 
   after(done => engine._db.close(done))
 
-  it('should evaluates BIND clauses', done => {
+  it('should evaluate a simple BIND clause', done => {
     const query = `
     PREFIX dblp-pers: <https://dblp.org/pers/m/>
     PREFIX dblp-rdf: <https://dblp.uni-trier.de/rdf/schema-2017-04-18#>
     PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-    SELECT ?s ?name ?article WHERE {
+    SELECT * WHERE {
       ?s rdf:type dblp-rdf:Person .
-      ?s dblp-rdf:primaryFullPersonName ?name .
-      ?s dblp-rdf:authorOf ?article .
-      BIND (dblp-pers:Minier:Thomas AS ?s)
+      BIND ("Thomas Minier"@fr AS ?name)
     }`
     const results = []
 
     const iterator = engine.execute(query)
     iterator.on('error', done)
     iterator.on('data', b => {
-      expect(b).to.have.all.keys('?s', '?name', '?article')
-      expect(b['?s']).to.equal('https://dblp.org/pers/m/Minier:Thomas')
+      expect(b).to.have.all.keys('?s', '?name')
+      expect(b['?name']).to.equal('"Thomas Minier"@fr')
       results.push(b)
     })
     iterator.on('end', () => {
-      expect(results.length).to.equal(5)
+      expect(results.length).to.equal(1)
+      done()
+    })
+  })
+
+  it('should evaluate BIND clauses with complex SPARQL expressions', done => {
+    const query = `
+    PREFIX dblp-pers: <https://dblp.org/pers/m/>
+    PREFIX dblp-rdf: <https://dblp.uni-trier.de/rdf/schema-2017-04-18#>
+    PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+    SELECT * WHERE {
+      ?s rdf:type dblp-rdf:Person .
+      BIND (10 + 20 AS ?foo)
+    }`
+    const results = []
+
+    const iterator = engine.execute(query)
+    iterator.on('error', done)
+    iterator.on('data', b => {
+      expect(b).to.have.all.keys('?s', '?foo')
+      expect(b['?foo']).to.equal('"30"^^http://www.w3.org/2001/XMLSchema#integer')
+      results.push(b)
+    })
+    iterator.on('end', () => {
+      expect(results.length).to.equal(1)
+      done()
+    })
+  })
+
+  it('should evaluate chained BIND clauses', done => {
+    const query = `
+    PREFIX dblp-pers: <https://dblp.org/pers/m/>
+    PREFIX dblp-rdf: <https://dblp.uni-trier.de/rdf/schema-2017-04-18#>
+    PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+    SELECT * WHERE {
+      ?s rdf:type dblp-rdf:Person .
+      BIND ("Thomas Minier"@fr AS ?name)
+      BIND (10 + 20 AS ?foo)
+    }`
+    const results = []
+
+    const iterator = engine.execute(query)
+    iterator.on('error', done)
+    iterator.on('data', b => {
+      expect(b).to.have.all.keys('?s', '?name', '?foo')
+      expect(b['?name']).to.equal('"Thomas Minier"@fr')
+      expect(b['?foo']).to.equal('"30"^^http://www.w3.org/2001/XMLSchema#integer')
+      results.push(b)
+    })
+    iterator.on('end', () => {
+      expect(results.length).to.equal(1)
       done()
     })
   })

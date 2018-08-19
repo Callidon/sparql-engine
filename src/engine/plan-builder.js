@@ -33,6 +33,7 @@ const UnionOperator = require('../operators/union-operator.js')
 const SortIterator = require('ldf-client/lib/sparql/SortIterator')
 const DistinctIterator = require('../operators/distinct-operator.js')
 const FilterOperator = require('../operators/filter-operator.js')
+const SPARQLExpression = require('../operators/expressions/sparql-expression.js')
 const SparqlExpressionEvaluator = require('../utils/SparqlExpressionEvaluator.js')
 // solution modifiers
 const SelectOperator = require('../operators/modifiers/select-operator.js')
@@ -204,12 +205,6 @@ class PlanBuilder {
       return this._buildValues(source, groups, options)
     }
 
-    // Handle BIND clauses
-    // TODO rework that (wrong implementation)
-    if (_.some(groups, g => g.type === 'bind')) {
-      return this._buildBind(source, groups, options)
-    }
-
     // merge BGPs on the same level
     var newGroups = []
     var prec = null
@@ -315,6 +310,15 @@ class PlanBuilder {
         // return source.filter(bindings => {
         //   try { return !/^"false"|^"0"/.test(evaluate(bindings)) } catch (error) { return false }
         // })
+      case 'bind':
+        const variable = group.variable
+        const expression = new SPARQLExpression(group.expression)
+        return source.map(bindings => {
+          try {
+            bindings[variable] = expression.evaluate(bindings).asRDF
+          } catch (e) {}
+          return bindings
+        })
       default:
         throw new Error(`Unsupported SPARQL clause fround in query: ${group.type}`)
     }
@@ -413,26 +417,6 @@ class PlanBuilder {
       return new UnionOperator(...iterators)
     }
     return iterators[0]
-  }
-
-  /**
-   * Build an iterator which evaluates a SPARQL query with BIND clause(s).
-   * It recursively bounds all subqueries with the BIND expressions,
-   * evaluates the subqueries and then extends bindings produced with the original ones
-   * @param  {AsyncIterator} source  - Source iterator
-   * @param  {Object[]} groups  - Query body, i.e., WHERE clause
-   * @param  {Object} options - Execution options
-   * @return {AsyncIterator} An iterator which evaluates a SPARQL query with BIND clause(s)
-   */
-  _buildBind (source, groups, options) {
-    let [ binds, others ] = _.partition(groups, g => g.type === 'bind')
-    // extract bindings
-    const bindings = binds.reduce((acc, g) => {
-      acc[g.variable] = g.expression
-      return acc
-    }, {})
-    others = others.map(g => deepApplyBindings(g, bindings))
-    return extendByBindings(this._buildWhere(source, others, options), bindings)
   }
 }
 
