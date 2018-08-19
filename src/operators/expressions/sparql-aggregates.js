@@ -1,4 +1,4 @@
-/* file : filter-operator.js
+/* file : sparql-aggregates.js
 MIT License
 
 Copyright (c) 2018 Thomas Minier
@@ -24,27 +24,27 @@ SOFTWARE.
 
 'use strict'
 
-const SPARQLExpression = require('./expressions/sparql-expression.js')
-const { TransformIterator } = require('asynciterator')
+const { XSD } = require('../../utils.js').rdf
+const terms = require('../../rdf-terms.js')
 
 /**
- * Evaluate SPARQL Filter clauses
- * @see https://www.w3.org/TR/sparql11-query/#expressions
- * @extends TransformIterator
+ * SPARQL Aggregation operations.
+ * Each operation takes an arguments a SPARQL variable and a row of bindings, i.e., a list of
+ * solutions bindings on which the aggregation must be applied.
+ * Each operations is expected to return a term, as with classic SPARQL operations
  * @author Thomas Minier
+ * @author Corentin Marionneau
  */
-class FilterOperator extends TransformIterator {
-  constructor (source, expression) {
-    super(source)
-    this._expression = new SPARQLExpression(expression)
-  }
-
-  _transform (bindings, done) {
-    if (this._expression.evaluate(bindings).asJS) {
-      this._push(bindings)
-    }
-    done()
+const SPARQL_AGGREGATES = {
+  'count': function (variable, row) {
+    let count = 0
+    row.forEach(bindings => {
+      if (variable in bindings) {
+        count++
+      }
+    })
+    return terms.NumericOperation(count, XSD('integer'))
   }
 }
 
-module.exports = FilterOperator
+module.exports = SPARQL_AGGREGATES

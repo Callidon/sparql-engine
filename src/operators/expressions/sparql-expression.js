@@ -24,6 +24,7 @@ SOFTWARE.
 
 'use strict'
 
+const aggregates = require('./sparql-aggregates.js')
 const operations = require('./sparql-operations.js')
 const { parseTerm, isVariable } = require('../../utils.js').rdf
 const { isString } = require('lodash')
@@ -54,21 +55,29 @@ class SPARQLExpression {
       }
       const compiledTerm = parseTerm(expression)
       return () => compiledTerm
+    } if (expression.type === 'operation') {
+      // operation case: recursively compile each argument, then evaluate the expression
+      const args = expression.args.map(arg => this._compileExpression(arg))
+      if (!(expression.operator in operations)) {
+        throw new Error(`Unsupported SPARQL operation: ${expression.operator}`)
+      }
+      const operation = operations[expression.operator]
+      return bindings => {
+        return operation(...args.map(arg => arg(bindings)))
+      }
+    } else if (expression.type === 'aggregate') {
+      // aggregation case
+      if (!(expression.aggregation in aggregates)) {
+        throw new Error(`Unsupported SPARQL aggregation: ${expression.aggregation}`)
+      }
+      const aggregation = aggregates[expression.aggregation]
+      return bindings => aggregation(expression.expression, bindings['__aggregate'])
     }
-    // recusrively compile the expression's arguments
-    const args = expression.args.map(arg => this._compileExpression(arg))
-    if (!(expression.operator in operations)) {
-      throw new Error(`Unsupported SPARQL operation: ${expression.operator}`)
-    }
-    const operation = operations[expression.operator]
-    // operation case: compile each argument, then evaluate the expression
-    return bindings => {
-      return operation(...args.map(arg => arg(bindings)))
-    }
+    throw new Error(`Unsupported SPARQL operation type found: ${expression.type}`)
   }
 
   evaluate (bindings = {}) {
-    return this._expression(bindings).asJS
+    return this._expression(bindings)
   }
 }
 

@@ -1,4 +1,4 @@
-/* file : filter-operator.js
+/* file : groupby-operator.js
 MIT License
 
 Copyright (c) 2018 Thomas Minier
@@ -24,27 +24,33 @@ SOFTWARE.
 
 'use strict'
 
-const SPARQLExpression = require('./expressions/sparql-expression.js')
-const { TransformIterator } = require('asynciterator')
+const MaterializeOperator = require('../materialize-operator.js')
+const { groupBy, map } = require('lodash')
 
 /**
- * Evaluate SPARQL Filter clauses
- * @see https://www.w3.org/TR/sparql11-query/#expressions
- * @extends TransformIterator
+ * Apply a SPARQL GROUP BY clause
+ * @see https://www.w3.org/TR/sparql11-query/#groupby
+ * @extends MaterializeOperator
  * @author Thomas Minier
  */
-class FilterOperator extends TransformIterator {
-  constructor (source, expression) {
+class GroupByOperator extends MaterializeOperator {
+  constructor (source, variable, options) {
     super(source)
-    this._expression = new SPARQLExpression(expression)
+    this._variable = variable
+    this._options = options
   }
 
-  _transform (bindings, done) {
-    if (this._expression.evaluate(bindings).asJS) {
-      this._push(bindings)
-    }
-    done()
+  _transformAll (values) {
+    let groups = groupBy(values, bindings => {
+      return bindings[this._variable]
+    })
+    groups = map(groups, (values, key) => {
+      const b = { '__aggregate': values }
+      b[this._variable] = key
+      return b
+    })
+    return groups
   }
 }
 
-module.exports = FilterOperator
+module.exports = GroupByOperator

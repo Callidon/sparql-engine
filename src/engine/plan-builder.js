@@ -26,9 +26,8 @@ SOFTWARE.
 
 const { Parser } = require('sparqljs')
 const AsyncIterator = require('asynciterator')
-// const ValuesOperator = require('../operators/values-operator.js')
 const GroupByOperator = require('../operators/gb-operator.js')
-const OperationOperator = require('../operators/op-operator.js')
+// const OperationOperator = require('../operators/op-operator.js')
 const AggrOperator = require('../operators/agg-operator.js')
 const UnionOperator = require('../operators/union-operator.js')
 const SortIterator = require('ldf-client/lib/sparql/SortIterator')
@@ -40,6 +39,7 @@ const SelectOperator = require('../operators/modifiers/select-operator.js')
 const AskOperator = require('../operators/modifiers/ask-operator.js')
 const ConstructOperator = require('../operators/modifiers/construct-operator.js')
 // executors
+const AggregateExecutor = require('./executors/aggregate-executor.js')
 const BGPExecutor = require('./executors/bgp-executor.js')
 const GraphExecutor = require('./executors/graph-executor.js')
 // utils
@@ -64,13 +64,14 @@ class PlanBuilder {
     this._dataset = dataset
     this._parser = new Parser(prefixes)
     this._executor = new BGPExecutor(this._dataset)
+    this._aggExecutor = new AggregateExecutor()
     this._graphExecutor = new GraphExecutor(this._dataset, this)
     this._serviceExecutor = null
   }
 
   /**
    * Set the BGP executor used to evaluate Basic Graph patterns
-   * @param {BGPExecutor} executor - BGP execuor used to evaluate Basic Graph patterns
+   * @param {BGPExecutor} executor - BGP executor used to evaluate Basic Graph patterns
    */
   setExecutor (executor) {
     this._executor = executor
@@ -78,7 +79,7 @@ class PlanBuilder {
 
   /**
    * Set the executor used to evaluate SERVICE clauses
-   * @param {GraphExecutor} executor - Execuor used to evaluate SERVICE clauses
+   * @param {GraphExecutor} executor - Executor used to evaluate SERVICE clauses
    */
   setServiceExecutor (executor) {
     this._serviceExecutor = executor
@@ -144,35 +145,16 @@ class PlanBuilder {
       graphIterator = AsyncIterator.single({})
     }
 
-    // Handles GROUP BY
-    if (query.group) {
-      graphIterator = this._buildGroupBy(graphIterator, query.group, options)
-    }
-
-    // Handles HAVING
-    if (query.having != null) {
-      graphIterator = this._buildHaving(graphIterator, query, options)
-    }
-
+    // Parse query variable to separate projection & aggregate variables
     if (query.variables != null) {
-      for (let i = 0; i < query.variables.length; i++) {
-        var variable = query.variables[i]
-        if (variable.expression != null && typeof variable.expression !== 'string') {
-          if (variable.expression.type === 'operation') {
-            graphIterator = new OperationOperator(graphIterator, variable, options, false)
-          } else if (variable.expression.type === 'aggregate') {
-            if (query.group) {
-              graphIterator = new AggrOperator(graphIterator, variable)
-            } else {
-              graphIterator = new GroupByOperator(graphIterator, '*', options)
-              graphIterator = new AggrOperator(graphIterator, variable)
-            }
-          } else {
-            throw new Error('Unknown variable type : ' + variable.expression.type)
-          }
-        }
-      }
+      const [projection, aggregates] = _.partition(query.variables, v => _.isString(v))
+      // add aggregates variables to projection variables
+      query.variables = projection.concat(aggregates.map(agg => agg.variable))
+      query.aggregates = aggregates
     }
+
+    // Handles Aggregates
+    graphIterator = this._aggExecutor.buildIterator(graphIterator, query, options)
 
     // Handles ORDER BY
     graphIterator = this._buildOrderBy(graphIterator, query.order, options)
@@ -223,6 +205,7 @@ class PlanBuilder {
     }
 
     // Handle BIND clauses
+    // TODO rework that (wrong implementation)
     if (_.some(groups, g => g.type === 'bind')) {
       return this._buildBind(source, groups, options)
     }
@@ -335,28 +318,6 @@ class PlanBuilder {
       default:
         throw new Error(`Unsupported SPARQL clause fround in query: ${group.type}`)
     }
-  }
-
-  /**
-   * Build a physical plan for a SPARQL GROUP BY clause
-   * @param  {[type]} source  [description]
-   * @param  {[type]} group   [description]
-   * @param  {[type]} options [description]
-   * @return {[type]}         [description]
-   */
-  _buildGroupBy (source, group, options) {
-    let iterator = source
-    for (let i = 0; i < group.length; i++) {
-      var gb = group[i]
-      if (gb.expression != null && typeof gb.expression !== 'string' && gb.expression.type === 'operation') {
-        iterator = new OperationOperator(iterator, gb, options, false)
-        var tmpGB = {expression: gb.variable}
-        iterator = new GroupByOperator(iterator, tmpGB, options)
-      } else {
-        iterator = new GroupByOperator(iterator, gb, options)
-      }
-    }
-    return iterator
   }
 
   /**

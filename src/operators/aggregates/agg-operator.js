@@ -1,4 +1,4 @@
-/* file : filter-operator.js
+/* file : agg-operator.js
 MIT License
 
 Copyright (c) 2018 Thomas Minier
@@ -24,27 +24,31 @@ SOFTWARE.
 
 'use strict'
 
-const SPARQLExpression = require('./expressions/sparql-expression.js')
+const SPARQLExpression = require('../expressions/sparql-expression.js')
 const { TransformIterator } = require('asynciterator')
 
 /**
- * Evaluate SPARQL Filter clauses
- * @see https://www.w3.org/TR/sparql11-query/#expressions
+ * Apply a SPARQL Aggregation operation over set of bindings.
+ * WARNING: In a pipeline of operators, this operator must be placed
+ * AFTER a GroupByOperator or another AggregateOperator
  * @extends TransformIterator
  * @author Thomas Minier
+ * @author Corentin Marionneau
  */
-class FilterOperator extends TransformIterator {
-  constructor (source, expression) {
+class AggregateOperator extends TransformIterator {
+  constructor (source, operation, options) {
     super(source)
-    this._expression = new SPARQLExpression(expression)
+    this._variable = operation.variable
+    this._expression = new SPARQLExpression(operation.expression)
   }
 
   _transform (bindings, done) {
-    if (this._expression.evaluate(bindings).asJS) {
-      this._push(bindings)
-    }
+    try {
+      bindings[this._variable] = this._expression.evaluate(bindings).asRDF
+    } catch (e) {}
+    this._push(bindings)
     done()
   }
 }
 
-module.exports = FilterOperator
+module.exports = AggregateOperator
