@@ -320,7 +320,7 @@ class PlanBuilder {
           return bindings
         })
       default:
-        throw new Error(`Unsupported SPARQL clause fround in query: ${group.type}`)
+        throw new Error(`Unsupported SPARQL group pattern found in query: ${group.type}`)
     }
   }
 
