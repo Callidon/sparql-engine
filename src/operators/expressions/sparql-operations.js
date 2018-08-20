@@ -29,6 +29,7 @@ const terms = require('../../rdf-terms.js')
 const moment = require('moment')
 const uuid = require('uuid/v4')
 const { isNull } = require('lodash')
+const crypto = require('crypto')
 
 /**
  * Test if Two RDF Terms are equal
@@ -75,6 +76,20 @@ function cloneLiteral (base, newValue) {
 }
 
 /**
+ * Return a high-orderpply a Hash function  to a RDF
+ * and returns the corresponding RDF Literal
+ * @param  {string} hashType - Type of hash (md5, sha256, etc)
+ * @return {function} A function that hashes RDF term
+ */
+function applyHash (hashType) {
+  return v => {
+    const hash = crypto.createHash(hashType)
+    hash.update(v.value)
+    return terms.RawLiteralDescriptor(hash.digest('hex'))
+  }
+}
+
+/**
  * Implementation of SPARQL operations found in FILTERS
  * All arguments are pre-compiled from string to an intermediate representation.
  * All possible intermediate representation are gathered in the `src/rdf-terms.js` file,
@@ -88,28 +103,28 @@ const SPARQL_OPERATIONS = {
     XQuery & XPath functions https://www.w3.org/TR/sparql11-query/#OperatorMapping
   */
   '+': function (a, b) {
-    if (isDate(a) && isDate(b)) {
+    if (isDate(a) || isDate(b)) {
       return terms.TypedLiteralDescriptor(a.asJS + b.asJS, XSD('dateTime'))
     }
     return terms.NumericOperation(a.asJS + b.asJS, a.datatype)
   },
 
   '-': function (a, b) {
-    if (isDate(a) && isDate(b)) {
+    if (isDate(a) || isDate(b)) {
       return terms.TypedLiteralDescriptor(a.asJS - b.asJS, XSD('dateTime'))
     }
     return terms.NumericOperation(a.asJS - b.asJS, a.datatype)
   },
 
   '*': function (a, b) {
-    if (isDate(a) && isDate(b)) {
+    if (isDate(a) || isDate(b)) {
       return terms.TypedLiteralDescriptor(a.asJS * b.asJS, XSD('dateTime'))
     }
     return terms.NumericOperation(a.asJS * b.asJS, a.datatype)
   },
 
   '/': function (a, b) {
-    if (isDate(a) && isDate(b)) {
+    if (isDate(a) || isDate(b)) {
       return terms.TypedLiteralDescriptor(a.asJS / b.asJS, XSD('dateTime'))
     }
     return terms.NumericOperation(a.asJS / b.asJS, a.datatype)
@@ -385,11 +400,22 @@ const SPARQL_OPERATIONS = {
 
   'seconds': function (a) {
     return terms.NumericOperation(a.asJS.seconds(), XSD('integer'))
-  }
+  },
+
+  'tz': function (a) {
+    const offset = a.asJS.utcOffset() / 60
+    return terms.RawLiteralDescriptor(offset.toString())
+  },
 
   /*
     Hash Functions https://www.w3.org/TR/sparql11-query/#func-hash
   */
+
+  'md5': applyHash('md5'),
+  'sha1': applyHash('sha1'),
+  'sha256': applyHash('sha256'),
+  'sha384': applyHash('sha384'),
+  'sha512': applyHash('sha512')
 }
 
 module.exports = SPARQL_OPERATIONS
