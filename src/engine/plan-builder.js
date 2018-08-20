@@ -29,11 +29,11 @@ const AsyncIterator = require('asynciterator')
 const GroupByOperator = require('../operators/gb-operator.js')
 // const OperationOperator = require('../operators/op-operator.js')
 const AggrOperator = require('../operators/agg-operator.js')
+const BindOperator = require('../operators/bind-operator.js')
 const UnionOperator = require('../operators/union-operator.js')
 const SortIterator = require('ldf-client/lib/sparql/SortIterator')
 const DistinctIterator = require('../operators/distinct-operator.js')
 const FilterOperator = require('../operators/filter-operator.js')
-const SPARQLExpression = require('../operators/expressions/sparql-expression.js')
 const SparqlExpressionEvaluator = require('../utils/SparqlExpressionEvaluator.js')
 // solution modifiers
 const SelectOperator = require('../operators/modifiers/select-operator.js')
@@ -311,14 +311,7 @@ class PlanBuilder {
         //   try { return !/^"false"|^"0"/.test(evaluate(bindings)) } catch (error) { return false }
         // })
       case 'bind':
-        const variable = group.variable
-        const expression = new SPARQLExpression(group.expression)
-        return source.map(bindings => {
-          try {
-            bindings[variable] = expression.evaluate(bindings).asRDF
-          } catch (e) {}
-          return bindings
-        })
+        return new BindOperator(source, group.variable, group.expression, options)
       default:
         throw new Error(`Unsupported SPARQL group pattern found in query: ${group.type}`)
     }
