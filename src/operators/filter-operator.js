@@ -34,8 +34,8 @@ const { TransformIterator } = require('asynciterator')
  * @author Thomas Minier
  */
 class FilterOperator extends TransformIterator {
-  constructor (source, expression) {
-    super(source)
+  constructor (source, expression, options) {
+    super(source, options)
     this._expression = new SPARQLExpression(expression)
   }
 

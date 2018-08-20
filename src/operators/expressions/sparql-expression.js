@@ -55,7 +55,7 @@ class SPARQLExpression {
       }
       const compiledTerm = parseTerm(expression)
       return () => compiledTerm
-    } if (isArray(expression)) {
+    } else if (isArray(expression)) {
       // IN and NOT IN expressions accept arrays as argument
       const compiledTerms = expression.map(parseTerm)
       return () => compiledTerms

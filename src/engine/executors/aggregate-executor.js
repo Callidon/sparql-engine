@@ -25,7 +25,10 @@ SOFTWARE.
 'use strict'
 
 const AggregateOperator = require('../../operators/aggregates/agg-operator.js')
+const BindOperator = require('../../operators/bind-operator.js')
+const FilterOperator = require('../../operators/filter-operator.js')
 const GroupByOperator = require('../../operators/aggregates/groupby-operator.js')
+const { isString } = require('lodash')
 
 /**
  * An AggregateExecutor handles the evaluation of Aggregations operations,
@@ -47,9 +50,9 @@ class AggregateExecutor {
       let iterator = this._executeGroupBy(source, query.group, options)
       // next, apply the optional HAVING clause to filter groups
       if ('having' in query) {
-        iterator = this._executeHaving(source, query.having, options)
+        iterator = this._executeHaving(iterator, query.having, options)
       }
-      // finally, apply each aggregate operation over the aggregated bindings
+      // finally, apply each aggregate operation over the groups
       iterator = query.aggregates.reduce((iter, agg) => {
         return this._executeAggregate(iter, agg, options)
       }, iterator)
@@ -66,8 +69,18 @@ class AggregateExecutor {
    * @return {AsyncIterator} An iterator which evaluate a GROUP BY clause
    */
   _executeGroupBy (source, groupby, options) {
-    // TODO handle more than one variables & SPARQL expressions in GROUP BY
-    return new GroupByOperator(source, [groupby[0].expression], options)
+    let iterator = source
+    // extract GROUP By variables & rewrite SPARQL expressions into BIND clauses
+    const variables = []
+    groupby.forEach(g => {
+      if (isString(g.expression)) {
+        variables.push(g.expression)
+      } else {
+        variables.push(g.variable)
+        iterator = new BindOperator(iterator, g.variable, g.expression, options)
+      }
+    })
+    return new GroupByOperator(iterator, variables, options)
   }
 
   /**
@@ -89,8 +102,11 @@ class AggregateExecutor {
    * @return {AsyncIterator} An iterator which evaluate a HAVING clause
    */
   _executeHaving (source, having, options) {
-    // TODO
-    return source
+    // thanks to the flexibility of SPARQL expressions,
+    // we can rewrite a HAVING clause in a set of FILTER clauses!
+    return having.reduce((iter, expression) => {
+      return new FilterOperator(iter, expression, options)
+    }, source)
   }
 }
 

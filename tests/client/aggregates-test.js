@@ -81,6 +81,48 @@ describe('SPARQL aggregates', () => {
     })
   })
 
+  it('should evaluate queries with SPARQL expressions in GROUP BY', done => {
+    const query = `
+    PREFIX dblp-pers: <https://dblp.org/pers/m/>
+    PREFIX dblp-rdf: <https://dblp.uni-trier.de/rdf/schema-2017-04-18#>
+    PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+    SELECT ?p ?z (COUNT(?p) AS ?nbPreds) WHERE {
+      <https://dblp.org/pers/m/Minier:Thomas> ?p ?o .
+    }
+    GROUP BY ?p (5 * 2 AS ?z)
+    `
+    const results = []
+
+    const iterator = engine.execute(query)
+    iterator.on('error', done)
+    iterator.on('data', b => {
+      expect(b).to.have.keys('?p', '?nbPreds', '?z')
+      expect(b['?z']).to.equal(`"10"^^${XSD('integer')}`)
+      switch (b['?p']) {
+        case 'https://dblp.uni-trier.de/rdf/schema-2017-04-18#primaryFullPersonName':
+          expect(b['?nbPreds']).to.equal(`"1"^^${XSD('integer')}`)
+          break
+        case 'https://dblp.uni-trier.de/rdf/schema-2017-04-18#authorOf':
+          expect(b['?nbPreds']).to.equal(`"5"^^${XSD('integer')}`)
+          break
+        case 'https://dblp.uni-trier.de/rdf/schema-2017-04-18#coCreatorWith':
+          expect(b['?nbPreds']).to.equal(`"4"^^${XSD('integer')}`)
+          break
+        case 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type':
+          expect(b['?nbPreds']).to.equal(`"1"^^${XSD('integer')}`)
+          break
+        default:
+          expect().fail(`Unexpected predicate found: ${b['?p']}`)
+          break
+      }
+      results.push(b)
+    })
+    iterator.on('end', () => {
+      expect(results.length).to.equal(4)
+      done()
+    })
+  })
+
   it('should evaluate queries that mix aggregations and numeric operations', done => {
     const query = `
     PREFIX dblp-pers: <https://dblp.org/pers/m/>
@@ -118,6 +160,41 @@ describe('SPARQL aggregates', () => {
     })
     iterator.on('end', () => {
       expect(results.length).to.equal(4)
+      done()
+    })
+  })
+
+  it('should evaluate aggregates with HAVING clauses', done => {
+    const query = `
+    PREFIX dblp-pers: <https://dblp.org/pers/m/>
+    PREFIX dblp-rdf: <https://dblp.uni-trier.de/rdf/schema-2017-04-18#>
+    PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+    SELECT ?p (COUNT(?p) AS ?nbPreds) WHERE {
+      <https://dblp.org/pers/m/Minier:Thomas> ?p ?o .
+    }
+    GROUP BY ?p
+    HAVING (COUNT(?p) > 1)
+    `
+    const results = []
+
+    const iterator = engine.execute(query)
+    iterator.on('error', done)
+    iterator.on('data', b => {
+      expect(b).to.have.keys('?p', '?nbPreds')
+      switch (b['?p']) {
+        case 'https://dblp.uni-trier.de/rdf/schema-2017-04-18#authorOf':
+          expect(b['?nbPreds']).to.equal(`"5"^^${XSD('integer')}`)
+          break
+        case 'https://dblp.uni-trier.de/rdf/schema-2017-04-18#coCreatorWith':
+          expect(b['?nbPreds']).to.equal(`"4"^^${XSD('integer')}`)
+          break
+        default:
+          throw new Error(`Unexpected predicate found: ${b['?p']}`)
+      }
+      results.push(b)
+    })
+    iterator.on('end', () => {
+      expect(results.length).to.equal(2)
       done()
     })
   })
