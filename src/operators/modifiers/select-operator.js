@@ -50,7 +50,14 @@ class SelectOperator extends TransformIterator {
     }
     // perform projection (if necessary)
     if (!this._selectAll) {
-      bindings = _.pick(bindings, this._variables)
+      bindings = this._variables.reduce((obj, v) => {
+        if (v in bindings) {
+          obj[v] = bindings[v]
+        } else {
+          obj[v] = null
+        }
+        return obj
+      }, {})
     }
     // remove non-variables entries && non-string values
     this._push(_.mapValues(bindings, (v, k) => isVariable(k) && typeof v === 'string' ? v : null))

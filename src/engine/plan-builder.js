@@ -31,6 +31,7 @@ const UnionOperator = require('../operators/union-operator.js')
 const SortIterator = require('ldf-client/lib/sparql/SortIterator')
 const DistinctIterator = require('../operators/distinct-operator.js')
 const FilterOperator = require('../operators/filter-operator.js')
+const OptionalOperator = require('../operators/optional-operator.js')
 const SparqlExpressionEvaluator = require('../utils/SparqlExpressionEvaluator.js')
 // solution modifiers
 const SelectOperator = require('../operators/modifiers/select-operator.js')
@@ -247,7 +248,7 @@ class PlanBuilder {
    */
   _buildGroup (source, group, options) {
     // Reset flags on the options for child iterators
-    var childOptions = options.optional ? _.create(options, { optional: false }) : options
+    let childOptions = _.assign({}, options)
 
     switch (group.type) {
       case 'bgp':
@@ -270,7 +271,7 @@ class PlanBuilder {
           return this._buildWhere(source, groups, childOptions)
         } else {
           // delegate BGP evaluation to an executor
-          return this._executor.buildIterator(source, bgp, options)
+          return this._executor.buildIterator(source, bgp, childOptions)
         }
       case 'query':
         return this.build(group, options, source)
@@ -278,18 +279,18 @@ class PlanBuilder {
         if (_.isNull(this._graphExecutor)) {
           throw new Error('A PlanBuilder cannot evaluate a GRAPH clause without a GraphExecutor')
         }
-        return this._graphExecutor.buildIterator(source, group, options)
+        return this._graphExecutor.buildIterator(source, group, childOptions)
       case 'service':
         if (_.isNull(this._serviceExecutor)) {
           throw new Error('A PlanBuilder cannot evaluate a SERVICE clause without a ServiceExecutor')
         }
         // delegate SERVICE evaluation to an executor
-        return this._serviceExecutor.buildIterator(source, group, options)
+        return this._serviceExecutor.buildIterator(source, group, childOptions)
       case 'group':
         return this._buildWhere(source, group.patterns, childOptions)
       case 'optional':
-        childOptions = _.create(options, { optional: true })
-        return this._buildWhere(source, group.patterns, childOptions)
+        // childOptions = _.assign({ optional: true }, options)
+        return new OptionalOperator(source, group.patterns, this, options)
       case 'union':
         return new UnionOperator(...group.patterns.map(patternToken => {
           return this._buildGroup(source.clone(), patternToken, childOptions)
@@ -297,13 +298,13 @@ class PlanBuilder {
       case 'filter':
       // A set of bindings does not match the filter
       // if it evaluates to 0/false, or errors
-        return new FilterOperator(source, group.expression)
+        return new FilterOperator(source, group.expression, childOptions)
         // var evaluate = new SparqlExpressionEvaluator(group.expression)
         // return source.filter(bindings => {
         //   try { return !/^"false"|^"0"/.test(evaluate(bindings)) } catch (error) { return false }
         // })
       case 'bind':
-        return new BindOperator(source, group.variable, group.expression, options)
+        return new BindOperator(source, group.variable, group.expression, childOptions)
       default:
         throw new Error(`Unsupported SPARQL group pattern found in query: ${group.type}`)
     }

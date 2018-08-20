@@ -35,7 +35,7 @@ const { assign, some, size } = require('lodash')
  */
 class BaseBGPIterator extends MultiTransformIterator {
   constructor (source, bgp, graph, options) {
-    super(source)
+    super(source, options)
     this._bgp = bgp
     this._graph = graph
     this._options = options
