@@ -26,22 +26,58 @@ SOFTWARE.
 
 const { XSD } = require('../../utils.js').rdf
 const terms = require('../../rdf-terms.js')
+const { maxBy, meanBy, minBy, sample } = require('lodash')
 
 /**
  * SPARQL Aggregation operations.
  * Each operation takes an arguments a SPARQL variable and a row of bindings, i.e., a list of
  * solutions bindings on which the aggregation must be applied.
  * Each operations is expected to return a term, as with classic SPARQL operations
+ * @see https://www.w3.org/TR/sparql11-query/#aggregateAlgebra
  * @author Thomas Minier
- * @author Corentin Marionneau
  */
 const SPARQL_AGGREGATES = {
   'count': function (variable, rows) {
     let count = 0
     if (variable in rows) {
-      count = rows[variable].length
+      count = rows[variable].map(v => v !== null).length
     }
     return terms.NumericOperation(count, XSD('integer'))
+  },
+
+  'sum': function (variable, rows) {
+    let sum = 0
+    if (variable in rows) {
+      sum = rows[variable].reduce((acc, b) => {
+        return acc + b.asJS
+      }, 0)
+    }
+    return terms.NumericOperation(sum, XSD('integer'))
+  },
+
+  'avg': function (variable, rows) {
+    let avg = 0
+    if (variable in rows) {
+      avg = meanBy(rows[variable], v => v.asJS)
+    }
+    return terms.NumericOperation(avg, XSD('integer'))
+  },
+
+  'min': function (variable, rows) {
+    return minBy(rows[variable], v => v.asJS)
+  },
+
+  'max': function (variable, rows) {
+    return maxBy(rows[variable], v => v.asJS)
+  },
+
+  'group_concat': function (variable, rows, sep) {
+    const value = rows[variable].map(v => v.value).join(sep)
+    return terms.RawLiteralDescriptor(value)
+  },
+
+  'sample': function (variable, rows) {
+    return sample(rows[variable])
   }
 }
 

@@ -75,7 +75,7 @@ class SPARQLExpression {
         throw new Error(`Unsupported SPARQL aggregation: ${expression.aggregation}`)
       }
       const aggregation = aggregates[expression.aggregation]
-      return bindings => aggregation(expression.expression, bindings['__aggregate'])
+      return bindings => aggregation(expression.expression, bindings['__aggregate'], expression.separator)
     }
     throw new Error(`Unsupported SPARQL operation type found: ${expression.type}`)
   }
