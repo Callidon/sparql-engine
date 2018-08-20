@@ -25,10 +25,7 @@ SOFTWARE.
 'use strict'
 
 const { Parser } = require('sparqljs')
-const AsyncIterator = require('asynciterator')
-const GroupByOperator = require('../operators/gb-operator.js')
-// const OperationOperator = require('../operators/op-operator.js')
-const AggrOperator = require('../operators/agg-operator.js')
+const { single } = require('asynciterator')
 const BindOperator = require('../operators/bind-operator.js')
 const UnionOperator = require('../operators/union-operator.js')
 const SortIterator = require('ldf-client/lib/sparql/SortIterator')
@@ -97,7 +94,7 @@ class PlanBuilder {
   build (query, options = {}, source = null) {
     if (_.isNull(source)) {
       // build pipeline starting iterator
-      source = AsyncIterator.single({})
+      source = single({})
     }
 
     // If needed, parse the string query into a logical query execution plan
@@ -128,11 +125,6 @@ class PlanBuilder {
       return this.build(construct, options, source)
     }
 
-    // DEPRECATED: old behaviour to handle VALUES
-    // if (query.values != null) {
-    //   query.where.push({type: 'values', values: query.values})
-    // }
-
     // Create an iterator that projects the bindings according to the query type
     if (query.base != null) {
       options.base = query.base
@@ -143,7 +135,7 @@ class PlanBuilder {
     if (query.patterns != null || (query.where != null && query.where.length > 0)) {
       graphIterator = this._buildWhere(source, query.patterns || query.where, options)
     } else {
-      graphIterator = AsyncIterator.single({})
+      graphIterator = single({})
     }
 
     // Parse query variable to separate projection & aggregate variables
@@ -315,41 +307,6 @@ class PlanBuilder {
       default:
         throw new Error(`Unsupported SPARQL group pattern found in query: ${group.type}`)
     }
-  }
-
-  /**
-   * Build a physical plan for a SPARQL HAVING clause
-   * @param  {[type]} source  [description]
-   * @param  {[type]} query   [description]
-   * @param  {[type]} options [description]
-   * @return {[type]}         [description]
-   */
-  _buildHaving (source, query, options) {
-    let iterator = source
-    for (let i = 0; i < query.having.length; i++) {
-      var hav = query.having[i]
-      for (var j = 0; j < hav.args.length; j++) {
-        if (typeof hav.args[j] !== 'string') {
-          var newVar = '?tmp_' + Math.random().toString(36).substring(8)
-          if (options.artificials == null) {
-            options.artificials = []
-          }
-          options.artificials.push(newVar)
-          var aggrVar = {variable: newVar, expression: hav.args[j]}
-          if (query.group) {
-            iterator = new AggrOperator(iterator, aggrVar)
-          } else {
-            query.group = 'placeholder'
-            iterator = new GroupByOperator(iterator, '*', options)
-            iterator = new AggrOperator(iterator, aggrVar)
-          }
-          hav.args[j] = newVar
-        }
-      }
-      const filter = {type: 'filter', expression: hav}
-      iterator = this._buildGroup(iterator, filter, options)
-    }
-    return iterator
   }
 
   /**
