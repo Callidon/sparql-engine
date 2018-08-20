@@ -486,6 +486,97 @@ describe('FILTER SPARQL queries', () => {
         FILTER(bound(?toto))
       }`,
       expectedNb: 0
+    },
+    {
+      name: 'now',
+      query: `
+      PREFIX dblp-rdf: <https://dblp.uni-trier.de/rdf/schema-2017-04-18#>
+      PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+      PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+      SELECT * WHERE {
+        ?s rdf:type dblp-rdf:Person .
+        ?s dblp-rdf:primaryFullPersonName ?name .
+        FILTER(datatype(now()) = xsd:dateTime)
+      }`,
+      expectedNb: 1
+    },
+    {
+      name: 'year',
+      query: `
+      PREFIX dblp-rdf: <https://dblp.uni-trier.de/rdf/schema-2017-04-18#>
+      PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+      PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+      SELECT * WHERE {
+        ?s rdf:type dblp-rdf:Person .
+        ?s dblp-rdf:primaryFullPersonName ?name .
+        FILTER(year("2011-01-10T14:45:13.815-05:00"^^xsd:dateTime) = 2011)
+      }`,
+      expectedNb: 1
+    },
+    {
+      name: 'month',
+      query: `
+      PREFIX dblp-rdf: <https://dblp.uni-trier.de/rdf/schema-2017-04-18#>
+      PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+      PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+      SELECT * WHERE {
+        ?s rdf:type dblp-rdf:Person .
+        ?s dblp-rdf:primaryFullPersonName ?name .
+        FILTER(month("2011-01-10T14:45:13.815-05:00"^^xsd:dateTime) = 1)
+      }`,
+      expectedNb: 1
+    },
+    {
+      name: 'day',
+      query: `
+      PREFIX dblp-rdf: <https://dblp.uni-trier.de/rdf/schema-2017-04-18#>
+      PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+      PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+      SELECT * WHERE {
+        ?s rdf:type dblp-rdf:Person .
+        ?s dblp-rdf:primaryFullPersonName ?name .
+        FILTER(day("2011-01-10T14:45:13.815-05:00"^^xsd:dateTime) = 10)
+      }`,
+      expectedNb: 1
+    },
+    {
+      name: 'hours',
+      query: `
+      PREFIX dblp-rdf: <https://dblp.uni-trier.de/rdf/schema-2017-04-18#>
+      PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+      PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+      SELECT * WHERE {
+        ?s rdf:type dblp-rdf:Person .
+        ?s dblp-rdf:primaryFullPersonName ?name .
+        FILTER(hours("2011-01-10T14:45:13.815-05:00"^^xsd:dateTime) = 14)
+      }`,
+      expectedNb: 1
+    },
+    {
+      name: 'minutes',
+      query: `
+      PREFIX dblp-rdf: <https://dblp.uni-trier.de/rdf/schema-2017-04-18#>
+      PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+      PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+      SELECT * WHERE {
+        ?s rdf:type dblp-rdf:Person .
+        ?s dblp-rdf:primaryFullPersonName ?name .
+        FILTER(minutes("2011-01-10T14:45:13.815-05:00"^^xsd:dateTime) = 45)
+      }`,
+      expectedNb: 1
+    },
+    {
+      name: 'seconds',
+      query: `
+      PREFIX dblp-rdf: <https://dblp.uni-trier.de/rdf/schema-2017-04-18#>
+      PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+      PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+      SELECT * WHERE {
+        ?s rdf:type dblp-rdf:Person .
+        ?s dblp-rdf:primaryFullPersonName ?name .
+        FILTER(seconds("2011-01-10T14:45:13.815-05:00"^^xsd:dateTime) = 13)
+      }`,
+      expectedNb: 1
     }
   ]
 

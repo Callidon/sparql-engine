@@ -24,6 +24,8 @@ SOFTWARE.
 
 'use strict'
 
+const moment = require('moment')
+
 /**
  * Parse a RDF Term to its Javascript representation
  * @param  {string} term - RDF Term to parse
@@ -39,7 +41,7 @@ function termToJS (value, type) {
     case 'http://www.w3.org/2001/XMLSchema#boolean':
       return value === '"true"'
     case 'http://www.w3.org/2001/XMLSchema#dateTime':
-      return Date.parse(value)
+      return moment.parseZone(value)
     default:
       throw new Error(`Unknown Datatype found during RDF Term parsing: ${value} (datatype: ${type})`)
   }
@@ -105,11 +107,23 @@ function NumericOperation (value, type) {
   }
 }
 
+function DateLiteral (date) {
+  const value = date.toISOString()
+  return {
+    type: 'literal+type',
+    value: value,
+    datatype: 'http://www.w3.org/2001/XMLSchema#dateTime',
+    asRDF: `"${value}"^^http://www.w3.org/2001/XMLSchema#dateTime`,
+    asJS: date
+  }
+}
+
 module.exports = {
   IRIDescriptor,
   RawLiteralDescriptor,
   TypedLiteralDescriptor,
   LangLiteralDescriptor,
   BooleanDescriptor,
-  NumericOperation
+  NumericOperation,
+  DateLiteral
 }

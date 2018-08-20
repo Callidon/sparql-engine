@@ -26,6 +26,8 @@ SOFTWARE.
 
 const { RDF, XSD } = require('../../utils.js').rdf
 const terms = require('../../rdf-terms.js')
+const moment = require('moment')
+const uuid = require('uuid/v4')
 const { isNull } = require('lodash')
 
 /**
@@ -50,6 +52,15 @@ function RDFTermEqual (a, b) {
     default:
       return terms.BooleanDescriptor(false)
   }
+}
+
+/**
+ * Return True if a literal is a Date
+ * @param  {Object}  literal - Literal to analyze
+ * @return {Boolean} True if a literal is a Date, False otherwise
+ */
+function isDate (literal) {
+  return literal.type === 'literal+type' && literal.datatype === 'http://www.w3.org/2001/XMLSchema#dateTime'
 }
 
 function cloneLiteral (base, newValue) {
@@ -77,42 +88,72 @@ const SPARQL_OPERATIONS = {
     XQuery & XPath functions https://www.w3.org/TR/sparql11-query/#OperatorMapping
   */
   '+': function (a, b) {
+    if (isDate(a) && isDate(b)) {
+      return terms.TypedLiteralDescriptor(a.asJS + b.asJS, XSD('dateTime'))
+    }
     return terms.NumericOperation(a.asJS + b.asJS, a.datatype)
   },
 
   '-': function (a, b) {
+    if (isDate(a) && isDate(b)) {
+      return terms.TypedLiteralDescriptor(a.asJS - b.asJS, XSD('dateTime'))
+    }
     return terms.NumericOperation(a.asJS - b.asJS, a.datatype)
   },
 
   '*': function (a, b) {
+    if (isDate(a) && isDate(b)) {
+      return terms.TypedLiteralDescriptor(a.asJS * b.asJS, XSD('dateTime'))
+    }
     return terms.NumericOperation(a.asJS * b.asJS, a.datatype)
   },
 
   '/': function (a, b) {
+    if (isDate(a) && isDate(b)) {
+      return terms.TypedLiteralDescriptor(a.asJS / b.asJS, XSD('dateTime'))
+    }
     return terms.NumericOperation(a.asJS / b.asJS, a.datatype)
   },
 
   '=': function (a, b) {
+    if (isDate(a) && isDate(b)) {
+      return terms.BooleanDescriptor(a.asJs.isSame(b.asJs))
+    }
     return RDFTermEqual(a, b)
   },
 
   '!=': function (a, b) {
+    if (isDate(a) && isDate(b)) {
+      return terms.BooleanDescriptor(!(a.asJs.isSame(b.asJs)))
+    }
     return terms.BooleanDescriptor(a.asJS !== b.asJS)
   },
 
   '<': function (a, b) {
+    if (isDate(a) && isDate(b)) {
+      return terms.BooleanDescriptor(a.asJs.isBefore(b.asJs))
+    }
     return terms.BooleanDescriptor(a.asJS < b.asJS)
   },
 
   '<=': function (a, b) {
+    if (isDate(a) && isDate(b)) {
+      return terms.BooleanDescriptor(a.asJs.isSameOrBefore(b.asJs))
+    }
     return terms.BooleanDescriptor(a.asJS <= b.asJS)
   },
 
   '>': function (a, b) {
+    if (isDate(a) && isDate(b)) {
+      return terms.BooleanDescriptor(a.asJs.isAfter(b.asJs))
+    }
     return terms.BooleanDescriptor(a.asJS > b.asJS)
   },
 
   '>=': function (a, b) {
+    if (isDate(a) && isDate(b)) {
+      return terms.BooleanDescriptor(a.asJs.isSameOrAfter(b.asJs))
+    }
     return terms.BooleanDescriptor(a.asJS >= b.asJS)
   },
 
@@ -201,6 +242,14 @@ const SPARQL_OPERATIONS = {
 
   'strlang': function (x, lang) {
     return terms.LangLiteralDescriptor(x.value, lang.value)
+  },
+
+  'uuid': function () {
+    return terms.IRIDescriptor(`urn:uuid:${uuid()}`)
+  },
+
+  'struuid': function () {
+    return terms.RawLiteralDescriptor(uuid)
   },
 
   /*
@@ -304,11 +353,39 @@ const SPARQL_OPERATIONS = {
 
   'floor': function (a) {
     return terms.NumericOperation(Math.floor(a.asJS), XSD('integer'))
-  }
+  },
 
   /*
     Functions on Dates and Times https://www.w3.org/TR/sparql11-query/#func-date-time
   */
+
+  'now': function () {
+    return terms.DateLiteral(moment())
+  },
+
+  'year': function (a) {
+    return terms.NumericOperation(a.asJS.year(), XSD('integer'))
+  },
+
+  'month': function (a) {
+    return terms.NumericOperation(a.asJS.month() + 1, XSD('integer'))
+  },
+
+  'day': function (a) {
+    return terms.NumericOperation(a.asJS.date(), XSD('integer'))
+  },
+
+  'hours': function (a) {
+    return terms.NumericOperation(a.asJS.hours(), XSD('integer'))
+  },
+
+  'minutes': function (a) {
+    return terms.NumericOperation(a.asJS.minutes(), XSD('integer'))
+  },
+
+  'seconds': function (a) {
+    return terms.NumericOperation(a.asJS.seconds(), XSD('integer'))
+  }
 
   /*
     Hash Functions https://www.w3.org/TR/sparql11-query/#func-hash
