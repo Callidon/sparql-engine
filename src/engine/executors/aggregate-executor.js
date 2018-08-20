@@ -66,8 +66,8 @@ class AggregateExecutor {
    * @return {AsyncIterator} An iterator which evaluate a GROUP BY clause
    */
   _executeGroupBy (source, groupby, options) {
-    // TODO handle more than one variable in GROUP BY
-    return new GroupByOperator(source, groupby[0].expression, options)
+    // TODO handle more than one variables & SPARQL expressions in GROUP BY
+    return new GroupByOperator(source, [groupby[0].expression], options)
   }
 
   /**

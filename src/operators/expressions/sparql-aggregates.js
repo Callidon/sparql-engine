@@ -36,13 +36,11 @@ const terms = require('../../rdf-terms.js')
  * @author Corentin Marionneau
  */
 const SPARQL_AGGREGATES = {
-  'count': function (variable, row) {
+  'count': function (variable, rows) {
     let count = 0
-    row.forEach(bindings => {
-      if (variable in bindings) {
-        count++
-      }
-    })
+    if (variable in rows) {
+      count = rows[variable].length
+    }
     return terms.NumericOperation(count, XSD('integer'))
   }
 }

@@ -33,16 +33,20 @@ const { BufferedIterator } = require('asynciterator')
  * @author Corentin Marionneau
  */
 class MaterializeOperator extends BufferedIterator {
-  constructor (source) {
-    super()
+  constructor (source, options) {
+    super(options)
     this._source = source
     this._readingFromSource = true
     this._bufferedValues = []
     this._source.on('error', err => this.emit('error', err))
   }
 
+  _preTransform (value) {
+    this._bufferedValues.push(value)
+  }
+
   _transformAll (values) {
-    throw new Error('A Valid MaterializeOperator must implements a "_transformAll" method')
+    return values
   }
 
   _transform (value, done) {
@@ -58,7 +62,7 @@ class MaterializeOperator extends BufferedIterator {
         this._read(count, done)
       })
       this._source.on('data', v => {
-        this._bufferedValues.push(v)
+        this._preTransform(v)
       })
     } else {
       if (this._bufferedValues.length > 0) {

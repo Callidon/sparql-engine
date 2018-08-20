@@ -45,7 +45,9 @@ class AggregateOperator extends TransformIterator {
   _transform (bindings, done) {
     try {
       bindings[this._variable] = this._expression.evaluate(bindings).asRDF
-    } catch (e) {}
+    } catch (e) {
+      this.emit('error', e)
+    }
     this._push(bindings)
     done()
   }
