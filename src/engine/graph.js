@@ -42,11 +42,29 @@ class Graph {
     this._iri = value
   }
 
-  insert (graph, triples, options) {
+  /**
+   * Insert a RDF triple into the RDF Graph
+   * @param  {Object}   triple - RDF Triple to insert
+   * @param  {string}   triple.subject - RDF triple's subject
+   * @param  {string}   triple.predicate - RDF triple's predicate
+   * @param  {string}   triple.object - RDF triple's object
+   * @param  {Function} done   - Function to be called when the insertion has been completed
+   * @return {void}
+   */
+  insert (triple, done) {
     throw new Error('A Graph must implements an "insert" method to support SPARQL INSERT queries')
   }
 
-  delete (graph, triple, options) {
+  /**
+   * Delete a RDF triple from the RDF Graph
+   * @param  {Object}   triple - RDF Triple to delete
+   * @param  {string}   triple.subject - RDF triple's subject
+   * @param  {string}   triple.predicate - RDF triple's predicate
+   * @param  {string}   triple.object - RDF triple's object
+   * @param  {Function} done   - Function to be called when the deletion has been completed
+   * @return {void}
+   */
+  delete (triple, done) {
     throw new Error('A Graph must implements a "delete" method to support SPARQL DELETE queries')
   }
 
@@ -58,10 +76,6 @@ class Graph {
    */
   evalBGP (bgp, options) {
     throw new Error('A Graph must implements an "evalBGP" method to support SPARQL queries')
-  }
-
-  clear (graph) {
-    throw new Error('A Graph must implements a "clear" method to support SPARQL CLEAR queries')
   }
 }
 

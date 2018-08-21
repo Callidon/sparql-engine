@@ -48,35 +48,35 @@ Similarly, to support the [SPARQL UPDATE protocol](https://www.w3.org/TR/2013/RE
   const { Graph } = require('sparql-engine')
 
   class CustomGraph extends Graph {
-    constructor () {
-      super()
-      this._db = // get a database instance
-    }
+    /**
+     * Insert a RDF triple into the RDF Graph
+     * @param  {Object}   triple - RDF Triple to insert
+     * @param  {string}   triple.subject - RDF triple's subject
+     * @param  {string}   triple.predicate - RDF triple's predicate
+     * @param  {string}   triple.object - RDF triple's object
+     * @param  {Function} done   - Function to be called when the insertion has been completed
+     * @return {void}
+     */
+    insert (triple, done) { /* ... */ }
 
-    /*
-      Implements this method to support
-      the insertion of RDF triples in the database
-    */
-    insert (triples) {
-      this._db.insertTriples(triples)
-    }
+    /**
+     * Delete a RDF triple from the RDF Graph
+     * @param  {Object}   triple - RDF Triple to delete
+     * @param  {string}   triple.subject - RDF triple's subject
+     * @param  {string}   triple.predicate - RDF triple's predicate
+     * @param  {string}   triple.object - RDF triple's object
+     * @param  {Function} done   - Function to be called when the deletion has been completed
+     * @return {void}
+     */
+    delete (triple, done) { /* ... */ }
 
-    /*
-      Implements this method to support
-      the deletion of RDF triples from the database
-    */
-    delete (triples) {
-      this._db.deleteTriples(triples)
-    }
-
-    /*
-      Implements this method to support the evaluation
-      of Basic Graph patterns, i.e., set of triples patterns.
-    */
-    evalBGP (bgp, options) {
-      // This method must return an AsyncIterator
-      return this._db.searchBasicGraphPattern(bgp)
-    }
+    /**
+     * Evaluates a Basic Graph pattern, i.e., a set of triple patterns, on the Graph using an iterator.
+     * @param  {Object[]} bgp   - The set of triple patterns to evaluate
+     * @param  {Object} options - Execution options
+     * @return {AsyncIterator} An iterator which evaluates the Basic Graph pattern on the Graph
+     */
+    evalBGP (bgp, options) { /* ... */ }
   }
 ```
 
