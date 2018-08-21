@@ -24,61 +24,59 @@ SOFTWARE.
 
 'use strict'
 
-const { BufferedIterator } = require('asynciterator')
-const { sortBy } = require('lodash')
+const MaterializeOperator = require('./materialize-operator.js')
 
 /**
  * A OrderByOperator implements a ORDER BY clause, i.e.,
  * it sorts solution mappings produced by another operator
- * @extends BufferedIterator
- * @memberof Operators
+ * @extends MaterializeOperator
  * @author Thomas Minier
  * @see {@link https://www.w3.org/TR/2013/REC-sparql11-query-20130321/#modOrderBy}
  */
-class OrderByOperator extends BufferedIterator {
+class OrderByOperator extends MaterializeOperator {
   /**
    * Constructor
-   * @memberof Operators
-   * @param {AsyncIterator} source - The source operator
-   * @param {string[]} variables - List of variables to sort by
+   * @param {AsyncIterator} source - Source iterator
+   * @param {Object[]} comparators - Parsed ORDER BY clause
+   * @param {Object} options - Execution options
    */
-  constructor (source, variables, descending = false) {
-    super()
-    this._variables = variables
-    this._bufferedValues = []
-    this._readingFromSource = false
-    this._isSorted = false
-    this._descending = false
-    this._source = source
+  constructor (source, comparators, options) {
+    super(source, options)
+    this._comparator = this._buildComparator(comparators.map(c => {
+      // explicity tag ascending comparator (sparqljs leaves them untagged)
+      if (!('descending' in c)) {
+        c.ascending = true
+      }
+      return c
+    }))
   }
 
-  /**
-   * _read implementation: buffer all values in memory, sort them
-   * and then, ouput them.
-   * @private
-   * @return {void}
-   */
-  _read (count, done) {
-    if (!this._readingFromSource) {
-      this._readingFromSource = true
-      this._source.on('data', d => this._bufferedValues.push(d))
-      this._source.on('end', () => {
-        this._bufferedValues = sortBy(this._bufferedValues, this._variables)
-        this._isSorted = true
-        this._read(count, done)
-      })
-    } else {
-      if (this._isSorted && this._bufferedValues.length === 0) {
-        this.close()
-      } else if (this._isSorted) {
-        if (this._descending) {
-          this._push(this._bufferedValues.pop())
-        } else {
-          this._push(this._bufferedValues.shift())
+  _buildComparator (comparators) {
+    const comparatorsFuncs = comparators.map(c => {
+      return (left, right) => {
+        if (left[c.expression] < right[c.expression]) {
+          return (c.ascending) ? -1 : 1
+        } else if (left[c.expression] > right[c.expression]) {
+          return (c.ascending) ? 1 : -1
+        }
+        return 0
+      }
+    })
+    return (left, right) => {
+      let temp
+      for (let comp of comparatorsFuncs) {
+        temp = comp(left, right)
+        if (temp !== 0) {
+          return temp
         }
       }
-      done()
+      return 0
     }
+  }
+
+  _transformAll (values) {
+    values.sort((a, b) => this._comparator(a, b))
+    return values
   }
 }
 

@@ -31,6 +31,7 @@ const UnionOperator = require('../operators/union-operator.js')
 const DistinctIterator = require('../operators/distinct-operator.js')
 const FilterOperator = require('../operators/filter-operator.js')
 const OptionalOperator = require('../operators/optional-operator.js')
+const OrderByOperator = require('../operators/orderby-operator.js')
 // solution modifiers
 const SelectOperator = require('../operators/modifiers/select-operator.js')
 const AskOperator = require('../operators/modifiers/ask-operator.js')
@@ -150,7 +151,7 @@ class PlanBuilder {
 
     // Handles ORDER BY
     if ('order' in query) {
-      graphIterator = this._buildOrderBy(graphIterator, query.order, options)
+      graphIterator = new OrderByOperator(graphIterator, query.order, options)
     }
 
     if (!(query.queryType in queryConstructors)) {
