@@ -84,22 +84,40 @@ class PlanBuilder {
   }
 
   /**
-   * Build the physical query execution of a SPARQL query
+   * Build the physical query execution of a SPARQL 1.1 query
    * and returns an iterator that can be consumed to evaluate the query.
-   * @param  {string|Object} query         - SPARQL query to evaluate (in string or JSON format)
+   * @param  {string}  query        - SPARQL query to evaluated
+   * @param  {Object} [options={}]  - Execution options
+   * @return {AsyncIterator} An iterator that can be consumed to evaluate the query.
+   */
+  build (query, options = {}) {
+    // If needed, parse the string query into a logical query execution plan
+    if (typeof query === 'string') {
+      query = new Parser(options.prefixes).parse(query)
+    }
+    if (query.type === 'query') {
+      return this._buildQueryPlan(query, options)
+    }
+    switch (query.type) {
+      case 'insert':
+      case 'delete':
+      case 'insert+delete':
+      default:
+        throw new SyntaxError(`Unsupported SPARQL query type: ${query.type}`)
+    }
+  }
+
+  /**
+   * Build the physical query execution of a SPARQL query
+   * @param  {Object}        query         - Parsed SPARQL query
    * @param  {Object}        [options={}]  - Execution options
    * @param  {AsyncIterator} [source=null] - Source iterator
    * @return {AsyncIterator} An iterator that can be consumed to evaluate the query.
    */
-  build (query, options = {}, source = null) {
+  _buildQueryPlan (query, options = {}, source = null) {
     if (_.isNull(source)) {
       // build pipeline starting iterator
       source = single({})
-    }
-
-    // If needed, parse the string query into a logical query execution plan
-    if (typeof query === 'string') {
-      query = new Parser(options.prefixes).parse(query)
     }
     options.prefixes = query.prefixes
 
@@ -122,7 +140,7 @@ class PlanBuilder {
         type: 'query',
         where: query.where.concat(where)
       }
-      return this.build(construct, options, source)
+      return this._buildQueryPlan(construct, options, source)
     }
 
     // Create an iterator that projects the bindings according to the query type
@@ -254,7 +272,7 @@ class PlanBuilder {
           return this._executor.buildIterator(source, bgp, childOptions)
         }
       case 'query':
-        return this.build(group, options, source)
+        return this._buildQueryPlan(group, options, source)
       case 'graph':
         if (_.isNull(this._graphExecutor)) {
           throw new Error('A PlanBuilder cannot evaluate a GRAPH clause without a GraphExecutor')
