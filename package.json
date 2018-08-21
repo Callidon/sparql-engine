@@ -41,7 +41,6 @@
   },
   "dependencies": {
     "asynciterator": "^2.0.0",
-    "ldf-client": "^2.0.5",
     "lodash": "^4.17.10",
     "moment": "^2.22.2",
     "n3": "^0.11.3",

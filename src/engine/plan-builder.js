@@ -28,11 +28,9 @@ const { Parser } = require('sparqljs')
 const { single } = require('asynciterator')
 const BindOperator = require('../operators/bind-operator.js')
 const UnionOperator = require('../operators/union-operator.js')
-const SortIterator = require('ldf-client/lib/sparql/SortIterator')
 const DistinctIterator = require('../operators/distinct-operator.js')
 const FilterOperator = require('../operators/filter-operator.js')
 const OptionalOperator = require('../operators/optional-operator.js')
-const SparqlExpressionEvaluator = require('../utils/SparqlExpressionEvaluator.js')
 // solution modifiers
 const SelectOperator = require('../operators/modifiers/select-operator.js')
 const AskOperator = require('../operators/modifiers/ask-operator.js')
@@ -151,7 +149,9 @@ class PlanBuilder {
     graphIterator = this._aggExecutor.buildIterator(graphIterator, query, options)
 
     // Handles ORDER BY
-    graphIterator = this._buildOrderBy(graphIterator, query.order, options)
+    if ('order' in query) {
+      graphIterator = this._buildOrderBy(graphIterator, query.order, options)
+    }
 
     if (!(query.queryType in queryConstructors)) {
       throw new Error(`Unsupported SPARQL query type: ${query.queryType}`)
@@ -310,36 +310,36 @@ class PlanBuilder {
     }
   }
 
-  /**
-   * Build a physical plan for a SPARQL ORDER BY clause
-   * @param  {[type]} source  [description]
-   * @param  {[type]} orderby [description]
-   * @param  {[type]} options [description]
-   * @return {AsyncIterator}         [description]
-   */
-  _buildOrderBy (source, orderby, options) {
-    let iterator = source
-    for (let i = orderby && (orderby.length - 1); i >= 0; i--) {
-      let order = new SparqlExpressionEvaluator(orderby[i].expression)
-      let ascending = !orderby[i].descending
-      iterator = new SortIterator(iterator, (a, b) => {
-        let orderA = ''
-        let orderB = ''
-        try { orderA = order(a) } catch (error) { /* ignore order error */ }
-        try { orderB = order(b) } catch (error) { /* ignore order error */ }
-        if (!isNaN(orderA)) {
-          orderA = Number(orderA)
-        }
-        if (!isNaN(orderB)) {
-          orderB = Number(orderB)
-        }
-        if (orderA < orderB) return ascending ? -1 : 1
-        if (orderA > orderB) return ascending ? 1 : -1
-        return 0
-      }, options)
-    }
-    return iterator
-  }
+  // /**
+  //  * Build a physical plan for a SPARQL ORDER BY clause
+  //  * @param  {[type]} source  [description]
+  //  * @param  {[type]} orderby [description]
+  //  * @param  {[type]} options [description]
+  //  * @return {AsyncIterator}         [description]
+  //  */
+  // _buildOrderBy (source, orderby, options) {
+  //   let iterator = source
+  //   for (let i = orderby && (orderby.length - 1); i >= 0; i--) {
+  //     let order = new SparqlExpressionEvaluator(orderby[i].expression)
+  //     let ascending = !orderby[i].descending
+  //     iterator = new SortIterator(iterator, (a, b) => {
+  //       let orderA = ''
+  //       let orderB = ''
+  //       try { orderA = order(a) } catch (error) { /* ignore order error */ }
+  //       try { orderB = order(b) } catch (error) { /* ignore order error */ }
+  //       if (!isNaN(orderA)) {
+  //         orderA = Number(orderA)
+  //       }
+  //       if (!isNaN(orderB)) {
+  //         orderB = Number(orderB)
+  //       }
+  //       if (orderA < orderB) return ascending ? -1 : 1
+  //       if (orderA > orderB) return ascending ? 1 : -1
+  //       return 0
+  //     }, options)
+  //   }
+  //   return iterator
+  // }
 
   /**
    * Build an iterator which evaluates a SPARQL query with VALUES clause(s).
