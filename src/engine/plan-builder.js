@@ -213,31 +213,10 @@ class PlanBuilder {
       prec = groups[i]
     }
     groups = newGroups
-    // DEPRECATED: old behaviour to handle VALUES
-    // if (groups[0].type === 'values') {
-    //   var vals = groups[0].values
-    //   var bgpIndex = _.findIndex(groups, {'type': 'bgp'})
-    //   var union = {type: 'union', patterns: []}
-    //   for (let i = 0; i < vals.length; i++) {
-    //     for (var val in vals[i]) {
-    //       if (vals[i][val] == null) {
-    //         delete vals[i][val]
-    //       }
-    //     }
-    //     var newBGP = replaceValues(groups[bgpIndex], vals[i])
-    //     var unit = _.cloneDeep(groups.slice(1, -1))
-    //     unit[bgpIndex - 1] = newBGP
-    //     union.patterns.push({type: 'group', patterns: unit, value: vals[i]})
-    //   }
-    //   return new UnionOperator(...union.patterns.map(patternToken => {
-    //     var unionIter = this._buildGroup(source.clone(), patternToken, options)
-    //     return new ValuesOperator(unionIter, patternToken.value, options)
-    //   }))
-    // } else {
+
     return groups.reduce((source, group) => {
       return this._buildGroup(source, group, options)
     }, source)
-    // }
   }
 
   /**
@@ -280,6 +259,7 @@ class PlanBuilder {
         if (_.isNull(this._graphExecutor)) {
           throw new Error('A PlanBuilder cannot evaluate a GRAPH clause without a GraphExecutor')
         }
+        // delegate GRAPH evaluation to an executor
         return this._graphExecutor.buildIterator(source, group, childOptions)
       case 'service':
         if (_.isNull(this._serviceExecutor)) {
@@ -297,50 +277,13 @@ class PlanBuilder {
           return this._buildGroup(source.clone(), patternToken, childOptions)
         }))
       case 'filter':
-      // A set of bindings does not match the filter
-      // if it evaluates to 0/false, or errors
         return new FilterOperator(source, group.expression, childOptions)
-        // var evaluate = new SparqlExpressionEvaluator(group.expression)
-        // return source.filter(bindings => {
-        //   try { return !/^"false"|^"0"/.test(evaluate(bindings)) } catch (error) { return false }
-        // })
       case 'bind':
         return new BindOperator(source, group.variable, group.expression, childOptions)
       default:
         throw new Error(`Unsupported SPARQL group pattern found in query: ${group.type}`)
     }
   }
-
-  // /**
-  //  * Build a physical plan for a SPARQL ORDER BY clause
-  //  * @param  {[type]} source  [description]
-  //  * @param  {[type]} orderby [description]
-  //  * @param  {[type]} options [description]
-  //  * @return {AsyncIterator}         [description]
-  //  */
-  // _buildOrderBy (source, orderby, options) {
-  //   let iterator = source
-  //   for (let i = orderby && (orderby.length - 1); i >= 0; i--) {
-  //     let order = new SparqlExpressionEvaluator(orderby[i].expression)
-  //     let ascending = !orderby[i].descending
-  //     iterator = new SortIterator(iterator, (a, b) => {
-  //       let orderA = ''
-  //       let orderB = ''
-  //       try { orderA = order(a) } catch (error) { /* ignore order error */ }
-  //       try { orderB = order(b) } catch (error) { /* ignore order error */ }
-  //       if (!isNaN(orderA)) {
-  //         orderA = Number(orderA)
-  //       }
-  //       if (!isNaN(orderB)) {
-  //         orderB = Number(orderB)
-  //       }
-  //       if (orderA < orderB) return ascending ? -1 : 1
-  //       if (orderA > orderB) return ascending ? 1 : -1
-  //       return 0
-  //     }, options)
-  //   }
-  //   return iterator
-  // }
 
   /**
    * Build an iterator which evaluates a SPARQL query with VALUES clause(s).
