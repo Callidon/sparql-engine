@@ -24,7 +24,7 @@ SOFTWARE.
 
 'use strict'
 
-const { TransformIterator } = require('asyncIterator')
+const { TransformIterator } = require('asynciterator')
 
 /**
  * Handles an SPARQL OPTIONAL clause in the following way:
