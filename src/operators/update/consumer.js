@@ -40,8 +40,16 @@ class Consumer extends Writable {
   }
 
   execute () {
+    // if the source has already ended, no need to drain it
+    if (this._source.ended) {
+      return new Promise(resolve => {
+        this.end(null, null, resolve)
+      })
+    }
     return new Promise((resolve, reject) => {
-      this._source.on('end', resolve)
+      this._source.on('end', () => {
+        this.end(null, null, resolve)
+      })
       this._source.on('error', reject)
       this._source.on('data', bindings => {
         this.write(bindings)
