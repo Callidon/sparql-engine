@@ -53,7 +53,7 @@ class UpdateExecutor {
     let deletes = []
     let inserts = []
     if (update.updateType === 'insertdelete') {
-      graph = ('graph' in update) ? update.graph : null
+      graph = ('graph' in update) ? this._dataset.getNamedGraph(update.graph) : null
       // evaluate the WHERE clause as a classic SELECT query
       source = this._builder.build({
         type: 'query',

@@ -28,7 +28,6 @@ const level = require('level')
 const levelgraph = require('levelgraph')
 const levelgraphN3 = require('levelgraph-n3')
 const fs = require('fs')
-const del = require('del')
 const { HashMapDataset, Graph, PlanBuilder } = require('../src/api.js')
 const { TransformIterator } = require('asynciterator')
 const { mapKeys } = require('lodash')
@@ -40,22 +39,21 @@ const { mapKeys } = require('lodash')
  */
 function getDB (filePath = null, name = 'testing_db') {
   // cleanup db first
-  return del([`${name}/*`], {silent: true})
-    .then(() => {
+  return new Promise((resolve, reject) => {
+    level.destroy(name, () => {
       const db = levelgraphN3(levelgraph(level(name)))
-      return new Promise((resolve, reject) => {
-        if (filePath === null) {
+      if (filePath === null) {
+        resolve(db)
+      } else {
+        const stream = fs.createReadStream(filePath)
+          .pipe(db.n3.putStream())
+        stream.on('err', reject)
+        stream.on('end', () => {
           resolve(db)
-        } else {
-          const stream = fs.createReadStream(filePath)
-            .pipe(db.n3.putStream())
-          stream.on('err', reject)
-          stream.on('finish', () => {
-            resolve(db)
-          })
-        }
-      })
+        })
+      }
     })
+  })
 }
 
 class LevelGraph extends Graph {
