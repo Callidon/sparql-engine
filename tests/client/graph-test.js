@@ -25,28 +25,17 @@ SOFTWARE.
 'use strict'
 
 const expect = require('chai').expect
-const { getDB, LevelGraphEngine } = require('../utils.js')
+const { getGraph, TestEngine } = require('../utils.js')
 
 const GRAPH_IRI = 'http://example.org#some-graph'
 
 describe('GRAPH queries', () => {
   let engine = null
-  before(done => {
-    getDB('./tests/data/dblp.nt')
-      .then(dbA => {
-        engine = new LevelGraphEngine(dbA)
-        getDB('./tests/data/dblp.nt', 'testing_db2')
-          .then(dbB => {
-            engine.addNamedGraph(GRAPH_IRI, dbB)
-            done()
-          })
-      })
-  })
-
-  after(done => {
-    engine._db.close(() => {
-      engine.getNamedGraph(GRAPH_IRI)._db.close(done)
-    })
+  beforeEach(() => {
+    const gA = getGraph('./tests/data/dblp.nt')
+    const gB = getGraph('./tests/data/dblp.nt')
+    engine = new TestEngine(gA)
+    engine.addNamedGraph(GRAPH_IRI, gB)
   })
 
   it('should evaluate simple SPARQL GRAPH queries', done => {
@@ -86,7 +75,7 @@ describe('GRAPH queries', () => {
     })
   })
 
-  it('should evaluate SPARQL GRAPH queries when the Graph IRI is a variable', done => {
+  it.skip('should evaluate SPARQL GRAPH queries when the Graph IRI is a variable', done => {
     const query = `
     PREFIX dblp-pers: <https://dblp.org/pers/m/>
     PREFIX dblp-rdf: <https://dblp.uni-trier.de/rdf/schema-2017-04-18#>
@@ -138,4 +127,4 @@ describe('GRAPH queries', () => {
       done()
     })
   })
-}).timeout(20000)
+})

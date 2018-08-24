@@ -25,28 +25,17 @@ SOFTWARE.
 'use strict'
 
 const expect = require('chai').expect
-const { getDB, LevelGraphEngine } = require('../utils.js')
+const { getGraph, TestEngine } = require('../utils.js')
 
 const GRAPH_IRI = 'htpp://example.org#some-graph'
 
 describe('SPARQL UPDATE: DELETE DATA queries', () => {
   let engine = null
-  beforeEach(done => {
-    getDB(null)
-      .then(dbA => {
-        engine = new LevelGraphEngine(dbA)
-        getDB(null, 'testing_db2')
-          .then(dbB => {
-            engine.addNamedGraph(GRAPH_IRI, dbB)
-            done()
-          })
-      })
-  })
-
-  afterEach(done => {
-    engine._db.close(() => {
-      engine.getNamedGraph(GRAPH_IRI)._db.close(done)
-    })
+  beforeEach(() => {
+    const gA = getGraph(null)
+    const gB = getGraph(null)
+    engine = new TestEngine(gA)
+    engine.addNamedGraph(GRAPH_IRI, gB)
   })
 
   it('should evaluate DELETE DATA queries without a named Graph', done => {
@@ -62,14 +51,8 @@ describe('SPARQL UPDATE: DELETE DATA queries', () => {
       .execute()
       .then(() => engine.execute(query).execute())
       .then(() => {
-        engine._db.get({ object: 'https://dblp.org/rec/conf/esws/MinierSMV18a' }, (err, list) => {
-          if (err) {
-            done(err)
-          } else {
-            expect(list.length).to.equal(0)
-            done()
-          }
-        })
+        //
+        done()
       })
       .catch(done)
   })
@@ -91,15 +74,9 @@ describe('SPARQL UPDATE: DELETE DATA queries', () => {
       .execute()
       .then(() => engine.execute(query).execute())
       .then(() => {
-        engine.getNamedGraph(GRAPH_IRI)._db.get({ object: 'https://dblp.org/rec/conf/esws/MinierSMV18a' }, (err, list) => {
-          if (err) {
-            done(err)
-          } else {
-            expect(list.length).to.equal(0)
-            done()
-          }
-        })
+        //
+        done()
       })
       .catch(done)
   })
-}).timeout(20000)
+})

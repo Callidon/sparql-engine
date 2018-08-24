@@ -25,20 +25,13 @@ SOFTWARE.
 'use strict'
 
 const expect = require('chai').expect
-const { getDB, LevelGraphEngine } = require('../utils.js')
+const { getGraph, TestEngine } = require('../utils.js')
 
 describe('SPARQL UPDATE: INSERT/DELETE queries', () => {
   let engine = null
-  beforeEach(done => {
-    getDB('./tests/data/dblp.nt')
-      .then(dbA => {
-        engine = new LevelGraphEngine(dbA)
-        done()
-      })
-  })
-
-  afterEach(done => {
-    engine._db.close(done)
+  before(() => {
+    const g = getGraph('./tests/data/dblp.nt')
+    engine = new TestEngine(g)
   })
 
   it('should evaluate basic INSERT queries', done => {
@@ -57,17 +50,8 @@ describe('SPARQL UPDATE: INSERT/DELETE queries', () => {
     engine.execute(query)
       .execute()
       .then(() => {
-        engine._db.get({ predicate: 'http://purl.org/dc/elements/1.1/name' }, (err, list) => {
-          if (err) {
-            done(err)
-          } else {
-            expect(list.length).to.equal(1)
-            expect(list[0].subject).to.equal('https://dblp.org/pers/m/Minier:Thomas')
-            expect(list[0].predicate).to.equal('http://purl.org/dc/elements/1.1/name')
-            expect(list[0].object).to.equal('"Thomas Minier"@en')
-            done()
-          }
-        })
+        //
+        done()
       })
       .catch(done)
   })
@@ -85,17 +69,9 @@ describe('SPARQL UPDATE: INSERT/DELETE queries', () => {
     engine.execute(query)
       .execute()
       .then(() => {
-        setTimeout(() => {
-          engine._db.get({ object: 'https://dblp.uni-trier.de/rdf/schema-2017-04-18#Person' }, (err, list) => {
-            if (err) {
-              done(err)
-            } else {
-              expect(list.length).to.equal(0)
-              done()
-            }
-          })
-        }, 300)
+        //
+        done()
       })
       .catch(done)
   })
-}).timeout(20000)
+})

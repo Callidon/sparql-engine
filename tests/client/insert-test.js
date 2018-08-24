@@ -25,28 +25,17 @@ SOFTWARE.
 'use strict'
 
 const expect = require('chai').expect
-const { getDB, LevelGraphEngine } = require('../utils.js')
+const { getGraph, TestEngine } = require('../utils.js')
 
 const GRAPH_IRI = 'htpp://example.org#some-graph'
 
 describe('SPARQL UPDATE: INSERT DATA queries', () => {
   let engine = null
-  beforeEach(done => {
-    getDB(null)
-      .then(dbA => {
-        engine = new LevelGraphEngine(dbA)
-        getDB(null, 'testing_db2')
-          .then(dbB => {
-            engine.addNamedGraph(GRAPH_IRI, dbB)
-            done()
-          })
-      })
-  })
-
-  afterEach(done => {
-    engine._db.close(() => {
-      engine.getNamedGraph(GRAPH_IRI)._db.close(done)
-    })
+  beforeEach(() => {
+    const gA = getGraph(null)
+    const gB = getGraph(null)
+    engine = new TestEngine(gA)
+    engine.addNamedGraph(GRAPH_IRI, gB)
   })
 
   it('should evaluate INSERT DATA queries without a named Graph', done => {
@@ -57,20 +46,9 @@ describe('SPARQL UPDATE: INSERT DATA queries', () => {
     engine.execute(query)
       .execute()
       .then(() => {
-        setTimeout(() => {
-          engine._db.get({ subject: 'http://example/book1' }, (err, list) => {
-            if (err) {
-              done(err)
-            } else {
-              expect(list.length).to.equal(1)
-              expect(list[0].subject).to.equal('http://example/book1')
-              expect(list[0].predicate).to.equal('http://purl.org/dc/elements/1.1/title')
-              expect(list[0].object).to.equal('"Fundamentals of Compiler Design"')
-              done()
-            }
-          })
-        })
-      }, 300)
+        //
+        done()
+      })
       .catch(done)
   })
 
@@ -86,20 +64,9 @@ describe('SPARQL UPDATE: INSERT DATA queries', () => {
     engine.execute(query)
       .execute()
       .then(() => {
-        setTimeout(() => {
-          engine.getNamedGraph(GRAPH_IRI)._db.get({ subject: 'http://example/book1' }, (err, list) => {
-            if (err) {
-              done(err)
-            } else {
-              expect(list.length).to.equal(1)
-              expect(list[0].subject).to.equal('http://example/book1')
-              expect(list[0].predicate).to.equal('http://purl.org/dc/elements/1.1/title')
-              expect(list[0].object).to.equal('"Fundamentals of Compiler Design"')
-              done()
-            }
-          })
-        }, 300)
+        //
+        done()
       })
       .catch(done)
   })
-}).timeout(20000)
+})

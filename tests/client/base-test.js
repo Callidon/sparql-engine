@@ -25,35 +25,30 @@ SOFTWARE.
 'use strict'
 
 const expect = require('chai').expect
-const { getDB, LevelGraphEngine } = require('../utils.js')
+const { getGraph, TestEngine } = require('../utils.js')
 
 describe('Basic SPARQL queries', () => {
   let engine = null
-  before(done => {
-    getDB('./tests/data/dblp.nt')
-      .then(db => {
-        engine = new LevelGraphEngine(db)
-        done()
-      })
+  before(() => {
+    const g = getGraph('./tests/data/dblp.nt')
+    engine = new TestEngine(g)
   })
-
-  after(done => engine._db.close(done))
 
   it('should evaluate simple SPARQL queries', done => {
     const query = `
     PREFIX dblp-pers: <https://dblp.org/pers/m/>
     PREFIX dblp-rdf: <https://dblp.uni-trier.de/rdf/schema-2017-04-18#>
     PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-    SELECT ?name ?article WHERE {
+    SELECT * WHERE {
       ?s rdf:type dblp-rdf:Person .
       ?s dblp-rdf:primaryFullPersonName ?name .
       ?s dblp-rdf:authorOf ?article .
     }`
     const results = []
-
     const iterator = engine.execute(query)
     iterator.on('error', done)
     iterator.on('data', b => {
+      expect(b).to.have.keys('?name', '?article', '?s')
       results.push(b)
     })
     iterator.on('end', () => {
@@ -61,4 +56,4 @@ describe('Basic SPARQL queries', () => {
       done()
     })
   })
-}).timeout(20000)
+})

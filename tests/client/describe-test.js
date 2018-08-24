@@ -25,19 +25,14 @@ SOFTWARE.
 'use strict'
 
 const expect = require('chai').expect
-const { getDB, LevelGraphEngine } = require('../utils.js')
+const { getGraph, TestEngine } = require('../utils.js')
 
 describe('DESCRIBE SPARQL queries', () => {
   let engine = null
-  before(done => {
-    getDB('./tests/data/dblp.nt')
-      .then(db => {
-        engine = new LevelGraphEngine(db)
-        done()
-      })
+  before(() => {
+    const g = getGraph('./tests/data/dblp.nt')
+    engine = new TestEngine(g)
   })
-
-  after(done => engine._db.close(done))
 
   it('should evaluate simple DESCRIBE queries', done => {
     const query = `
@@ -67,4 +62,4 @@ describe('DESCRIBE SPARQL queries', () => {
       done()
     })
   })
-}).timeout(20000)
+})
