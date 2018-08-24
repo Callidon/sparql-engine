@@ -40,7 +40,7 @@ const { mapKeys } = require('lodash')
  */
 function getDB (filePath = null, name = 'testing_db') {
   // cleanup db first
-  return del(`${name}/*`)
+  return del([`${name}/*`], {silent: true})
     .then(() => {
       const db = levelgraphN3(levelgraph(level(name)))
       return new Promise((resolve, reject) => {
