@@ -51,6 +51,7 @@ class ConstructOperator extends MultiTransformIterator {
       this._push(t)
       return false
     })
+    this._source.on('error', err => this.emit('error', err))
   }
 
   _createTransformer (bindings) {

@@ -41,6 +41,7 @@ class SelectOperator extends TransformIterator {
     this._variables = query.variables
     this._options = options
     this._selectAll = this._variables.length === 1 && this._variables[0] === '*'
+    this._source.on('error', err => this.emit('error', err))
   }
 
   _transform (bindings, done) {

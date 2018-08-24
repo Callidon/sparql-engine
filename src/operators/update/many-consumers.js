@@ -34,6 +34,9 @@ class ManyConsumers {
   }
 
   execute () {
+    if (this._consumers.length === 1) {
+      return this._consumers[0].execute()
+    }
     return this._consumers.reduce((prev, consumer) => {
       return prev.then(() => consumer.execute())
     }, Promise.resolve())

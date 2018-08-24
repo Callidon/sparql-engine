@@ -78,7 +78,6 @@ class UpdateExecutor {
         return this._buildInsertConsumer(source.clone(), v, graph)
       })
     }
-
     return new ManyConsumers(deletes.concat(inserts))
   }
 
