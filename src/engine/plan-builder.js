@@ -40,6 +40,7 @@ const ConstructOperator = require('../operators/modifiers/construct-operator.js'
 const AggregateExecutor = require('./executors/aggregate-executor.js')
 const BGPExecutor = require('./executors/bgp-executor.js')
 const GraphExecutor = require('./executors/graph-executor.js')
+const UpdateExecutor = require('./executors/update-executor.js')
 // utils
 const _ = require('lodash')
 const { deepApplyBindings, extendByBindings, rdf } = require('../utils.js')
@@ -65,6 +66,7 @@ class PlanBuilder {
     this._aggExecutor = new AggregateExecutor()
     this._graphExecutor = new GraphExecutor(this._dataset, this)
     this._serviceExecutor = null
+    this._updateExecutor = new UpdateExecutor(this._dataset, this)
   }
 
   /**
@@ -95,13 +97,11 @@ class PlanBuilder {
     if (typeof query === 'string') {
       query = new Parser(options.prefixes).parse(query)
     }
-    if (query.type === 'query') {
-      return this._buildQueryPlan(query, options)
-    }
     switch (query.type) {
-      case 'insert':
-      case 'delete':
-      case 'insert+delete':
+      case 'query':
+        return this._buildQueryPlan(query, options)
+      case 'update':
+        return this._updateExecutor.execute(query.updates, options)
       default:
         throw new SyntaxError(`Unsupported SPARQL query type: ${query.type}`)
     }

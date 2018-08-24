@@ -24,7 +24,7 @@ SOFTWARE.
 
 'use strict'
 
-const { TransformIterator } = require('asynciterator')
+const { ArrayIterator, MultiTransformIterator } = require('asynciterator')
 const { compact } = require('lodash')
 const { applyBindings, rdf } = require('../../utils.js')
 
@@ -34,7 +34,7 @@ const { applyBindings, rdf } = require('../../utils.js')
  * @author Thomas Minier
  * @see {@link https://www.w3.org/TR/2013/REC-sparql11-query-20130321/#construct}
  */
-class ConstructOperator extends TransformIterator {
+class ConstructOperator extends MultiTransformIterator {
   /**
    * Constructor
    * @memberof Operators
@@ -48,23 +48,13 @@ class ConstructOperator extends TransformIterator {
       if (rdf.isVariable(t.subject) || rdf.isVariable(t.predicate) || rdf.isVariable(t.object)) {
         return true
       }
-      this._push(this._writer.tripleToString(t.subject, t.predicate, t.object))
+      this._push(t)
       return false
     })
   }
 
-  _transform (bindings, done) {
-    compact(this._templates.map(t => applyBindings(t, bindings)))
-      .forEach(t => {
-        this._push(t)
-        // // dirty fix for N3.js parsing bug with datatypes surounded by brackets
-        // if (t.object.endsWith('>')) {
-        //   const startIndex = t.object.lastIndexOf('<')
-        //   t.object = t.object.substr(0, startIndex) + t.object.substr(startIndex + 1, t.object.length - startIndex - 2)
-        // }
-        // this._push(this._writer.quadToString(t.subject, t.predicate, t.object))
-      })
-    done()
+  _createTransformer (bindings) {
+    return new ArrayIterator(compact(this._templates.map(t => applyBindings(t, bindings))))
   }
 }
 

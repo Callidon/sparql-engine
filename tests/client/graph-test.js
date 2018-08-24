@@ -33,14 +33,21 @@ describe('GRAPH queries', () => {
   let engine = null
   before(done => {
     getDB('./tests/data/dblp.nt')
-      .then(db => {
-        engine = new LevelGraphEngine(db)
-        engine.addNamedGraph(GRAPH_IRI, db)
-        done()
+      .then(dbA => {
+        engine = new LevelGraphEngine(dbA)
+        getDB('./tests/data/dblp.nt', 'testing_db2')
+          .then(dbB => {
+            engine.addNamedGraph(GRAPH_IRI, dbB)
+            done()
+          })
       })
   })
 
-  after(done => engine._db.close(done))
+  after(done => {
+    engine._db.close(() => {
+      engine.getNamedGraph(GRAPH_IRI)._db.close(done)
+    })
+  })
 
   it('should evaluate simple SPARQL GRAPH queries', done => {
     const query = `

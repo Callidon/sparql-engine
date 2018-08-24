@@ -6,7 +6,7 @@ yarn-debug.log*
 yarn-error.log*
 
 # levelgraph
-testing_db
+testing_db*
 
 # Runtime data
 pids

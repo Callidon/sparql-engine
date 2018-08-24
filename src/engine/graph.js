@@ -48,8 +48,7 @@ class Graph {
    * @param  {string}   triple.subject - RDF triple's subject
    * @param  {string}   triple.predicate - RDF triple's predicate
    * @param  {string}   triple.object - RDF triple's object
-   * @param  {Function} done   - Function to be called when the insertion has been completed
-   * @return {void}
+   * @return {Promise} A Promise fullfilled when the insertion has been completed
    */
   insert (triple, done) {
     throw new Error('A Graph must implements an "insert" method to support SPARQL INSERT queries')
@@ -61,8 +60,7 @@ class Graph {
    * @param  {string}   triple.subject - RDF triple's subject
    * @param  {string}   triple.predicate - RDF triple's predicate
    * @param  {string}   triple.object - RDF triple's object
-   * @param  {Function} done   - Function to be called when the deletion has been completed
-   * @return {void}
+   * @return {Promise} A Promose fullfilled when the deletion has been completed
    */
   delete (triple, done) {
     throw new Error('A Graph must implements a "delete" method to support SPARQL DELETE queries')
