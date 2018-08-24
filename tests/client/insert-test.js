@@ -57,18 +57,20 @@ describe('SPARQL UPDATE: INSERT DATA queries', () => {
     engine.execute(query)
       .execute()
       .then(() => {
-        engine._db.get({ subject: 'http://example/book1' }, (err, list) => {
-          if (err) {
-            done(err)
-          } else {
-            expect(list.length).to.equal(1)
-            expect(list[0].subject).to.equal('http://example/book1')
-            expect(list[0].predicate).to.equal('http://purl.org/dc/elements/1.1/title')
-            expect(list[0].object).to.equal('"Fundamentals of Compiler Design"')
-            done()
-          }
+        setTimeout(() => {
+          engine._db.get({ subject: 'http://example/book1' }, (err, list) => {
+            if (err) {
+              done(err)
+            } else {
+              expect(list.length).to.equal(1)
+              expect(list[0].subject).to.equal('http://example/book1')
+              expect(list[0].predicate).to.equal('http://purl.org/dc/elements/1.1/title')
+              expect(list[0].object).to.equal('"Fundamentals of Compiler Design"')
+              done()
+            }
+          })
         })
-      })
+      }, 300)
       .catch(done)
   })
 
@@ -84,17 +86,19 @@ describe('SPARQL UPDATE: INSERT DATA queries', () => {
     engine.execute(query)
       .execute()
       .then(() => {
-        engine.getNamedGraph(GRAPH_IRI)._db.get({ subject: 'http://example/book1' }, (err, list) => {
-          if (err) {
-            done(err)
-          } else {
-            expect(list.length).to.equal(1)
-            expect(list[0].subject).to.equal('http://example/book1')
-            expect(list[0].predicate).to.equal('http://purl.org/dc/elements/1.1/title')
-            expect(list[0].object).to.equal('"Fundamentals of Compiler Design"')
-            done()
-          }
-        })
+        setTimeout(() => {
+          engine.getNamedGraph(GRAPH_IRI)._db.get({ subject: 'http://example/book1' }, (err, list) => {
+            if (err) {
+              done(err)
+            } else {
+              expect(list.length).to.equal(1)
+              expect(list[0].subject).to.equal('http://example/book1')
+              expect(list[0].predicate).to.equal('http://purl.org/dc/elements/1.1/title')
+              expect(list[0].object).to.equal('"Fundamentals of Compiler Design"')
+              done()
+            }
+          })
+        }, 300)
       })
       .catch(done)
   })
