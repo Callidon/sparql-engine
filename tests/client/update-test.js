@@ -40,7 +40,7 @@ describe('SPARQL UPDATE: INSERT/DELETE queries', () => {
     PREFIX dblp-rdf: <https://dblp.uni-trier.de/rdf/schema-2017-04-18#>
     PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
     PREFIX dc: <http://purl.org/dc/elements/1.1/>
-    INSERT { ?s  dc:name  "Thomas Minier"@en }
+    INSERT { ?s  dc:name  "Thomas Minier"@fr }
     WHERE {
       ?s rdf:type dblp-rdf:Person .
       ?s dblp-rdf:primaryFullPersonName ?name .
@@ -50,7 +50,13 @@ describe('SPARQL UPDATE: INSERT/DELETE queries', () => {
     engine.execute(query)
       .execute()
       .then(() => {
-        //
+        const triples = engine._graph._store.getTriples(
+          'https://dblp.org/pers/m/Minier:Thomas',
+          'http://purl.org/dc/elements/1.1/name', null)
+        expect(triples.length).to.equal(1)
+        expect(triples[0].subject).to.equal('https://dblp.org/pers/m/Minier:Thomas')
+        expect(triples[0].predicate).to.equal('http://purl.org/dc/elements/1.1/name')
+        expect(triples[0].object).to.equal('"Thomas Minier"@fr')
         done()
       })
       .catch(done)
@@ -69,7 +75,10 @@ describe('SPARQL UPDATE: INSERT/DELETE queries', () => {
     engine.execute(query)
       .execute()
       .then(() => {
-        //
+        const triples = engine._graph._store.getTriples(
+          'https://dblp.org/pers/m/Minier:Thomas',
+          'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', null)
+        expect(triples.length).to.equal(0)
         done()
       })
       .catch(done)

@@ -44,14 +44,19 @@ describe('SPARQL UPDATE: DELETE DATA queries', () => {
       <https://dblp.org/pers/m/Minier:Thomas> <https://dblp.uni-trier.de/rdf/schema-2017-04-18#authorOf> <https://dblp.org/rec/conf/esws/MinierSMV18a>
     }`
 
-    engine.execute(`
-    INSERT DATA {
-      <https://dblp.org/pers/m/Minier:Thomas> <https://dblp.uni-trier.de/rdf/schema-2017-04-18#authorOf> <https://dblp.org/rec/conf/esws/MinierSMV18a>
-    }`)
+    engine._graph._store.addTriple(
+      'https://dblp.org/pers/m/Minier:Thomas',
+      'https://dblp.uni-trier.de/rdf/schema-2017-04-18#authorOf',
+      'https://dblp.org/rec/conf/esws/MinierSMV18a')
+
+    engine.execute(query)
       .execute()
-      .then(() => engine.execute(query).execute())
       .then(() => {
-        //
+        const triples = engine._graph._store.getTriples(
+          'https://dblp.org/pers/m/Minier:Thomas',
+          'https://dblp.uni-trier.de/rdf/schema-2017-04-18#authorOf',
+          'https://dblp.org/rec/conf/esws/MinierSMV18a')
+        expect(triples.length).to.equal(0)
         done()
       })
       .catch(done)
@@ -64,17 +69,19 @@ describe('SPARQL UPDATE: DELETE DATA queries', () => {
         <https://dblp.org/pers/m/Minier:Thomas> <https://dblp.uni-trier.de/rdf/schema-2017-04-18#authorOf> <https://dblp.org/rec/conf/esws/MinierSMV18a>
       }
     }`
+    engine.getNamedGraph(GRAPH_IRI)._store.addTriple(
+      'https://dblp.org/pers/m/Minier:Thomas',
+      'https://dblp.uni-trier.de/rdf/schema-2017-04-18#authorOf',
+      'https://dblp.org/rec/conf/esws/MinierSMV18a')
 
-    engine.execute(`
-    INSERT DATA {
-      GRAPH <${GRAPH_IRI}> {
-        <https://dblp.org/pers/m/Minier:Thomas> <https://dblp.uni-trier.de/rdf/schema-2017-04-18#authorOf> <https://dblp.org/rec/conf/esws/MinierSMV18a>
-      }
-    }`)
+    engine.execute(query)
       .execute()
-      .then(() => engine.execute(query).execute())
       .then(() => {
-        //
+        const triples = engine.getNamedGraph(GRAPH_IRI)._store.getTriples(
+          'https://dblp.org/pers/m/Minier:Thomas',
+          'https://dblp.uni-trier.de/rdf/schema-2017-04-18#authorOf',
+          'https://dblp.org/rec/conf/esws/MinierSMV18a')
+        expect(triples.length).to.equal(0)
         done()
       })
       .catch(done)
