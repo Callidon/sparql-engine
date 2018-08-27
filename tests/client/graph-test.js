@@ -26,26 +26,18 @@ SOFTWARE.
 
 const expect = require('chai').expect
 const { getGraph, TestEngine } = require('../utils.js')
-const { constant, flatMap, times } = require('lodash')
 
-const GRAPH_IRI = 'http://example.org#some-graph'
+const GRAPH_A_IRI = 'http://example.org#some-graph-a'
+const GRAPH_B_IRI = 'http://example.org#some-graph-b'
 
 describe('GRAPH/FROM queries', () => {
   let engine = null
   beforeEach(() => {
     const gA = getGraph('./tests/data/dblp.nt')
-    const gB = getGraph('./tests/data/dblp.nt')
-    engine = new TestEngine(gA)
-    engine.addNamedGraph(GRAPH_IRI, gB)
+    const gB = getGraph('./tests/data/dblp2.nt')
+    engine = new TestEngine(gA, GRAPH_A_IRI)
+    engine.addNamedGraph(GRAPH_B_IRI, gB)
   })
-
-  const baseResults = [
-    'https://dblp.org/rec/conf/esws/MinierSMV18a',
-    'https://dblp.org/rec/conf/esws/MinierSMV18',
-    'https://dblp.org/rec/journals/corr/abs-1806-00227',
-    'https://dblp.org/rec/conf/esws/MinierMSM17',
-    'https://dblp.org/rec/conf/esws/MinierMSM17a'
-  ]
 
   const data = [
     {
@@ -54,14 +46,59 @@ describe('GRAPH/FROM queries', () => {
       PREFIX dblp-pers: <https://dblp.org/pers/m/>
       PREFIX dblp-rdf: <https://dblp.uni-trier.de/rdf/schema-2017-04-18#>
       PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-      SELECT ?name ?article
-      FROM <${GRAPH_IRI}>
+      SELECT ?s ?name ?article
+      FROM <${GRAPH_B_IRI}>
       WHERE {
         ?s rdf:type dblp-rdf:Person .
         ?s dblp-rdf:primaryFullPersonName ?name .
         ?s dblp-rdf:authorOf ?article .
       }`,
-      duplicationFactor: 1
+      nbResults: 2,
+      testFun: function (b) {
+        expect(b).to.have.all.keys(['?s', '?name', '?article'])
+        expect(b['?s']).to.equal('https://dblp.org/pers/g/Grall:Arnaud')
+        expect(b['?name']).to.equal('"Arnaud Grall"')
+        expect(b['?article']).to.be.oneOf(['https://dblp.org/rec/conf/semweb/GrallSM18', 'https://dblp.org/rec/conf/esws/GrallFMSMSV17'])
+      }
+    },
+    {
+      text: 'should evaluate a query with several FROM clauses',
+      query: `
+      PREFIX dblp-pers: <https://dblp.org/pers/m/>
+      PREFIX dblp-rdf: <https://dblp.uni-trier.de/rdf/schema-2017-04-18#>
+      PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+      SELECT ?s ?name ?article
+      FROM <${GRAPH_A_IRI}>
+      FROM <${GRAPH_B_IRI}>
+      WHERE {
+        ?s rdf:type dblp-rdf:Person .
+        ?s dblp-rdf:primaryFullPersonName ?name .
+        ?s dblp-rdf:authorOf ?article .
+      }`,
+      nbResults: 7,
+      testFun: function (b) {
+        expect(b).to.have.all.keys(['?s', '?name', '?article'])
+        switch (b['?s']) {
+          case 'https://dblp.org/pers/g/Grall:Arnaud':
+            expect(b['?s']).to.equal('https://dblp.org/pers/g/Grall:Arnaud')
+            expect(b['?name']).to.equal('"Arnaud Grall"')
+            expect(b['?article']).to.be.oneOf(['https://dblp.org/rec/conf/semweb/GrallSM18', 'https://dblp.org/rec/conf/esws/GrallFMSMSV17'])
+            break
+          case 'https://dblp.org/pers/m/Minier:Thomas':
+            expect(b['?s']).to.equal('https://dblp.org/pers/m/Minier:Thomas')
+            expect(b['?name']).to.equal('"Thomas Minier"@en')
+            expect(b['?article']).to.be.oneOf([
+              'https://dblp.org/rec/conf/esws/MinierSMV18a',
+              'https://dblp.org/rec/conf/esws/MinierSMV18',
+              'https://dblp.org/rec/journals/corr/abs-1806-00227',
+              'https://dblp.org/rec/conf/esws/MinierMSM17',
+              'https://dblp.org/rec/conf/esws/MinierMSM17a'
+            ])
+            break
+          default:
+            throw new Error(`Unexpected ?s binding found ${b['?s']}`)
+        }
+      }
     },
     {
       text: 'should evaluate simple SPARQL GRAPH queries',
@@ -69,89 +106,70 @@ describe('GRAPH/FROM queries', () => {
       PREFIX dblp-pers: <https://dblp.org/pers/m/>
       PREFIX dblp-rdf: <https://dblp.uni-trier.de/rdf/schema-2017-04-18#>
       PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-      SELECT ?name ?article WHERE {
-        ?s rdf:type dblp-rdf:Person .
-        GRAPH <${GRAPH_IRI}> {
-          ?s dblp-rdf:primaryFullPersonName ?name .
-          ?s dblp-rdf:authorOf ?article .
+      SELECT * WHERE {
+        ?s dblp-rdf:coCreatorWith ?coCreator .
+        GRAPH <${GRAPH_B_IRI}> {
+          ?s2 dblp-rdf:coCreatorWith ?coCreator .
+          ?s2 dblp-rdf:primaryFullPersonName ?name .
         }
       }`,
-      duplicationFactor: 1
+      nbResults: 3,
+      testFun: function (b) {
+        expect(b).to.have.all.keys(['?s', '?s2', '?coCreator', '?name'])
+        expect(b['?s']).to.equal('https://dblp.org/pers/m/Minier:Thomas')
+        expect(b['?s2']).to.equal('https://dblp.org/pers/g/Grall:Arnaud')
+        expect(b['?name']).to.equal('"Arnaud Grall"')
+        expect(b['?coCreator']).to.be.oneOf([
+          'https://dblp.org/pers/m/Molli:Pascal',
+          'https://dblp.org/pers/m/Montoya:Gabriela',
+          'https://dblp.org/pers/s/Skaf=Molli:Hala'
+        ])
+      }
+    },
+    {
+      text: 'should evaluate SPARQL GRAPH with FROM NAMED clauses',
+      query: `
+      PREFIX dblp-pers: <https://dblp.org/pers/m/>
+      PREFIX dblp-rdf: <https://dblp.uni-trier.de/rdf/schema-2017-04-18#>
+      PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+      SELECT *
+      FROM NAMED <${GRAPH_B_IRI}>
+      WHERE {
+        ?s dblp-rdf:coCreatorWith ?coCreator .
+        GRAPH ?g {
+          ?s2 dblp-rdf:coCreatorWith ?coCreator .
+          ?s2 dblp-rdf:primaryFullPersonName ?name .
+        }
+      }`,
+      nbResults: 3,
+      testFun: function (b) {
+        expect(b).to.have.all.keys(['?s', '?s2', '?coCreator', '?name', '?g'])
+        expect(b['?s']).to.equal('https://dblp.org/pers/m/Minier:Thomas')
+        expect(b['?s2']).to.equal('https://dblp.org/pers/g/Grall:Arnaud')
+        expect(b['?g']).to.be.oneOf([ GRAPH_A_IRI, GRAPH_B_IRI ])
+        expect(b['?name']).to.equal('"Arnaud Grall"')
+        expect(b['?coCreator']).to.be.oneOf([
+          'https://dblp.org/pers/m/Molli:Pascal',
+          'https://dblp.org/pers/m/Montoya:Gabriela',
+          'https://dblp.org/pers/s/Skaf=Molli:Hala'
+        ])
+      }
     }
   ]
 
   data.forEach(d => {
     it(d.text, done => {
-      let expectedArticles = flatMap(baseResults, r => times(d.duplicationFactor, constant(r)))
-      const results = []
-
+      let nbResults = 0
       const iterator = engine.execute(d.query)
       iterator.on('error', done)
       iterator.on('data', b => {
-        expect(b).to.have.all.keys(['?name', '?article'])
-        expect(b['?name']).to.equal('"Thomas Minier"@en')
-        expect(b['?article']).to.be.oneOf(expectedArticles)
-        expectedArticles = expectedArticles.filter(a => a !== b['?article'])
-        results.push(b)
+        d.testFun(b)
+        nbResults++
       })
       iterator.on('end', () => {
-        expect(results.length).to.equal(5)
-        expect(expectedArticles.length).to.equal(0)
+        expect(nbResults).to.equal(d.nbResults)
         done()
       })
-    })
-  })
-
-  it.skip('should evaluate SPARQL GRAPH queries when the Graph IRI is a variable', done => {
-    const query = `
-    PREFIX dblp-pers: <https://dblp.org/pers/m/>
-    PREFIX dblp-rdf: <https://dblp.uni-trier.de/rdf/schema-2017-04-18#>
-    PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-    SELECT ?name ?article ?graph WHERE {
-      ?s rdf:type dblp-rdf:Person .
-      GRAPH ?graph {
-        ?s dblp-rdf:primaryFullPersonName ?name .
-        ?s dblp-rdf:authorOf ?article .
-      }
-    }`
-    let expectedArticles = [
-      'https://dblp.org/rec/conf/esws/MinierSMV18a',
-      'https://dblp.org/rec/conf/esws/MinierSMV18a',
-      'https://dblp.org/rec/conf/esws/MinierSMV18',
-      'https://dblp.org/rec/conf/esws/MinierSMV18',
-      'https://dblp.org/rec/journals/corr/abs-1806-00227',
-      'https://dblp.org/rec/journals/corr/abs-1806-00227',
-      'https://dblp.org/rec/conf/esws/MinierMSM17',
-      'https://dblp.org/rec/conf/esws/MinierMSM17',
-      'https://dblp.org/rec/conf/esws/MinierMSM17a',
-      'https://dblp.org/rec/conf/esws/MinierMSM17a'
-    ]
-    let nbDefault = 0
-    let nbNamedGraph = 0
-    const results = []
-
-    const iterator = engine.execute(query)
-    iterator.on('error', done)
-    iterator.on('data', b => {
-      expect(b).to.have.all.keys(['?name', '?article', '?graph'])
-      expect(b['?graph']).to.be.oneOf(['urn:sparql-engine:DefaultGraph', GRAPH_IRI])
-      if (b['?graph'] === 'urn:sparql-engine:DefaultGraph') {
-        nbDefault++
-      } else {
-        nbNamedGraph++
-      }
-      expect(b['?name']).to.equal('"Thomas Minier"@en')
-      expect(b['?article']).to.be.oneOf(expectedArticles)
-      const index = expectedArticles.findIndex(v => v === b['?article'])
-      expectedArticles.splice(index, 1)
-      results.push(b)
-    })
-    iterator.on('end', () => {
-      expect(results.length).to.equal(10)
-      expect(expectedArticles.length).to.equal(0)
-      expect(nbDefault).to.equal(5)
-      expect(nbNamedGraph).to.equal(5)
-      done()
     })
   })
 })

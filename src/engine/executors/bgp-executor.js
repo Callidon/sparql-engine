@@ -94,6 +94,23 @@ class BGPExecutor {
   }
 
   /**
+   * Return the RDF Graph to be used for BGP evaluation.
+   * * If `iris` is empty, returns the default graph
+   * * If `iris` has a single entry, returns the corresponding named graph
+   * * Otherwise, returns an UnionGraph based on the provided iris
+   * @param  {string[]} iris - List of Graph's iris
+   * @return {Graph} A RDF Graph
+   */
+  _getGraph (iris) {
+    if (iris.length === 0) {
+      return this._dataset.getDefaultGraph()
+    } else if (iris.length === 1) {
+      return this._dataset.getNamedGraph(iris[0])
+    }
+    return this._dataset.getUnionGraph(iris)
+  }
+
+  /**
    * Build an iterator to evaluate a BGP
    * @private
    * @param  {AsyncIterator}  source    - Source iterator
@@ -103,10 +120,7 @@ class BGPExecutor {
    */
   buildIterator (source, patterns, options) {
     // select the graph to use for BGP evaluation
-    let graph = this._dataset.getDefaultGraph()
-    if ('_graph' in options) {
-      graph = this._dataset.getNamedGraph(options._graph)
-    }
+    const graph = ('_from' in options) ? this._getGraph(options._from.default) : this._dataset.getDefaultGraph()
     return this._execute(source, graph, patterns, options, this._isJoinIdentity(source))
   }
 

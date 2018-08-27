@@ -26,7 +26,7 @@ SOFTWARE.
 
 const UnionOperator = require('../../operators/union-operator.js')
 const { extendByBindings, rdf } = require('../../utils.js')
-const { cloneDeep } = require('lodash')
+const { cloneDeep, isArray } = require('lodash')
 
 /**
  * A GraphExecutor is responsible for evaluation a GRAPH clause in a SPARQL query.
@@ -61,12 +61,12 @@ class GraphExecutor {
       }
     }
     // handle the case where the GRAPh IRI is a SPARQL variable
-    if (rdf.isVariable(node.name)) {
+    if (rdf.isVariable(node.name) && '_from' in options && isArray(options._from.named)) {
       // execute the subquery using each graph, and bound the graph var to the graph iri
-      const iterators = this._dataset.getAllGraphs().map(g => {
+      const iterators = options._from.named.map(iri => {
         const bindings = {}
-        bindings[node.name] = g.iri
-        return extendByBindings(this._execute(source.clone(), g, subquery, options), bindings)
+        bindings[node.name] = iri
+        return extendByBindings(this._execute(source.clone(), iri, subquery, options), bindings)
       })
       return new UnionOperator(...iterators)
     }
@@ -82,10 +82,13 @@ class GraphExecutor {
    * @param  {Object}         options   - Execution options
    * @return {AsyncIterator} An iterator used to evaluate a GRAPH clause
    */
-  _execute (source, graph, subquery, options) {
+  _execute (source, iri, subquery, options) {
     const opts = cloneDeep(options)
-    opts._graph = graph
-    return this._builder.build(subquery, options, source)
+    opts._from = {
+      default: [ iri ],
+      named: []
+    }
+    return this._builder._buildQueryPlan(subquery, opts, source)
   }
 }
 

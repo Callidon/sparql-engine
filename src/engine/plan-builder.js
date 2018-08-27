@@ -135,6 +135,7 @@ class PlanBuilder {
       })
       const construct = {
         prefixes: query.prefixes,
+        from: query.from,
         queryType: 'CONSTRUCT',
         template,
         type: 'query',
@@ -146,6 +147,11 @@ class PlanBuilder {
     // Create an iterator that projects the bindings according to the query type
     if (query.base != null) {
       options.base = query.base
+    }
+
+    // Handles FROM clauses
+    if (query.from) {
+      options._from = query.from
     }
 
     // Handles WHERE clause

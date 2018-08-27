@@ -94,9 +94,9 @@ class N3Graph extends Graph {
 }
 
 class TestEngine {
-  constructor (graph) {
+  constructor (graph, defaultGraphIRI = null) {
     this._graph = graph
-    this._dataset = new HashMapDataset(this._graph)
+    this._dataset = new HashMapDataset(this._graph, defaultGraphIRI)
     this._builder = new PlanBuilder(this._dataset)
   }
 

@@ -34,9 +34,9 @@ const DEFAULT_GRAPH_IRI = 'urn:sparql-engine:DefaultGraph'
  * @author Thomas Minier
  */
 class HashMapDataset extends Dataset {
-  constructor (defaultGraph) {
+  constructor (defaultGraph, defaultGraphIRI = DEFAULT_GRAPH_IRI) {
     super()
-    defaultGraph.iri = DEFAULT_GRAPH_IRI
+    defaultGraph.iri = defaultGraphIRI
     this._defaultGraph = defaultGraph
     this._namedGraphs = new Map()
   }
@@ -56,7 +56,7 @@ class HashMapDataset extends Dataset {
   }
 
   getNamedGraph (iri) {
-    if (iri === DEFAULT_GRAPH_IRI) {
+    if (iri === this._defaultGraph.iri) {
       return this.getDefaultGraph()
     } else if (!this._namedGraphs.has(iri)) {
       throw new Error(`Unknown graph with iri ${iri}`)

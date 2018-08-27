@@ -1,0 +1,17 @@
+<https://dblp.uni-trier.de/pers/g/Grall:Arnaud> <http://www.w3.org/2002/07/owl#sameAs> <https://dblp.org/pers/g/Grall:Arnaud> .
+<https://dblp.org/pers/g/Grall:Arnaud> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://dblp.uni-trier.de/rdf/schema-2017-04-18#Person> .
+<https://dblp.org/pers/g/Grall:Arnaud> <https://dblp.uni-trier.de/rdf/schema-2017-04-18#primaryFullPersonName> "Arnaud Grall" .
+<https://dblp.org/pers/g/Grall:Arnaud> <https://dblp.uni-trier.de/rdf/schema-2017-04-18#authorOf> <https://dblp.org/rec/conf/semweb/GrallSM18> .
+<https://dblp.org/pers/g/Grall:Arnaud> <https://dblp.uni-trier.de/rdf/schema-2017-04-18#authorOf> <https://dblp.org/rec/conf/esws/GrallFMSMSV17> .
+<https://dblp.org/pers/g/Grall:Arnaud> <https://dblp.uni-trier.de/rdf/schema-2017-04-18#coCreatorWith> <https://dblp.org/pers/f/Folz:Pauline> .
+<https://dblp.org/pers/g/Grall:Arnaud> <https://dblp.uni-trier.de/rdf/schema-2017-04-18#coCreatorWith> <https://dblp.org/pers/m/Molli:Pascal> .
+<https://dblp.org/pers/g/Grall:Arnaud> <https://dblp.uni-trier.de/rdf/schema-2017-04-18#coCreatorWith> <https://dblp.org/pers/m/Montoya:Gabriela> .
+<https://dblp.org/pers/g/Grall:Arnaud> <https://dblp.uni-trier.de/rdf/schema-2017-04-18#coCreatorWith> <https://dblp.org/pers/s/Sande:Miel_Vander> .
+<https://dblp.org/pers/g/Grall:Arnaud> <https://dblp.uni-trier.de/rdf/schema-2017-04-18#coCreatorWith> <https://dblp.org/pers/s/Skaf=Molli:Hala> .
+<https://dblp.org/pers/g/Grall:Arnaud> <https://dblp.uni-trier.de/rdf/schema-2017-04-18#coCreatorWith> <https://dblp.org/pers/v/Verborgh:Ruben> .
+<https://dblp.org/pers/g/Grall:Arnaud.nt> <http://www.w3.org/2000/01/rdf-schema#label> "provenance information for RDF data of dblp person 'g/Grall:Arnaud'" .
+<https://dblp.org/pers/g/Grall:Arnaud.nt> <http://purl.org/dc/terms/creator> <https://dblp.org> .
+<https://dblp.org/pers/g/Grall:Arnaud.nt> <http://purl.org/dc/terms/isPartOf> <https://dblp.org/rdf/dblp.nt> .
+<https://dblp.org/pers/g/Grall:Arnaud.nt> <http://purl.org/dc/terms/license> <https://opendatacommons.org/licenses/by/1.0> .
+<https://dblp.org/pers/g/Grall:Arnaud.nt> <http://purl.org/dc/terms/modified> "2018-08-24T22:22:53+0200" .
+
