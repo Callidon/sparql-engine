@@ -24,9 +24,9 @@ SOFTWARE.
 
 'use strict'
 
-const Dataset = require('./engine/dataset.js')
-const HashMapDataset = require('./engine/hashmap-dataset.js')
-const Graph = require('./engine/graph.js')
+const Dataset = require('./rdf/dataset.js')
+const HashMapDataset = require('./rdf/hashmap-dataset.js')
+const Graph = require('./rdf/graph.js')
 const PlanBuilder = require('./engine/plan-builder.js')
 const BGPExecutor = require('./engine/executors/bgp-executor.js')
 const ServiceExecutor = require('./engine/executors/service-executor.js')
