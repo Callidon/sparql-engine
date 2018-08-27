@@ -26,10 +26,11 @@ SOFTWARE.
 
 const expect = require('chai').expect
 const { getGraph, TestEngine } = require('../utils.js')
+const { constant, flatMap, times } = require('lodash')
 
 const GRAPH_IRI = 'http://example.org#some-graph'
 
-describe('GRAPH queries', () => {
+describe('GRAPH/FROM queries', () => {
   let engine = null
   beforeEach(() => {
     const gA = getGraph('./tests/data/dblp.nt')
@@ -38,40 +39,66 @@ describe('GRAPH queries', () => {
     engine.addNamedGraph(GRAPH_IRI, gB)
   })
 
-  it('should evaluate simple SPARQL GRAPH queries', done => {
-    const query = `
-    PREFIX dblp-pers: <https://dblp.org/pers/m/>
-    PREFIX dblp-rdf: <https://dblp.uni-trier.de/rdf/schema-2017-04-18#>
-    PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-    SELECT ?name ?article WHERE {
-      ?s rdf:type dblp-rdf:Person .
-      GRAPH <${GRAPH_IRI}> {
+  const baseResults = [
+    'https://dblp.org/rec/conf/esws/MinierSMV18a',
+    'https://dblp.org/rec/conf/esws/MinierSMV18',
+    'https://dblp.org/rec/journals/corr/abs-1806-00227',
+    'https://dblp.org/rec/conf/esws/MinierMSM17',
+    'https://dblp.org/rec/conf/esws/MinierMSM17a'
+  ]
+
+  const data = [
+    {
+      text: 'should evaluate a query with one FROM clause',
+      query: `
+      PREFIX dblp-pers: <https://dblp.org/pers/m/>
+      PREFIX dblp-rdf: <https://dblp.uni-trier.de/rdf/schema-2017-04-18#>
+      PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+      SELECT ?name ?article
+      FROM <${GRAPH_IRI}>
+      WHERE {
+        ?s rdf:type dblp-rdf:Person .
         ?s dblp-rdf:primaryFullPersonName ?name .
         ?s dblp-rdf:authorOf ?article .
-      }
-    }`
-    let expectedArticles = [
-      'https://dblp.org/rec/conf/esws/MinierSMV18a',
-      'https://dblp.org/rec/conf/esws/MinierSMV18',
-      'https://dblp.org/rec/journals/corr/abs-1806-00227',
-      'https://dblp.org/rec/conf/esws/MinierMSM17',
-      'https://dblp.org/rec/conf/esws/MinierMSM17a'
-    ]
-    const results = []
+      }`,
+      duplicationFactor: 1
+    },
+    {
+      text: 'should evaluate simple SPARQL GRAPH queries',
+      query: `
+      PREFIX dblp-pers: <https://dblp.org/pers/m/>
+      PREFIX dblp-rdf: <https://dblp.uni-trier.de/rdf/schema-2017-04-18#>
+      PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+      SELECT ?name ?article WHERE {
+        ?s rdf:type dblp-rdf:Person .
+        GRAPH <${GRAPH_IRI}> {
+          ?s dblp-rdf:primaryFullPersonName ?name .
+          ?s dblp-rdf:authorOf ?article .
+        }
+      }`,
+      duplicationFactor: 1
+    }
+  ]
 
-    const iterator = engine.execute(query)
-    iterator.on('error', done)
-    iterator.on('data', b => {
-      expect(b).to.have.all.keys(['?name', '?article'])
-      expect(b['?name']).to.equal('"Thomas Minier"@en')
-      expect(b['?article']).to.be.oneOf(expectedArticles)
-      expectedArticles = expectedArticles.filter(a => a !== b['?article'])
-      results.push(b)
-    })
-    iterator.on('end', () => {
-      expect(results.length).to.equal(5)
-      expect(expectedArticles.length).to.equal(0)
-      done()
+  data.forEach(d => {
+    it(d.text, done => {
+      let expectedArticles = flatMap(baseResults, r => times(d.duplicationFactor, constant(r)))
+      const results = []
+
+      const iterator = engine.execute(d.query)
+      iterator.on('error', done)
+      iterator.on('data', b => {
+        expect(b).to.have.all.keys(['?name', '?article'])
+        expect(b['?name']).to.equal('"Thomas Minier"@en')
+        expect(b['?article']).to.be.oneOf(expectedArticles)
+        expectedArticles = expectedArticles.filter(a => a !== b['?article'])
+        results.push(b)
+      })
+      iterator.on('end', () => {
+        expect(results.length).to.equal(5)
+        expect(expectedArticles.length).to.equal(0)
+        done()
+      })
     })
   })
 

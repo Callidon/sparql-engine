@@ -24,6 +24,8 @@ SOFTWARE.
 
 'use strict'
 
+const UnionGraph = require('./union-graph.js')
+
 /**
  * An abstraction over an RDF datasets, i.e., a collection of RDF graphs.
  * This class is the main extension point of the sparql engine,
@@ -51,6 +53,22 @@ class Dataset {
 
   getAllGraphs () {
     throw new Error('A valid Dataset must implements a "getAllGraphs" method')
+  }
+
+  /**
+   * Get an UnionGraph, i.e., the dynamic union of several graphs,
+   * from the RDF Graphs in the Dataset.
+   * @param  {string[]} iris                  - Iris of the named graphs to include in the union
+   * @param  {Boolean} [includeDefault=false] - True if the default graph should be included
+   * @return {UnionGraph} The dynamic union of several graphs in the Dataset
+   */
+  getUnionGraph (iris, includeDefault = false) {
+    let graphs = []
+    if (includeDefault) {
+      graphs.push(this.getDefaultGraph())
+    }
+    graphs = graphs.concat(iris.map(iri => this.getNamedGraph(iri)))
+    return new UnionGraph(graphs)
   }
 }
 
