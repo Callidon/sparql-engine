@@ -6,6 +6,8 @@
   "scripts": {
     "lint": "standard",
     "test": "mocha tests/**/*-test.js",
+    "report": "nyc --reporter=html --reporter=text mocha tests/**/*-test.js",
+    "codecov": "nyc report --reporter=text-lcov > coverage.lcov",
     "doc": "docma -c ./docma.json"
   },
   "repository": {
@@ -34,6 +36,7 @@
     "chai": "^4.1.2",
     "docma": "^2.1.0",
     "mocha": "^5.2.0",
+    "nyc": "^12.0.2",
     "standard": "^11.0.1"
   },
   "dependencies": {

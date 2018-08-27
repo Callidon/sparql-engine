@@ -4,9 +4,7 @@ logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-
-# levelgraph
-testing_db*
+*.lcov
 
 # Runtime data
 pids

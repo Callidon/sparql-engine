@@ -8,6 +8,7 @@ docs/
 tests/
 queries/
 dist/
+*.lcov
 
 webpack.config.js
 docma.json
