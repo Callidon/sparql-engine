@@ -32,17 +32,26 @@ In short, to support SPARQL queries on top of your data storage system, you need
 
 ## Example
 
-As an example, you can find an integration of [LevelGraph](https://github.com/levelgraph/levelgraph) with this framework [here](https://github.com/Callidon/sparql-engine/tree/master/examples/levelgraph.js).
+As a starting point, we provide you with two examples of integration:
+* With [N3.js](https://github.com/rdfjs/N3.js), available [here](https://github.com/Callidon/sparql-engine/tree/master/examples/n3.js).
+* With [LevelGraph](https://github.com/levelgraph/levelgraph), available [here](https://github.com/Callidon/sparql-engine/tree/master/examples/levelgraph.js).
 
 ## RDF Graphs
 
-The first thing to do is to implement a subclass of the `Graph` abstract class. A `Graph` represents an [RDF Graph](https://www.w3.org/TR/rdf11-concepts/#section-rdf-graph) and is responsible for inserting, deleting and searching RDF triples in the database.
+The first thing to do is to implement a subclass of the `Graph` abstract class. A `Graph` represents an [RDF Graph](https://www.w3.org/TR/rdf11-concepts/#section-rdf-graph) and is responsible for inserting, deleting and searching for RDF triples in the database.
 
-The main method to implement is `Graph.evalBGP(bgp, options)`, which is used by the framework to evaluates [Basic graph patterns](https://www.w3.org/TR/2013/REC-sparql11-query-20130321/#BasicGraphPatterns) against the RDF Graph.
-This method is expected to return an [AsyncIterator](https://www.npmjs.com/package/asynciterator), which will be consumed to evaluate the BGP.
-To support SELECT, CONSTRUCT, ASK and DESCRIBE queries, you only have to provides a graph that implements `evalBGP`.
+The main method to implement is `Graph.find(triples)`, which is used by the framework to find RDF triples matching
+a [triple pattern](https://www.w3.org/TR/sparql11-query/#basicpatterns) in the RDF Graph.
+This method must return an [AsyncIterator](https://www.npmjs.com/package/asynciterator), which will be consumed to find matching RDF triples. You can find an **example** of such implementation in the [N3 example](https://github.com/Callidon/sparql-engine/tree/master/examples/n3.js).
 
-Similarly, to support the [SPARQL UPDATE protocol](https://www.w3.org/TR/2013/REC-sparql11-update-20130321/), you have to provides a graph that implements the `insert(triples)` and `delete(triples)` methods, which insert and delete RDF triples from the graph, respectively.
+Similarly, to support the [SPARQL UPDATE protocol](https://www.w3.org/TR/2013/REC-sparql11-update-20130321/), you have to provides a graph that implements the `Graph.insert(triple)` and `Graph.delete(triple)` methods, which insert and delete RDF triple from the graph, respectively.
+
+Finally, the `sparql-engine` framework let your customize how [Basic graph patterns](https://www.w3.org/TR/2013/REC-sparql11-query-20130321/#BasicGraphPatterns) (BGPs) are evaluated against
+the RDF graph. By default, the engine rely on the `Graph.find` to evaluates BGP using the
+*Index Nested Loop Join algorithm*. However, if you wish to supply your own implementation
+for BGP evaluation, you just have to provides a graph with an `evalBGP(triples)` method.
+This method must return an [AsyncIterator](https://www.npmjs.com/package/asynciterator),
+like the `Graph.find` method.
 
 ```javascript
   const { Graph } = require('sparql-engine')
@@ -54,10 +63,9 @@ Similarly, to support the [SPARQL UPDATE protocol](https://www.w3.org/TR/2013/RE
      * @param  {string}   triple.subject - RDF triple's subject
      * @param  {string}   triple.predicate - RDF triple's predicate
      * @param  {string}   triple.object - RDF triple's object
-     * @param  {Function} done   - Function to be called when the insertion has been completed
-     * @return {void}
+     * @return {Promise} A Promise fulfilled when the insertion has been completed
      */
-    insert (triple, done) { /* ... */ }
+    insert (triple) { /* ... */ }
 
     /**
      * Delete a RDF triple from the RDF Graph
@@ -65,18 +73,19 @@ Similarly, to support the [SPARQL UPDATE protocol](https://www.w3.org/TR/2013/RE
      * @param  {string}   triple.subject - RDF triple's subject
      * @param  {string}   triple.predicate - RDF triple's predicate
      * @param  {string}   triple.object - RDF triple's object
-     * @param  {Function} done   - Function to be called when the deletion has been completed
-     * @return {void}
+     * @return {Promise} A Promise fulfilled when the deletion has been completed
      */
-    delete (triple, done) { /* ... */ }
+    delete (triple) { /* ... */ }
 
     /**
-     * Evaluates a Basic Graph pattern, i.e., a set of triple patterns, on the Graph using an iterator.
-     * @param  {Object[]} bgp   - The set of triple patterns to evaluate
-     * @param  {Object} options - Execution options
-     * @return {AsyncIterator} An iterator which evaluates the Basic Graph pattern on the Graph
+     * Returns an iterator that finds RDF triples matching a triple pattern in the graph.
+     * @param  {Object}   triple - Triple pattern to find
+     * @param  {string}   triple.subject - Triple pattern's subject
+     * @param  {string}   triple.predicate - Triple pattern's predicate
+     * @param  {string}   triple.object - Triple pattern's object
+     * @return {AsyncIterator} An iterator which finds RDF triples matching a triple pattern
      */
-    evalBGP (bgp, options) { /* ... */ }
+    find (triple, options) { /* ... */ }
   }
 ```
 
