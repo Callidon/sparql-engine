@@ -7,12 +7,12 @@ An open-source framework for building SPARQL query engines in Javascript.
 * Build a [SPARQL](https://www.w3.org/TR/2013/REC-sparql11-overview-20130321/) query engine on top of any data storage system.
 * Support [the full features of the SPARQL syntax](https://www.w3.org/TR/sparql11-query/) by *implementing a single class!*
 * Implements advanced *SPARQL query rewriting techniques* for transparently optimizing SPARQL query processing.
+* Supports for the [SPARQL UPDATE protocol](https://www.w3.org/TR/2013/REC-sparql11-update-20130321/).
 * Supports Basic [Federated SPARQL queries](https://www.w3.org/TR/2013/REC-sparql11-federated-query-20130321/) using **SERVICE clauses**.
 * Customize every step of SPARQL query processing, thanks to a component-based architecture.
 
 :warning: **In Development** :warning:
 * Support for all SPARQL property Paths.
-* Support for the [SPARQL UPDATE protocol](https://www.w3.org/TR/2013/REC-sparql11-update-20130321/)
 * Support for SPARQL EXISTS filters.
 
 # Installation
