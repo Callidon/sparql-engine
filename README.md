@@ -40,7 +40,7 @@ As a starting point, we provide you with two examples of integration:
 
 The first thing to do is to implement a subclass of the `Graph` abstract class. A `Graph` represents an [RDF Graph](https://www.w3.org/TR/rdf11-concepts/#section-rdf-graph) and is responsible for inserting, deleting and searching for RDF triples in the database.
 
-The main method to implement is `Graph.find(triples)`, which is used by the framework to find RDF triples matching
+The main method to implement is `Graph.find(triple)`, which is used by the framework to find RDF triples matching
 a [triple pattern](https://www.w3.org/TR/sparql11-query/#basicpatterns) in the RDF Graph.
 This method must return an [AsyncIterator](https://www.npmjs.com/package/asynciterator), which will be consumed to find matching RDF triples. You can find an **example** of such implementation in the [N3 example](https://github.com/Callidon/sparql-engine/tree/master/examples/n3.js).
 
@@ -57,6 +57,16 @@ like the `Graph.find` method.
   const { Graph } = require('sparql-engine')
 
   class CustomGraph extends Graph {
+    /**
+     * Returns an iterator that finds RDF triples matching a triple pattern in the graph.
+     * @param  {Object}   triple - Triple pattern to find
+     * @param  {string}   triple.subject - Triple pattern's subject
+     * @param  {string}   triple.predicate - Triple pattern's predicate
+     * @param  {string}   triple.object - Triple pattern's object
+     * @return {AsyncIterator} An iterator which finds RDF triples matching a triple pattern
+     */
+    find (triple, options) { /* ... */ }
+  
     /**
      * Insert a RDF triple into the RDF Graph
      * @param  {Object}   triple - RDF Triple to insert
@@ -76,16 +86,6 @@ like the `Graph.find` method.
      * @return {Promise} A Promise fulfilled when the deletion has been completed
      */
     delete (triple) { /* ... */ }
-
-    /**
-     * Returns an iterator that finds RDF triples matching a triple pattern in the graph.
-     * @param  {Object}   triple - Triple pattern to find
-     * @param  {string}   triple.subject - Triple pattern's subject
-     * @param  {string}   triple.predicate - Triple pattern's predicate
-     * @param  {string}   triple.object - Triple pattern's object
-     * @return {AsyncIterator} An iterator which finds RDF triples matching a triple pattern
-     */
-    find (triple, options) { /* ... */ }
   }
 ```
 
