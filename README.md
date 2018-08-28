@@ -209,9 +209,9 @@ available. The following table gives you all informations needed about the avail
 
 The following example show you how to install your custom executors on a `PlanBuilder` instance.
 ```javascript
-const BGPExecutor = require('sparql-engine').executors.BGPExecutor
-// Suppose a custom ServiceExecutor
-class CustomBGPExecutor extends BGPExecutor { /* ... */ }
+  const BGPExecutor = require('sparql-engine').executors.BGPExecutor
+  // Suppose a custom BGPExecutor
+  class CustomBGPExecutor extends BGPExecutor { /* ... */ }
 
   const builder = new PlanBuilder()
   builder.bgpExecutor = new CustomBGPExecutor()
