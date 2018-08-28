@@ -14,6 +14,19 @@ An open-source framework for building SPARQL query engines in Javascript.
 :warning: **In Development** :warning:
 * Support for all SPARQL property Paths.
 * Support for SPARQL EXISTS filters.
+* Support for SPARQL Graph Management protocol
+
+# Table of contents
+* [Installation](#installation)
+* [Getting started](#getting-started)
+  * [Examples](#examples)
+  * [RDF Graphs](#rdf-graphs)
+  * [RDF Datasets](#rdf-datasets)
+  * [Running a SPARQL query](#running-a-sparql-query)
+* [Federated SPARQL Queries](#federated-sparql-queries)
+* [Advanced Usage](#advanced-usage)
+* [Documentation](#documentation)
+* [References](#references)
 
 # Installation
 
@@ -30,7 +43,7 @@ In short, to support SPARQL queries on top of your data storage system, you need
 * Gather all your Graphs as a `Dataset` (using your own implementation or [the default one](#rdf-datasets)).
 * [Instantiate a `PlanBuilder`](#running-a-sparql-query) and use it to execute SPARQL queries.
 
-## Example
+## Examples
 
 As a starting point, we provide you with two examples of integration:
 * With [N3.js](https://github.com/rdfjs/N3.js), available [here](https://github.com/Callidon/sparql-engine/tree/master/examples/n3.js).
@@ -138,6 +151,72 @@ Finally, to run a SPARQL query on your RDF dataset, you need to use the `PlanBui
   iterator.on('end', () => {
     console.log('Query evaluation complete!');
   })
+```
+
+# Federated SPARQL Queries
+
+The `sparql-engine` framework provides support for evaluating [federated SPARQL queries](https://www.w3.org/TR/2013/REC-sparql11-federated-query-20130321/), using the **SERVICE keyword**.
+As with a `Graph`, you simply need to provides an implementation of a [`ServiceExecutor`](https://github.com/Callidon/sparql-engine/blob/master/src/engine/executors/service-executor.js),
+a class used as a building block by the engine to evaluates SERVICE clauses.
+The only method that needs to be implemented is the `ServiceExecutor._execute` method,
+as detailed below.
+
+```javascript
+class ServiceExecutor {
+  /**
+   * Returns an iterator used to evaluate a SERVICE clause
+   * @param  {AsyncIterator}  source    - Source iterator
+   * @param  {string}         iri       - Iri of the SERVICE clause
+   * @param  {Object}         subquery  - Subquery to be evaluated
+   * @param  {Object}         options   - Execution options
+   * @return {AsyncIterator} An iterator used to evaluate a SERVICE clause
+   */
+  _execute (source, iri, subquery, options) { /* ... */}
+}
+```
+
+Once your custom ServiceExecutor is ready, you need to *install* it on a `PlanBuilder` instance.
+```javascript
+  // Suppose a custom ServiceExecutor
+  const CustomServiceExecutor = require('./custom-service-executor.js')
+
+  const builder = new PlanBuilder()
+  builder.serviceExecutor = new CustomServiceExecutor()
+
+  // Then, use the builder as usual to evaluate Federated SPARQL queries
+  const iterator = builder.build(/* ... */)
+  // ...
+```
+
+# Advanced usage
+
+## Building the Physical Query Execution Plan yourself
+
+As introduced before, a `PlanBuilder` rely on **Executors** to build the *physical query execution plan*
+of a SPARQL query. If you wish to configure how this plan is built, then you just have to extends the various executors
+available. The following table gives you all informations needed about the available executors.
+
+**Executors**
+
+| Base class | Used to handle | PlanBuilder setter |
+|------------|----------------|--------------------|
+| [BGPExecutor](https://github.com/Callidon/sparql-engine/blob/master/src/engine/executors/bgp-executor.js) | [Basic Graph Patterns](https://www.w3.org/TR/2013/REC-sparql11-query-20130321/#BasicGraphPatterns) | `builder.bgpExecutor = ...` |
+| [GraphExecutor](https://github.com/Callidon/sparql-engine/blob/master/src/engine/executors/graph-executor.js) | [SPARQL GRAPH](https://www.w3.org/TR/sparql11-query/#queryDataset) | `builder.graphExecutor = ...` |
+| [ServiceExecutor](https://github.com/Callidon/sparql-engine/blob/master/src/engine/executors/service-executor.js) | [SPARQL Service](https://www.w3.org/TR/2013/REC-sparql11-federated-query-20130321/) | `builder.serviceExecutor = ...` |
+| [AggregateExecutor](https://github.com/Callidon/sparql-engine/blob/master/src/engine/executors/aggregate-executor.js) | [SPARQL Aggregates](https://www.w3.org/TR/sparql11-query/#aggregates) | `builder.aggregateExecutor = ...` |
+| [UpdateExecutor](https://github.com/Callidon/sparql-engine/blob/master/src/engine/executors/update-executor.js) | [SPARQL UPDATE protocol](https://www.w3.org/TR/2013/REC-sparql11-update-20130321/) | `builder.updateExecutor = ...` |
+
+The following example show you how to install your custom executors on a `PlanBuilder` instance.
+```javascript
+  // Suppose a custom Basic Graph pattern Executor
+  const CustomBGPExecutor = require('./my-custom-executor.js')
+
+  const builder = new PlanBuilder()
+  builder.bgpExecutor = new CustomBGPExecutor()
+
+  // Then, use the builder as usual to evaluate SPARQL queries
+  const iterator = builder.build(/* ... */)
+  // ...
 ```
 
 # Documentation
