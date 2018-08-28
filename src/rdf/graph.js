@@ -112,6 +112,14 @@ class Graph {
   }
 
   /**
+   * Remove all RDF triples in the Graph
+   * @return {Promise} A Promise fulfilled when the clear operation has been completed
+   */
+  clear () {
+    throw new Error('A Graph must implements either a "clear" method to support SPARQL CLEAR queries')
+  }
+
+  /**
    * Estimate the cardinality of a Triple pattern, i.e.,
    * the number of matching RDF Triples in the RDF Graph.
    * @param  {Object}   triple - Triple pattern to estimate cardinality

@@ -101,6 +101,14 @@ class N3Graph extends Graph {
     const { subject, predicate, object } = formatTriplePattern(triple)
     return Promise.resolve(this._store.countTriples(subject, predicate, object))
   }
+
+  clear () {
+    return this.delete({
+      subject: '?s',
+      predicate: '?p',
+      object: '?o'
+    })
+  }
 }
 
 class TestEngine {
