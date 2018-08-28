@@ -62,26 +62,50 @@ class PlanBuilder {
   constructor (dataset, prefixes = {}) {
     this._dataset = dataset
     this._parser = new Parser(prefixes)
-    this._executor = new BGPExecutor(this._dataset)
+    this._bgpExecutor = new BGPExecutor(this._dataset)
     this._aggExecutor = new AggregateExecutor()
     this._graphExecutor = new GraphExecutor(this._dataset, this)
-    this._serviceExecutor = null
     this._updateExecutor = new UpdateExecutor(this._dataset, this)
+    this._serviceExecutor = null
   }
 
   /**
    * Set the BGP executor used to evaluate Basic Graph patterns
-   * @param {BGPExecutor} executor - BGP executor used to evaluate Basic Graph patterns
+   * @param {BGPExecutor} executor - Executor used to evaluate Basic Graph patterns
    */
-  setExecutor (executor) {
-    this._executor = executor
+  set bgpExecutor (executor) {
+    this._bgpExecutor = executor
+  }
+
+  /**
+   * Set the BGP executor used to evaluate SPARQL Aggregates
+   * @param {AggregateExecutor} executor - Executor used to evaluate SPARQL Aggregates
+   */
+  set aggregateExecutor (executor) {
+    this._aggExecutor = executor
+  }
+
+  /**
+   * Set the BGP executor used to evaluate SPARQL GRAPH clauses
+   * @param {GraphExecutor} executor - Executor used to evaluate SPARQL GRAPH clauses
+   */
+  set graphExecutor (executor) {
+    this._graphExecutor = executor
+  }
+
+  /**
+   * Set the BGP executor used to evaluate SPARQL UPDATE queries
+   * @param {UpdateExecutor} executor - Executor used to evaluate SPARQL UPDATE queries
+   */
+  set updateExecutor (executor) {
+    this._updateExecutor = executor
   }
 
   /**
    * Set the executor used to evaluate SERVICE clauses
    * @param {GraphExecutor} executor - Executor used to evaluate SERVICE clauses
    */
-  setServiceExecutor (executor) {
+  set serviceExecutor (executor) {
     this._serviceExecutor = executor
   }
 
@@ -245,10 +269,10 @@ class PlanBuilder {
 
   /**
    * Build a physical plan for a SPARQL group clause
-   * @param  {[type]} source  [description]
-   * @param  {[type]} group   [description]
-   * @param  {[type]} options [description]
-   * @return {[type]}         [description]
+   * @param  {AsyncIterator} source  - Source iterator
+   * @param  {Object}        group   - SPARQL Group
+   * @param  {Object}        options - Execution options
+   * @return {AsyncIterator} AN iterator used to evaluate the SPARQL Group
    */
   _buildGroup (source, group, options) {
     // Reset flags on the options for child iterators
@@ -256,7 +280,7 @@ class PlanBuilder {
 
     switch (group.type) {
       case 'bgp':
-        if (_.isNull(this._executor)) {
+        if (_.isNull(this._bgpExecutor)) {
           throw new Error('A PlanBuilder cannot evaluate a Basic Graph Pattern without a BGPExecutor')
         }
         var copyGroup = Object.assign({}, group)
@@ -275,7 +299,7 @@ class PlanBuilder {
           return this._buildWhere(source, groups, childOptions)
         } else {
           // delegate BGP evaluation to an executor
-          return this._executor.buildIterator(source, bgp, childOptions)
+          return this._bgpExecutor.buildIterator(source, bgp, childOptions)
         }
       case 'query':
         return this._buildQueryPlan(group, options, source)
