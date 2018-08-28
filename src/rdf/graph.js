@@ -24,8 +24,31 @@ SOFTWARE.
 
 'use strict'
 
-const { single } = require('asynciterator')
+const { single, TransformIterator } = require('asynciterator')
 const TripleOperator = require('../operators/triple-operator.js')
+const { countVariables } = require('../utils.js').rdf
+
+/**
+ * Comparator function for sorting triple pattern
+ * by ascending cardinality and descending number of variables
+ * @private
+ * @param  {Object} a - Metadata about left triple
+ * @param  {Object} b - Metadata about right triple
+ * @return {integer} Comparaison result (-1, 1, 0)
+ */
+function sortPatterns (a, b) {
+  if (a.cardinality < b.cardinality) {
+    return -1
+  } else if (a.cardinality > b.cardinality) {
+    return 1
+  } else if (a.nbVars > b.nbVars) {
+    return -1
+  } else if (a.nbVars < b.nbVars) {
+    return 1
+  }
+  return 0
+}
+
 /**
  * An abstract RDF Graph, accessed through a RDF Dataset
  * @abstract
@@ -36,10 +59,18 @@ class Graph {
     this._iri = null
   }
 
+  /**
+   * Get the IRI of the Graph
+   * @return {string} The IRI of the Graph
+   */
   get iri () {
     return this._iri
   }
 
+  /**
+   * Set the IRI of the Graph
+   * @param  {string} value - The new IRI of the Graph
+   */
   set iri (value) {
     this._iri = value
   }
@@ -81,15 +112,38 @@ class Graph {
   }
 
   /**
+   * Estimate the cardinality of a Triple pattern, i.e.,
+   * the number of matching RDF Triples in the RDF Graph.
+   * @param  {Object}   triple - Triple pattern to estimate cardinality
+   * @param  {string}   triple.subject - Triple pattern's subject
+   * @param  {string}   triple.predicate - Triple pattern's predicate
+   * @param  {string}   triple.object - Triple pattern's object
+   * @return {Promise} A Promise fulfilled with the pattern's estimated cardinality
+   */
+  estimateCardinality (triple) {
+    return Promise.resolve(-1)
+  }
+
+  /**
    * Evaluates a Basic Graph pattern, i.e., a set of triple patterns, on the Graph using an iterator.
    * @param  {Object[]} bgp - The set of triple patterns to evaluate
    * @param  {Object} options - Execution options
    * @return {AsyncIterator} An iterator which evaluates the Basic Graph pattern on the Graph
    */
   evalBGP (bgp, options) {
-    return bgp.reduce((iter, triple) => {
-      return new TripleOperator(iter, triple, this, options)
-    }, single({}))
+    const iter = new TransformIterator()
+    // collect cardinalities of each triple pattern
+    Promise.all(bgp.map(triple => {
+      return this.estimateCardinality(triple).then(c => {
+        return {triple, cardinality: c, nbVars: countVariables(triple)}
+      })
+    })).then(results => {
+      results.sort(sortPatterns)
+      iter.source = results.reduce((iter, v) => {
+        return new TripleOperator(iter, v.triple, this, options)
+      }, single({}))
+    })
+    return iter
   }
 }
 

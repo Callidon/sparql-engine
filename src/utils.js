@@ -90,6 +90,15 @@ function triple (subj, pred, obj) {
 }
 
 /**
+ * Count the number of variables in a Triple Pattern
+ * @param  {Object} triple - Triple Pattern to process
+ * @return {integer} The number of variables in the Triple Pattern
+ */
+function countVariables (triple) {
+  return isVariable(triple.subject) + isVariable(triple.predicate) + isVariable(triple.object)
+}
+
+/**
  * Return True if a string is a SPARQL variable
  * @param  {string}  str - String to test
  * @return {Boolean} True if the string is a SPARQL variable, False otherwise
@@ -203,6 +212,7 @@ module.exports = {
   rdf: {
     RDF,
     XSD,
+    countVariables,
     isVariable,
     triple,
     parseTerm

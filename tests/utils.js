@@ -38,6 +38,22 @@ function getGraph (filePath = null) {
   return graph
 }
 
+function formatTriplePattern (triple) {
+  let subject = null
+  let predicate = null
+  let object = null
+  if (!triple.subject.startsWith('?')) {
+    subject = triple.subject
+  }
+  if (!triple.predicate.startsWith('?')) {
+    predicate = triple.predicate
+  }
+  if (!triple.object.startsWith('?')) {
+    object = triple.object
+  }
+  return { subject, predicate, object }
+}
+
 class N3Graph extends Graph {
   constructor () {
     super()
@@ -75,21 +91,15 @@ class N3Graph extends Graph {
   }
 
   find (triple) {
-    let subject = null
-    let predicate = null
-    let object = null
-    if (!triple.subject.startsWith('?')) {
-      subject = triple.subject
-    }
-    if (!triple.predicate.startsWith('?')) {
-      predicate = triple.predicate
-    }
-    if (!triple.object.startsWith('?')) {
-      object = triple.object
-    }
+    const { subject, predicate, object } = formatTriplePattern(triple)
     return new ArrayIterator(this._store.getTriples(subject, predicate, object).map(t => {
       return pick(t, ['subject', 'predicate', 'object'])
     }))
+  }
+
+  estimateCardinality (triple) {
+    const { subject, predicate, object } = formatTriplePattern(triple)
+    return Promise.resolve(this._store.countTriples(subject, predicate, object))
   }
 }
 
