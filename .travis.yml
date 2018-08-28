@@ -1,10 +1,14 @@
 language: node_js
 node_js:
-- "8"
+  - "8"
 notifications:
   email: false
 script:
-- npm run test
+  - npm run test
+after_success:
+  - npm run coverage
+  - npm run codecov
+  - ./node_modules/.bin/codecov
 deploy:
 - provider: npm
   skip_cleanup: true
