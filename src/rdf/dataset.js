@@ -28,31 +28,42 @@ const UnionGraph = require('./union-graph.js')
 
 /**
  * An abstraction over an RDF datasets, i.e., a collection of RDF graphs.
- * This class is the main extension point of the sparql engine,
- * and users should subclass it in order to connect the query engine
- * to the underlying database.
  * @abstract
  * @author Thomas Minier
  */
 class Dataset {
+  /**
+   * Set the Default Graph of the Dataset
+   * @param {Graph} g - Default Graph
+   */
   setDefaultGraph (g) {
     throw new Error('A valid Dataset must implements a "setDefaultGraph" method')
   }
 
+  /**
+   * Get the Default Graph of the Dataset
+   * @return {Graph} The Default Graph of the Dataset
+   */
   getDefaultGraph () {
     throw new Error('A valid Dataset must implements a "getDefaultGraph" method')
   }
 
+  /**
+   * Add a Named Graph to the Dataset
+   * @param {string} iri - IRI of the Named Graph
+   * @param {Graph} g    - RDF Graph
+   */
   addNamedGraph (iri, g) {
     throw new Error('A valid Dataset must implements a "addNamedGraph" method')
   }
 
+  /**
+   * Get a Named Graph using its IRI
+   * @param  {string} iri - IRI of the Named Graph to retrieve
+   * @return {Graph} The corresponding Named Graph
+   */
   getNamedGraph (iri) {
     throw new Error('A valid Dataset must implements a "getNamedGraph" method')
-  }
-
-  getAllGraphs () {
-    throw new Error('A valid Dataset must implements a "getAllGraphs" method')
   }
 
   /**
@@ -69,6 +80,18 @@ class Dataset {
     }
     graphs = graphs.concat(iris.map(iri => this.getNamedGraph(iri)))
     return new UnionGraph(graphs)
+  }
+
+  /**
+   * Returns all Graphs in the Dataset, including the Default one
+   * @return {Graph[]} The list of all graphs in the Dataset
+   */
+  getAllGraphs () {
+    const graphs = [this.getDefaultGraph()]
+    this._namedGraphs.forEach(g => {
+      graphs.push(g)
+    })
+    return graphs
   }
 }
 

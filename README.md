@@ -5,9 +5,9 @@ An open-source framework for building SPARQL query engines in Javascript.
 
 **Main features**:
 * Build a [SPARQL](https://www.w3.org/TR/2013/REC-sparql11-overview-20130321/) query engine on top of any data storage system.
-* Support [the full features of the SPARQL syntax](https://www.w3.org/TR/sparql11-query/) by *implementing a single class!*
+* Supports [the full features of the SPARQL syntax](https://www.w3.org/TR/sparql11-query/) by *implementing a single class!*
 * Implements advanced *SPARQL query rewriting techniques* for transparently optimizing SPARQL query processing.
-* Supports for the [SPARQL UPDATE protocol](https://www.w3.org/TR/2013/REC-sparql11-update-20130321/).
+* Supports the [SPARQL UPDATE protocol](https://www.w3.org/TR/2013/REC-sparql11-update-20130321/).
 * Supports Basic [Federated SPARQL queries](https://www.w3.org/TR/2013/REC-sparql11-federated-query-20130321/) using **SERVICE clauses**.
 * Customize every step of SPARQL query processing, thanks to a component-based architecture.
 
@@ -27,7 +27,7 @@ The `sparql-engine` framework allow you to build a custom SPARQL query engine on
 
 In short, to support SPARQL queries on top of your data storage system, you need to:
 * [Implements a subclass of `Graph`](#rdf-graphs), which provides access to the data storage system.
-* Gather all your Graphs as a `Dataset` (using your own implementation of [the default one](#rdf-datasets)).
+* Gather all your Graphs as a `Dataset` (using your own implementation or [the default one](#rdf-datasets)).
 * [Instantiate a `PlanBuilder`](#running-a-sparql-query) and use it to execute SPARQL queries.
 
 ## Example
@@ -44,14 +44,14 @@ The main method to implement is `Graph.find(triple)`, which is used by the frame
 a [triple pattern](https://www.w3.org/TR/sparql11-query/#basicpatterns) in the RDF Graph.
 This method must return an [AsyncIterator](https://www.npmjs.com/package/asynciterator), which will be consumed to find matching RDF triples. You can find an **example** of such implementation in the [N3 example](https://github.com/Callidon/sparql-engine/tree/master/examples/n3.js).
 
-Similarly, to support the [SPARQL UPDATE protocol](https://www.w3.org/TR/2013/REC-sparql11-update-20130321/), you have to provides a graph that implements the `Graph.insert(triple)` and `Graph.delete(triple)` methods, which insert and delete RDF triple from the graph, respectively.
+Similarly, to support the [SPARQL UPDATE protocol](https://www.w3.org/TR/2013/REC-sparql11-update-20130321/), you have to provides a graph that implements the `Graph.insert(triple)` and `Graph.delete(triple)` methods, which insert and delete RDF triple from the graph, respectively. These methods must returns [Promises](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise), which are fulfilled when the insertion/deletion operation is completed.
 
-Finally, the `sparql-engine` framework let your customize how [Basic graph patterns](https://www.w3.org/TR/2013/REC-sparql11-query-20130321/#BasicGraphPatterns) (BGPs) are evaluated against
-the RDF graph. By default, the engine rely on the `Graph.find` to evaluates BGP using the
+Finally, the `sparql-engine` framework also let your customize how [Basic graph patterns](https://www.w3.org/TR/2013/REC-sparql11-query-20130321/#BasicGraphPatterns) (BGPs) are evaluated against
+the RDF graph. By default, the engine provides a default implementation based on the `Graph.find` method and the
 *Index Nested Loop Join algorithm*. However, if you wish to supply your own implementation
 for BGP evaluation, you just have to provides a graph with an `evalBGP(triples)` method.
 This method must return an [AsyncIterator](https://www.npmjs.com/package/asynciterator),
-like the `Graph.find` method.
+like the `Graph.find` method. Tou can find an example of such implementation in the [LevelGraph example](https://github.com/Callidon/sparql-engine/tree/master/examples/levelgraph.js).
 
 ```javascript
   const { Graph } = require('sparql-engine')
@@ -66,7 +66,7 @@ like the `Graph.find` method.
      * @return {AsyncIterator} An iterator which finds RDF triples matching a triple pattern
      */
     find (triple, options) { /* ... */ }
-  
+
     /**
      * Insert a RDF triple into the RDF Graph
      * @param  {Object}   triple - RDF Triple to insert
@@ -91,25 +91,27 @@ like the `Graph.find` method.
 
 ## RDF Datasets
 
-Once you have your subclass of `Graph` ready, you need to build a collection of RDF Graphs, called a [RDF Dataset](https://www.w3.org/TR/rdf11-concepts/#section-dataset). You can build your own implementation of a Dataset by subclassing [`Dataset`](), but a default implementation based on a HashMap is already available.
+Once you have your subclass of `Graph` ready, you need to build a collection of RDF Graphs, called a [RDF Dataset](https://www.w3.org/TR/rdf11-concepts/#section-dataset). A default implementation, `HashMapDataset`, is made available by the framework, but you can build your own by subclassing [`Dataset`](https://github.com/Callidon/sparql-engine/blob/master/src/rdf/dataset.js).
 
 ```javascript
  const { HashMapDataset } = require('sparql-engine')
  const CustomGraph = // import your Graph subclass
 
+ const GRAPH_A_IRI = 'http://example.org#graph-a'
+ const GRAPH_B_IRI = 'http://example.org#graph-b'
  const graph_a = new CustomGraph(/* ... */)
  const graph_b = new CustomGraph(/* ... */)
 
  // we set graph_a as the Default RDF dataset
- const dataset = new HashMapDataset(graph_a)
+ const dataset = new HashMapDataset(GRAPH_A_IRI, graph_a)
 
  // insert graph_b as a Named Graph
- dataset.addNamedGraph('http://example.org#graph_b', graph_b)
+ dataset.addNamedGraph(GRAPH_B_IRI, graph_b)
 ```
 
 ## Running a SPARQL query
 
-Finally, to run a SPARQL query on your RDF dataset, you simply need to use the `PlanBuilder` class. It is responsible for parsing SPARQL queries and building a pipeline of iterators to evaluate them.
+Finally, to run a SPARQL query on your RDF dataset, you need to use the `PlanBuilder` class. It is responsible for parsing SPARQL queries and building a pipeline of iterators to evaluate them.
 
 ```javascript
   const { PlanBuilder } = require('sparql-engine')
