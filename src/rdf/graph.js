@@ -25,7 +25,7 @@ SOFTWARE.
 'use strict'
 
 const { single, TransformIterator } = require('asynciterator')
-const TripleOperator = require('../operators/triple-operator.js')
+const IndexJoinOperator = require('../operators/join/index-join-operator.js')
 const { countVariables } = require('../utils.js').rdf
 
 /**
@@ -148,7 +148,7 @@ class Graph {
     })).then(results => {
       results.sort(sortPatterns)
       iter.source = results.reduce((iter, v) => {
-        return new TripleOperator(iter, v.triple, this, options)
+        return new IndexJoinOperator(iter, v.triple, this, options)
       }, single({}))
     })
     return iter

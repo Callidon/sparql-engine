@@ -25,10 +25,25 @@ SOFTWARE.
 'use strict'
 
 const { MultiTransformIterator } = require('asynciterator')
-const { applyBindings, rdf } = require('../utils.js')
+const { applyBindings, rdf } = require('../../utils.js')
 const { assign, mapKeys, pickBy, some, size } = require('lodash')
 
-class TripleOperator extends MultiTransformIterator {
+/**
+ * Perform a join between a source of solution bindings (left relation)
+ * and a triple pattern (right relation) using the Index Nested Loop Join algorithm.
+ * This algorithm is more efficient if the cardinality of the left relation is smaller
+ * than the cardinality of the right one.
+ * @extends MultiTransformIterator
+ * @author Thomas Minier
+ */
+class IndexJoinOperator extends MultiTransformIterator {
+  /**
+   * Constructor
+   * @param {AsyncIterator} source  - Source iterator (left relation)
+   * @param {Object}        pattern - Triple pattern to join with (right relation)
+   * @param {Graph}         graph   - RDF Graph on which the join is performed
+   * @param {Object}        options - Execution options
+   */
   constructor (source, pattern, graph, options) {
     super(source, options)
     this._pattern = pattern
@@ -53,4 +68,4 @@ class TripleOperator extends MultiTransformIterator {
   }
 }
 
-module.exports = TripleOperator
+module.exports = IndexJoinOperator
