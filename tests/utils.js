@@ -103,11 +103,9 @@ class N3Graph extends Graph {
   }
 
   clear () {
-    return this.delete({
-      subject: '?s',
-      predicate: '?p',
-      object: '?o'
-    })
+    const triples = this._store.getTriples(null, null, null)
+    this._store.removeTriples(triples)
+    return Promise.resolve()
   }
 }
 

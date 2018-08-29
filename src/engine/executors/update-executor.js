@@ -27,6 +27,7 @@ SOFTWARE.
 const { single } = require('asynciterator')
 const InsertConsumer = require('../../operators/update/insert-consumer.js')
 const DeleteConsumer = require('../../operators/update/delete-consumer.js')
+const ClearConsumer = require('../../operators/update/clear-consumer.js')
 const ManyConsumers = require('../../operators/update/many-consumers.js')
 const ConstructOperator = require('../../operators/modifiers/construct-operator.js')
 
@@ -52,7 +53,22 @@ class UpdateExecutor {
     let graph = null
     let deletes = []
     let inserts = []
-    if (update.updateType === 'insertdelete') {
+    // case 1: CLEAR queries
+    if (update.type === 'clear') {
+      let graph = null
+      const iris = this._dataset.iris
+      if (update.graph.default) {
+        graph = this._dataset.getDefaultGraph()
+      } else if (update.graph.all) {
+        graph = this._dataset.getUnionGraph(iris, true)
+      } else if (update.graph.named) {
+        graph = this._dataset.getUnionGraph(iris, false)
+      } else {
+        graph = this._dataset.getNamedGraph(update.graph.name)
+      }
+      return new ClearConsumer(graph)
+    } else if (update.updateType === 'insertdelete') {
+      // case 2: INSERT/DELETE queries
       graph = ('graph' in update) ? this._dataset.getNamedGraph(update.graph) : null
       // evaluate the WHERE clause as a classic SELECT query
       source = this._builder.build({

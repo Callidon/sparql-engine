@@ -116,7 +116,7 @@ class Graph {
    * @return {Promise} A Promise fulfilled when the clear operation has been completed
    */
   clear () {
-    throw new Error('A Graph must implements either a "clear" method to support SPARQL CLEAR queries')
+    throw new Error('A Graph must implements a "clear" method to support SPARQL CLEAR queries')
   }
 
   /**

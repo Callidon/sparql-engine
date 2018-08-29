@@ -32,6 +32,9 @@ const UnionGraph = require('./union-graph.js')
  * @author Thomas Minier
  */
 class Dataset {
+  get iris () {
+    return this.getAllGraphs(false).map(g => g.iri)
+  }
   /**
    * Set the Default Graph of the Dataset
    * @param {Graph} g - Default Graph
@@ -86,8 +89,11 @@ class Dataset {
    * Returns all Graphs in the Dataset, including the Default one
    * @return {Graph[]} The list of all graphs in the Dataset
    */
-  getAllGraphs () {
-    const graphs = [this.getDefaultGraph()]
+  getAllGraphs (includeDefault = true) {
+    const graphs = []
+    if (includeDefault) {
+      graphs.push(this.getDefaultGraph())
+    }
     this._namedGraphs.forEach(g => {
       graphs.push(g)
     })

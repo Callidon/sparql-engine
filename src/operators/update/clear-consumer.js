@@ -1,4 +1,4 @@
-/* file : union-graph.js
+/* file : clear-consumer.js
 MIT License
 
 Copyright (c) 2018 Thomas Minier
@@ -24,39 +24,18 @@ SOFTWARE.
 
 'use strict'
 
-const Graph = require('./graph.js')
-const UnionOperator = require('../operators/union-operator.js')
-
 /**
- * An UnionGraph represents the dynamic union of several graphs.
- * Addition only affects the left-most operand, deletion affects all graphs.
- * Searching for RDF triple smatching a triple pattern in such Graph is equivalent
- * as the Union of matching RDF triples in all graphs.
- * @extends Graph
+ * Clear all RDF triples in a RDF Graph
  * @author Thomas Minier
  */
-class UnionGraph extends Graph {
-  constructor (graphs) {
-    super()
-    this.iri = graphs.map(g => g.iri).join('+')
-    this._graphs = graphs
+class ClearConsumer {
+  constructor (graph) {
+    this._graph = graph
   }
 
-  insert (triple) {
-    return this._graphs[0].insert(triple)
-  }
-
-  delete (triple) {
-    return this._graphs.reduce((prev, g) => prev.then(() => g.delete(triple)), Promise.resolve())
-  }
-
-  find (triple, options) {
-    return new UnionOperator(...this._graphs.map(g => g.find(triple, options)))
-  }
-
-  clear () {
-    return this._graphs.reduce((prev, g) => prev.then(() => g.clear()), Promise.resolve())
+  execute () {
+    return this._graph.clear()
   }
 }
 
-module.exports = UnionGraph
+module.exports = ClearConsumer
