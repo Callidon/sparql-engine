@@ -61,7 +61,7 @@ function RDFTermEqual (a, b) {
  * @return {Boolean} True if a literal is a Date, False otherwise
  */
 function isDate (literal) {
-  return literal.type === 'literal+type' && literal.datatype === 'http://www.w3.org/2001/XMLSchema#dateTime'
+  return literal.type === 'literal+type' && literal.datatype === XSD('dateTime')
 }
 
 function cloneLiteral (base, newValue) {
@@ -132,42 +132,42 @@ const SPARQL_OPERATIONS = {
 
   '=': function (a, b) {
     if (isDate(a) && isDate(b)) {
-      return terms.BooleanDescriptor(a.asJs.isSame(b.asJs))
+      return terms.BooleanDescriptor(a.asJS.isSame(b.asJS))
     }
     return RDFTermEqual(a, b)
   },
 
   '!=': function (a, b) {
     if (isDate(a) && isDate(b)) {
-      return terms.BooleanDescriptor(!(a.asJs.isSame(b.asJs)))
+      return terms.BooleanDescriptor(!(a.asJS.isSame(b.asJS)))
     }
     return terms.BooleanDescriptor(a.asJS !== b.asJS)
   },
 
   '<': function (a, b) {
     if (isDate(a) && isDate(b)) {
-      return terms.BooleanDescriptor(a.asJs.isBefore(b.asJs))
+      return terms.BooleanDescriptor(a.asJS.isBefore(b.asJS))
     }
     return terms.BooleanDescriptor(a.asJS < b.asJS)
   },
 
   '<=': function (a, b) {
     if (isDate(a) && isDate(b)) {
-      return terms.BooleanDescriptor(a.asJs.isSameOrBefore(b.asJs))
+      return terms.BooleanDescriptor(a.asJS.isSameOrBefore(b.asJS))
     }
     return terms.BooleanDescriptor(a.asJS <= b.asJS)
   },
 
   '>': function (a, b) {
     if (isDate(a) && isDate(b)) {
-      return terms.BooleanDescriptor(a.asJs.isAfter(b.asJs))
+      return terms.BooleanDescriptor(a.asJS.isAfter(b.asJS))
     }
     return terms.BooleanDescriptor(a.asJS > b.asJS)
   },
 
   '>=': function (a, b) {
     if (isDate(a) && isDate(b)) {
-      return terms.BooleanDescriptor(a.asJs.isSameOrAfter(b.asJs))
+      return terms.BooleanDescriptor(a.asJS.isSameOrAfter(b.asJS))
     }
     return terms.BooleanDescriptor(a.asJS >= b.asJS)
   },
@@ -264,7 +264,7 @@ const SPARQL_OPERATIONS = {
   },
 
   'struuid': function () {
-    return terms.RawLiteralDescriptor(uuid)
+    return terms.RawLiteralDescriptor(uuid())
   },
 
   /*

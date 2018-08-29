@@ -14,4 +14,4 @@
 <https://dblp.org/pers/m/Minier:Thomas.nt> <http://purl.org/dc/terms/creator> <https://dblp.org> .
 <https://dblp.org/pers/m/Minier:Thomas.nt> <http://purl.org/dc/terms/isPartOf> <https://dblp.org/rdf/dblp.nt> .
 <https://dblp.org/pers/m/Minier:Thomas.nt> <http://purl.org/dc/terms/license> <https://opendatacommons.org/licenses/by/1.0> .
-<https://dblp.org/pers/m/Minier:Thomas.nt> <http://purl.org/dc/terms/modified> "2018-08-04T00:54:27+0200" .
+<https://dblp.org/pers/m/Minier:Thomas.nt> <http://purl.org/dc/terms/modified> "2018-08-04T00:54:27+0200"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
