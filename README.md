@@ -164,6 +164,12 @@ as detailed below.
 ```javascript
 class ServiceExecutor {
   /**
+   * Constructor
+   * @param {PlanBuilder} builder - PlanBuilder instance
+   */
+  constructor (builder) {}
+
+  /**
    * Returns an iterator used to evaluate a SERVICE clause
    * @param  {AsyncIterator}  source    - Source iterator
    * @param  {string}         iri       - Iri of the SERVICE clause
@@ -182,7 +188,7 @@ Once your custom ServiceExecutor is ready, you need to *install* it on a `PlanBu
   class CustomServiceExecutor extends ServiceExecutor { /* ... */ }
 
   const builder = new PlanBuilder()
-  builder.serviceExecutor = new CustomServiceExecutor()
+  builder.serviceExecutor = new CustomServiceExecutor(builder)
 
   // Then, use the builder as usual to evaluate Federated SPARQL queries
   const iterator = builder.build(/* ... */)

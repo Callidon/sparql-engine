@@ -32,6 +32,22 @@ SOFTWARE.
  */
 class ServiceExecutor {
   /**
+   * Constructor
+   * @param {PlanBuilder} builder - PlanBuilder instance
+   */
+  constructor (builder) {
+    this._builder = builder
+  }
+
+  /**
+   * Get the PlanBuilder registered by the executor
+   * @return {PlanBuilder} The PlanBuilder registered by the executor
+   */
+  get builder () {
+    return this._builder
+  }
+
+  /**
    * Build an iterator to evaluate a SERVICE clause
    * @private
    * @param  {AsyncIterator}  source  - Source iterator
