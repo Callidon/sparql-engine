@@ -33,7 +33,7 @@ const ConstructOperator = require('../../operators/modifiers/construct-operator.
 
 /**
  * An UpdateExecutor is an executor responsible for evaluating SPARQL UPDATE queries.
- * @abstract
+ * @see https://www.w3.org/TR/2013/REC-sparql11-update-20130321
  * @author Thomas Minier
  */
 class UpdateExecutor {
@@ -44,31 +44,40 @@ class UpdateExecutor {
 
   execute (updates, options) {
     return new ManyConsumers(updates.map(update => {
-      return this._buildConsumer(update, options)
+      switch (update.updateType) {
+        case 'insert':
+        case 'delete':
+        case 'insertdelete':
+          return this._handleInsertDelete(update, options)
+        default:
+          break
+      }
+      switch (update.type) {
+        case 'clear':
+          return this._handleClearQuery(update, options)
+        case 'add':
+        case 'copy':
+        case 'move':
+        default:
+          throw new SyntaxError(`Unsupported SPARQL UPDATE query: ${update.type}`)
+      }
     }))
   }
 
-  _buildConsumer (update, options) {
+  /**
+   * Build a Consumer to evaluate SPARQL UPDATE queries
+   * @param  {Object} update  - Parsed query
+   * @param  {Object} options - Execution options
+   * @return {Object} A Consumer used to evaluate SPARQL UPDATE queries
+   */
+  _handleInsertDelete (update, options) {
     let source = single({})
     let graph = null
     let deletes = []
     let inserts = []
-    // case 1: CLEAR queries
-    if (update.type === 'clear') {
-      let graph = null
-      const iris = this._dataset.iris
-      if (update.graph.default) {
-        graph = this._dataset.getDefaultGraph()
-      } else if (update.graph.all) {
-        graph = this._dataset.getUnionGraph(iris, true)
-      } else if (update.graph.named) {
-        graph = this._dataset.getUnionGraph(iris, false)
-      } else {
-        graph = this._dataset.getNamedGraph(update.graph.name)
-      }
-      return new ClearConsumer(graph)
-    } else if (update.updateType === 'insertdelete') {
-      // case 2: INSERT/DELETE queries
+
+    if (update.updateType === 'insertdelete') {
+      // case 3: INSERT/DELETE queries
       graph = ('graph' in update) ? this._dataset.getNamedGraph(update.graph) : null
       // evaluate the WHERE clause as a classic SELECT query
       source = this._builder.build({
@@ -97,6 +106,13 @@ class UpdateExecutor {
     return new ManyConsumers(deletes.concat(inserts))
   }
 
+  /**
+   * Build a consumer to evaluate a SPARQL INSERT clause
+   * @param  {AsyncIterator} source - Source iterator
+   * @param  {Object}        group - parsed SPARQL INSERT clause
+   * @param  {Graph}         [graph=null] - RDF Graph used to insert data
+   * @return {AsyncIterator} A consumer used to evaluate a SPARQL INSERT clause
+   */
   _buildInsertConsumer (source, group, graph = null) {
     source = new ConstructOperator(source, {template: group.triples})
     if (graph === null) {
@@ -105,12 +121,39 @@ class UpdateExecutor {
     return new InsertConsumer(source, graph)
   }
 
+  /**
+   * Build a consumer to evaluate a SPARQL DELETE clause
+   * @param  {AsyncIterator} source - Source iterator
+   * @param  {Object}        group - parsed SPARQL DELETE clause
+   * @param  {Graph}         [graph=null] - RDF Graph used to delete data
+   * @return {AsyncIterator} A consumer used to evaluate a SPARQL DELETE clause
+   */
   _buildDeleteConsumer (source, group, graph = null) {
     source = new ConstructOperator(source, {template: group.triples})
     if (graph === null) {
       graph = (group.type === 'graph') ? this._dataset.getNamedGraph(group.name) : this._dataset.getDefaultGraph()
     }
     return new DeleteConsumer(source, graph)
+  }
+
+  /**
+   * Build a Consumer to evaluate CLEAR queries
+   * @param  {Object} query - Parsed query
+   * @return {Consumer} A Consumer used to evaluate CLEAR queries
+   */
+  _handleClearQuery (query) {
+    let graph = null
+    const iris = this._dataset.iris
+    if (query.graph.default) {
+      graph = this._dataset.getDefaultGraph()
+    } else if (query.graph.all) {
+      graph = this._dataset.getUnionGraph(iris, true)
+    } else if (query.graph.named) {
+      graph = this._dataset.getUnionGraph(iris, false)
+    } else {
+      graph = this._dataset.getNamedGraph(query.graph.name)
+    }
+    return new ClearConsumer(graph)
   }
 }
 
