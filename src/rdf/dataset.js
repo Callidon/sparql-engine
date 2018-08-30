@@ -70,6 +70,15 @@ class Dataset {
   }
 
   /**
+   * Return True if the Dataset contains a Named graph with the provided IRI
+   * @param  {string} iri - IRI of the Named Graph
+   * @return {boolean} True if the Dataset contains a Named graph with the provided IRI
+   */
+  hasNamedGraph (iri) {
+    throw new Error('A valid Dataset must implements a "hasNamedGraph" method')
+  }
+
+  /**
    * Get an UnionGraph, i.e., the dynamic union of several graphs,
    * from the RDF Graphs in the Dataset.
    * @param  {string[]} iris                  - Iris of the named graphs to include in the union

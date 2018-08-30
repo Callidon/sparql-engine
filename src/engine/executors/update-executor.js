@@ -30,6 +30,7 @@ const DeleteConsumer = require('../../operators/update/delete-consumer.js')
 const ClearConsumer = require('../../operators/update/clear-consumer.js')
 const ManyConsumers = require('../../operators/update/many-consumers.js')
 const ConstructOperator = require('../../operators/modifiers/construct-operator.js')
+const rewritings = require('./rewritings.js')
 
 /**
  * An UpdateExecutor is an executor responsible for evaluating SPARQL UPDATE queries.
@@ -56,8 +57,11 @@ class UpdateExecutor {
         case 'clear':
           return this._handleClearQuery(update, options)
         case 'add':
+          return this._handleInsertDelete(rewritings.rewriteAdd(update, this._dataset), options)
         case 'copy':
+          return this._handleInsertDelete(rewritings.rewriteCopy(update), options)
         case 'move':
+          return this._handleInsertDelete(rewritings.rewriteMove(update), options)
         default:
           throw new SyntaxError(`Unsupported SPARQL UPDATE query: ${update.type}`)
       }
@@ -77,7 +81,6 @@ class UpdateExecutor {
     let inserts = []
 
     if (update.updateType === 'insertdelete') {
-      // case 3: INSERT/DELETE queries
       graph = ('graph' in update) ? this._dataset.getNamedGraph(update.graph) : null
       // evaluate the WHERE clause as a classic SELECT query
       source = this._builder.build({

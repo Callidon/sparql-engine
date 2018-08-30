@@ -65,6 +65,10 @@ class HashMapDataset extends Dataset {
     }
     return this._namedGraphs.get(iri)
   }
+
+  hasNamedGraph (iri) {
+    return this._namedGraphs.has(iri)
+  }
 }
 
 module.exports = HashMapDataset
