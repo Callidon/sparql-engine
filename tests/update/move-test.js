@@ -16,7 +16,7 @@ copies or substantial portions of the Software.
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+AUTHORS OR MOVERIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
@@ -30,7 +30,7 @@ const { getGraph, TestEngine } = require('../utils.js')
 const GRAPH_A_IRI = 'http://example.org#some-graph-a'
 const GRAPH_B_IRI = 'http://example.org#some-graph-b'
 
-describe('SPARQL UPDATE: ADD queries', () => {
+describe('SPARQL UPDATE: MOVE queries', () => {
   let engine = null
   beforeEach(() => {
     const gA = getGraph('./tests/data/dblp.nt')
@@ -41,19 +41,31 @@ describe('SPARQL UPDATE: ADD queries', () => {
 
   const data = [
     {
-      name: 'ADD DEFAULT to NAMED',
-      query: `ADD DEFAULT TO <${GRAPH_B_IRI}>`,
+      name: 'MOVE DEFAULT to NAMED',
+      query: `MOVE DEFAULT TO <${GRAPH_B_IRI}>`,
       testFun: () => {
-        const triples = engine.getNamedGraph(GRAPH_B_IRI)._store.getTriples('https://dblp.org/pers/m/Minier:Thomas')
+        // destination graph should only contains data from the source
+        let triples = engine.getNamedGraph(GRAPH_B_IRI)._store.getTriples('https://dblp.org/pers/m/Minier:Thomas')
         expect(triples.length).to.equal(11)
+        triples = engine.getNamedGraph(GRAPH_B_IRI)._store.getTriples('https://dblp.org/pers/g/Grall:Arnaud')
+        expect(triples.length).to.equal(0)
+        // source graph should be empty
+        triples = engine._graph._store.getTriples()
+        expect(triples.length).to.equal(0)
       }
     },
     {
-      name: 'ADD NAMED to DEFAULT',
-      query: `ADD <${GRAPH_B_IRI}> TO DEFAULT`,
+      name: 'MOVE NAMED to DEFAULT',
+      query: `MOVE <${GRAPH_B_IRI}> TO DEFAULT`,
       testFun: () => {
-        const triples = engine._graph._store.getTriples('https://dblp.org/pers/g/Grall:Arnaud')
+        // destination graph should only contains data from the source
+        let triples = engine._graph._store.getTriples('https://dblp.org/pers/g/Grall:Arnaud')
         expect(triples.length).to.equal(10)
+        triples = engine._graph._store.getTriples('https://dblp.org/pers/m/Minier:Thomas')
+        expect(triples.length).to.equal(0)
+        // source graph should be empty
+        triples = engine.getNamedGraph(GRAPH_B_IRI)._store.getTriples()
+        expect(triples.length).to.equal(0)
       }
     }
   ]

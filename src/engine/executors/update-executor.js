@@ -44,6 +44,7 @@ class UpdateExecutor {
   }
 
   execute (updates, options) {
+    let queries
     return new ManyConsumers(updates.map(update => {
       switch (update.updateType) {
         case 'insert':
@@ -59,9 +60,20 @@ class UpdateExecutor {
         case 'add':
           return this._handleInsertDelete(rewritings.rewriteAdd(update, this._dataset), options)
         case 'copy':
-          return this._handleInsertDelete(rewritings.rewriteCopy(update), options)
+          // A COPY query is rewritten into a sequence [CLEAR query, INSERT query]
+          queries = rewritings.rewriteCopy(update, this._dataset)
+          return new ManyConsumers([
+            this._handleClearQuery(queries[0], options),
+            this._handleInsertDelete(queries[1], options)
+          ])
         case 'move':
-          return this._handleInsertDelete(rewritings.rewriteMove(update), options)
+          // A MOVE query is rewritten into a sequence [CLEAR query, INSERT query, CLEAR query]
+          queries = rewritings.rewriteMove(update, this._dataset)
+          return new ManyConsumers([
+            this._handleClearQuery(queries[0], options),
+            this._handleInsertDelete(queries[1], options),
+            this._handleClearQuery(queries[2], options)
+          ])
         default:
           throw new SyntaxError(`Unsupported SPARQL UPDATE query: ${update.type}`)
       }

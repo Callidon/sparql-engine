@@ -76,32 +76,95 @@ function graphGroup (iri, triples, isWhere = true) {
 }
 
 /**
+ * Build a SPARQL GROUP that selects all RDF triples from the Default Graph or a Named Graph
+ * @private
+ * @param  {Object}  source          - Source graph
+ * @param  {dataset} dataset         - RDF dataset used to select the source
+ * @param  {Boolean} isSilent        - True if errors should not be reported
+ * @param  {Boolean} [isWhere=false] - True if the GROUP should belong to a WHERE clause
+ * @return {Object} The SPARQL GROUP clasue
+ */
+function buildGroupClause (source, dataset, isSilent, isWhere = false) {
+  if (source.default) {
+    return allBGP()
+  } else {
+    // a SILENT modifier prevents errors when using an unknown graph
+    if (!(dataset.hasNamedGraph(source.name)) && !isSilent) {
+      throw new Error(`Unknown Source Graph in ADD query ${source.name}`)
+    }
+    return graphGroup(source.name, [allPattern()], isWhere)
+  }
+}
+
+/**
  * Rewrite an ADD query into a INSERT query
  * @see https://www.w3.org/TR/2013/REC-sparql11-update-20130321/#add
  * @param  {Object} addQuery - Parsed ADD query
+ * @param  {Dataset} dataset - related RDF dataset
  * @return {Object} Rewritten ADD query
  */
 function rewriteAdd (addQuery, dataset) {
-  // Used to select ADD source/destination (default graph or a Named graph)
-  function selectGraph (clause, dataset, isWhere = false) {
-    if (clause.default) {
-      return allBGP()
-    } else {
-      // a SILENT modifier prevents errors when using an unknown graph
-      if (!(dataset.hasNamedGraph(clause.name)) && !addQuery.silent) {
-        throw new Error(`Unknown Source Graph in ADD query ${clause.name}`)
-      }
-      return graphGroup(clause.name, [allPattern()], isWhere)
-    }
-  }
-  const res = {
+  return {
     updateType: 'insertdelete',
-    insert: [selectGraph(addQuery.destination, dataset)],
-    where: [selectGraph(addQuery.source, dataset, true)]
+    silent: addQuery.silent,
+    insert: [buildGroupClause(addQuery.destination, dataset, addQuery.silent)],
+    where: [buildGroupClause(addQuery.source, dataset, addQuery.silent, true)]
   }
+}
+
+/**
+ * Rewrite a COPY query into a CLEAR + INSERT/DELETE query
+ * @see https://www.w3.org/TR/2013/REC-sparql11-update-20130321/#copy
+ * @param  {Object} copyQuery - Parsed COPY query
+ * @param  {Dataset} dataset - related RDF dataset
+ * @return {Object[]} Rewritten COPY query, i.e., a sequence [CLEAR query, INSERT query]
+ */
+function rewriteCopy (copyQuery, dataset) {
+  // first, build a CLEAR query to empty the destination
+  const clear = {
+    type: 'clear',
+    silent: copyQuery.silent,
+    graph: {}
+  }
+  if (copyQuery.destination.default) {
+    clear.graph.default = true
+  } else {
+    clear.graph.type = copyQuery.destination.type
+    clear.graph.name = copyQuery.destination.name
+  }
+  // then, build an INSERT query to copy the data
+  const update = rewriteAdd(copyQuery, dataset)
+  return [clear, update]
+}
+
+/**
+ * Rewrite a MOVE query into a CLEAR + INSERT/DELETE + CLEAR query
+ * @see https://www.w3.org/TR/2013/REC-sparql11-update-20130321/#move
+ * @param  {Object} moveQuery - Parsed MOVE query
+ * @param  {Dataset} dataset - related RDF dataset
+ * @return {Object[]} Rewritten MOVE query, i.e., a sequence [CLEAR query, INSERT query, CLEAR query]
+ */
+function rewriteMove (moveQuery, dataset) {
+  // first, build a classic COPY query
+  const res = rewriteCopy(moveQuery, dataset)
+  // then, append a CLEAR query to clear the source graph
+  const clear = {
+    type: 'clear',
+    silent: moveQuery.silent,
+    graph: {}
+  }
+  if (moveQuery.source.default) {
+    clear.graph.default = true
+  } else {
+    clear.graph.type = moveQuery.source.type
+    clear.graph.name = moveQuery.source.name
+  }
+  res.push(clear)
   return res
 }
 
 module.exports = {
-  rewriteAdd
+  rewriteAdd,
+  rewriteCopy,
+  rewriteMove
 }
