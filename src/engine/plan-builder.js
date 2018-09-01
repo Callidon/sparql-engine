@@ -44,7 +44,6 @@ const UpdateExecutor = require('./executors/update-executor.js')
 // utils
 const _ = require('lodash')
 const { deepApplyBindings, extendByBindings, rdf } = require('../utils.js')
-const { transformPath } = require('./property-paths.js')
 
 const queryConstructors = {
   SELECT: SelectOperator,
@@ -283,24 +282,24 @@ class PlanBuilder {
         if (_.isNull(this._bgpExecutor)) {
           throw new Error('A PlanBuilder cannot evaluate a Basic Graph Pattern without a BGPExecutor')
         }
-        var copyGroup = Object.assign({}, group)
-        // evaluate possible Property paths
-        var ret = transformPath(copyGroup.triples, copyGroup, options)
-        var bgp = ret[0]
-        var union = ret[1]
-        var filter = ret[2]
-        if (union != null) {
-          return this._buildGroup(source, union, childOptions)
-        } else if (filter.length > 0) {
-          var groups = [{type: 'bgp', triples: bgp}]
-          for (let i = 0; i < filter.length; i++) {
-            groups.push(filter[i])
-          }
-          return this._buildWhere(source, groups, childOptions)
-        } else {
-          // delegate BGP evaluation to an executor
-          return this._bgpExecutor.buildIterator(source, bgp, childOptions)
-        }
+        // var copyGroup = Object.assign({}, group)
+        // // evaluate possible Property paths
+        // var ret = transformPath(copyGroup.triples, copyGroup, options)
+        // var bgp = ret[0]
+        // var union = ret[1]
+        // var filter = ret[2]
+        // if (union != null) {
+        //   return this._buildGroup(source, union, childOptions)
+        // } else if (filter.length > 0) {
+        //   var groups = [{type: 'bgp', triples: bgp}]
+        //   for (let i = 0; i < filter.length; i++) {
+        //     groups.push(filter[i])
+        //   }
+        //   return this._buildWhere(source, groups, childOptions)
+        // } else {
+        // delegate BGP evaluation to an executor
+        return this._bgpExecutor.buildIterator(source, group.triples, childOptions)
+        // }
       case 'query':
         return this._buildQueryPlan(group, options, source)
       case 'graph':
