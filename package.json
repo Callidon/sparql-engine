@@ -1,6 +1,6 @@
 {
   "name": "sparql-engine",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "A framework for building SPARQL query engines in Javascript",
   "main": "src/api.js",
   "scripts": {
