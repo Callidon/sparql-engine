@@ -26,7 +26,7 @@ SOFTWARE.
 
 const { ClonedIterator, MultiTransformIterator, SingletonIterator } = require('asynciterator')
 const { applyBindings } = require('../../utils.js')
-const { assign, some, size } = require('lodash')
+const { assign, omit, some, size } = require('lodash')
 
 /**
  * Basic iterator used to evaluate Basic graph patterns using the "evalBGP" method
@@ -121,7 +121,40 @@ class BGPExecutor {
   buildIterator (source, patterns, options) {
     // select the graph to use for BGP evaluation
     const graph = ('_from' in options) ? this._getGraph(options._from.default) : this._dataset.getDefaultGraph()
-    return this._execute(source, graph, patterns, options, this._isJoinIdentity(source))
+    // rewrite a BGP to remove blank node addedd by the Turtle notation
+    const [bgp, artificals] = this._replaceBlankNodes(patterns)
+    let iterator = this._execute(source, graph, bgp, options, this._isJoinIdentity(source))
+    if (artificals.length > 0) {
+      iterator = iterator.map(b => omit(b, artificals))
+    }
+    return iterator
+  }
+
+  /**
+   * Replace the blank nodes in a BGP by SPARQL variables
+   * @param  {Object[]} patterns - BGP to rewrite, i.e., a set of triple patterns
+   * @return {Array} A Tuple [Rewritten BGP, List of SPARQL variable added]
+   */
+  _replaceBlankNodes (patterns) {
+    const newVariables = []
+    function rewrite (term) {
+      let res = term
+      if (term.startsWith('_:')) {
+        res = '?' + term.slice(2)
+        if (newVariables.indexOf(res) < 0) {
+          newVariables.push(res)
+        }
+      }
+      return res
+    }
+    const newBGP = patterns.map(p => {
+      return {
+        subject: rewrite(p.subject),
+        predicate: rewrite(p.predicate),
+        object: rewrite(p.object)
+      }
+    })
+    return [newBGP, newVariables]
   }
 
   /**
