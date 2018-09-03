@@ -25,6 +25,7 @@ SOFTWARE.
 'use strict'
 
 const { BufferedIterator } = require('asynciterator')
+const { isNull, isUndefined } = require('lodash')
 
 /**
  * An operator that first materialize the input iterator before processing all its bindings
@@ -60,7 +61,10 @@ class MaterializeOperator extends BufferedIterator {
       done()
     })
     this._source.on('data', v => {
-      this._bufferedValues.push(this._preTransform(v))
+      const newValue = this._preTransform(v)
+      if ((!isNull(newValue)) && (!isUndefined(newValue))) {
+        this._bufferedValues.push(newValue)
+      }
     })
   }
 
