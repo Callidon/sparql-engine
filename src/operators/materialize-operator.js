@@ -36,13 +36,12 @@ class MaterializeOperator extends BufferedIterator {
   constructor (source, options) {
     super(options)
     this._source = source
-    this._readingFromSource = true
     this._bufferedValues = []
     this._source.on('error', err => this.emit('error', err))
   }
 
   _preTransform (value) {
-    this._bufferedValues.push(value)
+    return value
   }
 
   _transformAll (values) {
@@ -54,30 +53,24 @@ class MaterializeOperator extends BufferedIterator {
     done()
   }
 
+  _begin (done) {
+    this._source.on('end', () => {
+      this._readingFromSource = false
+      this._bufferedValues = this._transformAll(this._bufferedValues)
+      done()
+    })
+    this._source.on('data', v => {
+      this._bufferedValues.push(this._preTransform(v))
+    })
+  }
+
   _read (count, done) {
-    if (this._readingFromSource) {
-      this._source.on('end', () => {
-        this._readingFromSource = false
-        this._bufferedValues = this._transformAll(this._bufferedValues)
-        this._read(count, done)
-      })
-      this._source.on('data', v => {
-        this._preTransform(v)
-      })
+    if (this._bufferedValues.length > 0) {
+      const value = this._bufferedValues.shift()
+      this._transform(value, done)
     } else {
-      if (this._bufferedValues.length > 0) {
-        const value = this._bufferedValues.shift()
-        this._transform(value, (shouldContinue = false) => {
-          if (shouldContinue) {
-            this._read(count, done)
-          } else {
-            done()
-          }
-        })
-      } else {
-        this.close()
-        done()
-      }
+      this.close()
+      done()
     }
   }
 }
