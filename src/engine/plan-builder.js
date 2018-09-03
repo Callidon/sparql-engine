@@ -33,6 +33,7 @@ const FilterOperator = require('../operators/filter-operator.js')
 const OptionalOperator = require('../operators/optional-operator.js')
 const OrderByOperator = require('../operators/orderby-operator.js')
 const ExistsOperator = require('../operators/exists-operator.js')
+const MinusOperator = require('../operators/minus-operator.js')
 // solution modifiers
 const SelectOperator = require('../operators/modifiers/select-operator.js')
 const AskOperator = require('../operators/modifiers/ask-operator.js')
@@ -325,15 +326,15 @@ class PlanBuilder {
         return new UnionOperator(...group.patterns.map(patternToken => {
           return this._buildGroup(source.clone(), patternToken, childOptions)
         }))
+      case 'minus':
+        return new MinusOperator(source, group.patterns, this, options)
       case 'filter':
-        // FILTERs (NOT) EXISTS and MINUS are handled using dedicated operators
+        // FILTERs (NOT) EXISTS are handled using dedicated operators
         switch (group.expression.operator) {
           case 'exists':
             return new ExistsOperator(source, group.expression.args, this, false, options)
           case 'notexists':
             return new ExistsOperator(source, group.expression.args, this, true, options)
-          case 'minus':
-            return null
           default:
             return new FilterOperator(source, group.expression, childOptions)
         }

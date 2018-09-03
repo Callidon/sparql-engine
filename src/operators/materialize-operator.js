@@ -67,7 +67,13 @@ class MaterializeOperator extends BufferedIterator {
     } else {
       if (this._bufferedValues.length > 0) {
         const value = this._bufferedValues.shift()
-        this._transform(value, done)
+        this._transform(value, (shouldContinue = false) => {
+          if (shouldContinue) {
+            this._read(count, done)
+          } else {
+            done()
+          }
+        })
       } else {
         this.close()
         done()
