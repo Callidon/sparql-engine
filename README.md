@@ -13,7 +13,6 @@ An open-source framework for building SPARQL query engines in Javascript.
 
 :warning: **In Development** :warning:
 * Support for all SPARQL property Paths.
-* Support for SPARQL EXISTS filters.
 * Support for SPARQL Graph Management protocol
 
 # Table of contents
