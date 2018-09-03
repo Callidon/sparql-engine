@@ -53,8 +53,7 @@ class ExistsOperator extends TransformIterator {
     let exists = false
     // build an iterator to evaluate the EXISTS clause using the set of bindings
     // using a LIMIT 1, to minimize the evaluation cost
-    const source = single(bindings)
-    const iterator = this._builder._buildWhere(source, this._groups, this._options).take(1)
+    const iterator = this._builder._buildWhere(single(bindings), this._groups, this._options).take(1)
     iterator.on('error', err => this.emit('error', err))
     iterator.on('end', () => {
       if (exists && (!this._notexists)) {

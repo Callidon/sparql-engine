@@ -327,7 +327,8 @@ class PlanBuilder {
           return this._buildGroup(source.clone(), patternToken, childOptions)
         }))
       case 'minus':
-        return new MinusOperator(source, group.patterns, this, options)
+        const rightSource = this._buildWhere(single({}), group.patterns, options)
+        return new MinusOperator(source, rightSource, options)
       case 'filter':
         // FILTERs (NOT) EXISTS are handled using dedicated operators
         switch (group.expression.operator) {
