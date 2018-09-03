@@ -786,7 +786,6 @@ describe('FILTER SPARQL queries', () => {
       query: `
       PREFIX dblp-rdf: <https://dblp.uni-trier.de/rdf/schema-2017-04-18#>
       PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-      PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
       SELECT * WHERE {
         ?s rdf:type dblp-rdf:Person .
         FILTER(MD5("abc") = "900150983cd24fb0d6963f7d28e17f72")
@@ -798,7 +797,6 @@ describe('FILTER SPARQL queries', () => {
       query: `
       PREFIX dblp-rdf: <https://dblp.uni-trier.de/rdf/schema-2017-04-18#>
       PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-      PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
       SELECT * WHERE {
         ?s rdf:type dblp-rdf:Person .
         FILTER(SHA1("abc") = "a9993e364706816aba3e25717850c26c9cd0d89d")
@@ -810,7 +808,6 @@ describe('FILTER SPARQL queries', () => {
       query: `
       PREFIX dblp-rdf: <https://dblp.uni-trier.de/rdf/schema-2017-04-18#>
       PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-      PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
       SELECT * WHERE {
         ?s rdf:type dblp-rdf:Person .
         FILTER(SHA256("abc") = "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad")
@@ -822,7 +819,6 @@ describe('FILTER SPARQL queries', () => {
       query: `
       PREFIX dblp-rdf: <https://dblp.uni-trier.de/rdf/schema-2017-04-18#>
       PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-      PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
       SELECT * WHERE {
         ?s rdf:type dblp-rdf:Person .
         FILTER(SHA384("abc") = "cb00753f45a35e8bb5a03d699ac65007272c32ab0eded1631a8b605a43ff5bed8086072ba1e7cc2358baeca134c825a7")
@@ -834,10 +830,31 @@ describe('FILTER SPARQL queries', () => {
       query: `
       PREFIX dblp-rdf: <https://dblp.uni-trier.de/rdf/schema-2017-04-18#>
       PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-      PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
       SELECT * WHERE {
         ?s rdf:type dblp-rdf:Person .
         FILTER(SHA512("abc") = "ddaf35a193617abacc417349ae20413112e6fa4e89a97ea20a9eeee64b55d39a2192992a274fc1a836ba3c23a3feebbd454d4423643ce80e2a9ac94fa54ca49f")
+      }`,
+      expectedNb: 1
+    },
+    {
+      name: 'EXISTS',
+      query: `
+      PREFIX dblp-rdf: <https://dblp.uni-trier.de/rdf/schema-2017-04-18#>
+      PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+      SELECT * WHERE {
+        ?s rdf:type dblp-rdf:Person .
+        FILTER EXISTS { ?s dblp-rdf:primaryFullPersonName ?name }
+      }`,
+      expectedNb: 1
+    },
+    {
+      name: 'NOT EXISTS',
+      query: `
+      PREFIX dblp-rdf: <https://dblp.uni-trier.de/rdf/schema-2017-04-18#>
+      PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+      SELECT * WHERE {
+        ?s rdf:type dblp-rdf:Person .
+        FILTER NOT EXISTS { ?s dblp-rdf:primaryFullPersonName "Chunck Norris" }
       }`,
       expectedNb: 1
     }

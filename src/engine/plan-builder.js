@@ -32,6 +32,7 @@ const DistinctIterator = require('../operators/distinct-operator.js')
 const FilterOperator = require('../operators/filter-operator.js')
 const OptionalOperator = require('../operators/optional-operator.js')
 const OrderByOperator = require('../operators/orderby-operator.js')
+const ExistsOperator = require('../operators/exists-operator.js')
 // solution modifiers
 const SelectOperator = require('../operators/modifiers/select-operator.js')
 const AskOperator = require('../operators/modifiers/ask-operator.js')
@@ -229,15 +230,16 @@ class PlanBuilder {
    * @return {AsyncIterator} An iterator used to evaluate the WHERE clause
    */
   _buildWhere (source, groups, options) {
-    groups.sort(function (a, b) {
-      if (a.type === b.type) {
-        return 0
-      } else if (a.type === 'filter' || b.type === 'values') {
-        return 1
-      } else if (b.type === 'filter' || a.type === 'values') {
-        return -1
-      } else {
-        return 0
+    groups = _.sortBy(groups, g => {
+      switch (g.type) {
+        case 'bgp':
+          return 0
+        case 'values':
+          return 2
+        case 'filter':
+          return 3
+        default:
+          return 1
       }
     })
 
@@ -324,7 +326,17 @@ class PlanBuilder {
           return this._buildGroup(source.clone(), patternToken, childOptions)
         }))
       case 'filter':
-        return new FilterOperator(source, group.expression, childOptions)
+        // FILTERs (NOT) EXISTS and MINUS are handled using dedicated operators
+        switch (group.expression.operator) {
+          case 'exists':
+            return new ExistsOperator(source, group.expression.args, this, false, options)
+          case 'notexists':
+            return new ExistsOperator(source, group.expression.args, this, true, options)
+          case 'minus':
+            return null
+          default:
+            return new FilterOperator(source, group.expression, childOptions)
+        }
       case 'bind':
         return new BindOperator(source, group.variable, group.expression, childOptions)
       default:
