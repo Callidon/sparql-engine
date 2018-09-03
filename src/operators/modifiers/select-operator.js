@@ -26,7 +26,7 @@ SOFTWARE.
 
 const { TransformIterator } = require('asynciterator')
 const { isVariable } = require('../../utils.js').rdf
-const _ = require('lodash')
+const { mapValues } = require('lodash')
 
 /**
  * Evaluates a SPARQL SELECT operation, i.e., perform a selection over sets of solutions bindings
@@ -45,10 +45,6 @@ class SelectOperator extends TransformIterator {
   }
 
   _transform (bindings, done) {
-    // remove artificals values
-    if ('artificials' in this._options && this._options.artificials.length > 0) {
-      bindings = _.omit(bindings, this._options.artificials)
-    }
     // perform projection (if necessary)
     if (!this._selectAll) {
       bindings = this._variables.reduce((obj, v) => {
@@ -61,7 +57,7 @@ class SelectOperator extends TransformIterator {
       }, {})
     }
     // remove non-variables entries && non-string values
-    this._push(_.mapValues(bindings, (v, k) => isVariable(k) && typeof v === 'string' ? v : null))
+    this._push(mapValues(bindings, (v, k) => isVariable(k) && typeof v === 'string' ? v : null))
     done()
   }
 }
