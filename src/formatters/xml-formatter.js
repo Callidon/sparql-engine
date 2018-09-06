@@ -39,7 +39,7 @@ class XMLFormatter extends ResultsFormatter {
   constructor (source, variables, options) {
     super(source, variables, options)
     this._root = xml.element({
-      _attr: { xlmns: 'http://www.w3.org/2005/sparql-results#' }
+      _attr: { xmlns: 'http://www.w3.org/2005/sparql-results#' }
     })
     this._results = xml.element({})
     this._stream = xml({ sparql: this._root }, { stream: true, indent: '\t', declaration: true })

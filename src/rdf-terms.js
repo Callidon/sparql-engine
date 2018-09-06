@@ -33,6 +33,8 @@ const moment = require('moment')
  */
 function termToJS (value, type) {
   switch (type) {
+    case 'http://www.w3.org/2001/XMLSchema#string':
+      return value
     case 'http://www.w3.org/2001/XMLSchema#integer':
     case 'http://www.w3.org/2001/XMLSchema#number':
     case 'http://www.w3.org/2001/XMLSchema#float':

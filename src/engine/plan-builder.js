@@ -128,7 +128,7 @@ class PlanBuilder {
       case 'query':
         const iterator = this._buildQueryPlan(query, options)
         // only use results formatters for select & ask queries
-        if (query.queryType !== 'SELECT' || query.queryType !== 'ASK') {
+        if (query.queryType === 'CONSTRUCT' || query.queryType === 'DESCRIBE') {
           return iterator
         }
         switch (options.format) {
@@ -254,7 +254,7 @@ class PlanBuilder {
         case 'filter':
           return 3
         default:
-          return 1
+          return 0
       }
     })
 

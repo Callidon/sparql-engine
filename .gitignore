@@ -6,6 +6,9 @@ yarn-debug.log*
 yarn-error.log*
 *.lcov
 
+# W3C test suite
+sparql11-test-suite
+
 # Runtime data
 pids
 *.pid
