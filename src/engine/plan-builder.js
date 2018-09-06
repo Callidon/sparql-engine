@@ -43,6 +43,8 @@ const AggregateExecutor = require('./executors/aggregate-executor.js')
 const BGPExecutor = require('./executors/bgp-executor.js')
 const GraphExecutor = require('./executors/graph-executor.js')
 const UpdateExecutor = require('./executors/update-executor.js')
+// formatters
+const XMLFormatter = require('../formatters/xml-formatter.js')
 // utils
 const _ = require('lodash')
 const { deepApplyBindings, extendByBindings, rdf } = require('../utils.js')
@@ -117,14 +119,26 @@ class PlanBuilder {
    * @param  {Object} [options={}]  - Execution options
    * @return {AsyncIterator} An iterator that can be consumed to evaluate the query.
    */
-  build (query, options = {}) {
+  build (query, options = { format: 'raw' }) {
     // If needed, parse the string query into a logical query execution plan
     if (typeof query === 'string') {
       query = new Parser(options.prefixes).parse(query)
     }
     switch (query.type) {
       case 'query':
-        return this._buildQueryPlan(query, options)
+        const iterator = this._buildQueryPlan(query, options)
+        // only use results formatters for select & ask queries
+        if (query.queryType !== 'SELECT' || query.queryType !== 'ASK') {
+          return iterator
+        }
+        switch (options.format) {
+          case 'xml':
+          case 'application/xml':
+          case 'application/sparql-results+xml':
+            return new XMLFormatter(iterator, query.variables)
+          default:
+            return iterator
+        }
       case 'update':
         return this._updateExecutor.execute(query.updates, options)
       default:

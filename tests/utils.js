@@ -124,8 +124,8 @@ class TestEngine {
     return this._dataset.getNamedGraph(iri)
   }
 
-  execute (query) {
-    return this._builder.build(query)
+  execute (query, format = 'raw') {
+    return this._builder.build(query, {format})
   }
 }
 

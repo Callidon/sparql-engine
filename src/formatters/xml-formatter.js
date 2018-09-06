@@ -1,69 +1,121 @@
-/*! @license MIT ©2014-2016 Miel Vander Sande, Ghent University - imec */
-/* Writer that serializes a SPARQL query result application/sparql+xml */
+/* file : xml-formatter.js
+MIT License
 
-const SparqlResultWriter = require('./SparqlResultWriter')
-const _ = require('lodash')
-const util = require('ldf-client/lib/util/RdfUtil')
+Copyright (c) 2018 Thomas Minier
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+*/
+
+'use strict'
+
+const ResultsFormatter = require('./results-formatter')
 const xml = require('xml')
+const { map, omit, isNull, isUndefined } = require('lodash')
 
-class SparqlXMLResultWriter extends SparqlResultWriter {
-  _writeHead (variableNames) {
-    // Write root element
-    let self = this
-    let root = this._root = xml.element({
+/**
+ * Formats results in XML format
+ * @see https://www.w3.org/TR/2013/REC-rdf-sparql-XMLres-20130321/
+ * @extends ResultsFormatter
+ * @author Thomas Minier
+ * @author Corentin Marionneau
+ */
+class XMLFormatter extends ResultsFormatter {
+  constructor (source, variables, options) {
+    super(source, variables, options)
+    this._root = xml.element({
       _attr: { xlmns: 'http://www.w3.org/2005/sparql-results#' }
     })
-    xml({ sparql: root }, { stream: true, indent: '  ', declaration: true })
-      .on('data', function (chunk) { self._push(chunk + '\n') })
+    this._results = xml.element({})
+    this._stream = xml({ sparql: this._root }, { stream: true, indent: '\t', declaration: true })
+    this._stream.on('data', v => this._push(v))
+  }
 
+  _writeHead (variableNames, done) {
     // Write head element
-    if (variableNames.length) {
-      root.push({
-        head: variableNames.map(function (v) {
-          return { variable: { _attr: { name: v } } }
+    if (variableNames.length > 0 && variableNames[0] !== '*') {
+      this._root.push({
+        head: variableNames.map(name => {
+          return { variable: { _attr: { name } } }
         })
       })
     }
+    // Write the results tag
+    this._root.push({
+      results: this._results
+    })
+    done()
   }
 
-  _writeBindings (result) {
-    // With the first result, write the results element
-    if (!this._results) { this._root.push({ results: this._results = xml.element({}) }) }
+  _writeBindings (bindings, done) {
+    // remove null & undefined values
+    bindings = omit(bindings, value => isNull(value) || isUndefined(value))
 
-    // Unbound variables cannot be part of XML
-    result = _.omit(result, function (value) {
-      return value === undefined || value === null
-    })
-
-    // Write the result element
+    // Write the result tag for this set of bindings
     this._results.push({
-      result: _.map(result, function (value, variable) {
-        var xmlValue, lang, type
-        if (!util.isLiteral(value)) { xmlValue = util.isBlank(value) ? { bnode: value } : { uri: value } } else {
-          xmlValue = { literal: util.getLiteralValue(value) }
-          if (lang = util.getLiteralLanguage(value)) {
-            xmlValue.literal = [{ _attr: { 'xml:lang': lang } }, xmlValue.literal]
-          } else if (type = util.getLiteralType(value)) {
-            xmlValue.literal = [{ _attr: { datatype: type } }, xmlValue.literal]
-          }
+      result: map(bindings, (value, variable) => {
+        let xmlTag
+        switch (value.type) {
+          case 'iri':
+            xmlTag = { uri: value.value }
+            break
+          case 'bnode':
+            xmlTag = { bnode: value.value }
+            break
+          case 'literal':
+            xmlTag = { literal: value.value }
+            break
+          case 'literal+type':
+            xmlTag = { literal: [
+              { _attr: { datatype: value.datatype } },
+              value.value
+            ]}
+            break
+          case 'literal+lang':
+            xmlTag = { literal: [
+              { _attr: { 'xml:lang': value.lang } },
+              value.value
+            ]}
+            break
+          default:
+            throw new Error(`Unsupported bindings type: ${value.type}`)
         }
-        return { binding: [{ _attr: { name: variable.substring(1) } }, xmlValue] }
+        return {
+          binding: [
+            { _attr: { name: variable.substring(1) } },
+            xmlTag
+          ]
+        }
       })
     })
+    done()
   }
 
-  _writeBoolean (result) {
+  _writeBoolean (result, done) {
     this._root.push({ boolean: result })
+    done()
   }
 
   _flush (done) {
-    // If there were no matches, the results element hasn't been created yet
-    if (this._empty) { this._root.push({ results: this._results = xml.element({}) }) }
-    // There's no results element for ASK queries
-    if (this._results) { this._results.close() }
+    this._results.close()
     this._root.close()
     done()
   }
 }
 
-module.exports = SparqlXMLResultWriter
+module.exports = XMLFormatter

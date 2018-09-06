@@ -44,9 +44,10 @@
     "asynciterator": "^2.0.0",
     "lodash": "^4.17.10",
     "moment": "^2.22.2",
-    "sparqljs": "^2.0.3",
     "n3": "^0.11.3",
-    "uuid": "^3.3.2"
+    "sparqljs": "^2.0.3",
+    "uuid": "^3.3.2",
+    "xml": "^1.0.1"
   },
   "standard": {
     "env": [

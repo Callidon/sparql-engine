@@ -37,6 +37,7 @@ function termToJS (value, type) {
     case 'http://www.w3.org/2001/XMLSchema#number':
     case 'http://www.w3.org/2001/XMLSchema#float':
     case 'http://www.w3.org/2001/XMLSchema#decimal':
+    case 'http://www.w3.org/2001/XMLSchema#double':
       return Number(value)
     case 'http://www.w3.org/2001/XMLSchema#boolean':
       return value === '"true"'
