@@ -26,6 +26,7 @@ SOFTWARE.
 
 const { Parser } = require('sparqljs')
 const { single } = require('asynciterator')
+const AggregateOperator = require('../operators/aggregates/agg-operator.js')
 const BindOperator = require('../operators/bind-operator.js')
 const UnionOperator = require('../operators/union-operator.js')
 const DistinctIterator = require('../operators/distinct-operator.js')
@@ -202,7 +203,7 @@ class PlanBuilder {
     }
 
     // Parse query variable to separate projection & aggregate variables
-    if (query.variables != null) {
+    if ('variables' in query) {
       const [projection, aggregates] = _.partition(query.variables, v => _.isString(v))
       // add aggregates variables to projection variables
       query.variables = projection.concat(aggregates.map(agg => agg.variable))
@@ -211,6 +212,13 @@ class PlanBuilder {
 
     // Handles Aggregates
     graphIterator = this._aggExecutor.buildIterator(graphIterator, query, options)
+
+    // Handles transformers
+    if ('aggregates' in query) {
+      graphIterator = query.aggregates.reduce((iter, agg) => {
+        return new AggregateOperator(iter, agg, options)
+      }, graphIterator)
+    }
 
     // Handles ORDER BY
     if ('order' in query) {

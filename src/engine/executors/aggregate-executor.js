@@ -52,10 +52,6 @@ class AggregateExecutor {
       if ('having' in query) {
         iterator = this._executeHaving(iterator, query.having, options)
       }
-      // finally, apply each aggregate operation over the groups
-      iterator = query.aggregates.reduce((iter, agg) => {
-        return this._executeAggregate(iter, agg, options)
-      }, iterator)
       return iterator
     }
     return source
