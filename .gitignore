@@ -6,6 +6,8 @@ yarn-debug.log*
 yarn-error.log*
 *.lcov
 
+dist/
+
 # W3C test suite
 sparql11-test-suite
 

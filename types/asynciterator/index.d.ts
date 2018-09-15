@@ -49,16 +49,17 @@ declare module 'asynciterator' {
   export function single (start: any): SingleIterator;
 
   export class BufferedIterator extends AsyncIterator {
+    constructor (options?: Object)
     _read (count: number, done: () => void): void;
     _push (item: any): void;
   }
 
   export class ArrayIterator extends AsyncIterator {
-    constructor (array: any[]);
+    constructor (array: any[], options?: Object);
   }
 
   export class TransformIterator extends BufferedIterator {
-    constructor(source: AsyncIterator);
+    constructor(source: AsyncIterator, options?: Object);
     _transform (item: any, done: () => void): void;
   }
 

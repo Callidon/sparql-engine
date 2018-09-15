@@ -35,6 +35,7 @@
   ],
   "homepage": "https://github.com/Callidon/sparql-engine#readme",
   "devDependencies": {
+    "@types/lodash": "^4.14.116",
     "chai": "^4.1.2",
     "chai-xml": "^0.3.2",
     "codecov": "^3.0.4",
