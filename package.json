@@ -3,6 +3,7 @@
   "version": "0.2.1",
   "description": "A framework for building SPARQL query engines in Javascript",
   "main": "src/api.js",
+  "types": "dist/lib/index.d.ts",
   "scripts": {
     "lint": "standard",
     "test": "mocha tests/**/*-test.js",
@@ -39,7 +40,9 @@
     "docma": "^2.1.0",
     "mocha": "^5.2.0",
     "nyc": "^12.0.2",
-    "standard": "^11.0.1"
+    "standard": "^11.0.1",
+    "tsc": "^1.20150623.0",
+    "typescript": "^3.0.3"
   },
   "dependencies": {
     "asynciterator": "^2.0.0",
