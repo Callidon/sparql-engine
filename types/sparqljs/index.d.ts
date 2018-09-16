@@ -57,6 +57,11 @@ declare module 'sparqljs' {
       separator?: string;
     }
 
+    export interface Aggregation {
+      variable: string;
+      expression: Expression;
+    }
+
     /**
     * Root node of a plan
     */
@@ -64,7 +69,7 @@ declare module 'sparqljs' {
       distinct?: boolean;
       prefixes: any;
       queryType: string;
-      variables?: Array<string>;
+      variables?: Array<string | Aggregation>;
       template?: TripleObject[];
       where: Array<PlanNode>;
     }

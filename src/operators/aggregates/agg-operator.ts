@@ -1,4 +1,4 @@
-/* file : select-operator.ts
+/* file : agg-operator.ts
 MIT License
 
 Copyright (c) 2018 Thomas Minier
@@ -24,45 +24,37 @@ SOFTWARE.
 
 'use strict'
 
+import SPARQLExpression from '../expressions/sparql-expression'
 import { AsyncIterator, TransformIterator } from 'asynciterator'
 import { Algebra } from 'sparqljs'
-import { rdf } from '../../utils'
-import { mapValues } from 'lodash'
 
 /**
- * Evaluates a SPARQL SELECT operation, i.e., perform a selection over sets of solutions bindings
+ * Apply a SPARQL Aggregation operation over set of bindings.
+ * WARNING: In a pipeline of operators, this operator must be placed
+ * AFTER a GroupByOperator or another AggregateOperator
  * @extends TransformIterator
  * @author Thomas Minier
  * @author Corentin Marionneau
- * @see {@link https://www.w3.org/TR/2013/REC-sparql11-query-20130321/#select}
  */
-export default class SelectOperator extends TransformIterator {
-  readonly _variables: string[]
-  readonly _selectAll: boolean
-  readonly _options: Object
-
-  constructor (source: AsyncIterator, query: Algebra.RootNode, options: Object) {
-    super(source)
-    this._variables = <string[]> query.variables
-    this._options = options
-    this._selectAll = this._variables.length === 1 && this._variables[0] === '*'
-    source.on('error', (err: Error) => this.emit('error', err))
+export default class AggregateOperator extends TransformIterator {
+  readonly _variable: string
+  readonly _expression: SPARQLExpression
+  constructor (source: AsyncIterator, operation: Algebra.Aggregation, options: Object) {
+    super(source, options)
+    this._variable = operation.variable
+    this._expression = new SPARQLExpression(operation.expression)
   }
 
-  _transform (bindings: Object, done: () => void): void {
-    // perform projection (if necessary)
-    if (!this._selectAll) {
-      bindings = this._variables.reduce((obj, v) => {
-        if (v in bindings) {
-          obj[v] = bindings[v]
-        } else {
-          obj[v] = null
-        }
-        return obj
-      }, {})
+  _transform (bindings: Object, done: () => void) {
+    try {
+      const value: any = this._expression.evaluate(bindings)
+      if (value !== null) {
+        bindings[this._variable] = value.asRDF
+      }
+    } catch (e) {
+      this.emit('error', e)
     }
-    // remove non-variables entries && non-string values
-    this._push(mapValues(bindings, (v, k) => rdf.isVariable(k) && typeof v === 'string' ? v : null))
+    this._push(bindings)
     done()
   }
 }

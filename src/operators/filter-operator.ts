@@ -1,4 +1,4 @@
-/* file : select-operator.ts
+/* file : filter-operator.ts
 MIT License
 
 Copyright (c) 2018 Thomas Minier
@@ -24,45 +24,28 @@ SOFTWARE.
 
 'use strict'
 
+import SPARQLExpression from './expressions/sparql-expression'
 import { AsyncIterator, TransformIterator } from 'asynciterator'
 import { Algebra } from 'sparqljs'
-import { rdf } from '../../utils'
-import { mapValues } from 'lodash'
 
 /**
- * Evaluates a SPARQL SELECT operation, i.e., perform a selection over sets of solutions bindings
+ * Evaluate SPARQL Filter clauses
+ * @see https://www.w3.org/TR/sparql11-query/#expressions
  * @extends TransformIterator
  * @author Thomas Minier
- * @author Corentin Marionneau
- * @see {@link https://www.w3.org/TR/2013/REC-sparql11-query-20130321/#select}
  */
-export default class SelectOperator extends TransformIterator {
-  readonly _variables: string[]
-  readonly _selectAll: boolean
-  readonly _options: Object
-
-  constructor (source: AsyncIterator, query: Algebra.RootNode, options: Object) {
-    super(source)
-    this._variables = <string[]> query.variables
-    this._options = options
-    this._selectAll = this._variables.length === 1 && this._variables[0] === '*'
-    source.on('error', (err: Error) => this.emit('error', err))
+export default class FilterOperator extends TransformIterator {
+  readonly _expression: SPARQLExpression
+  constructor (source: AsyncIterator, expression: Algebra.Expression, options: Object) {
+    super(source, options)
+    this._expression = new SPARQLExpression(expression)
   }
 
   _transform (bindings: Object, done: () => void): void {
-    // perform projection (if necessary)
-    if (!this._selectAll) {
-      bindings = this._variables.reduce((obj, v) => {
-        if (v in bindings) {
-          obj[v] = bindings[v]
-        } else {
-          obj[v] = null
-        }
-        return obj
-      }, {})
+    const value: any = this._expression.evaluate(bindings)
+    if (value !== null && value.asJS) {
+      this._push(bindings)
     }
-    // remove non-variables entries && non-string values
-    this._push(mapValues(bindings, (v, k) => rdf.isVariable(k) && typeof v === 'string' ? v : null))
     done()
   }
 }
