@@ -49,7 +49,8 @@ declare module 'sparqljs' {
       distinct?: boolean;
       prefixes: any;
       queryType: string;
-      variables: Array<string>;
+      variables?: Array<string>;
+      template?: TripleObject[];
       where: Array<PlanNode>;
     }
 
