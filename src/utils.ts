@@ -1,4 +1,4 @@
-/* file : utils.js
+/* file : utils.ts
 MIT License
 
 Copyright (c) 2018 Thomas Minier
@@ -25,7 +25,7 @@ SOFTWARE.
 'use strict'
 
 import { assign } from 'lodash'
-import * as terms from './rdf-terms.js'
+import * as terms from './rdf-terms'
 import { Util } from 'n3'
 import { AsyncIterator } from 'asynciterator'
 import { Algebra } from 'sparqljs'

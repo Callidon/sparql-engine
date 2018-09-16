@@ -24,8 +24,8 @@ SOFTWARE.
 
 'use strict'
 
-import Graph from './graph.js'
-import Dataset from './dataset.js'
+import Graph from './graph'
+import Dataset from './dataset'
 
 /**
  * A simple Dataset backed by a HashMap.

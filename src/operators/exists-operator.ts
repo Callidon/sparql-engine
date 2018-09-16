@@ -1,4 +1,4 @@
-/* file : exists-operator.js
+/* file : exists-operator.ts
 MIT License
 
 Copyright (c) 2018 Thomas Minier

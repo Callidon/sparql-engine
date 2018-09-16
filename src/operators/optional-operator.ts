@@ -1,4 +1,4 @@
-/* file : optional-iterator.js
+/* file : optional-iterator.ts
 MIT License
 
 Copyright (c) 2018 Thomas Minier

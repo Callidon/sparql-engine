@@ -26,7 +26,7 @@ SOFTWARE.
 
 import { AsyncIterator, TransformIterator } from 'asynciterator'
 import { Algebra } from 'sparqljs'
-import { rdf } from '../../utils.js'
+import { rdf } from '../../utils'
 import { mapValues } from 'lodash'
 
 /**

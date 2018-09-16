@@ -24,8 +24,8 @@ SOFTWARE.
 
 'use strict'
 
-import Graph from './graph.js'
-import UnionOperator from '../operators/union-operator.js'
+import Graph from './graph'
+import UnionOperator from '../operators/union-operator'
 import { AsyncIterator } from 'asynciterator'
 import { Algebra } from 'sparqljs'
 

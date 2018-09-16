@@ -27,7 +27,7 @@ SOFTWARE.
 import { AsyncIterator, ArrayIterator, MultiTransformIterator } from 'asynciterator'
 import { Algebra } from 'sparqljs'
 import { compact } from 'lodash'
-import { applyBindings, rdf } from '../../utils.js'
+import { applyBindings, rdf } from '../../utils'
 
 /**
  * A ConstructOperator transform solution mappings into RDF triples, according to a template

@@ -1,4 +1,4 @@
-/* file : orderby-operator.js
+/* file : orderby-operator.ts
 MIT License
 
 Copyright (c) 2018 Thomas Minier
@@ -25,7 +25,7 @@ SOFTWARE.
 'use strict'
 
 import { AsyncIterator } from 'asynciterator'
-import MaterializeOperator from './materialize-operator.js'
+import MaterializeOperator from './materialize-operator'
 
 export interface OrderComparator {
   expression: string,

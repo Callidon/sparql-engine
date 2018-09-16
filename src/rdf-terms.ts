@@ -110,7 +110,7 @@ export function LangLiteralDescriptor (literal: string, lang: string): LangLiter
   }
 }
 
-export function BooleanDescriptor (value: string): TypedLiteral {
+export function BooleanDescriptor (value: boolean): TypedLiteral {
   return {
     type: 'literal+type',
     value: `"${value}"`,
@@ -120,7 +120,7 @@ export function BooleanDescriptor (value: string): TypedLiteral {
   }
 }
 
-export function NumericOperation (value: string, type: string): TypedLiteral {
+export function NumericOperation (value: number, type: string): TypedLiteral {
   return {
     type: 'literal+type',
     value: value.toString(),
@@ -130,7 +130,7 @@ export function NumericOperation (value: string, type: string): TypedLiteral {
   }
 }
 
-export function DateLiteral (date: Date): TypedLiteral {
+export function DateLiteral (date: moment.Moment): TypedLiteral {
   const value = date.toISOString()
   return {
     type: 'literal+type',

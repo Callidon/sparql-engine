@@ -25,9 +25,9 @@ SOFTWARE.
 'use strict'
 
 import { AsyncIterator, MultiTransformIterator } from 'asynciterator'
-import Graph from '../../rdf/graph.js'
+import Graph from '../../rdf/graph'
 import { Algebra } from 'sparqljs'
-import { applyBindings, rdf } from '../../utils.js'
+import { applyBindings, rdf } from '../../utils'
 import { assign, mapKeys, pickBy, some, size } from 'lodash'
 
 /**

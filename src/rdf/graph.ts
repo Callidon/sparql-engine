@@ -26,8 +26,8 @@ SOFTWARE.
 
 import { AsyncIterator, single, TransformIterator } from 'asynciterator'
 import { Algebra } from 'sparqljs'
-import IndexJoinOperator from '../operators/join/index-join-operator.js'
-import { rdf } from '../utils.js'
+import IndexJoinOperator from '../operators/join/index-join-operator'
+import { rdf } from '../utils'
 
 export interface PatternMetadata {
   triple: Algebra.TripleObject,

@@ -24,8 +24,8 @@ SOFTWARE.
 
 'use strict'
 
-import Graph from './graph.js'
-import UnionGraph from './union-graph.js'
+import Graph from './graph'
+import UnionGraph from './union-graph'
 
 /**
  * An abstraction over an RDF datasets, i.e., a collection of RDF graphs.
