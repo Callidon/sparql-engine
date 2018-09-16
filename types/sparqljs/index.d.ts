@@ -42,6 +42,21 @@ declare module 'sparqljs' {
       type: string;
     }
 
+    export interface Expression {
+      type: string;
+    }
+
+    export interface SPARQLExpression extends Expression {
+      args: Array<string | string[] | Expression>;
+      operator: string;
+    }
+
+    export interface AggregateExpression extends Expression {
+      aggregation: string;
+      expression: string | Expression;
+      separator?: string;
+    }
+
     /**
     * Root node of a plan
     */
@@ -75,25 +90,10 @@ declare module 'sparqljs' {
     }
 
     /**
-    * An expression in a filter clause
-    */
-    export interface FilterExpression extends PlanNode {
-      /**
-      * Arguments of the expression
-      */
-      args: Array<string | FilterExpression>;
-
-      /**
-      * Operator name
-      */
-      operator: string;
-    }
-
-    /**
     * A SPARQL FILTER clause
     */
     export interface FilterNode extends PlanNode {
-      expression: FilterExpression;
+      expression: SPARQLExpression;
     }
 
     /**
