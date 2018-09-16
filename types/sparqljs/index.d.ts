@@ -23,107 +23,109 @@ SOFTWARE.
 */
 
 
-/**
- * A Triple pattern in JSON format
- */
-interface JSONTriple {
-  subject: string;
-  predicate: string;
-  object: string;
-}
-
-/**
- * A generic node in a parsed plan
- */
-interface PlanNode {
-  type: string;
-}
-
-/**
- * Root node of a plan
- */
-interface RootNode extends PlanNode {
-  distinct?: boolean;
-  prefixes: any;
-  queryType: string;
-  variables: Array<string>;
-  where: Array<PlanNode>;
-}
-
-/**
- * A SPARQL Basic Graph pattern
- */
-interface BGPNode extends PlanNode {
-  /**
-   * BGP's triples
-   */
-  triples: Array<JSONTriple>;
-}
-
-/**
- * A SPARQL Group, i.e., a union, optional or neutral group
- */
-interface GroupNode extends PlanNode {
-  /**
-   * Group's patterns
-   */
-  patterns: Array<PlanNode>;
-}
-
-/**
- * An expression in a filter clause
- */
-interface FilterExpression extends PlanNode {
-  /**
-   * Arguments of the expression
-   */
-  args: Array<string | FilterExpression>;
-
-  /**
-   * Operator name
-   */
-  operator: string;
-}
-
-/**
- * A SPARQL FILTER clause
- */
-interface FilterNode extends PlanNode {
-  expression: FilterExpression;
-}
-
-/**
- * A SPARQL GRAPH clause
- */
-interface GraphNode extends GroupNode {
-  /**
-   * Graph's name
-   */
-  name: string;
-}
-
-/**
- * A SPARQL SERVICE clause
- */
-interface ServiceNode extends GraphNode {
-  /**
-   * True if the SERVICE must be silent, False otherwise
-   */
-  silent: boolean;
-}
-
-
 declare module 'sparqljs' {
+  export namespace Algebra {
+    /**
+    * A Triple pattern in Object format
+    */
+    export interface TripleObject {
+      subject: string;
+      predicate: string;
+      object: string;
+      graph?: string;
+    }
+
+    /**
+    * A generic node in a parsed plan
+    */
+    export interface PlanNode {
+      type: string;
+    }
+
+    /**
+    * Root node of a plan
+    */
+    export interface RootNode extends PlanNode {
+      distinct?: boolean;
+      prefixes: any;
+      queryType: string;
+      variables: Array<string>;
+      where: Array<PlanNode>;
+    }
+
+    /**
+    * A SPARQL Basic Graph pattern
+    */
+    export interface BGPNode extends PlanNode {
+      /**
+      * BGP's triples
+      */
+      triples: Array<TripleObject>;
+    }
+
+    /**
+    * A SPARQL Group, i.e., a union, optional or neutral group
+    */
+    export interface GroupNode extends PlanNode {
+      /**
+      * Group's patterns
+      */
+      patterns: Array<PlanNode>;
+    }
+
+    /**
+    * An expression in a filter clause
+    */
+    export interface FilterExpression extends PlanNode {
+      /**
+      * Arguments of the expression
+      */
+      args: Array<string | FilterExpression>;
+
+      /**
+      * Operator name
+      */
+      operator: string;
+    }
+
+    /**
+    * A SPARQL FILTER clause
+    */
+    export interface FilterNode extends PlanNode {
+      expression: FilterExpression;
+    }
+
+    /**
+    * A SPARQL GRAPH clause
+    */
+    export interface GraphNode extends GroupNode {
+      /**
+      * Graph's name
+      */
+      name: string;
+    }
+
+    /**
+    * A SPARQL SERVICE clause
+    */
+    export interface ServiceNode extends GraphNode {
+      /**
+      * True if the SERVICE must be silent, False otherwise
+      */
+      silent: boolean;
+    }
+  }
+
   export class Parser {
     /**
      * Parse a SPARQL query from a string representation to a intermediate format
      * @param  query [string] - String query
      * @return Parsed query
      */
-    parse(query: string): RootNode;
+    parse(query: string): Algebra.RootNode;
   }
 
   export class Generator {
-    stringify(plan: RootNode): string;
+    stringify(plan: Algebra.RootNode): string;
   }
 }

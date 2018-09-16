@@ -59,7 +59,8 @@ declare module 'asynciterator' {
   }
 
   export class TransformIterator extends BufferedIterator {
-    constructor(source: AsyncIterator, options?: Object);
+    source: AsyncIterator
+    constructor(source?: AsyncIterator, options?: Object);
     _transform (item: any, done: () => void): void;
   }
 
