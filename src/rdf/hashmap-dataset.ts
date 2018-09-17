@@ -48,7 +48,7 @@ export default class HashMapDataset extends Dataset {
   }
 
   get iris(): string[] {
-    return [this._defaultGraph.iri].concat(Array.from(this._namedGraphs.keys()))
+    return Array.from(this._namedGraphs.keys())
   }
 
   setDefaultGraph (g: Graph): void {
