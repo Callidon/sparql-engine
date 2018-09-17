@@ -26,6 +26,7 @@ declare module 'asynciterator' {
   export class AsyncIterator {
     readonly readable: boolean;
     readonly closed: boolean;
+    readonly ended: boolean;
 
     _fillBuffer(): void;
     _begin(done: () => void): void;
@@ -38,15 +39,20 @@ declare module 'asynciterator' {
     map (mapper: (item: any) => any): AsyncIterator;
     filter (predicate: (item: any) => boolean): AsyncIterator;
     close (): void;
+    clone (): AsyncIterator;
   }
 
   export class EmptyIterator extends AsyncIterator {}
 
-  export class SingleIterator extends AsyncIterator {
+  export class ClonedIterator extends AsyncIterator {
+    readonly _source: AsyncIterator
+  }
+
+  export class SingletonIterator extends AsyncIterator {
     constructor (start: any);
   }
 
-  export function single (start: any): SingleIterator;
+  export function single (start: any): SingletonIterator;
 
   export class BufferedIterator extends AsyncIterator {
     constructor (options?: Object)

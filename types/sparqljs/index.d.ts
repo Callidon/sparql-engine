@@ -72,6 +72,8 @@ declare module 'sparqljs' {
       variables?: Array<string | Aggregation>;
       template?: TripleObject[];
       where: Array<PlanNode>;
+      group?: Array<Aggregation>;
+      having?: Array<Expression>;
     }
 
     /**

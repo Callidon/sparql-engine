@@ -47,7 +47,7 @@ function buildNewGroup (variables: string[]): Object {
  * @extends MaterializeOperator
  * @author Thomas Minier
  */
-class GroupByOperator extends MaterializeOperator {
+export default class GroupByOperator extends MaterializeOperator {
   readonly _variables: string[]
   readonly _groups: Map<string, any>
   readonly _keys: Map<string, any>
