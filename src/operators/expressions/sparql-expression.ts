@@ -56,7 +56,7 @@ function bindArgument (variable: string): (bindings: Object) => RDFTerm | null {
  */
 export default class SPARQLExpression {
   readonly _expression: CompiledExpression
-  constructor (expression: Algebra.Expression) {
+  constructor (expression: InputExpression) {
     this._expression = this._compileExpression(expression)
   }
 

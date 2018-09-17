@@ -38,7 +38,7 @@ import { Algebra } from 'sparqljs'
 export default class BindOperator extends TransformIterator {
   readonly _variable: string
   readonly _expression: SPARQLExpression
-  constructor (source: AsyncIterator, variable: string, expression: Algebra.Expression, options: Object) {
+  constructor (source: AsyncIterator, variable: string, expression: Algebra.Expression | string, options: Object) {
     super(source, options)
     this._variable = variable
     this._expression = new SPARQLExpression(expression)

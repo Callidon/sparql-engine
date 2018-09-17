@@ -25,13 +25,8 @@ SOFTWARE.
 'use strict'
 
 import { AsyncIterator } from 'asynciterator'
+import { Algebra } from 'sparqljs'
 import MaterializeOperator from './materialize-operator'
-
-export interface OrderComparator {
-  expression: string,
-  ascending?: boolean,
-  descending?: boolean
-}
 
 /**
  * A OrderByOperator implements a ORDER BY clause, i.e.,
@@ -48,9 +43,9 @@ export default class OrderByOperator extends MaterializeOperator {
    * @param {Object[]} comparators - Parsed ORDER BY clause
    * @param {Object} options - Execution options
    */
-  constructor (source: AsyncIterator, comparators: OrderComparator[], options: Object) {
+  constructor (source: AsyncIterator, comparators: Algebra.OrderComparator[], options: Object) {
     super(source, options)
-    this._comparator = this._buildComparator(comparators.map((c: OrderComparator) => {
+    this._comparator = this._buildComparator(comparators.map((c: Algebra.OrderComparator) => {
       // explicity tag ascending comparator (sparqljs leaves them untagged)
       if (!('descending' in c)) {
         c.ascending = true
@@ -59,8 +54,8 @@ export default class OrderByOperator extends MaterializeOperator {
     }))
   }
 
-  _buildComparator (comparators: OrderComparator[]) {
-    const comparatorsFuncs = comparators.map((c: OrderComparator) => {
+  _buildComparator (comparators: Algebra.OrderComparator[]) {
+    const comparatorsFuncs = comparators.map((c: Algebra.OrderComparator) => {
       return (left: Object, right: Object[]) => {
         if (left[c.expression] < right[c.expression]) {
           return (c.ascending) ? -1 : 1

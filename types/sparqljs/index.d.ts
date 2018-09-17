@@ -67,6 +67,12 @@ declare module 'sparqljs' {
       named: string[];
     }
 
+    export interface OrderComparator {
+      expression: string,
+      ascending?: boolean,
+      descending?: boolean
+    }
+
     /**
     * Root of a SPARQL 1.1 query
     */
@@ -76,9 +82,13 @@ declare module 'sparqljs' {
       queryType: string;
       variables?: Array<string | Aggregation>;
       template?: TripleObject[];
+      from?: FromNode;
       where: Array<PlanNode>;
       group?: Array<Aggregation>;
       having?: Array<Expression>;
+      order?: Array<OrderComparator>;
+      offset?: number;
+      limit?: number;
     }
 
     /**
@@ -186,9 +196,19 @@ declare module 'sparqljs' {
       */
       silent: boolean;
     }
+
+    export interface BindNode extends PlanNode {
+      expression: string | SPARQLExpression;
+      variable: string;
+    }
+
+    export interface ValuesNode extends PlanNode {
+      values: any[]
+    }
   }
 
   export class Parser {
+    constructor(prefixes?: any)
     /**
      * Parse a SPARQL query from a string representation to a intermediate format
      * @param  query [string] - String query
