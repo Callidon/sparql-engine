@@ -34,6 +34,18 @@ export interface Consumable {
   execute (): Promise<void>
 }
 
+export class ErrorConsumable implements Consumable {
+  readonly _reason: Error
+
+  constructor (reason: string) {
+    this._reason = new Error(reason)
+  }
+
+  execute (): Promise<void> {
+    return Promise.reject(this._reason)
+  }
+}
+
 /**
  * A Consumer consumes bindings from an iterator to evaluate a SPARQL UPDATE query
  * @abstract

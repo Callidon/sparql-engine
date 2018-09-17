@@ -43,10 +43,10 @@ export default class ConstructOperator extends MultiTransformIterator {
    * @param {AsyncIterator} source  - Source iterator
    * @param {Object[]} templates - Set of triples patterns in the CONSTRUCT clause
    */
-  constructor (source: AsyncIterator, query: Algebra.RootNode) {
+  constructor (source: AsyncIterator, query: any) {
     super(source)
     // filter out triples with no SPARQL variables to output them only once
-    this._templates = query.template!.filter(t => {
+    this._templates = query.template!.filter((t: any) => {
       if (rdf.isVariable(t.subject) || rdf.isVariable(t.predicate) || rdf.isVariable(t.object)) {
         return true
       }
