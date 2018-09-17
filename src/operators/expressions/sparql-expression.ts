@@ -24,8 +24,8 @@ SOFTWARE.
 
 'use strict'
 
-import { SPARQL_AGGREGATES } from './sparql-aggregates'
-import { SPARQL_OPERATIONS } from './sparql-operations'
+import SPARQL_AGGREGATES from './sparql-aggregates'
+import SPARQL_OPERATIONS from './sparql-operations'
 import { RDFTerm } from '../../rdf-terms'
 import { rdf } from '../../utils'
 import { isArray, isString } from 'lodash'

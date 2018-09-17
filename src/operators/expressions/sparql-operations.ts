@@ -26,10 +26,10 @@ SOFTWARE.
 
 import { rdf } from '../../utils'
 import * as terms from '../../rdf-terms'
-import moment from 'moment'
-import uuid from 'uuid/v4'
+import * as moment from 'moment'
+import * as uuid from 'uuid/v4'
 import { isNull } from 'lodash'
-import crypto from 'crypto'
+import * as crypto from 'crypto'
 
 /**
  * Test if Two RDF Terms are equal
@@ -98,7 +98,7 @@ function applyHash (hashType: string): (v: terms.RDFTerm) => terms.RDFTerm {
  * @author Thomas Minier
  * @author Corentin Marionneau
  */
-export const SPARQL_OPERATIONS = {
+export default {
   /*
     XQuery & XPath functions https://www.w3.org/TR/sparql11-query/#OperatorMapping
   */
@@ -354,7 +354,7 @@ export const SPARQL_OPERATIONS = {
   },
 
   'regex': function (subject: terms.RDFTerm, pattern: terms.RDFTerm, flags: terms.RDFTerm) {
-    let regexp = (flags === null) ? new RegExp(pattern.value) : new RegExp(pattern.value, flags.value)
+    let regexp = (flags === null || flags === undefined) ? new RegExp(pattern.value) : new RegExp(pattern.value, flags.value)
     return terms.BooleanDescriptor(regexp.test(subject.value))
   },
 
@@ -425,5 +425,3 @@ export const SPARQL_OPERATIONS = {
   'sha384': applyHash('sha384'),
   'sha512': applyHash('sha512')
 }
-
-module.exports = SPARQL_OPERATIONS

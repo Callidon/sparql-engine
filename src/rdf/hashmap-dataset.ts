@@ -32,7 +32,7 @@ import Dataset from './dataset'
  * @extends Dataset
  * @author Thomas Minier
  */
-export class HashMapDataset extends Dataset {
+export default class HashMapDataset extends Dataset {
   private _defaultGraph: Graph
   private _namedGraphs: Map<string, Graph>
   /**
@@ -45,6 +45,10 @@ export class HashMapDataset extends Dataset {
     defaultGraph.iri = defaultGraphIRI
     this._defaultGraph = defaultGraph
     this._namedGraphs = new Map()
+  }
+
+  get iris(): string[] {
+    return [this._defaultGraph.iri].concat(Array.from(this._namedGraphs.keys()))
   }
 
   setDefaultGraph (g: Graph): void {

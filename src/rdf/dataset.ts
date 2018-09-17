@@ -33,9 +33,7 @@ import UnionGraph from './union-graph'
  * @author Thomas Minier
  */
 export default abstract class Dataset {
-  get iris (): string[] {
-    return this.getAllGraphs(false).map(g => g.iri)
-  }
+  abstract get iris(): string[]
   /**
    * Set the Default Graph of the Dataset
    * @param {Graph} g - Default Graph

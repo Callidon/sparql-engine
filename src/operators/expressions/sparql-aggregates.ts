@@ -36,7 +36,7 @@ import { maxBy, meanBy, minBy, sample } from 'lodash'
  * @see https://www.w3.org/TR/sparql11-query/#aggregateAlgebra
  * @author Thomas Minier
  */
-export const SPARQL_AGGREGATES = {
+export default {
   'count': function (variable: string, rows: Object[]): terms.RDFTerm {
     let count: number = 0
     if (variable in rows) {

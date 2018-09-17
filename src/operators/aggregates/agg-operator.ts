@@ -48,9 +48,7 @@ export default class AggregateOperator extends TransformIterator {
   _transform (bindings: Object, done: () => void) {
     try {
       const value: any = this._expression.evaluate(bindings)
-      if (value !== null) {
-        bindings[this._variable] = value.asRDF
-      }
+      bindings[this._variable] = value.asRDF
     } catch (e) {
       this.emit('error', e)
     }

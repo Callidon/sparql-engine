@@ -24,7 +24,7 @@ SOFTWARE.
 
 'use strict'
 
-import moment from 'moment'
+import * as moment from 'moment'
 // const moment = require('moment')
 
 export interface RDFTerm {

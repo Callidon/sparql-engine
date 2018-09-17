@@ -50,7 +50,7 @@ import ServiceExecutor from './executors/service-executor'
 // formatters
 import XMLFormatter from '../formatters/xml-formatter.js'
 // utils
-import _ from 'lodash'
+import * as _ from 'lodash'
 import { deepApplyBindings, extendByBindings, rdf } from '../utils'
 
 const queryConstructors = {
@@ -147,7 +147,7 @@ export default class PlanBuilder {
           case 'xml':
           case 'application/xml':
           case 'application/sparql-results+xml':
-            return new XMLFormatter(iterator, query.variables)
+            return new XMLFormatter(iterator, query.variables, options)
           default:
             return iterator
         }
@@ -172,7 +172,7 @@ export default class PlanBuilder {
     }
     options.prefixes = query.prefixes
 
-    let aggregates: Algebra.Aggregation[] = []
+    let aggregates: any[] = []
 
     // rewrite a DESCRIBE query into a CONSTRUCT query
     if (query.queryType === 'DESCRIBE') {
@@ -212,16 +212,17 @@ export default class PlanBuilder {
 
     // Parse query variable to separate projection & aggregate variables
     if ('variables' in query) {
-      const [projection, aggregates] = _.partition(query.variables, v => _.isString(v))
+      const parts = _.partition(query.variables, v => _.isString(v))
+      aggregates = parts[1]
       // add aggregates variables to projection variables
-      query.variables = projection.concat(aggregates.map(agg => (<Algebra.Aggregation> agg).variable))
+      query.variables = parts[0].concat(aggregates.map(agg => (<Algebra.Aggregation> agg).variable))
     }
 
     // Handles Aggregates
     graphIterator = this._aggExecutor.buildIterator(graphIterator, query, options)
 
     // Handles transformers
-    if ('aggregates' in query) {
+    if (aggregates.length > 0) {
       graphIterator = aggregates.reduce((iter, agg) => {
         return new AggregateOperator(iter, agg, options)
       }, graphIterator)
