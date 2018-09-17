@@ -25,7 +25,7 @@ SOFTWARE.
 'use strict'
 
 const expect = require('chai').expect
-const { Dataset, Graph, HashMapDataset } = require('../../src/api.js')
+const { Dataset, Graph, HashMapDataset } = require('../../dist/api.js')
 
 describe('Dataset', () => {
   it('should enforce subclasses to implement a "setDefaultGraph" method', () => {

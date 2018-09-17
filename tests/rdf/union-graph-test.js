@@ -25,7 +25,7 @@ SOFTWARE.
 'use strict'
 
 const expect = require('chai').expect
-const UnionGraph = require('../../src/rdf/union-graph.js')
+const UnionGraph = require('../../dist/rdf/union-graph.js').default
 const { getGraph } = require('../utils.js')
 
 const GRAPH_A_IRI = 'http://example.org#some-graph-a'

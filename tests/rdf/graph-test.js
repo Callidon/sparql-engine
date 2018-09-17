@@ -25,7 +25,7 @@ SOFTWARE.
 'use strict'
 
 const expect = require('chai').expect
-const { Graph } = require('../../src/api.js')
+const { Graph } = require('../../dist/api.js')
 
 describe('Graph', () => {
   it('should enforce subclasses to implement an "insert" method', () => {

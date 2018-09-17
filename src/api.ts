@@ -1,4 +1,4 @@
-/* file : union-graph.js
+/* file : api.ts
 MIT License
 
 Copyright (c) 2018 Thomas Minier
@@ -24,39 +24,27 @@ SOFTWARE.
 
 'use strict'
 
-const Graph = require('./graph.js')
-const UnionOperator = require('../operators/union-operator.js')
+import Dataset from './rdf/dataset'
+import HashMapDataset from './rdf/hashmap-dataset'
+import Graph from './rdf/graph'
+import PlanBuilder from './engine/plan-builder'
+import AggregateExecutor from './engine/executors/aggregate-executor'
+import BGPExecutor from './engine/executors/bgp-executor'
+import GraphExecutor from './engine/executors/graph-executor'
+import ServiceExecutor from './engine/executors/service-executor'
+import UpdateExecutor from './engine/executors/update-executor'
 
-/**
- * An UnionGraph represents the dynamic union of several graphs.
- * Addition only affects the left-most operand, deletion affects all graphs.
- * Searching for RDF triple smatching a triple pattern in such Graph is equivalent
- * as the Union of matching RDF triples in all graphs.
- * @extends Graph
- * @author Thomas Minier
- */
-class UnionGraph extends Graph {
-  constructor (graphs) {
-    super()
-    this.iri = graphs.map(g => g.iri).join('+')
-    this._graphs = graphs
-  }
-
-  insert (triple) {
-    return this._graphs[0].insert(triple)
-  }
-
-  delete (triple) {
-    return this._graphs.reduce((prev, g) => prev.then(() => g.delete(triple)), Promise.resolve())
-  }
-
-  find (triple, options) {
-    return new UnionOperator(...this._graphs.map(g => g.find(triple, options)))
-  }
-
-  clear () {
-    return this._graphs.reduce((prev, g) => prev.then(() => g.clear()), Promise.resolve())
-  }
+export {
+  Dataset,
+  HashMapDataset,
+  Graph,
+  PlanBuilder
 }
 
-module.exports = UnionGraph
+export namespace executors {
+  AggregateExecutor
+  BGPExecutor
+  GraphExecutor
+  ServiceExecutor
+  UpdateExecutor
+}

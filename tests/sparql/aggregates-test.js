@@ -25,7 +25,7 @@ SOFTWARE.
 'use strict'
 
 const expect = require('chai').expect
-const { XSD } = require('../../src/utils.js').rdf
+const { XSD } = require('../../dist/utils.js').rdf
 const { getGraph, TestEngine } = require('../utils.js')
 
 describe('SPARQL aggregates', () => {
