@@ -47,7 +47,7 @@ export default class HashMapDataset extends Dataset {
     this._namedGraphs = new Map()
   }
 
-  get iris(): string[] {
+  get iris (): string[] {
     return Array.from(this._namedGraphs.keys())
   }
 

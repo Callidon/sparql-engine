@@ -42,10 +42,10 @@ function stripDatatype (datatype: string): string {
  */
 export namespace rdf {
   /**
-  * Parse a RDF term in string format and return a descriptor with its type and value
-  * @param  {string} binding - The binding in string format (i.e., URI or Literal)
-  * @return {Object} A descriptor for the term
-  */
+   * Parse a RDF term in string format and return a descriptor with its type and value
+   * @param  {string} binding - The binding in string format (i.e., URI or Literal)
+   * @return {Object} A descriptor for the term
+   */
   export function parseTerm (term: string): terms.RDFTerm {
     let parsed = null
     if (Util.isIRI(term)) {
@@ -68,12 +68,12 @@ export namespace rdf {
   }
 
   /**
-  * Create a RDF triple in Object representation
-  * @param  {string} subj - Triple's subject
-  * @param  {string} pred - Triple's predicate
-  * @param  {string} obj  - Triple's object
-  * @return {Object} A RDF triple in Object representation
-  */
+   * Create a RDF triple in Object representation
+   * @param  {string} subj - Triple's subject
+   * @param  {string} pred - Triple's predicate
+   * @param  {string} obj  - Triple's object
+   * @return {Object} A RDF triple in Object representation
+   */
   export function triple (subj: string, pred: string, obj: string): Algebra.TripleObject {
     return {
       subject: subj,
@@ -83,10 +83,10 @@ export namespace rdf {
   }
 
   /**
-  * Count the number of variables in a Triple Pattern
-  * @param  {Object} triple - Triple Pattern to process
-  * @return {integer} The number of variables in the Triple Pattern
-  */
+   * Count the number of variables in a Triple Pattern
+   * @param  {Object} triple - Triple Pattern to process
+   * @return {integer} The number of variables in the Triple Pattern
+   */
   export function countVariables (triple: Algebra.TripleObject): number {
     let count = 0
     if (isVariable(triple.subject)) {
@@ -102,10 +102,10 @@ export namespace rdf {
   }
 
   /**
-  * Return True if a string is a SPARQL variable
-  * @param  {string}  str - String to test
-  * @return {Boolean} True if the string is a SPARQL variable, False otherwise
-  */
+   * Return True if a string is a SPARQL variable
+   * @param  {string}  str - String to test
+   * @return {Boolean} True if the string is a SPARQL variable, False otherwise
+   */
   export function isVariable (str: string): boolean {
     if (typeof str !== 'string') {
       return false
@@ -121,7 +121,6 @@ export namespace rdf {
     return `http://www.w3.org/1999/02/22-rdf-syntax-ns#${term}`
   }
 }
-
 
 /**
  * Bound a triple pattern using a set of bindings, i.e., substitute variables in the triple pattern
@@ -155,7 +154,7 @@ export function deepApplyBindings (group: Algebra.PlanNode, bindings: Bindings):
     case 'bgp':
       const bgp: Algebra.BGPNode = {
         type: 'bgp',
-        triples: (<Algebra.BGPNode> group).triples.map(t => bindings.bound(t))
+        triples: (group as Algebra.BGPNode).triples.map(t => bindings.bound(t))
       }
       return bgp
     case 'group':
@@ -164,11 +163,11 @@ export function deepApplyBindings (group: Algebra.PlanNode, bindings: Bindings):
     case 'union':
       const newGroup: Algebra.GroupNode = {
         type: group.type,
-        patterns: (<Algebra.GroupNode> group).patterns.map(g => deepApplyBindings(g, bindings))
+        patterns: (group as Algebra.GroupNode).patterns.map(g => deepApplyBindings(g, bindings))
       }
       return newGroup
     case 'query':
-      let subQuery: Algebra.RootNode = (<Algebra.RootNode> group)
+      let subQuery: Algebra.RootNode = (group as Algebra.RootNode)
       subQuery.where = subQuery.where.map(g => deepApplyBindings(g, bindings))
       return subQuery
     default:

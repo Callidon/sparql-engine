@@ -55,7 +55,6 @@ export abstract class Bindings {
    */
   abstract variables (): IterableIterator<string>
 
-
   /**
    * Get an iterator over the RDF terms in the set
    * @return {IterableIterator<string>} An iterator over the RDF terms in the set
@@ -286,7 +285,7 @@ export abstract class Bindings {
 export class BindingBase extends Bindings {
   readonly _content: Map<string, string>
 
-  constructor () {
+  constructor () {
     super()
     this._content = new Map()
   }
@@ -312,7 +311,7 @@ export class BindingBase extends Bindings {
     return res
   }
 
-   variables (): IterableIterator<string> {
+  variables (): IterableIterator<string> {
     return this._content.keys()
   }
 

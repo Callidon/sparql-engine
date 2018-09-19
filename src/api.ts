@@ -24,36 +24,16 @@ SOFTWARE.
 
 'use strict'
 
-import Dataset from './rdf/dataset'
-import { BindingBase } from './rdf/bindings'
-import HashMapDataset from './rdf/hashmap-dataset'
-import Graph from './rdf/graph'
-import PlanBuilder from './engine/plan-builder'
+export { default as Dataset } from './rdf/dataset'
+export { BindingBase } from './rdf/bindings'
+export { default as HashMapDataset } from './rdf/hashmap-dataset'
+export { default as Graph } from './rdf/graph'
+export { default as PlanBuilder } from './engine/plan-builder'
 // executors
-import AggregateExecutor from './engine/executors/aggregate-executor'
-import BGPExecutor from './engine/executors/bgp-executor'
-import GraphExecutor from './engine/executors/graph-executor'
-import ServiceExecutor from './engine/executors/service-executor'
-import UpdateExecutor from './engine/executors/update-executor'
+export { default as AggregateExecutor } from './engine/executors/aggregate-executor'
+export { default as BGPExecutor } from './engine/executors/bgp-executor'
+export { default as GraphExecutor } from './engine/executors/graph-executor'
+export { default as ServiceExecutor } from './engine/executors/service-executor'
+export { default as UpdateExecutor } from './engine/executors/update-executor'
 // formatters
-import XMLFormatter from './formatters/xml-formatter'
-
-export {
-  Dataset,
-  BindingBase,
-  HashMapDataset,
-  Graph,
-  PlanBuilder
-}
-
-export namespace formatters {
-  XMLFormatter
-}
-
-export namespace executors {
-  AggregateExecutor
-  BGPExecutor
-  GraphExecutor
-  ServiceExecutor
-  UpdateExecutor
-}
+export { default as XMLFormatter } from './formatters/xml-formatter'

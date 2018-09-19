@@ -142,7 +142,7 @@ export default abstract class Graph {
     // collect cardinalities of each triple pattern
     Promise.all(bgp.map(triple => {
       return this.estimateCardinality(triple).then(c => {
-        return {triple, cardinality: c, nbVars: rdf.countVariables(triple)}
+        return { triple, cardinality: c, nbVars: rdf.countVariables(triple) }
       })
     })).then((results: PatternMetadata[]) => {
       results.sort(sortPatterns)

@@ -204,7 +204,7 @@ export default class PlanBuilder {
       const parts = _.partition(query.variables, v => _.isString(v))
       aggregates = parts[1]
       // add aggregates variables to projection variables
-      query.variables = parts[0].concat(aggregates.map(agg => (<Algebra.Aggregation> agg).variable))
+      query.variables = parts[0].concat(aggregates.map(agg => (agg as Algebra.Aggregation).variable))
     }
 
     // Handles Aggregates
@@ -269,13 +269,13 @@ export default class PlanBuilder {
     }
 
     // merge BGPs on the same level
-    var newGroups = []
-    var prec = null
+    let newGroups = []
+    let prec = null
     for (let i = 0; i < groups.length; i++) {
-      var group = groups[i]
+      let group = groups[i]
       if (group.type === 'bgp' && prec != null && prec.type === 'bgp') {
-        let lastGroup = <Algebra.BGPNode> newGroups[newGroups.length - 1]
-        lastGroup.triples = _.concat(lastGroup.triples, (<Algebra.BGPNode> group).triples)
+        let lastGroup = newGroups[newGroups.length - 1] as Algebra.BGPNode
+        lastGroup.triples = _.concat(lastGroup.triples, (group as Algebra.BGPNode).triples)
       } else {
         newGroups.push(group)
       }
@@ -320,36 +320,36 @@ export default class PlanBuilder {
         //   return this._buildWhere(source, groups, childOptions)
         // } else {
         // delegate BGP evaluation to an executor
-        return this._bgpExecutor.buildIterator(source, (<Algebra.BGPNode>  group).triples, childOptions)
+        return this._bgpExecutor.buildIterator(source, (group as Algebra.BGPNode).triples, childOptions)
         // }
       case 'query':
-        return this._buildQueryPlan(<Algebra.RootNode> group, options, source)
+        return this._buildQueryPlan(group as Algebra.RootNode, options, source)
       case 'graph':
         if (_.isNull(this._graphExecutor)) {
           throw new Error('A PlanBuilder cannot evaluate a GRAPH clause without a GraphExecutor')
         }
         // delegate GRAPH evaluation to an executor
-        return this._graphExecutor.buildIterator(source, <Algebra.GraphNode> group, childOptions)
+        return this._graphExecutor.buildIterator(source, group as Algebra.GraphNode, childOptions)
       case 'service':
         if (_.isNull(this._serviceExecutor)) {
           throw new Error('A PlanBuilder cannot evaluate a SERVICE clause without a ServiceExecutor')
         }
         // delegate SERVICE evaluation to an executor
-        return this._serviceExecutor.buildIterator(source, <Algebra.ServiceNode> group, childOptions)
+        return this._serviceExecutor.buildIterator(source, group as Algebra.ServiceNode, childOptions)
       case 'group':
-        return this._buildWhere(source, (<Algebra.GroupNode> group).patterns, childOptions)
+        return this._buildWhere(source, (group as Algebra.GroupNode).patterns, childOptions)
       case 'optional':
         // childOptions = _.assign({ optional: true }, options)
-        return new OptionalOperator(source, (<Algebra.GroupNode> group).patterns, this, options)
+        return new OptionalOperator(source, (group as Algebra.GroupNode).patterns, this, options)
       case 'union':
-        return new UnionOperator(...(<Algebra.GroupNode> group).patterns.map(patternToken => {
+        return new UnionOperator(...(group as Algebra.GroupNode).patterns.map(patternToken => {
           return this._buildGroup(source.clone(), patternToken, childOptions)
         }))
       case 'minus':
-        const rightSource = this._buildWhere(single(new BindingBase()), (<Algebra.GroupNode> group).patterns, options)
+        const rightSource = this._buildWhere(single(new BindingBase()), (group as Algebra.GroupNode).patterns, options)
         return new MinusOperator(source, rightSource, options)
       case 'filter':
-        const filter = <Algebra.FilterNode> group
+        const filter = group as Algebra.FilterNode
         // FILTERs (NOT) EXISTS are handled using dedicated operators
         switch (filter.expression.operator) {
           case 'exists':
@@ -360,7 +360,7 @@ export default class PlanBuilder {
             return new FilterOperator(source, filter.expression, childOptions)
         }
       case 'bind':
-        const bind = <Algebra.BindNode> group
+        const bind = group as Algebra.BindNode
         return new BindOperator(source, bind.variable, bind.expression, childOptions)
       default:
         throw new Error(`Unsupported SPARQL group pattern found in query: ${group.type}`)
@@ -378,7 +378,7 @@ export default class PlanBuilder {
    */
   _buildValues (source: AsyncIterator<Bindings>, groups: Algebra.PlanNode[], options: Object): AsyncIterator<Bindings> {
     let [ values, others ] = _.partition(groups, g => g.type === 'values')
-    const bindingsLists = values.map(g => (<Algebra.ValuesNode> g).values)
+    const bindingsLists = values.map(g => (g as Algebra.ValuesNode).values)
     // for each VALUES clause
     const iterators = bindingsLists.map(bList => {
       // for each value to bind in the VALUES clause

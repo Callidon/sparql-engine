@@ -33,7 +33,7 @@ import UnionGraph from './union-graph'
  * @author Thomas Minier
  */
 export default abstract class Dataset {
-  abstract get iris(): string[]
+  abstract get iris (): string[]
   /**
    * Set the Default Graph of the Dataset
    * @param {Graph} g - Default Graph

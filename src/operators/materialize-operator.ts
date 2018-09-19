@@ -24,7 +24,7 @@ SOFTWARE.
 
 'use strict'
 
-import { AsyncIterator, BufferedIterator }  from 'asynciterator'
+import { AsyncIterator, BufferedIterator } from 'asynciterator'
 import { isNull, isUndefined } from 'lodash'
 import { Bindings } from '../rdf/bindings'
 
