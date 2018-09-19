@@ -48,8 +48,6 @@ import BGPExecutor from './executors/bgp-executor'
 import GraphExecutor from './executors/graph-executor'
 import UpdateExecutor from './executors/update-executor'
 import ServiceExecutor from './executors/service-executor'
-// formatters
-import XMLFormatter from '../formatters/xml-formatter.js'
 // utils
 import * as _ from 'lodash'
 import { deepApplyBindings, extendByBindings, rdf } from '../utils'
@@ -134,26 +132,14 @@ export default class PlanBuilder {
    * @param  {Object} [options={}]  - Execution options
    * @return {AsyncIterator} An iterator that can be consumed to evaluate the query.
    */
-  build (query: any, options: any = { format: 'raw' }): AsyncIterator<QueryOutput> | Consumable {
+  build (query: any, options: any = {}): AsyncIterator<QueryOutput> | Consumable {
     // If needed, parse the string query into a logical query execution plan
     if (typeof query === 'string') {
       query = new Parser(options.prefixes).parse(query)
     }
     switch (query.type) {
       case 'query':
-        const iterator = this._buildQueryPlan(query, options)
-        // only use results formatters for select & ask queries
-        if (query.queryType === 'CONSTRUCT' || query.queryType === 'DESCRIBE') {
-          return iterator
-        }
-        switch (options.format) {
-          case 'xml':
-          case 'application/xml':
-          case 'application/sparql-results+xml':
-            return new XMLFormatter(iterator, query.variables, options)
-          default:
-            return iterator
-        }
+        return this._buildQueryPlan(query, options)
       case 'update':
         return this._updateExecutor.execute(query.updates, options)
       default:

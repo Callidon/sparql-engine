@@ -29,11 +29,14 @@ import { BindingBase } from './rdf/bindings'
 import HashMapDataset from './rdf/hashmap-dataset'
 import Graph from './rdf/graph'
 import PlanBuilder from './engine/plan-builder'
+// executors
 import AggregateExecutor from './engine/executors/aggregate-executor'
 import BGPExecutor from './engine/executors/bgp-executor'
 import GraphExecutor from './engine/executors/graph-executor'
 import ServiceExecutor from './engine/executors/service-executor'
 import UpdateExecutor from './engine/executors/update-executor'
+// formatters
+import XMLFormatter from './formatters/xml-formatter'
 
 export {
   Dataset,
@@ -41,6 +44,10 @@ export {
   HashMapDataset,
   Graph,
   PlanBuilder
+}
+
+export namespace formatters {
+  XMLFormatter
 }
 
 export namespace executors {
