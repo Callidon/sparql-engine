@@ -182,7 +182,7 @@ class ServiceExecutor {
 
 Once your custom ServiceExecutor is ready, you need to *install* it on a `PlanBuilder` instance.
 ```javascript
-  const ServiceExecutor = require('sparql-engine').executors.ServiceExecutor
+  const { ServiceExecutor } = require('sparql-engine')
   // Suppose a custom ServiceExecutor
   class CustomServiceExecutor extends ServiceExecutor { /* ... */ }
 
@@ -214,7 +214,7 @@ available. The following table gives you all informations needed about the avail
 
 The following example show you how to install your custom executors on a `PlanBuilder` instance.
 ```javascript
-  const BGPExecutor = require('sparql-engine').executors.BGPExecutor
+  const { BGPExecutor } = require('sparql-engine')
   // Suppose a custom BGPExecutor
   class CustomBGPExecutor extends BGPExecutor { /* ... */ }
 
