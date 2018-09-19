@@ -33,6 +33,54 @@ declare module 'asynciterator' {
     readonly destroyed: boolean;
 
     /**
+     * Creates an iterator of natural numbers within the given range.
+     * @param {number} start - The first number to emit
+     * @param {number} nd - The last number to emit
+     * @param {number} step - The increment between two numbers
+     * @return {IntegerIterator} An iterator of natural numbers within the given range
+     */
+    static range (start: number, nd: number, step: number): IntegerIterator
+
+    /**
+     * Creates an iterator that wraps around a given iterator or readable stream.
+     * Use this to convert an iterator-like object into a full-featured AsyncIterator.
+     * @param {AsyncIterator} source - The source this iterator generates items from
+     * @param {Object} options - Settings of the iterator
+     * @return {AsyncIterator} A new iterator with the items from the given iterator
+     */
+    static wrap<T> (source: AsyncIterator<T>, options?: Object): AsyncIterator<T>
+
+    /**
+     * Called by AsyncIterator#destroy. Implementers can override this, but this should not be called directly.
+     * @param {Error|null}  cause - The reason why the iterator is destroyed.
+     * @param {function} callback - A callback function with an optional error argument.
+     * @return {void}
+     */
+    _destroy(cause: Error | null, callback: () => void): void
+
+    /**
+     * Appends the items after those of the current iterator.
+     * @param {I[]|AsyncIterator} items - Items to insert after this iterator's (remaining) items
+     * @return {AsyncIterator} A new iterator that appends items to this iterator
+     */
+    append<I> (items: I[] | AsyncIterator<I>): AsyncIterator<T | I>;
+
+    /**
+     * Prepends the items after those of the current iterator.
+     * @param {I[]|AsyncIterator} items - Items to insert before this iterator's (remaining) items
+     * @return {AsyncIterator} A new iterator that prepends items to this iterator
+     */
+    prepend <I> (items: I[] | AsyncIterator<I>): AsyncIterator<T | I>;
+
+    /**
+     * Surrounds items of the current iterator with the given items.
+     * @param {T[]|AsyncIterator} prepend - Items to insert before this iterator's (remaining) items
+     * @param {T[]|AsyncIterator} append - Items to insert after this iterator's (remaining) items
+     * @return {AsyncIterator} A new iterator that appends and prepends items to this iterator
+     */
+    surround <I, J> (prepend: I[] | AsyncIterator<I>, append: J[] | AsyncIterator<J>): AsyncIterator<T | I | J>;
+
+    /**
      * Tries to read the next item from the iterator.
      * @return {T|null} The next item, or null if none is available
      */
@@ -67,9 +115,32 @@ declare module 'asynciterator' {
     filter (predicate: (item: T) => boolean): AsyncIterator<T>;
 
     /**
+     * Invokes the callback for each remaining item in the iterator.
+     * @param {function} callback - A function that will be called with each item
+     * @return {void}
+     */
+    each (callback: (item: T) => void): void;
+
+    /**
      * Stops the iterator from generating new items.
      */
     close (): void;
+
+    /**
+     * Destroy the iterator and stop it from generating new items.
+     * This will not do anything if the iterator was already ended or destroyed.
+     * All internal resources will be released an no new items will be emitted, even not already generated items.
+     * @param {Error} cause - An optional error to emit
+     */
+    destroy (cause?: Error): void;
+
+    /**
+     * Limits the current iterator to the given range.
+     * @param {number} start - Index of the first item to return
+     * @param {number} end - Index of the last item to return
+     * @return {AsyncIterator} A new iterator with items in the given range
+     */
+    range (start: number, end: number): AsyncIterator<T>;
 
     /**
      * Creates a copy of the current iterator, containing all items emitted from this point onward.
@@ -83,9 +154,14 @@ declare module 'asynciterator' {
   }
 
   /**
+   * An iterator that enumerates integers in a certain range.
+   */
+  export class IntegerIterator extends AsyncIterator<number> {}
+
+  /**
    * An iterator that doesn't emit any items.
    */
-  export class EmptyIterator extends AsyncIterator<void> {}
+  export class EmptyIterator<T> extends AsyncIterator<T> {}
 
   /**
    * An iterator that copies items from another iterator.
@@ -112,6 +188,9 @@ declare module 'asynciterator' {
    * This class serves as a base class for other iterators with a typically complex item generation process.
    */
   export class BufferedIterator<T> extends AsyncIterator<T> {
+    readonly maxBufferSize: number;
+    readonly eadable: boolean;
+
     constructor (options?: Object)
     /**
      * Fills the internal buffer until `this._maxBufferSize` items are present.
