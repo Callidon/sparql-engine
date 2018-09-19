@@ -26,8 +26,8 @@ SOFTWARE.
 
 import MaterializeOperator from '../materialize-operator'
 import { rdf } from '../../utils'
-import { forEach, pick, keys } from 'lodash'
 import { AsyncIterator } from 'asynciterator'
+import { Bindings } from '../../rdf/bindings'
 
 /**
  * Build a new aggregate group from a set of SPARQL variables
@@ -50,9 +50,9 @@ function buildNewGroup (variables: string[]): Object {
 export default class GroupByOperator extends MaterializeOperator {
   readonly _variables: string[]
   readonly _groups: Map<string, any>
-  readonly _keys: Map<string, any>
+  readonly _keys: Map<string, Bindings>
 
-  constructor (source: AsyncIterator, variables: string[], options: Object) {
+  constructor (source: AsyncIterator<Bindings>, variables: string[], options: Object) {
     super(source, options)
     this._variables = variables
     // store each group by key
@@ -62,36 +62,37 @@ export default class GroupByOperator extends MaterializeOperator {
     this._keys = new Map()
   }
 
-  _hashBindings (bindings: Object): string {
+  _hashBindings (bindings: Bindings): string {
     return this._variables.map(v => {
-      if (v in bindings) {
-        return bindings[v]
+      if (bindings.has(v)) {
+        return bindings.get(v)
       }
       return 'null'
     }).join(';')
   }
 
-  _preTransform (bindings: any): void {
+  _preTransform (bindings: Bindings): Bindings | null {
     const key = this._hashBindings(bindings)
     // create a new group is needed
     if (!this._groups.has(key)) {
-      this._keys.set(key, pick(bindings, this._variables))
-      this._groups.set(key, buildNewGroup(keys(bindings)))
+      this._keys.set(key, bindings.filter(variable => this._variables.indexOf(variable) > -1))
+      this._groups.set(key, buildNewGroup(Array.from(bindings.variables())))
     }
     // parse each binding in the intermediate format used by SPARQL expressions
     // and insert it into the corresponding group
-    forEach(bindings, (value, variable) => {
+    bindings.forEach((variable, value) => {
       this._groups.get(key)[variable].push(rdf.parseTerm(value))
     })
+    return null
   }
 
-  _transformAll (values: any[]): any[] {
+  _transformAll (values: Bindings[]): Bindings[] {
     const aggregates: any[] = []
     // transform each group in a set of bindings
     this._groups.forEach((group, key) => {
       // also add the GROUP BY keys to the set of bindings
-      const b = Object.assign({}, this._keys.get(key))
-      b.__aggregate = group
+      const b = this._keys.get(key)!.clone()
+      b.setProperty('__aggregate', group)
       aggregates.push(b)
     })
     return aggregates

@@ -29,12 +29,13 @@ import { isNull, pull, range } from 'lodash'
 
 /**
  * UnionOperator implements a Bag Union between N operators
+ * @template T - Type of the items produced by the Union of operators
  * @extends BufferedIterator
  * @memberof Operators
  * @author Thomas Minier
  */
-export default class UnionOperator extends BufferedIterator {
-  readonly _sources: AsyncIterator[]
+export default class UnionOperator<T> extends BufferedIterator<T> {
+  readonly _sources: AsyncIterator<T>[]
   private _sIndex: number
   private _openSources: number[]
   /**
@@ -42,7 +43,7 @@ export default class UnionOperator extends BufferedIterator {
    * @memberof Operators
    * @param {AsyncIterator[]} sources - The sources to read from
    */
-  constructor (...sources: AsyncIterator[]) {
+  constructor (...sources: AsyncIterator<T>[]) {
     super()
     this._sources = sources
     this._sIndex = 0

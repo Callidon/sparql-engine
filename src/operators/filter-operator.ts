@@ -27,6 +27,7 @@ SOFTWARE.
 import SPARQLExpression from './expressions/sparql-expression'
 import { AsyncIterator, TransformIterator } from 'asynciterator'
 import { Algebra } from 'sparqljs'
+import { Bindings } from '../rdf/bindings'
 
 /**
  * Evaluate SPARQL Filter clauses
@@ -34,14 +35,15 @@ import { Algebra } from 'sparqljs'
  * @extends TransformIterator
  * @author Thomas Minier
  */
-export default class FilterOperator extends TransformIterator {
+export default class FilterOperator extends TransformIterator<Bindings,Bindings> {
   readonly _expression: SPARQLExpression
-  constructor (source: AsyncIterator, expression: Algebra.Expression, options: Object) {
+
+  constructor (source: AsyncIterator<Bindings>, expression: Algebra.Expression, options: Object) {
     super(source, options)
     this._expression = new SPARQLExpression(expression)
   }
 
-  _transform (bindings: Object, done: () => void): void {
+  _transform (bindings: Bindings, done: () => void): void {
     const value: any = this._expression.evaluate(bindings)
     if (value !== null && value.asJS) {
       this._push(bindings)

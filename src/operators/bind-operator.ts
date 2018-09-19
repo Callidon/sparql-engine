@@ -27,6 +27,7 @@ SOFTWARE.
 import { AsyncIterator, TransformIterator } from 'asynciterator'
 import SPARQLExpression from './expressions/sparql-expression'
 import { Algebra } from 'sparqljs'
+import { Bindings } from '../rdf/bindings'
 
 /**
  * Apply a SPARQL BIND clause
@@ -35,20 +36,21 @@ import { Algebra } from 'sparqljs'
  * @author Thomas Minier
  * @author Corentin Marionneau
  */
-export default class BindOperator extends TransformIterator {
+export default class BindOperator extends TransformIterator<Bindings,Bindings> {
   readonly _variable: string
   readonly _expression: SPARQLExpression
-  constructor (source: AsyncIterator, variable: string, expression: Algebra.Expression | string, options: Object) {
+
+  constructor (source: AsyncIterator<Bindings>, variable: string, expression: Algebra.Expression | string, options: Object) {
     super(source, options)
     this._variable = variable
     this._expression = new SPARQLExpression(expression)
   }
 
-  _transform (bindings: Object, done: () => void): void {
+  _transform (bindings: Bindings, done: () => void): void {
     try {
       const value: any = this._expression.evaluate(bindings)
       if (value !== null) {
-        bindings[this._variable] = value.asRDF
+        bindings.set(this._variable, value.asRDF)
       }
     } catch (e) {
       this.emit('error', e)

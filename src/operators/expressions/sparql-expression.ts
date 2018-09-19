@@ -30,6 +30,7 @@ import { RDFTerm } from '../../rdf-terms'
 import { rdf } from '../../utils'
 import { isArray, isString } from 'lodash'
 import { Algebra } from 'sparqljs'
+import { Bindings } from '../../rdf/bindings'
 
 /**
  * An input SPARQL expression to be compiled
@@ -39,12 +40,12 @@ export type InputExpression = Algebra.Expression | string | string[]
 /**
  * A SPARQL expression compiled as a function
  */
-export type CompiledExpression = (bindings: Object) => RDFTerm | RDFTerm[] | null
+export type CompiledExpression = (bindings: Bindings) => RDFTerm | RDFTerm[] | null
 
-function bindArgument (variable: string): (bindings: Object) => RDFTerm | null {
-  return (bindings: Object) => {
-    if (variable in bindings) {
-      return rdf.parseTerm(bindings[variable])
+function bindArgument (variable: string): (bindings: Bindings) => RDFTerm | null {
+  return (bindings: Bindings) => {
+    if (bindings.has(variable)) {
+      return rdf.parseTerm(bindings.get(variable)!)
     }
     return null
   }
@@ -80,7 +81,7 @@ export default class SPARQLExpression {
         throw new Error(`Unsupported SPARQL operation: ${opExpression.operator}`)
       }
       const operation = SPARQL_OPERATIONS[opExpression.operator]
-      return (bindings: Object) => {
+      return (bindings: Bindings) => {
         return operation(...args.map(arg => arg(bindings)))
       }
     } else if (expression.type === 'aggregate') {
@@ -90,9 +91,9 @@ export default class SPARQLExpression {
         throw new Error(`Unsupported SPARQL aggregation: ${aggExpression.aggregation}`)
       }
       const aggregation = SPARQL_AGGREGATES[aggExpression.aggregation]
-      return (bindings: Object) => {
-        if ('__aggregate' in bindings) {
-          return aggregation(aggExpression.expression, bindings['__aggregate'], aggExpression.separator)
+      return (bindings: Bindings) => {
+        if (bindings.hasProperty('__aggregate')) {
+          return aggregation(aggExpression.expression, bindings.getProperty('__aggregate'), aggExpression.separator)
         }
         return bindings
       }
@@ -100,7 +101,7 @@ export default class SPARQLExpression {
     throw new Error(`Unsupported SPARQL operation type found: ${expression.type}`)
   }
 
-  evaluate (bindings = {}) {
+  evaluate (bindings: Bindings) {
     return this._expression(bindings)
   }
 }

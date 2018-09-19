@@ -28,6 +28,7 @@ import { AsyncIterator, single, TransformIterator } from 'asynciterator'
 import { Algebra } from 'sparqljs'
 import IndexJoinOperator from '../operators/join/index-join-operator'
 import { rdf } from '../utils'
+import { Bindings, BindingBase } from './bindings'
 
 export interface PatternMetadata {
   triple: Algebra.TripleObject,
@@ -111,7 +112,7 @@ export default abstract class Graph {
    * @param  {string}   triple.object - Triple pattern's object
    * @return {AsyncIterator} An iterator which finds RDF triples matching a triple pattern
    */
-  abstract find (triple: Algebra.TripleObject, options: Object): AsyncIterator
+  abstract find (triple: Algebra.TripleObject, options: Object): AsyncIterator<Algebra.TripleObject>
 
   /**
    * Remove all RDF triples in the Graph
@@ -136,18 +137,19 @@ export default abstract class Graph {
    * @param  {Object} options - Execution options
    * @return {AsyncIterator} An iterator which evaluates the Basic Graph pattern on the Graph
    */
-  evalBGP (bgp: Algebra.TripleObject[], options: Object): AsyncIterator {
-    const iter = new TransformIterator()
+  evalBGP (bgp: Algebra.TripleObject[], options: Object): AsyncIterator<Bindings> {
+    const iter = new TransformIterator<Bindings,Bindings>()
     // collect cardinalities of each triple pattern
     Promise.all(bgp.map(triple => {
       return this.estimateCardinality(triple).then(c => {
         return {triple, cardinality: c, nbVars: rdf.countVariables(triple)}
       })
-    })).then(results => {
+    })).then((results: PatternMetadata[]) => {
       results.sort(sortPatterns)
-      iter.source = results.reduce((iter, v) => {
+      const start: AsyncIterator<Bindings> = single(new BindingBase())
+      iter.source = results.reduce((iter: AsyncIterator<Bindings>, v: PatternMetadata) => {
         return new IndexJoinOperator(iter, v.triple, this, options)
-      }, single({}))
+      }, start)
     })
     return iter
   }

@@ -26,6 +26,7 @@ SOFTWARE.
 
 import { AsyncIterator, TransformIterator } from 'asynciterator'
 import { map } from 'lodash'
+import { Bindings } from '../rdf/bindings'
 
 /**
  * DistinctOperator applies a DISTINCT modifier on the output of another operator.
@@ -33,7 +34,7 @@ import { map } from 'lodash'
  * @author Thomas Minier
  * @see {@link https://www.w3.org/TR/2013/REC-sparql11-query-20130321/#modDuplicates}
  */
-export default class DistinctOperator extends TransformIterator {
+export default class DistinctOperator extends TransformIterator<Bindings,Bindings> {
   readonly _values: Map<string, Object>
 
   /**
@@ -41,7 +42,7 @@ export default class DistinctOperator extends TransformIterator {
    * @memberof Operators
    * @param {AsyncIterator} source - The source operator
    */
-  constructor (source: AsyncIterator) {
+  constructor (source: AsyncIterator<Bindings>) {
     super(source)
     this._values = new Map()
   }
@@ -52,7 +53,7 @@ export default class DistinctOperator extends TransformIterator {
    * @param {function} done - To be called when filtering is done
    * @return {void}
    */
-  _transform (item: Object, done: () => void): void {
+  _transform (item: Bindings, done: () => void): void {
     const hash = this._hash(item)
     if (!this._values.has(hash)) {
       this._values.set(hash, 1)

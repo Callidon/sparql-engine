@@ -2,8 +2,8 @@
   "name": "sparql-engine",
   "version": "0.2.1",
   "description": "A framework for building SPARQL query engines in Javascript",
-  "main": "src/api.js",
-  "types": "dist/index.d.ts",
+  "main": "dist/api.js",
+  "types": "dist/api.d.ts",
   "scripts": {
     "lint": "standard",
     "test": "mocha tests/**/*-test.js",

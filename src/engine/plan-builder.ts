@@ -25,6 +25,7 @@ SOFTWARE.
 'use strict'
 
 import Dataset from '../rdf/dataset'
+import { Bindings, BindingBase } from '../rdf/bindings'
 import { Algebra, Parser } from 'sparqljs'
 import { AsyncIterator, single } from 'asynciterator'
 import { Consumable } from '../operators/update/consumer'
@@ -58,6 +59,8 @@ const queryConstructors = {
   CONSTRUCT: ConstructOperator,
   ASK: AskOperator
 }
+
+export type QueryOutput = Bindings | Algebra.TripleObject | string
 
 /**
  * A PlanBuilder builds a physical query execution plan of a SPARQL query,
@@ -131,7 +134,7 @@ export default class PlanBuilder {
    * @param  {Object} [options={}]  - Execution options
    * @return {AsyncIterator} An iterator that can be consumed to evaluate the query.
    */
-  build (query: any, options: any = { format: 'raw' }): AsyncIterator | Consumable {
+  build (query: any, options: any = { format: 'raw' }): AsyncIterator<QueryOutput> | Consumable {
     // If needed, parse the string query into a logical query execution plan
     if (typeof query === 'string') {
       query = new Parser(options.prefixes).parse(query)
@@ -165,10 +168,10 @@ export default class PlanBuilder {
    * @param  {AsyncIterator} [source=null] - Source iterator
    * @return {AsyncIterator} An iterator that can be consumed to evaluate the query.
    */
-  _buildQueryPlan (query: Algebra.RootNode, options: any = {}, source?: AsyncIterator): AsyncIterator {
+  _buildQueryPlan (query: Algebra.RootNode, options: any = {}, source?: AsyncIterator<Bindings>): AsyncIterator<Bindings> {
     if (_.isNull(source) || _.isUndefined(source)) {
       // build pipeline starting iterator
-      source = single({})
+      source = single(new BindingBase())
     }
     options.prefixes = query.prefixes
 
@@ -207,7 +210,7 @@ export default class PlanBuilder {
     if (query.where != null && query.where.length > 0) {
       graphIterator = this._buildWhere(source, query.where, options)
     } else {
-      graphIterator = single({})
+      graphIterator = single(new BindingBase())
     }
 
     // Parse query variable to separate projection & aggregate variables
@@ -260,7 +263,7 @@ export default class PlanBuilder {
    * @param  {Object}       options  - Execution options
    * @return {AsyncIterator} An iterator used to evaluate the WHERE clause
    */
-  _buildWhere (source: AsyncIterator, groups: Algebra.PlanNode[], options: Object): AsyncIterator {
+  _buildWhere (source: AsyncIterator<Bindings>, groups: Algebra.PlanNode[], options: Object): AsyncIterator<Bindings> {
     groups = _.sortBy(groups, g => {
       switch (g.type) {
         case 'bgp':
@@ -306,7 +309,7 @@ export default class PlanBuilder {
    * @param  {Object}        options - Execution options
    * @return {AsyncIterator} AN iterator used to evaluate the SPARQL Group
    */
-  _buildGroup (source: AsyncIterator, group: Algebra.PlanNode, options: Object): AsyncIterator {
+  _buildGroup (source: AsyncIterator<Bindings>, group: Algebra.PlanNode, options: Object): AsyncIterator<Bindings> {
     // Reset flags on the options for child iterators
     let childOptions = _.assign({}, options)
 
@@ -357,7 +360,7 @@ export default class PlanBuilder {
           return this._buildGroup(source.clone(), patternToken, childOptions)
         }))
       case 'minus':
-        const rightSource = this._buildWhere(single({}), (<Algebra.GroupNode> group).patterns, options)
+        const rightSource = this._buildWhere(single(new BindingBase()), (<Algebra.GroupNode> group).patterns, options)
         return new MinusOperator(source, rightSource, options)
       case 'filter':
         const filter = <Algebra.FilterNode> group
@@ -387,13 +390,14 @@ export default class PlanBuilder {
    * @param  {Object} options - Execution options
    * @return {AsyncIterator} An iterator which evaluates a SPARQL query with VALUES clause(s)
    */
-  _buildValues (source: AsyncIterator, groups: Algebra.PlanNode[], options: Object): AsyncIterator {
+  _buildValues (source: AsyncIterator<Bindings>, groups: Algebra.PlanNode[], options: Object): AsyncIterator<Bindings> {
     let [ values, others ] = _.partition(groups, g => g.type === 'values')
     const bindingsLists = values.map(g => (<Algebra.ValuesNode> g).values)
     // for each VALUES clause
     const iterators = bindingsLists.map(bList => {
       // for each value to bind in the VALUES clause
-      const unionBranches = bList.map(bindings => {
+      const unionBranches = bList.map(b => {
+        const bindings = BindingBase.fromObject(b)
         // BIND each group with the set of bindings and then evaluates it
         const temp = others.map(g => deepApplyBindings(g, bindings))
         return extendByBindings(this._buildWhere(source.clone(), temp, options), bindings)

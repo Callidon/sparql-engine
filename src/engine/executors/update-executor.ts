@@ -35,6 +35,7 @@ import * as rewritings from './rewritings.js'
 import Graph from '../../rdf/graph'
 import Dataset from '../../rdf/dataset'
 import { Algebra } from 'sparqljs'
+import { Bindings, BindingBase } from '../../rdf/bindings'
 
 /**
  * An UpdateExecutor is an executor responsible for evaluating SPARQL UPDATE queries.
@@ -97,7 +98,7 @@ export default class UpdateExecutor {
    * @return {Object} A Consumer used to evaluate SPARQL UPDATE queries
    */
   _handleInsertDelete (update: Algebra.UpdateQueryNode, options: Object): Consumable {
-    let source = single({})
+    let source = single(new BindingBase())
     let graph: Graph | null = null
     let deletes: DeleteConsumer[] = []
     let inserts: InsertConsumer[] = []
@@ -138,12 +139,12 @@ export default class UpdateExecutor {
    * @param  {Graph}         [graph=null] - RDF Graph used to insert data
    * @return {AsyncIterator} A consumer used to evaluate a SPARQL INSERT clause
    */
-  _buildInsertConsumer (source: AsyncIterator, group: Algebra.BGPNode | Algebra.UpdateGraphNode, graph: Graph | null, options: Object): InsertConsumer {
-    source = new ConstructOperator(source, {template: group.triples})
+  _buildInsertConsumer (source: AsyncIterator<Bindings>, group: Algebra.BGPNode | Algebra.UpdateGraphNode, graph: Graph | null, options: Object): InsertConsumer {
+    const tripleSource = new ConstructOperator(source, {template: group.triples})
     if (graph === null) {
       graph = (group.type === 'graph' && 'name' in group) ? this._dataset.getNamedGraph(group.name) : this._dataset.getDefaultGraph()
     }
-    return new InsertConsumer(source, graph, options)
+    return new InsertConsumer(tripleSource, graph, options)
   }
 
   /**
@@ -153,12 +154,12 @@ export default class UpdateExecutor {
    * @param  {Graph}         [graph=null] - RDF Graph used to delete data
    * @return {AsyncIterator} A consumer used to evaluate a SPARQL DELETE clause
    */
-  _buildDeleteConsumer (source: AsyncIterator, group: Algebra.BGPNode | Algebra.UpdateGraphNode, graph: Graph | null, options: Object): DeleteConsumer {
-    source = new ConstructOperator(source, {template: group.triples})
+  _buildDeleteConsumer (source: AsyncIterator<Bindings>, group: Algebra.BGPNode | Algebra.UpdateGraphNode, graph: Graph | null, options: Object): DeleteConsumer {
+    const tripleSource = new ConstructOperator(source, {template: group.triples})
     if (graph === null) {
       graph = (group.type === 'graph' && 'name' in group) ? this._dataset.getNamedGraph(group.name) : this._dataset.getDefaultGraph()
     }
-    return new DeleteConsumer(source, graph, options)
+    return new DeleteConsumer(tripleSource, graph, options)
   }
 
   /**

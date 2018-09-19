@@ -26,6 +26,7 @@ SOFTWARE.
 
 import { AsyncIterator, BufferedIterator }  from 'asynciterator'
 import { isNull, isUndefined } from 'lodash'
+import { Bindings } from '../rdf/bindings'
 
 /**
  * An operator that first materialize the input iterator before processing all its bindings
@@ -33,26 +34,26 @@ import { isNull, isUndefined } from 'lodash'
  * @author Thomas Minier
  * @author Corentin Marionneau
  */
-export default class MaterializeOperator extends BufferedIterator {
-  private _source: AsyncIterator
-  private _bufferedValues: Object[]
+export default class MaterializeOperator extends BufferedIterator<Bindings> {
+  private _source: AsyncIterator<Bindings>
+  private _bufferedValues: Bindings[]
 
-  constructor (source: AsyncIterator, options: Object) {
+  constructor (source: AsyncIterator<Bindings>, options: Object) {
     super(options)
     this._source = source
     this._bufferedValues = []
     this._source.on('error', err => this.emit('error', err))
   }
 
-  _preTransform (value: any): any {
+  _preTransform (value: Bindings): Bindings | null {
     return value
   }
 
-  _transformAll (values: any[]): any[] {
+  _transformAll (values: Bindings[]): Bindings[] {
     return values
   }
 
-  _transform (value: any, done: () => void): void {
+  _transform (value: Bindings, done: () => void): void {
     this._push(value)
     done()
   }
@@ -73,7 +74,7 @@ export default class MaterializeOperator extends BufferedIterator {
   _read (count: number, done: () => void): void {
     if (this._bufferedValues.length > 0) {
       const value = this._bufferedValues.shift()
-      this._transform(value, done)
+      this._transform(value!, done)
     } else {
       this.close()
       done()

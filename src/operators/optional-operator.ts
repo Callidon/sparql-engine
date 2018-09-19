@@ -25,6 +25,7 @@ SOFTWARE.
 'use strict'
 
 import { AsyncIterator, TransformIterator } from 'asynciterator'
+import { Bindings } from '../rdf/bindings'
 
 /**
  * Handles an SPARQL OPTIONAL clause in the following way:
@@ -36,10 +37,10 @@ import { AsyncIterator, TransformIterator } from 'asynciterator'
  * @extends TransformIterator
  * @author Thomas Minier
  */
-export default class OptionalOperator extends TransformIterator {
-  _bufferedvalues: Object[]
+export default class OptionalOperator extends TransformIterator<Bindings,Bindings> {
+  _bufferedvalues: Bindings[]
   _emptySource: boolean
-  constructor (source: AsyncIterator, patterns: Object[], builder: any, options: Object) {
+  constructor (source: AsyncIterator<Bindings>, patterns: Object[], builder: any, options: Object) {
     // set a spy on the sourcr iterator to buffer bindings
     let iter = source.map(v => {
       this._registerValue(v)
@@ -52,11 +53,11 @@ export default class OptionalOperator extends TransformIterator {
     this._emptySource = true
   }
 
-  _registerValue (v: Object): void {
+  _registerValue (v: Bindings): void {
     this._bufferedvalues.push(v)
   }
 
-  _transform (bindings: Object, done: () => void): void {
+  _transform (bindings: Bindings, done: () => void): void {
     this._emptySource = false
     this._push(bindings)
     done()

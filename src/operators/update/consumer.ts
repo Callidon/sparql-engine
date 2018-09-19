@@ -26,6 +26,7 @@ SOFTWARE.
 
 import { AsyncIterator } from 'asynciterator'
 import { Writable } from 'stream'
+import { Algebra } from 'sparqljs'
 
 /**
  * Something whose execution can be resolved as a Promise
@@ -53,10 +54,10 @@ export class ErrorConsumable implements Consumable {
  * @author Thomas Minier
  */
 export abstract class Consumer extends Writable implements Consumable {
-  readonly _source: AsyncIterator
+  readonly _source: AsyncIterator<Algebra.TripleObject>
   readonly _options: Object
 
-  constructor (source: AsyncIterator, options: Object) {
+  constructor (source: AsyncIterator<Algebra.TripleObject>, options: Object) {
     super({ objectMode: true })
     this._source = source
     this._options = options
@@ -74,8 +75,8 @@ export abstract class Consumer extends Writable implements Consumable {
         this.end(null, '', resolve)
       })
       this._source.on('error', reject)
-      this._source.on('data', bindings => {
-        this.write(bindings)
+      this._source.on('data', triple => {
+        this.write(triple)
       })
     })
   }

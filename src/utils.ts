@@ -24,11 +24,11 @@ SOFTWARE.
 
 'use strict'
 
-import { assign } from 'lodash'
 import * as terms from './rdf-terms'
 import { Util } from 'n3'
 import { AsyncIterator } from 'asynciterator'
 import { Algebra } from 'sparqljs'
+import { Bindings } from './rdf/bindings'
 
 function stripDatatype (datatype: string): string {
   if (datatype.startsWith('<') && datatype.endsWith('>')) {
@@ -142,16 +142,16 @@ export namespace rdf {
  * @param {Object} bindings - Set of bindings
  * @return {function} An new, bounded triple pattern
  */
-export function applyBindings (triple: Algebra.TripleObject, bindings: Object): Algebra.TripleObject {
+export function applyBindings (triple: Algebra.TripleObject, bindings: Bindings): Algebra.TripleObject {
   const newTriple = Object.assign({}, triple)
-  if (triple.subject.startsWith('?') && triple.subject in bindings) {
-    newTriple.subject = bindings[triple.subject]
+  if (triple.subject.startsWith('?') && bindings.has(triple.subject)) {
+    newTriple.subject = bindings.get(triple.subject)!
   }
-  if (triple.predicate.startsWith('?') && triple.predicate in bindings) {
-    newTriple.predicate = bindings[triple.predicate]
+  if (triple.predicate.startsWith('?') && bindings.has(triple.predicate)) {
+    newTriple.predicate = bindings.get(triple.predicate)!
   }
-  if (triple.object.startsWith('?') && triple.object in bindings) {
-    newTriple.object = bindings[triple.object]
+  if (triple.object.startsWith('?') && bindings.has(triple.object)) {
+    newTriple.object = bindings.get(triple.object)!
   }
   return newTriple
 }
@@ -162,12 +162,12 @@ export function applyBindings (triple: Algebra.TripleObject, bindings: Object): 
  * @param  {Object} bindings - Set of bindings to use
  * @return {Object} A new SPARQL group pattern with triples bounded
  */
-export function deepApplyBindings (group: Algebra.PlanNode, bindings: Object): Algebra.PlanNode {
+export function deepApplyBindings (group: Algebra.PlanNode, bindings: Bindings): Algebra.PlanNode {
   switch (group.type) {
     case 'bgp':
       const bgp: Algebra.BGPNode = {
         type: 'bgp',
-        triples: (<Algebra.BGPNode> group).triples.map(t => applyBindings(t, bindings))
+        triples: (<Algebra.BGPNode> group).triples.map(t => bindings.bound(t))
       }
       return bgp
     case 'group':
@@ -194,6 +194,6 @@ export function deepApplyBindings (group: Algebra.PlanNode, bindings: Object): A
  * @param  {Object} bindings - Bindings added to each set of bindings procuded by the iterator
  * @return {AsyncIterator} An iterator that extends bindins produced by the source iterator
  */
-export function extendByBindings (iterator: AsyncIterator, bindings: Object): AsyncIterator {
-  return iterator.map(b => assign(b, bindings))
+export function extendByBindings (iterator: AsyncIterator<Bindings>, bindings: Bindings): AsyncIterator<Bindings> {
+  return iterator.map((b: Bindings) => bindings.union(b))
 }

@@ -27,7 +27,8 @@ SOFTWARE.
 import { AsyncIterator, ArrayIterator, MultiTransformIterator } from 'asynciterator'
 import { Algebra } from 'sparqljs'
 import { compact } from 'lodash'
-import { applyBindings, rdf } from '../../utils'
+import { rdf } from '../../utils'
+import { Bindings } from '../../rdf/bindings'
 
 /**
  * A ConstructOperator transform solution mappings into RDF triples, according to a template
@@ -35,7 +36,7 @@ import { applyBindings, rdf } from '../../utils'
  * @author Thomas Minier
  * @see {@link https://www.w3.org/TR/2013/REC-sparql11-query-20130321/#construct}
  */
-export default class ConstructOperator extends MultiTransformIterator {
+export default class ConstructOperator extends MultiTransformIterator<Bindings, Algebra.TripleObject> {
   readonly _templates: Algebra.TripleObject[]
   /**
    * Constructor
@@ -43,7 +44,7 @@ export default class ConstructOperator extends MultiTransformIterator {
    * @param {AsyncIterator} source  - Source iterator
    * @param {Object[]} templates - Set of triples patterns in the CONSTRUCT clause
    */
-  constructor (source: AsyncIterator, query: any) {
+  constructor (source: AsyncIterator<Bindings>, query: any) {
     super(source)
     // filter out triples with no SPARQL variables to output them only once
     this._templates = query.template!.filter((t: any) => {
@@ -56,7 +57,7 @@ export default class ConstructOperator extends MultiTransformIterator {
     source.on('error', err => this.emit('error', err))
   }
 
-  _createTransformer (bindings: Object): AsyncIterator {
-    return new ArrayIterator(compact(this._templates.map(t => applyBindings(t, bindings))))
+  _createTransformer (bindings: Bindings): AsyncIterator<Algebra.TripleObject> {
+    return new ArrayIterator(compact(this._templates.map(t => bindings.bound(t))))
   }
 }

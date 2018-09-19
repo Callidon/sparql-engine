@@ -27,7 +27,7 @@ SOFTWARE.
 import { AsyncIterator, TransformIterator } from 'asynciterator'
 import { Algebra } from 'sparqljs'
 import { rdf } from '../../utils'
-import { mapValues } from 'lodash'
+import { Bindings } from '../../rdf/bindings'
 
 /**
  * Evaluates a SPARQL SELECT operation, i.e., perform a selection over sets of solutions bindings
@@ -36,12 +36,12 @@ import { mapValues } from 'lodash'
  * @author Corentin Marionneau
  * @see {@link https://www.w3.org/TR/2013/REC-sparql11-query-20130321/#select}
  */
-export default class SelectOperator extends TransformIterator {
+export default class SelectOperator extends TransformIterator<Bindings,Bindings> {
   readonly _variables: string[]
   readonly _selectAll: boolean
   readonly _options: Object
 
-  constructor (source: AsyncIterator, query: Algebra.RootNode, options: Object) {
+  constructor (source: AsyncIterator<Bindings>, query: Algebra.RootNode, options: Object) {
     super(source)
     this._variables = <string[]> query.variables
     this._options = options
@@ -49,20 +49,20 @@ export default class SelectOperator extends TransformIterator {
     source.on('error', (err: Error) => this.emit('error', err))
   }
 
-  _transform (bindings: Object, done: () => void): void {
+  _transform (bindings: Bindings, done: () => void): void {
     // perform projection (if necessary)
     if (!this._selectAll) {
       bindings = this._variables.reduce((obj, v) => {
-        if (v in bindings) {
-          obj[v] = bindings[v]
+        if (bindings.has(v)) {
+          obj.set(v, bindings.get(v)!)
         } else {
-          obj[v] = null
+          obj.set(v, 'UNBOUND')
         }
         return obj
-      }, {})
+      }, bindings.empty())
     }
     // remove non-variables entries && non-string values
-    this._push(mapValues(bindings, (v, k) => rdf.isVariable(k) && typeof v === 'string' ? v : null))
+    this._push(bindings.mapValues((k, v) => rdf.isVariable(k) && typeof v === 'string' ? v : null))
     done()
   }
 }

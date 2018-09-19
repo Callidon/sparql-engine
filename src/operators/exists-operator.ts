@@ -25,13 +25,14 @@ SOFTWARE.
 'use strict'
 
 import { AsyncIterator, single, TransformIterator } from 'asynciterator'
+import { Bindings } from '../rdf/bindings'
 
 /**
  * Evaluates a SPARQL FILTER (NOT) EXISTS clause
  * @extends TransformIterator
  * @author Thomas Minier
  */
-export default class ExistsOperator extends TransformIterator {
+export default class ExistsOperator extends TransformIterator<Bindings,Bindings> {
   readonly _groups: Object[]
   readonly _builder: any
   readonly _options: Object
@@ -45,7 +46,7 @@ export default class ExistsOperator extends TransformIterator {
    * @param {boolean}       notexists - True if the filter is NOT EXISTS, False otherwise
    * @param {Object}        options   - Execution options
    */
-  constructor (source: AsyncIterator, groups: Object[], builder: any, notexists: boolean, options: Object) {
+  constructor (source: AsyncIterator<Bindings>, groups: Object[], builder: any, notexists: boolean, options: Object) {
     super(source, options)
     this._groups = groups
     this._builder = builder
@@ -54,7 +55,7 @@ export default class ExistsOperator extends TransformIterator {
     source.on('error', err => this.emit('error', err))
   }
 
-  _transform (bindings: Object, done: () => void): void {
+  _transform (bindings: Bindings, done: () => void): void {
     let exists = false
     // build an iterator to evaluate the EXISTS clause using the set of bindings
     // using a LIMIT 1, to minimize the evaluation cost

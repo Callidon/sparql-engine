@@ -31,6 +31,7 @@ import GroupByOperator from '../../operators/aggregates/groupby-operator'
 import { isString } from 'lodash'
 import { Algebra } from 'sparqljs'
 import { AsyncIterator } from 'asynciterator'
+import { Bindings } from '../../rdf/bindings'
 
 /**
  * An AggregateExecutor handles the evaluation of Aggregations operations,
@@ -46,7 +47,7 @@ export default class AggregateExecutor {
    * @param  {Object}       options - Execution options
    * @return {AsyncIterator} An iterator which evaluate SPARQL aggregations
    */
-  buildIterator (source: AsyncIterator, query: Algebra.RootNode, options: Object): AsyncIterator {
+  buildIterator (source: AsyncIterator<Bindings>, query: Algebra.RootNode, options: Object): AsyncIterator<Bindings> {
     if ('group' in query) {
       // first, group bindings using the GROUP BY clause
       let iterator = this._executeGroupBy(source, query.group || [], options)
@@ -66,7 +67,7 @@ export default class AggregateExecutor {
    * @param  {Object}       options - Execution options
    * @return {AsyncIterator} An iterator which evaluate a GROUP BY clause
    */
-  _executeGroupBy (source: AsyncIterator, groupby: Algebra.Aggregation[], options: Object): AsyncIterator {
+  _executeGroupBy (source: AsyncIterator<Bindings>, groupby: Algebra.Aggregation[], options: Object): AsyncIterator<Bindings> {
     let iterator = source
     // extract GROUP By variables & rewrite SPARQL expressions into BIND clauses
     const variables: string[] = []
@@ -88,7 +89,7 @@ export default class AggregateExecutor {
    * @param  {Object}       options   - Execution options
    * @return {AsyncIterator} An iterator which evaluate a SPARQL aggregation
    */
-  _executeAggregate (source: AsyncIterator, operation: Algebra.Aggregation, options: Object): AsyncIterator {
+  _executeAggregate (source: AsyncIterator<Bindings>, operation: Algebra.Aggregation, options: Object): AsyncIterator<Bindings> {
     return new AggregateOperator(source, operation, options)
   }
 
@@ -99,7 +100,7 @@ export default class AggregateExecutor {
    * @param  {Object}       options - Execution options
    * @return {AsyncIterator} An iterator which evaluate a HAVING clause
    */
-  _executeHaving (source: AsyncIterator, having: Algebra.Expression[], options: Object): AsyncIterator {
+  _executeHaving (source: AsyncIterator<Bindings>, having: Algebra.Expression[], options: Object): AsyncIterator<Bindings> {
     // thanks to the flexibility of SPARQL expressions,
     // we can rewrite a HAVING clause in a set of FILTER clauses!
     return having.reduce((iter, expression) => {

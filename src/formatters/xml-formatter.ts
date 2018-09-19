@@ -27,7 +27,9 @@ SOFTWARE.
 import { AsyncIterator } from 'asynciterator'
 import ResultsFormatter from './results-formatter'
 import xml from 'xml'
-import { map, omitBy, isNull, isUndefined } from 'lodash'
+import { map, isNull, isUndefined } from 'lodash'
+import { Bindings } from '../rdf/bindings'
+import { RDFTerm } from '../rdf-terms'
 
 /**
  * Formats results in XML format
@@ -36,19 +38,19 @@ import { map, omitBy, isNull, isUndefined } from 'lodash'
  * @author Thomas Minier
  * @author Corentin Marionneau
  */
-export default class XMLFormatter extends ResultsFormatter {
+export default class XMLFormatter extends ResultsFormatter<string> {
   readonly _root: any
   readonly _results: any
   readonly _stream: any
 
-  constructor (source: AsyncIterator, variables: any[], options: Object) {
+  constructor (source: AsyncIterator<Bindings | boolean>, variables: any[], options: Object) {
     super(source, variables, options)
     this._root = xml.element({
       _attr: { xmlns: 'http://www.w3.org/2005/sparql-results#' }
     })
     this._results = xml.element({})
     this._stream = xml({ sparql: this._root }, { stream: true, indent: '\t', declaration: true })
-    this._stream.on('data', (v: any) => this._push(v))
+    this._stream.on('data', (v: string) => this._push(v))
   }
 
   _writeHead (variableNames: string[], done: () => void): void {
@@ -67,9 +69,13 @@ export default class XMLFormatter extends ResultsFormatter {
     done()
   }
 
-  _writeBindings (input: Object, done: () => void): void {
+  _writeBindings (input: [string, RDFTerm], done: () => void): void {
     // remove null & undefined values
-    const bindings: any = omitBy(input, value => isNull(value) || isUndefined(value))
+    let bindings: any = input.filter(value => !isNull(value[1]) && !isUndefined(value[1]))
+      .reduce((obj, value) => {
+        obj[value[0]] = value[1]
+        return obj
+      }, {})
 
     // Write the result tag for this set of bindings
     this._results.push({

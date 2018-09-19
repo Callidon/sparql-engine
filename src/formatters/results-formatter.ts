@@ -26,7 +26,9 @@ SOFTWARE.
 
 import { AsyncIterator, TransformIterator } from 'asynciterator'
 import { rdf } from '../utils'
-import { mapValues, isBoolean } from 'lodash'
+import { isBoolean } from 'lodash'
+import { Bindings } from '../rdf/bindings'
+import { RDFTerm } from '../rdf-terms'
 
 /**
  * Abstract class to serialize solution bindings into valid SPARQL results
@@ -35,11 +37,11 @@ import { mapValues, isBoolean } from 'lodash'
  * @author Thomas Minier
  * @author Corentin Marionneau
  */
-export default abstract class ResultsFormatter extends TransformIterator {
+export default abstract class ResultsFormatter<T> extends TransformIterator<Bindings | boolean, T> {
   readonly _variables: string[]
   private _empty: boolean
 
-  constructor (source: AsyncIterator, variables: any, options: Object = {}) {
+  constructor (source: AsyncIterator<Bindings | boolean>, variables: any, options: Object = {}) {
     super(source, options)
     this._empty = true
     this._variables = variables.map((v: any) => {
@@ -66,22 +68,22 @@ export default abstract class ResultsFormatter extends TransformIterator {
     done()
   }
 
-  _transform (bindings: Object, done: () => void): void {
+  _transform (bindings: Bindings | boolean, done: () => void): void {
     if (isBoolean(bindings)) {
       this._writeBoolean(bindings, done)
     } else {
       // convert bindings values in intermediate format before processing
-      this._writeBindings(mapValues(bindings, (v: any) => {
-        if (v !== null) {
-          return rdf.parseTerm(v)
+      this._writeBindings(bindings.reduce((acc: any, variable: string, value: string) => {
+        if (value !== null) {
+          return acc.concat([variable, rdf.parseTerm(value)])
         }
-        return v
-      }), done)
+        return acc
+      }, []), done)
     }
     this._empty = false
   }
 
-  abstract _writeBindings (result: Object, done: () => void): void
+  abstract _writeBindings (result: [string, RDFTerm], done: () => void): void
 
-  abstract _writeBoolean (result: Object, done: () => void): void
+  abstract _writeBoolean (result: boolean, done: () => void): void
 }

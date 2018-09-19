@@ -25,6 +25,7 @@ SOFTWARE.
 'use strict'
 
 import { AsyncIterator, TransformIterator } from 'asynciterator'
+import { Bindings } from '../../rdf/bindings'
 
 /**
  * A AskOperator output True if a source iterator has solutions, false otherwise.
@@ -33,14 +34,14 @@ import { AsyncIterator, TransformIterator } from 'asynciterator'
  * @author Thomas Minier
  * @see {@link https://www.w3.org/TR/2013/REC-sparql11-query-20130321/#ask}
  */
-export default class AskOperator extends TransformIterator {
+export default class AskOperator extends TransformIterator<Bindings, boolean> {
   private _noResults: boolean
   /**
    * Constructor
    * @memberof Operators
    * @param {AsyncIterator} source - Source iterator
    */
-  constructor (source: AsyncIterator) {
+  constructor (source: AsyncIterator<Bindings>) {
     super(source.take(1))
     this._noResults = true
   }
@@ -49,7 +50,7 @@ export default class AskOperator extends TransformIterator {
     return 1
   }
 
-  _transform (bindings: Object, done: () => void): void {
+  _transform (bindings: Bindings, done: () => void): void {
     this._noResults = false
     this._push(true)
     done()

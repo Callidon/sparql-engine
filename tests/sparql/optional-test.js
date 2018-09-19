@@ -52,7 +52,7 @@ describe('SPARQL queries with OPTIONAL', () => {
     iterator.on('error', done)
     iterator.on('data', b => {
       expect(b).to.have.keys('?name', '?article', '?label')
-      expect(b['?label']).to.equal(null)
+      expect(b['?label']).to.equal('UNBOUND')
       results.push(b)
     })
     iterator.on('end', () => {
@@ -78,7 +78,7 @@ describe('SPARQL queries with OPTIONAL', () => {
     iterator.on('error', done)
     iterator.on('data', b => {
       expect(b).to.have.keys('?name', '?article')
-      expect(b['?article']).to.not.equal(null)
+      expect(b['?article']).to.not.equal('UNBOUND')
       results.push(b)
     })
     iterator.on('end', () => {
@@ -105,7 +105,7 @@ describe('SPARQL queries with OPTIONAL', () => {
     iterator.on('error', done)
     iterator.on('data', b => {
       expect(b).to.have.keys('?name', '?article')
-      expect(b['?article']).to.equal(null)
+      expect(b['?article']).to.equal('UNBOUND')
       results.push(b)
     })
     iterator.on('end', () => {
@@ -132,7 +132,7 @@ describe('SPARQL queries with OPTIONAL', () => {
     iterator.on('error', done)
     iterator.on('data', b => {
       expect(b).to.have.keys('?name', '?article')
-      expect(b['?article']).to.not.equal(null)
+      expect(b['?article']).to.not.equal('UNBOUND')
       results.push(b)
     })
     iterator.on('end', () => {

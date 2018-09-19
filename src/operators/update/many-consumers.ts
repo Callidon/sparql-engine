@@ -24,7 +24,7 @@ SOFTWARE.
 
 'use strict'
 
-import { Consumer, Consumable } from './consumer'
+import { Consumable } from './consumer'
 
 /**
  * ManyConsumers group multiple consumers to be evaluated in sequence

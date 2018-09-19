@@ -25,7 +25,8 @@ SOFTWARE.
 'use strict'
 
 import { AsyncIterator, TransformIterator } from 'asynciterator'
-import { keys, intersection } from 'lodash'
+import { intersection } from 'lodash'
+import { Bindings } from '../rdf/bindings'
 
 /**
  * Evaluates a SPARQL MINUS clause
@@ -33,12 +34,12 @@ import { keys, intersection } from 'lodash'
  * @extends TransformIterator
  * @author Thomas Minier
  */
-export default class MinusOperator extends TransformIterator {
-  readonly _rightSource: AsyncIterator
-  _rightBuffer: Object[]
+export default class MinusOperator extends TransformIterator<Bindings,Bindings> {
+  readonly _rightSource: AsyncIterator<Bindings>
+  _rightBuffer: Bindings[]
   readonly _options: Object
 
-  constructor (leftSource: AsyncIterator, rightSource: AsyncIterator, options: Object) {
+  constructor (leftSource: AsyncIterator<Bindings>, rightSource: AsyncIterator<Bindings>, options: Object) {
     super(leftSource, options)
     this._rightSource = rightSource
     this._rightBuffer = []
@@ -56,14 +57,14 @@ export default class MinusOperator extends TransformIterator {
     })
   }
 
-  _transform (bindings: Object, done: () => void): void {
-    const leftKeys = keys(bindings)
+  _transform (bindings: Bindings, done: () => void): void {
+    const leftKeys = Array.from(bindings.variables())
     // mu_a is compatible with mu_b if,
     // for all v in intersection(dom(mu_a), dom(mu_b)), mu_a[v] = mu_b[v]
-    const isCompatible = this._rightBuffer.some((b: Object) => {
-      const rightKeys = keys(b)
+    const isCompatible = this._rightBuffer.some((b: Bindings) => {
+      const rightKeys = Array.from(b.variables())
       const commonKeys = intersection(leftKeys, rightKeys)
-      return commonKeys.every((k: string) => b[k] === bindings[k])
+      return commonKeys.every((k: string) => b.get(k) === bindings.get(k))
     })
     // only output non-compatible bindings
     if (!isCompatible) {

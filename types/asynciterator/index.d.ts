@@ -55,9 +55,9 @@ declare module 'asynciterator' {
     /**
      * Maps items from this iterator using the given function.
      * @param {function} mapper - A mapping function to call on this iterator's (remaining) items
-     * @return {AsyncIterator<T>} A new iterator that maps the items from this iterator
+     * @return {AsyncIterator<R>} A new iterator that maps the items from this iterator
      */
-    map (mapper: (item: T) => T): AsyncIterator<T>;
+    map<R> (mapper: (item: T) => R | null): AsyncIterator<R>;
 
     /**
      * Return items from this iterator that match the filter.
@@ -128,9 +128,9 @@ declare module 'asynciterator' {
 
     /**
      * Adds an item to the internal buffer.
-     * @param {T} item - The item to add
+     * @param {T|null} item - The item to add
      */
-    _push (item: T): void;
+    _push (item: T | null): void;
 
     /**
      * Writes beginning items and opens iterator resources.
@@ -157,7 +157,7 @@ declare module 'asynciterator' {
   /**
    * An iterator that generates items based on a source iterator.
    */
-  export class TransformIterator<T> extends BufferedIterator<T> {
+  export class TransformIterator<T,R> extends BufferedIterator<R> {
     source: AsyncIterator<T>
     constructor(source?: AsyncIterator<T>, options?: Object);
     _transform (item: T, done: () => void): void;
@@ -166,7 +166,7 @@ declare module 'asynciterator' {
   /**
    * An iterator that generates items by transforming each item of a source with a different iterator.
    */
-  export class MultiTransformIterator<T> extends TransformIterator<T> {
-    _createTransformer (item: T): AsyncIterator<T>;
+  export class MultiTransformIterator<T,R> extends TransformIterator<T,R> {
+    _createTransformer (item: T): AsyncIterator<R>;
   }
 }

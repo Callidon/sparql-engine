@@ -28,6 +28,7 @@ import Graph from './graph'
 import UnionOperator from '../operators/union-operator'
 import { AsyncIterator } from 'asynciterator'
 import { Algebra } from 'sparqljs'
+import { Bindings } from './bindings'
 
 /**
  * An UnionGraph represents the dynamic union of several graphs.
@@ -53,7 +54,7 @@ export default class UnionGraph extends Graph {
     return this._graphs.reduce((prev, g) => prev.then(() => g.delete(triple)), Promise.resolve())
   }
 
-  find (triple: Algebra.TripleObject, options: Object): AsyncIterator {
+  find (triple: Algebra.TripleObject, options: Object): AsyncIterator<Algebra.TripleObject> {
     return new UnionOperator(...this._graphs.map(g => g.find(triple, options)))
   }
 

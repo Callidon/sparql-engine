@@ -26,6 +26,7 @@ SOFTWARE.
 
 import { Algebra } from 'sparqljs'
 import { AsyncIterator } from 'asynciterator'
+import { Bindings } from '../../rdf/bindings'
 
 /**
  * A ServiceExecutor is responsible for evaluation a SERVICE clause in a SPARQL query.
@@ -59,7 +60,7 @@ export default abstract class ServiceExecutor {
    * @param  {Object}         options - Execution options
    * @return {AsyncIterator} An iterator used to evaluate a SERVICE clause
    */
-  buildIterator (source: AsyncIterator, node: Algebra.ServiceNode, options: any): AsyncIterator {
+  buildIterator (source: AsyncIterator<Bindings>, node: Algebra.ServiceNode, options: any): AsyncIterator<Bindings> {
     let subquery: Algebra.RootNode
     if (node.patterns[0].type === 'query') {
       subquery = (<Algebra.RootNode> node.patterns[0])
@@ -83,5 +84,5 @@ export default abstract class ServiceExecutor {
    * @param  {Object}         options   - Execution options
    * @return {AsyncIterator} An iterator used to evaluate a SERVICE clause
    */
-  abstract _execute (source: AsyncIterator, iri: string, subquery: Algebra.RootNode, options: Object): AsyncIterator
+  abstract _execute (source: AsyncIterator<Bindings>, iri: string, subquery: Algebra.RootNode, options: Object): AsyncIterator<Bindings>
 }

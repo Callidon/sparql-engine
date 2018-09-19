@@ -27,6 +27,7 @@ SOFTWARE.
 import { AsyncIterator } from 'asynciterator'
 import { Algebra } from 'sparqljs'
 import MaterializeOperator from './materialize-operator'
+import { Bindings } from '../rdf/bindings'
 
 /**
  * A OrderByOperator implements a ORDER BY clause, i.e.,
@@ -36,14 +37,14 @@ import MaterializeOperator from './materialize-operator'
  * @see {@link https://www.w3.org/TR/2013/REC-sparql11-query-20130321/#modOrderBy}
  */
 export default class OrderByOperator extends MaterializeOperator {
-  private _comparator: (left: Object, right: Object) => number
+  private _comparator: (left: Bindings, right: Bindings) => number
   /**
    * Constructor
    * @param {AsyncIterator} source - Source iterator
    * @param {Object[]} comparators - Parsed ORDER BY clause
    * @param {Object} options - Execution options
    */
-  constructor (source: AsyncIterator, comparators: Algebra.OrderComparator[], options: Object) {
+  constructor (source: AsyncIterator<Bindings>, comparators: Algebra.OrderComparator[], options: Object) {
     super(source, options)
     this._comparator = this._buildComparator(comparators.map((c: Algebra.OrderComparator) => {
       // explicity tag ascending comparator (sparqljs leaves them untagged)
@@ -56,16 +57,16 @@ export default class OrderByOperator extends MaterializeOperator {
 
   _buildComparator (comparators: Algebra.OrderComparator[]) {
     const comparatorsFuncs = comparators.map((c: Algebra.OrderComparator) => {
-      return (left: Object, right: Object[]) => {
-        if (left[c.expression] < right[c.expression]) {
+      return (left: Bindings, right: Bindings) => {
+        if (left.get(c.expression)! < right.get(c.expression)!) {
           return (c.ascending) ? -1 : 1
-        } else if (left[c.expression] > right[c.expression]) {
+        } else if (left.get(c.expression)! > right.get(c.expression)!) {
           return (c.ascending) ? 1 : -1
         }
         return 0
       }
     })
-    return (left: any, right: any) => {
+    return (left: Bindings, right: Bindings) => {
       let temp
       for (let comp of comparatorsFuncs) {
         temp = comp(left, right)
@@ -77,7 +78,7 @@ export default class OrderByOperator extends MaterializeOperator {
     }
   }
 
-  _transformAll (values: Object[]) {
+  _transformAll (values: Bindings[]) {
     values.sort((a, b) => this._comparator(a, b))
     return values
   }

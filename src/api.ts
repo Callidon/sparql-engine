@@ -25,6 +25,7 @@ SOFTWARE.
 'use strict'
 
 import Dataset from './rdf/dataset'
+import { BindingBase } from './rdf/bindings'
 import HashMapDataset from './rdf/hashmap-dataset'
 import Graph from './rdf/graph'
 import PlanBuilder from './engine/plan-builder'
@@ -36,6 +37,7 @@ import UpdateExecutor from './engine/executors/update-executor'
 
 export {
   Dataset,
+  BindingBase,
   HashMapDataset,
   Graph,
   PlanBuilder

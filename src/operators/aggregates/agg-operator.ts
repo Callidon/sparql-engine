@@ -27,6 +27,7 @@ SOFTWARE.
 import SPARQLExpression from '../expressions/sparql-expression'
 import { AsyncIterator, TransformIterator } from 'asynciterator'
 import { Algebra } from 'sparqljs'
+import { Bindings } from '../../rdf/bindings'
 
 /**
  * Apply a SPARQL Aggregation operation over set of bindings.
@@ -36,19 +37,19 @@ import { Algebra } from 'sparqljs'
  * @author Thomas Minier
  * @author Corentin Marionneau
  */
-export default class AggregateOperator extends TransformIterator {
+export default class AggregateOperator extends TransformIterator<Bindings,Bindings> {
   readonly _variable: string
   readonly _expression: SPARQLExpression
-  constructor (source: AsyncIterator, operation: Algebra.Aggregation, options: Object) {
+  constructor (source: AsyncIterator<Bindings>, operation: Algebra.Aggregation, options: Object) {
     super(source, options)
     this._variable = operation.variable
     this._expression = new SPARQLExpression(operation.expression)
   }
 
-  _transform (bindings: Object, done: () => void) {
+  _transform (bindings: Bindings, done: () => void) {
     try {
       const value: any = this._expression.evaluate(bindings)
-      bindings[this._variable] = value.asRDF
+      bindings.set(this._variable, value.asRDF)
     } catch (e) {
       this.emit('error', e)
     }

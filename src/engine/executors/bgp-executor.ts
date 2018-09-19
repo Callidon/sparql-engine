@@ -25,38 +25,38 @@ SOFTWARE.
 'use strict'
 
 import { AsyncIterator, ClonedIterator, MultiTransformIterator, SingletonIterator } from 'asynciterator'
-import { applyBindings } from '../../utils'
-import { assign, omit, some, size } from 'lodash'
+import { some } from 'lodash'
 import { Algebra } from 'sparqljs'
 import Graph from '../../rdf/graph'
 import Dataset from '../../rdf/dataset'
+import { Bindings } from '../../rdf/bindings'
 
 /**
  * Basic iterator used to evaluate Basic graph patterns using the "evalBGP" method
  * available
  * @extends MultiTransformIterator
  */
-class BaseBGPIterator extends MultiTransformIterator {
+class BaseBGPIterator extends MultiTransformIterator<Bindings,Bindings> {
   readonly _bgp: Algebra.TripleObject[]
   readonly _graph: Graph
   readonly _options: Object
 
-  constructor (source: AsyncIterator, bgp: Algebra.TripleObject[], graph: Graph, options: Object) {
+  constructor (source: AsyncIterator<Bindings>, bgp: Algebra.TripleObject[], graph: Graph, options: Object) {
     super(source, options)
     this._bgp = bgp
     this._graph = graph
     this._options = options
   }
 
-  _createTransformer (bindings: any): AsyncIterator {
+  _createTransformer (bindings: Bindings): AsyncIterator<Bindings> {
     // bound the BGP using incoming bindings, then delegate execution to the dataset
-    let boundedBGP = this._bgp.map(t => applyBindings(t, bindings))
+    let boundedBGP = this._bgp.map(t => bindings.bound(t))
     const hasVars = boundedBGP.map(p => some(p, v => v!.startsWith('?')))
       .reduce((acc, v) => acc && v, true)
     return this._graph.evalBGP(boundedBGP, this._options)
-      .map((item: Object) => {
-        if (size(item) === 0 && hasVars) return null
-        return assign(item, bindings)
+      .map((item: Bindings) => {
+        if (item.size === 0 && hasVars) return null
+        return item.union(bindings)
       })
   }
 }
@@ -80,7 +80,7 @@ export default  class BGPExecutor {
    * @param  {AsyncIterator} source - Source Iterator
    * @return {Boolean} True if the input iterator if the starting iterator in a pipeline, False otherwise
    */
-  _isJoinIdentity (source: AsyncIterator): boolean {
+  _isJoinIdentity (source: AsyncIterator<Bindings>): boolean {
     let isJoinIdentity = false
     let typeFound = false
     let tested = source
@@ -127,14 +127,14 @@ export default  class BGPExecutor {
    * @param  {*}         options   - Execution options
    * @return {AsyncIterator} An iterator used to evaluate a Basic Graph pattern
    */
-  buildIterator (source: AsyncIterator, patterns: Algebra.TripleObject[], options: any): AsyncIterator {
+  buildIterator (source: AsyncIterator<Bindings>, patterns: Algebra.TripleObject[], options: any): AsyncIterator<Bindings> {
     // select the graph to use for BGP evaluation
     const graph = ('_from' in options) ? this._getGraph(options._from.default) : this._dataset.getDefaultGraph()
     // rewrite a BGP to remove blank node addedd by the Turtle notation
     const [bgp, artificals] = this._replaceBlankNodes(patterns)
     let iterator = this._execute(source, graph, bgp, options, this._isJoinIdentity(source))
     if (artificals.length > 0) {
-      iterator = iterator.map(b => omit(b, artificals))
+      iterator = iterator.map(b => b.filter(variable => artificals.indexOf(variable) < 0))
     }
     return iterator
   }
@@ -175,7 +175,7 @@ export default  class BGPExecutor {
    * @param  {Boolean}        isJoinIdentity - True if the source iterator is the starting iterator of the pipeline
    * @return {AsyncIterator} An iterator used to evaluate a Basic Graph pattern
    */
-  _execute (source: AsyncIterator, graph: Graph, patterns: Algebra.TripleObject[], options: Object, isJoinIdentity: boolean): AsyncIterator {
+  _execute (source: AsyncIterator<Bindings>, graph: Graph, patterns: Algebra.TripleObject[], options: Object, isJoinIdentity: boolean): AsyncIterator<Bindings> {
     return new BaseBGPIterator(source, patterns, graph, options)
   }
 }

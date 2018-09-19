@@ -26,9 +26,10 @@ SOFTWARE.
 
 import { AsyncIterator, MultiTransformIterator } from 'asynciterator'
 import Graph from '../../rdf/graph'
+import { Bindings, BindingBase } from '../../rdf/bindings'
 import { Algebra } from 'sparqljs'
-import { applyBindings, rdf } from '../../utils'
-import { assign, mapKeys, pickBy, some, size } from 'lodash'
+import { rdf } from '../../utils'
+import { mapKeys, pickBy, some, size } from 'lodash'
 
 /**
  * Perform a join between a source of solution bindings (left relation)
@@ -38,7 +39,7 @@ import { assign, mapKeys, pickBy, some, size } from 'lodash'
  * @extends MultiTransformIterator
  * @author Thomas Minier
  */
-export default class IndexJoinOperator extends MultiTransformIterator {
+export default class IndexJoinOperator extends MultiTransformIterator<Bindings,Bindings> {
   readonly _pattern: Algebra.TripleObject
   readonly _graph: Graph
   readonly _options: Object
@@ -50,26 +51,26 @@ export default class IndexJoinOperator extends MultiTransformIterator {
    * @param {Graph}         graph   - RDF Graph on which the join is performed
    * @param {Object}        options - Execution options
    */
-  constructor (source: AsyncIterator, pattern: Algebra.TripleObject, graph: Graph, options: Object) {
+  constructor (source: AsyncIterator<Bindings>, pattern: Algebra.TripleObject, graph: Graph, options: Object) {
     super(source, options)
     this._pattern = pattern
     this._graph = graph
     this._options = options
   }
 
-  _createTransformer (bindings: Object): AsyncIterator {
-    const boundedPattern = applyBindings(this._pattern, bindings)
+  _createTransformer (bindings: Bindings): AsyncIterator<Bindings> {
+    const boundedPattern = bindings.bound(this._pattern)
     const hasVars = some(boundedPattern, (v: any) => v.startsWith('?'))
     return this._graph.find(boundedPattern, this._options)
-      .map((item: any) => {
-        item = pickBy(item, (v, k) => {
+      .map<Bindings>((item: Algebra.TripleObject) => {
+        let temp = pickBy(item, (v, k) => {
           return rdf.isVariable(boundedPattern[k])
         })
-        item = mapKeys(item, (v, k) => {
+        temp = mapKeys(temp, (v, k) => {
           return boundedPattern[k]
         })
-        if (size(item) === 0 && hasVars) return null
-        return assign(item, bindings)
+        if (size(temp) === 0 && hasVars) return null
+        return BindingBase.fromObject(temp).union(bindings)
       })
   }
 }
