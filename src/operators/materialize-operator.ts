@@ -74,7 +74,13 @@ export default class MaterializeOperator extends BufferedIterator<Bindings> {
   _read (count: number, done: () => void): void {
     if (this._bufferedValues.length > 0) {
       const value = this._bufferedValues.shift()
-      this._transform(value!, done)
+      this._transform(value!, () => {
+        if (count > 0) {
+          this._read(count - 1, done)
+        } else {
+          done()
+        }
+      })
     } else {
       this.close()
       done()

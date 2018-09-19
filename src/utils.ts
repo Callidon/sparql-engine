@@ -68,18 +68,6 @@ export namespace rdf {
   }
 
   /**
-  * Parse a solution binding and return a descriptor with its type and value
-  * @param  {string} variable - The SPARQL variable that the binding bound
-  * @param  {string} binding - The binding in string format (i.e., URI or Literal)
-  * @return {Object} A descriptor for the binding
-  */
-  // export function parseBinding (variable: string, binding: string) {
-  //   const parsed = parseTerm(binding)
-  //   parsed.variable = variable
-  //   return parsed
-  // }
-
-  /**
   * Create a RDF triple in Object representation
   * @param  {string} subj - Triple's subject
   * @param  {string} pred - Triple's predicate

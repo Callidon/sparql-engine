@@ -24,8 +24,7 @@ SOFTWARE.
 
 'use strict'
 
-import * as moment from 'moment'
-// const moment = require('moment')
+import { parseZone, Moment } from 'moment'
 
 export interface RDFTerm {
   readonly type: string,
@@ -64,7 +63,7 @@ function termToJS (value: string, type: string): any {
     case 'http://www.w3.org/2001/XMLSchema#boolean':
       return value === '"true"'
     case 'http://www.w3.org/2001/XMLSchema#dateTime':
-      return moment.parseZone(value)
+      return parseZone(value)
     default:
       throw new Error(`Unknown Datatype found during RDF Term parsing: ${value} (datatype: ${type})`)
   }
@@ -130,7 +129,7 @@ export function NumericOperation (value: number, type: string): TypedLiteral {
   }
 }
 
-export function DateLiteral (date: moment.Moment): TypedLiteral {
+export function DateLiteral (date: Moment): TypedLiteral {
   const value = date.toISOString()
   return {
     type: 'literal+type',
