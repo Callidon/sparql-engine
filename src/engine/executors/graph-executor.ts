@@ -31,24 +31,28 @@ import { Algebra } from 'sparqljs'
 import { AsyncIterator } from 'asynciterator'
 import Dataset from '../../rdf/dataset'
 import { Bindings } from '../../rdf/bindings'
+import PlanBuilder from '../plan-builder'
 
 /**
  * A GraphExecutor is responsible for evaluation a GRAPH clause in a SPARQL query.
- * @abstract
  * @author Thomas Minier
  */
 export default class GraphExecutor {
   readonly _dataset: Dataset
-  readonly _builder: any
+  readonly _builder: PlanBuilder
 
-  constructor (dataset: Dataset, builder: any) {
+  /**
+   * Constructor
+   * @param {Dataset} dataset - RDF Dataset used during query execution
+   * @param {PlanBuilder} builder - Builder used to generate execution plans
+   */
+  constructor (dataset: Dataset, builder: PlanBuilder) {
     this._dataset = dataset
     this._builder = builder
   }
 
   /**
    * Build an iterator to evaluate a GRAPH clause
-   * @private
    * @param  {AsyncIterator}  source  - Source iterator
    * @param  {Object}         node    - Graph clause
    * @param  {Object}         options - Execution options

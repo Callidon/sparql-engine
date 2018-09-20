@@ -50,6 +50,12 @@ export default class UpdateExecutor {
     this._builder = builder
   }
 
+  /**
+   * Create a {@link Consumable} used to evaluate a SPARQL 1.1 Update query
+   * @param {Object[]} updates - Set of Update queries to execute
+   * @param {Object} options - Execution options
+   * @return {Consumable} A Consumable used to evaluatethe set of update queries
+   */
   execute (updates: Array<Algebra.UpdateQueryNode | Algebra.UpdateClearNode | Algebra.UpdateCopyMoveNode>, options: Object): Consumable {
     let queries
     return new ManyConsumers(updates.map(update => {
@@ -93,9 +99,10 @@ export default class UpdateExecutor {
 
   /**
    * Build a Consumer to evaluate SPARQL UPDATE queries
+   * @private
    * @param  {Object} update  - Parsed query
    * @param  {Object} options - Execution options
-   * @return {Object} A Consumer used to evaluate SPARQL UPDATE queries
+   * @return {Consumable} A Consumer used to evaluate SPARQL UPDATE queries
    */
   _handleInsertDelete (update: Algebra.UpdateQueryNode, options: Object): Consumable {
     let source = single(new BindingBase())
@@ -134,10 +141,11 @@ export default class UpdateExecutor {
 
   /**
    * Build a consumer to evaluate a SPARQL INSERT clause
+   * @private
    * @param  {AsyncIterator} source - Source iterator
    * @param  {Object}        group - parsed SPARQL INSERT clause
    * @param  {Graph}         [graph=null] - RDF Graph used to insert data
-   * @return {AsyncIterator} A consumer used to evaluate a SPARQL INSERT clause
+   * @return {Consumable} A consumer used to evaluate a SPARQL INSERT clause
    */
   _buildInsertConsumer (source: AsyncIterator<Bindings>, group: Algebra.BGPNode | Algebra.UpdateGraphNode, graph: Graph | null, options: Object): InsertConsumer {
     const tripleSource = new ConstructOperator(source, {template: group.triples})
@@ -149,10 +157,11 @@ export default class UpdateExecutor {
 
   /**
    * Build a consumer to evaluate a SPARQL DELETE clause
+   * @private
    * @param  {AsyncIterator} source - Source iterator
    * @param  {Object}        group - parsed SPARQL DELETE clause
    * @param  {Graph}         [graph=null] - RDF Graph used to delete data
-   * @return {AsyncIterator} A consumer used to evaluate a SPARQL DELETE clause
+   * @return {Consumable} A consumer used to evaluate a SPARQL DELETE clause
    */
   _buildDeleteConsumer (source: AsyncIterator<Bindings>, group: Algebra.BGPNode | Algebra.UpdateGraphNode, graph: Graph | null, options: Object): DeleteConsumer {
     const tripleSource = new ConstructOperator(source, {template: group.triples})
@@ -164,8 +173,9 @@ export default class UpdateExecutor {
 
   /**
    * Build a Consumer to evaluate CLEAR queries
+   * @private
    * @param  {Object} query - Parsed query
-   * @return {Consumer} A Consumer used to evaluate CLEAR queries
+   * @return {Consumable} A Consumer used to evaluate CLEAR queries
    */
   _handleClearQuery (query: Algebra.UpdateClearNode): ClearConsumer {
     let graph = null

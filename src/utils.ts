@@ -30,11 +30,17 @@ import { AsyncIterator } from 'asynciterator'
 import { Algebra } from 'sparqljs'
 import { Bindings } from './rdf/bindings'
 
-function stripDatatype (datatype: string): string {
-  if (datatype.startsWith('<') && datatype.endsWith('>')) {
-    return datatype.slice(1, datatype.length - 1)
+/**
+ * Remove surrounding brackets from an IRI
+ * @private
+ * @param {string} iri - IRI to cleanup
+ * @return {string} Transformed IRI
+ */
+function cleanIRI (iri: string): string {
+  if (iri.startsWith('<') && iri.endsWith('>')) {
+    return iri.slice(1, iri.length - 1)
   }
-  return datatype
+  return iri
 }
 
 /**
@@ -43,8 +49,9 @@ function stripDatatype (datatype: string): string {
 export namespace rdf {
   /**
    * Parse a RDF term in string format and return a descriptor with its type and value
-   * @param  {string} binding - The binding in string format (i.e., URI or Literal)
-   * @return {Object} A descriptor for the term
+   * @param  {string} term - The RDF Term in string format (i.e., URI or Literal)
+   * @return {RDFTerm} A descriptor for the term
+   * @throws {SyntaxError} Thrown if an unknown RDF Term is encoutered during parsing
    */
   export function parseTerm (term: string): terms.RDFTerm {
     let parsed = null
@@ -53,7 +60,7 @@ export namespace rdf {
     } else if (Util.isLiteral(term)) {
       const value = Util.getLiteralValue(term)
       const lang = Util.getLiteralLanguage(term)
-      const type = stripDatatype(Util.getLiteralType(term))
+      const type = cleanIRI(Util.getLiteralType(term))
       if (lang !== null && lang !== undefined && lang !== '') {
         parsed = terms.LangLiteralDescriptor(value, lang)
       } else if (term.indexOf('^^') > -1) {
@@ -62,7 +69,7 @@ export namespace rdf {
         parsed = terms.RawLiteralDescriptor(value)
       }
     } else {
-      throw new Error(`Unknown RDF Term encoutered during parsing: ${term}`)
+      throw new SyntaxError(`Unknown RDF Term encoutered during parsing: ${term}`)
     }
     return parsed
   }
@@ -113,12 +120,22 @@ export namespace rdf {
     return str.startsWith('?')
   }
 
-  export function XSD (term: string): string {
-    return `http://www.w3.org/2001/XMLSchema#${term}`
+  /**
+   * Create an IRI under the XSD namespace
+   * @param {string} suffix - Suffix appended to the XSD namespace to create an IRI
+   * @return {string} An new IRI, under the XSD namespac
+   */
+  export function XSD (suffix: string): string {
+    return `http://www.w3.org/2001/XMLSchema#${suffix}`
   }
 
-  export function RDF (term: string): string {
-    return `http://www.w3.org/1999/02/22-rdf-syntax-ns#${term}`
+  /**
+   * Create an IRI under the RDF namespace
+   * @param {string} suffix - Suffix appended to the RDF namespace to create an IRI
+   * @return {string} An new IRI, under the RDF namespac
+   */
+  export function RDF (suffix: string): string {
+    return `http://www.w3.org/1999/02/22-rdf-syntax-ns#${suffix}`
   }
 }
 
@@ -126,8 +143,8 @@ export namespace rdf {
  * Bound a triple pattern using a set of bindings, i.e., substitute variables in the triple pattern
  * using the set of bindings provided
  * @param {Object} triple  - Triple pattern
- * @param {Object} bindings - Set of bindings
- * @return {function} An new, bounded triple pattern
+ * @param {Bindings} bindings - Set of bindings
+ * @return {Object} An new, bounded triple pattern
  */
 export function applyBindings (triple: Algebra.TripleObject, bindings: Bindings): Algebra.TripleObject {
   const newTriple = Object.assign({}, triple)
@@ -144,9 +161,9 @@ export function applyBindings (triple: Algebra.TripleObject, bindings: Bindings)
 }
 
 /**
- * Recusrively apply bindings to every triple in a SPARQL group pattern
+ * Recursively apply bindings to every triple in a SPARQL group pattern
  * @param  {Object} group - SPARQL group pattern to process
- * @param  {Object} bindings - Set of bindings to use
+ * @param  {Bindings} bindings - Set of bindings to use
  * @return {Object} A new SPARQL group pattern with triples bounded
  */
 export function deepApplyBindings (group: Algebra.PlanNode, bindings: Bindings): Algebra.PlanNode {
@@ -178,7 +195,7 @@ export function deepApplyBindings (group: Algebra.PlanNode, bindings: Bindings):
 /**
  * Extends all set of bindings produced by an iterator with another set of bindings
  * @param  {AsyncIterator} iterator - Source terator
- * @param  {Object} bindings - Bindings added to each set of bindings procuded by the iterator
+ * @param  {Bindings} bindings - Bindings added to each set of bindings procuded by the iterator
  * @return {AsyncIterator} An iterator that extends bindins produced by the source iterator
  */
 export function extendByBindings (iterator: AsyncIterator<Bindings>, bindings: Bindings): AsyncIterator<Bindings> {

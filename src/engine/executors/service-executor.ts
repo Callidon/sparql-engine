@@ -38,7 +38,7 @@ export default abstract class ServiceExecutor {
   readonly _builder: any
   /**
    * Constructor
-   * @param {PlanBuilder} builder - PlanBuilder instance
+   * @param {PlanBuilder} builder - Builder used to generate execution plans
    */
   constructor (builder: any) {
     this._builder = builder
@@ -54,7 +54,6 @@ export default abstract class ServiceExecutor {
 
   /**
    * Build an iterator to evaluate a SERVICE clause
-   * @private
    * @param  {AsyncIterator}  source  - Source iterator
    * @param  {Object}         node    - Service clause
    * @param  {Object}         options - Execution options
@@ -78,6 +77,7 @@ export default abstract class ServiceExecutor {
 
   /**
    * Returns an iterator used to evaluate a SERVICE clause
+   * @abstract
    * @param  {AsyncIterator}  source    - Source iterator
    * @param  {string}         iri       - Iri of the SERVICE clause
    * @param  {Object}         subquery  - Subquery to be evaluated

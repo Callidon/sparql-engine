@@ -24,7 +24,6 @@ SOFTWARE.
 
 'use strict'
 
-import AggregateOperator from '../../operators/aggregates/agg-operator'
 import BindOperator from '../../operators/bind-operator'
 import FilterOperator from '../../operators/filter-operator'
 import GroupByOperator from '../../operators/aggregates/groupby-operator'
@@ -63,7 +62,7 @@ export default class AggregateExecutor {
   /**
    * Build an iterator for the evaluation of a GROUP BY clause
    * @param  {AsyncIterator} source  - Source iterator
-   * @param  {Object}       groupby - GROUP BY clause
+   * @param  {Object[]}       groupby - GROUP BY clause
    * @param  {Object}       options - Execution options
    * @return {AsyncIterator} An iterator which evaluate a GROUP BY clause
    */
@@ -80,17 +79,6 @@ export default class AggregateExecutor {
       }
     })
     return new GroupByOperator(iterator, variables, options)
-  }
-
-  /**
-   * Build an iterator for the evaluation of a SPARQL aggregation
-   * @param  {AsyncIterator} source   - Source iterator
-   * @param  {Object}       operation - SPARQL aggregation
-   * @param  {Object}       options   - Execution options
-   * @return {AsyncIterator} An iterator which evaluate a SPARQL aggregation
-   */
-  _executeAggregate (source: AsyncIterator<Bindings>, operation: Algebra.Aggregation, options: Object): AsyncIterator<Bindings> {
-    return new AggregateOperator(source, operation, options)
   }
 
   /**

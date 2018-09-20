@@ -34,6 +34,7 @@ import { Bindings } from '../../rdf/bindings'
 /**
  * Basic iterator used to evaluate Basic graph patterns using the "evalBGP" method
  * available
+ * @private
  * @extends MultiTransformIterator
  */
 class BaseBGPIterator extends MultiTransformIterator<Bindings,Bindings> {
@@ -70,6 +71,10 @@ class BaseBGPIterator extends MultiTransformIterator<Bindings,Bindings> {
 export default  class BGPExecutor {
   readonly _dataset: Dataset
 
+  /**
+   * Constructor
+   * @param {Dataset} dataset - RDF Dataset used during query execution
+   */
   constructor (dataset: Dataset) {
     this._dataset = dataset
   }
@@ -108,7 +113,7 @@ export default  class BGPExecutor {
    * * If `iris` has a single entry, returns the corresponding named graph
    * * Otherwise, returns an UnionGraph based on the provided iris
    * @param  {string[]} iris - List of Graph's iris
-   * @return {Graph} A RDF Graph
+   * @return {Graph} An RDF Graph
    */
   _getGraph (iris: string[]): Graph {
     if (iris.length === 0) {
@@ -121,10 +126,9 @@ export default  class BGPExecutor {
 
   /**
    * Build an iterator to evaluate a BGP
-   * @private
    * @param  {AsyncIterator}  source    - Source iterator
-   * @param  {Algebra.TripleObject[]}       patterns  - Set of triple patterns
-   * @param  {*}         options   - Execution options
+   * @param  {Algebra.TripleObject[]} patterns  - Set of triple patterns
+   * @param  {*}  options   - Execution options
    * @return {AsyncIterator} An iterator used to evaluate a Basic Graph pattern
    */
   buildIterator (source: AsyncIterator<Bindings>, patterns: Algebra.TripleObject[], options: any): AsyncIterator<Bindings> {
