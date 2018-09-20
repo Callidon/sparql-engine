@@ -24,6 +24,7 @@ SOFTWARE.
 
 'use strict'
 
+import Executor from './executor'
 import { Algebra } from 'sparqljs'
 import { AsyncIterator } from 'asynciterator'
 import { Bindings } from '../../rdf/bindings'
@@ -34,24 +35,7 @@ import { Bindings } from '../../rdf/bindings'
  * @author Thomas Minier
  * @author Corentin Marionneau
  */
-export default abstract class ServiceExecutor {
-  readonly _builder: any
-  /**
-   * Constructor
-   * @param {PlanBuilder} builder - Builder used to generate execution plans
-   */
-  constructor (builder: any) {
-    this._builder = builder
-  }
-
-  /**
-   * Get the PlanBuilder registered by the executor
-   * @return {PlanBuilder} The PlanBuilder registered by the executor
-   */
-  get builder (): any {
-    return this._builder
-  }
-
+export default abstract class ServiceExecutor extends Executor {
   /**
    * Build an iterator to evaluate a SERVICE clause
    * @param  {AsyncIterator}  source  - Source iterator

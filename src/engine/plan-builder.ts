@@ -80,8 +80,10 @@ export default class PlanBuilder {
     this._parser = new Parser(prefixes)
     this._bgpExecutor = new BGPExecutor(this._dataset)
     this._aggExecutor = new AggregateExecutor()
-    this._graphExecutor = new GraphExecutor(this._dataset, this)
-    this._updateExecutor = new UpdateExecutor(this._dataset, this)
+    this._graphExecutor = new GraphExecutor(this._dataset)
+    this._graphExecutor.builder = this
+    this._updateExecutor = new UpdateExecutor(this._dataset)
+    this._updateExecutor.builder = this
     this._serviceExecutor = null
   }
 
@@ -90,7 +92,9 @@ export default class PlanBuilder {
    * @param {BGPExecutor} executor - Executor used to evaluate Basic Graph patterns
    */
   set bgpExecutor (executor: BGPExecutor) {
+    this._bgpExecutor.builder = null
     this._bgpExecutor = executor
+    this._bgpExecutor.builder = this
   }
 
   /**
@@ -98,7 +102,9 @@ export default class PlanBuilder {
    * @param {AggregateExecutor} executor - Executor used to evaluate SPARQL Aggregates
    */
   set aggregateExecutor (executor: AggregateExecutor) {
+    this._bgpExecutor.builder = null
     this._aggExecutor = executor
+    this._bgpExecutor.builder = this
   }
 
   /**
@@ -106,7 +112,9 @@ export default class PlanBuilder {
    * @param {GraphExecutor} executor - Executor used to evaluate SPARQL GRAPH clauses
    */
   set graphExecutor (executor: GraphExecutor) {
+    this._bgpExecutor.builder = null
     this._graphExecutor = executor
+    this._bgpExecutor.builder = this
   }
 
   /**
@@ -114,7 +122,9 @@ export default class PlanBuilder {
    * @param {UpdateExecutor} executor - Executor used to evaluate SPARQL UPDATE queries
    */
   set updateExecutor (executor: UpdateExecutor) {
+    this._bgpExecutor.builder = null
     this._updateExecutor = executor
+    this._bgpExecutor.builder = this
   }
 
   /**
@@ -122,7 +132,9 @@ export default class PlanBuilder {
    * @param {ServiceExecutor} executor - Executor used to evaluate SERVICE clauses
    */
   set serviceExecutor (executor: ServiceExecutor) {
+    this._bgpExecutor.builder = null
     this._serviceExecutor = executor
+    this._bgpExecutor.builder = this
   }
 
   /**

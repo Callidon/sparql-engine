@@ -24,6 +24,7 @@ SOFTWARE.
 
 'use strict'
 
+import Executor from './executor'
 import BindOperator from '../../operators/bind-operator'
 import FilterOperator from '../../operators/filter-operator'
 import GroupByOperator from '../../operators/aggregates/groupby-operator'
@@ -38,7 +39,7 @@ import { Bindings } from '../../rdf/bindings'
  * @see https://www.w3.org/TR/sparql11-query/#aggregates
  * @author Thomas Minier
  */
-export default class AggregateExecutor {
+export default class AggregateExecutor extends Executor {
   /**
    * Build an iterator for the evaluation of SPARQL aggregations
    * @param  {AsyncIterator} source  - Source iterator

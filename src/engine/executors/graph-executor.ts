@@ -24,6 +24,7 @@ SOFTWARE.
 
 'use strict'
 
+import Executor from './executor'
 import UnionOperator from '../../operators/union-operator'
 import { rdf } from '../../utils'
 import { cloneDeep, isArray }from 'lodash'
@@ -31,24 +32,21 @@ import { Algebra } from 'sparqljs'
 import { AsyncIterator } from 'asynciterator'
 import Dataset from '../../rdf/dataset'
 import { Bindings } from '../../rdf/bindings'
-import PlanBuilder from '../plan-builder'
 
 /**
  * A GraphExecutor is responsible for evaluation a GRAPH clause in a SPARQL query.
  * @author Thomas Minier
  */
-export default class GraphExecutor {
+export default class GraphExecutor extends Executor {
   readonly _dataset: Dataset
-  readonly _builder: PlanBuilder
 
   /**
    * Constructor
    * @param {Dataset} dataset - RDF Dataset used during query execution
-   * @param {PlanBuilder} builder - Builder used to generate execution plans
    */
-  constructor (dataset: Dataset, builder: PlanBuilder) {
+  constructor (dataset: Dataset) {
+    super()
     this._dataset = dataset
-    this._builder = builder
   }
 
   /**
@@ -99,6 +97,6 @@ export default class GraphExecutor {
       default: [ iri ],
       named: []
     }
-    return this._builder._buildQueryPlan(subquery, opts, source)
+    return this._builder!._buildQueryPlan(subquery, opts, source)
   }
 }

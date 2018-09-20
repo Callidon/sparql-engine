@@ -24,6 +24,7 @@ SOFTWARE.
 
 'use strict'
 
+import Executor from './executor'
 import { AsyncIterator, ClonedIterator, MultiTransformIterator, SingletonIterator } from 'asynciterator'
 import { some } from 'lodash'
 import { Algebra } from 'sparqljs'
@@ -68,7 +69,7 @@ class BaseBGPIterator extends MultiTransformIterator<Bindings,Bindings> {
  * @author Thomas Minier
  * @author Corentin Marionneau
  */
-export default  class BGPExecutor {
+export default  class BGPExecutor extends Executor {
   readonly _dataset: Dataset
 
   /**
@@ -76,6 +77,7 @@ export default  class BGPExecutor {
    * @param {Dataset} dataset - RDF Dataset used during query execution
    */
   constructor (dataset: Dataset) {
+    super()
     this._dataset = dataset
   }
 

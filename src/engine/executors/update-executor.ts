@@ -24,6 +24,7 @@ SOFTWARE.
 
 'use strict'
 
+import Executor from './executor'
 import { AsyncIterator, single } from 'asynciterator'
 import { Consumable, ErrorConsumable } from '../../operators/update/consumer'
 import InsertConsumer from '../../operators/update/insert-consumer'
@@ -42,12 +43,12 @@ import { Bindings, BindingBase } from '../../rdf/bindings'
  * @see https://www.w3.org/TR/2013/REC-sparql11-update-20130321
  * @author Thomas Minier
  */
-export default class UpdateExecutor {
+export default class UpdateExecutor extends Executor {
   readonly _dataset: Dataset
-  readonly _builder: any
-  constructor (dataset: Dataset, builder: any) {
+
+  constructor (dataset: Dataset) {
+    super()
     this._dataset = dataset
-    this._builder = builder
   }
 
   /**
@@ -104,8 +105,8 @@ export default class UpdateExecutor {
    * @param  {Object} options - Execution options
    * @return {Consumable} A Consumer used to evaluate SPARQL UPDATE queries
    */
-  _handleInsertDelete (update: Algebra.UpdateQueryNode, options: Object): Consumable {
-    let source = single(new BindingBase())
+  _handleInsertDelete (update: Algebra.UpdateQueryNode, options: any): Consumable {
+    let source: AsyncIterator<Bindings> = single(new BindingBase())
     let graph: Graph | null = null
     let deletes: DeleteConsumer[] = []
     let inserts: InsertConsumer[] = []
@@ -113,14 +114,16 @@ export default class UpdateExecutor {
     if (update.updateType === 'insertdelete') {
       graph = ('graph' in update) ? this._dataset.getNamedGraph(update.graph!) : null
       // evaluate the WHERE clause as a classic SELECT query
-      source = this._builder.build({
+      const node: Algebra.RootNode = {
+        prefixes: options.prefixes,
         type: 'query',
-        where: update.where,
+        where: update.where!,
         queryType: 'SELECT',
         variables: ['*'],
         // copy the FROM clause from the original UPDATE query
         from: ('from' in update) ? update.from : undefined
-      })
+      }
+      source = this._builder!._buildQueryPlan(node)
     }
 
     // build consumers to evaluate DELETE clauses
