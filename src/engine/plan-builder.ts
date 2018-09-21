@@ -24,33 +24,44 @@ SOFTWARE.
 
 'use strict'
 
-import Dataset from '../rdf/dataset'
-import { Bindings, BindingBase } from '../rdf/bindings'
+// General libraries
 import { Algebra, Parser } from 'sparqljs'
 import { AsyncIterator, single } from 'asynciterator'
 import { Consumable } from '../operators/update/consumer'
+// RDF core classes
+import { Bindings, BindingBase } from '../rdf/bindings'
+import Dataset from '../rdf/dataset'
+// SPARQL query operators
 import AggregateOperator from '../operators/aggregates/agg-operator'
 import BindOperator from '../operators/bind-operator'
-import UnionOperator from '../operators/union-operator'
 import DistinctIterator from '../operators/distinct-operator'
+import ExistsOperator from '../operators/exists-operator'
 import FilterOperator from '../operators/filter-operator'
+import MinusOperator from '../operators/minus-operator'
 import OptionalOperator from '../operators/optional-operator'
 import OrderByOperator from '../operators/orderby-operator'
-import ExistsOperator from '../operators/exists-operator'
-import MinusOperator from '../operators/minus-operator'
-// solution modifiers
-import SelectOperator from '../operators/modifiers/select-operator'
+import UnionOperator from '../operators/union-operator'
+// Solution modifiers
 import AskOperator from '../operators/modifiers/ask-operator'
 import ConstructOperator from '../operators/modifiers/construct-operator'
-// executors
+import SelectOperator from '../operators/modifiers/select-operator'
+// Executors
 import AggregateExecutor from './executors/aggregate-executor'
 import BGPExecutor from './executors/bgp-executor'
 import GraphExecutor from './executors/graph-executor'
 import UpdateExecutor from './executors/update-executor'
 import ServiceExecutor from './executors/service-executor'
-// utils
-import * as _ from 'lodash'
-import { deepApplyBindings, extendByBindings, rdf } from '../utils'
+// Utilities
+import {
+  assign,
+  partition,
+  isNull,
+  isString,
+  isUndefined,
+  some,
+  sortBy
+} from 'lodash'
+import { extendByBindings, deepApplyBindings, rdf } from '../utils'
 
 const queryConstructors = {
   SELECT: SelectOperator,
@@ -58,13 +69,25 @@ const queryConstructors = {
   ASK: AskOperator
 }
 
-export type QueryOutput = Bindings | Algebra.TripleObject | string
+/**
+ * Output of a physical query execution plan
+ */
+export type QueryOutput = Bindings | Algebra.TripleObject | boolean
 
 /**
  * A PlanBuilder builds a physical query execution plan of a SPARQL query,
  * i.e., an iterator that can be consumed to get query results.
  * @author Thomas Minier
  * @author Corentin Marionneau
+ * @example
+ *  'use strict'
+ *  import { PlanBuilder, Dataset } from 'saprql-engine'
+ *
+ *  const dataset: Dataset = // Get a RDF dataset...
+ *
+ *  const builder = new PlanBuilder(dataset)
+ *  const iterator = builder.execute('select * where { ?s ?p ?o }')
+ *  iterator.on('data', console.log)
  */
 export default class PlanBuilder {
   readonly _dataset: Dataset
@@ -75,6 +98,11 @@ export default class PlanBuilder {
   private _updateExecutor: UpdateExecutor
   private _serviceExecutor: ServiceExecutor | null
 
+  /**
+   * Constructor
+   * @param {Dataset} dataset - RDF Dataset used for query execution
+   * @param {Object} [prefixes={}] - Optional prefixes to use during query processing
+   */
   constructor (dataset: Dataset, prefixes: any = {}) {
     this._dataset = dataset
     this._parser = new Parser(prefixes)
@@ -167,7 +195,7 @@ export default class PlanBuilder {
    * @return {AsyncIterator} An iterator that can be consumed to evaluate the query.
    */
   _buildQueryPlan (query: Algebra.RootNode, options: any = {}, source?: AsyncIterator<Bindings>): AsyncIterator<Bindings> {
-    if (_.isNull(source) || _.isUndefined(source)) {
+    if (isNull(source) || isUndefined(source)) {
       // build pipeline starting iterator
       source = single(new BindingBase())
     }
@@ -213,7 +241,7 @@ export default class PlanBuilder {
 
     // Parse query variable to separate projection & aggregate variables
     if ('variables' in query) {
-      const parts = _.partition(query.variables, v => _.isString(v))
+      const parts = partition(query.variables, v => isString(v))
       aggregates = parts[1]
       // add aggregates variables to projection variables
       query.variables = parts[0].concat(aggregates.map(agg => (agg as Algebra.Aggregation).variable))
@@ -262,7 +290,7 @@ export default class PlanBuilder {
    * @return {AsyncIterator} An iterator used to evaluate the WHERE clause
    */
   _buildWhere (source: AsyncIterator<Bindings>, groups: Algebra.PlanNode[], options: Object): AsyncIterator<Bindings> {
-    groups = _.sortBy(groups, g => {
+    groups = sortBy(groups, g => {
       switch (g.type) {
         case 'bgp':
           return 0
@@ -276,7 +304,7 @@ export default class PlanBuilder {
     })
 
     // Handle VALUES clauses using query rewriting
-    if (_.some(groups, g => g.type === 'values')) {
+    if (some(groups, g => g.type === 'values')) {
       return this._buildValues(source, groups, options)
     }
 
@@ -287,7 +315,7 @@ export default class PlanBuilder {
       let group = groups[i]
       if (group.type === 'bgp' && prec != null && prec.type === 'bgp') {
         let lastGroup = newGroups[newGroups.length - 1] as Algebra.BGPNode
-        lastGroup.triples = _.concat(lastGroup.triples, (group as Algebra.BGPNode).triples)
+        lastGroup.triples = lastGroup.triples.concat((group as Algebra.BGPNode).triples)
       } else {
         newGroups.push(group)
       }
@@ -309,11 +337,11 @@ export default class PlanBuilder {
    */
   _buildGroup (source: AsyncIterator<Bindings>, group: Algebra.PlanNode, options: Object): AsyncIterator<Bindings> {
     // Reset flags on the options for child iterators
-    let childOptions = _.assign({}, options)
+    let childOptions = assign({}, options)
 
     switch (group.type) {
       case 'bgp':
-        if (_.isNull(this._bgpExecutor)) {
+        if (isNull(this._bgpExecutor)) {
           throw new Error('A PlanBuilder cannot evaluate a Basic Graph Pattern without a BGPExecutor')
         }
         // var copyGroup = Object.assign({}, group)
@@ -337,13 +365,13 @@ export default class PlanBuilder {
       case 'query':
         return this._buildQueryPlan(group as Algebra.RootNode, options, source)
       case 'graph':
-        if (_.isNull(this._graphExecutor)) {
+        if (isNull(this._graphExecutor)) {
           throw new Error('A PlanBuilder cannot evaluate a GRAPH clause without a GraphExecutor')
         }
         // delegate GRAPH evaluation to an executor
         return this._graphExecutor.buildIterator(source, group as Algebra.GraphNode, childOptions)
       case 'service':
-        if (_.isNull(this._serviceExecutor)) {
+        if (isNull(this._serviceExecutor)) {
           throw new Error('A PlanBuilder cannot evaluate a SERVICE clause without a ServiceExecutor')
         }
         // delegate SERVICE evaluation to an executor
@@ -351,7 +379,6 @@ export default class PlanBuilder {
       case 'group':
         return this._buildWhere(source, (group as Algebra.GroupNode).patterns, childOptions)
       case 'optional':
-        // childOptions = _.assign({ optional: true }, options)
         return new OptionalOperator(source, (group as Algebra.GroupNode).patterns, this, options)
       case 'union':
         return new UnionOperator(...(group as Algebra.GroupNode).patterns.map(patternToken => {
@@ -389,7 +416,7 @@ export default class PlanBuilder {
    * @return {AsyncIterator} An iterator which evaluates a SPARQL query with VALUES clause(s)
    */
   _buildValues (source: AsyncIterator<Bindings>, groups: Algebra.PlanNode[], options: Object): AsyncIterator<Bindings> {
-    let [ values, others ] = _.partition(groups, g => g.type === 'values')
+    let [ values, others ] = partition(groups, g => g.type === 'values')
     const bindingsLists = values.map(g => (g as Algebra.ValuesNode).values)
     // for each VALUES clause
     const iterators = bindingsLists.map(bList => {
