@@ -228,7 +228,7 @@ The following example show you how to install your custom executors on a `PlanBu
 
 # Documentation
 
-To generate the documentation:
+To generate the documentation in the `docs` director:
 ```bash
 git clone https://github.com/Callidon/sparql-engine.git
 cd sparql-engine
