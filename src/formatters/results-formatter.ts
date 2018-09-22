@@ -38,9 +38,15 @@ import { RDFTerm } from '../rdf-terms'
  * @author Corentin Marionneau
  */
 export default abstract class ResultsFormatter<T> extends TransformIterator<Bindings | boolean, T> {
-  readonly _variables: string[]
+  private readonly _variables: string[]
   private _empty: boolean
 
+  /**
+   * Constructor
+   * @param source  - Source iterator
+   * @param variables - Query variables
+   * @param options - Execution options
+   */
   constructor (source: AsyncIterator<Bindings | boolean>, variables: any, options: Object = {}) {
     super(source, options)
     this._empty = true
@@ -56,6 +62,10 @@ export default abstract class ResultsFormatter<T> extends TransformIterator<Bind
     })
   }
 
+  /**
+   * Return true if the source iterator has yield no results
+   * @return True if the source iterator has yield no results
+   */
   get empty (): boolean {
     return this._empty
   }
@@ -64,9 +74,31 @@ export default abstract class ResultsFormatter<T> extends TransformIterator<Bind
     this._writeHead(this._variables.map(v => v.substring(1)), done)
   }
 
+  /**
+   * Called to append any "heading" data to the results.
+   * Implementers must call `this._push()` to write data.
+   * @param variables - SPARQL variables found in the query
+   * @param done - To be called when writing is complete
+   */
   _writeHead (variables: string[], done: () => void): void {
     done()
   }
+
+  /**
+   * Write a set of bindings in the output format.
+   * Implementers must call `this._push()` to push values in the iterators.
+   * @param result - Tuple [variable, value] to be transformed into the output format
+   * @param done - To be called when writing is complete
+   */
+  abstract _writeBindings (result: [string, RDFTerm], done: () => void): void
+
+  /**
+   * Write a boolean result in the output format.
+   * Implementers must call `this._push()` to push values in the iterators.
+   * @param result - Boolean result
+   * @param done - To be called when writing is complete
+   */
+  abstract _writeBoolean (result: boolean, done: () => void): void
 
   _transform (bindings: Bindings | boolean, done: () => void): void {
     if (isBoolean(bindings)) {
@@ -82,8 +114,4 @@ export default abstract class ResultsFormatter<T> extends TransformIterator<Bind
     }
     this._empty = false
   }
-
-  abstract _writeBindings (result: [string, RDFTerm], done: () => void): void
-
-  abstract _writeBoolean (result: boolean, done: () => void): void
 }

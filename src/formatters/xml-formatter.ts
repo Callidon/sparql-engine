@@ -39,9 +39,9 @@ import { RDFTerm } from '../rdf-terms'
  * @author Corentin Marionneau
  */
 export default class XMLFormatter extends ResultsFormatter<string> {
-  readonly _root: any
-  readonly _results: any
-  readonly _stream: any
+  private readonly _root: any
+  private readonly _results: any
+  private readonly _stream: any
 
   constructor (source: AsyncIterator<Bindings | boolean>, variables: any[], options: Object) {
     super(source, variables, options)
