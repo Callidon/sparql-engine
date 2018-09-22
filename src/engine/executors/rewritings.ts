@@ -30,7 +30,7 @@ import Dataset from '../../rdf/dataset'
 /**
  * Create a triple pattern that matches all RDF triples in a graph
  * @private
- * @return {Object} A triple pattern that matches all RDF triples in a graph
+ * @return A triple pattern that matches all RDF triples in a graph
  */
 function allPattern (): Algebra.TripleObject {
   return {
@@ -43,7 +43,7 @@ function allPattern (): Algebra.TripleObject {
 /**
  * Create a BGP that matches all RDF triples in a graph
  * @private
- * @return {Object} A BGP that matches all RDF triples in a graph
+ * @return A BGP that matches all RDF triples in a graph
  */
 function allBGP (): Algebra.BGPNode {
   return {
@@ -55,11 +55,11 @@ function allBGP (): Algebra.BGPNode {
 /**
  * Build a SPARQL GROUP that selects all RDF triples from the Default Graph or a Named Graph
  * @private
- * @param  {Object}  source          - Source graph
- * @param  {dataset} dataset         - RDF dataset used to select the source
- * @param  {Boolean} isSilent        - True if errors should not be reported
- * @param  {Boolean} [isWhere=false] - True if the GROUP should belong to a WHERE clause
- * @return {Object} The SPARQL GROUP clasue
+ * @param  source          - Source graph
+ * @param  dataset         - RDF dataset used to select the source
+ * @param  isSilent        - True if errors should not be reported
+ * @param  [isWhere=false] - True if the GROUP should belong to a WHERE clause
+ * @return The SPARQL GROUP clasue
  */
 function buildGroupClause (source: Algebra.UpdateGraphTarget, dataset: Dataset, isSilent: boolean): Algebra.BGPNode | Algebra.UpdateGraphNode {
   if (source.default) {
@@ -80,11 +80,11 @@ function buildGroupClause (source: Algebra.UpdateGraphTarget, dataset: Dataset, 
 /**
  * Build a SPARQL WHERE that selects all RDF triples from the Default Graph or a Named Graph
  * @private
- * @param  {Object}  source          - Source graph
- * @param  {dataset} dataset         - RDF dataset used to select the source
- * @param  {Boolean} isSilent        - True if errors should not be reported
- * @param  {Boolean} [isWhere=false] - True if the GROUP should belong to a WHERE clause
- * @return {Object} The SPARQL GROUP clasue
+ * @param  source          - Source graph
+ * @param  dataset         - RDF dataset used to select the source
+ * @param  isSilent        - True if errors should not be reported
+ * @param  [isWhere=false] - True if the GROUP should belong to a WHERE clause
+ * @return The SPARQL GROUP clasue
  */
 function buildWhereClause (source: Algebra.UpdateGraphTarget, dataset: Dataset, isSilent: boolean): Algebra.BGPNode | Algebra.GraphNode {
   if (source.default) {
@@ -109,9 +109,9 @@ function buildWhereClause (source: Algebra.UpdateGraphTarget, dataset: Dataset, 
 /**
  * Rewrite an ADD query into a INSERT query
  * @see https://www.w3.org/TR/2013/REC-sparql11-update-20130321/#add
- * @param  {Object} addQuery - Parsed ADD query
- * @param  {Dataset} dataset - related RDF dataset
- * @return {Object} Rewritten ADD query
+ * @param  addQuery - Parsed ADD query
+ * @param  dataset - related RDF dataset
+ * @return Rewritten ADD query
  */
 export function rewriteAdd (addQuery: Algebra.UpdateCopyMoveNode, dataset: Dataset): Algebra.UpdateQueryNode {
   return {
@@ -125,9 +125,9 @@ export function rewriteAdd (addQuery: Algebra.UpdateCopyMoveNode, dataset: Datas
 /**
  * Rewrite a COPY query into a CLEAR + INSERT/DELETE query
  * @see https://www.w3.org/TR/2013/REC-sparql11-update-20130321/#copy
- * @param  {Object} copyQuery - Parsed COPY query
- * @param  {Dataset} dataset - related RDF dataset
- * @return {Object[]} Rewritten COPY query, i.e., a sequence [CLEAR query, INSERT query]
+ * @param copyQuery - Parsed COPY query
+ * @param dataset - related RDF dataset
+ * @return Rewritten COPY query, i.e., a sequence [CLEAR query, INSERT query]
  */
 export function rewriteCopy (copyQuery: Algebra.UpdateCopyMoveNode, dataset: Dataset): [Algebra.UpdateClearNode, Algebra.UpdateQueryNode] {
   // first, build a CLEAR query to empty the destination
@@ -150,9 +150,9 @@ export function rewriteCopy (copyQuery: Algebra.UpdateCopyMoveNode, dataset: Dat
 /**
  * Rewrite a MOVE query into a CLEAR + INSERT/DELETE + CLEAR query
  * @see https://www.w3.org/TR/2013/REC-sparql11-update-20130321/#move
- * @param  {Object} moveQuery - Parsed MOVE query
- * @param  {Dataset} dataset - related RDF dataset
- * @return {Object[]} Rewritten MOVE query, i.e., a sequence [CLEAR query, INSERT query, CLEAR query]
+ * @param moveQuery - Parsed MOVE query
+ * @param dataset - related RDF dataset
+ * @return Rewritten MOVE query, i.e., a sequence [CLEAR query, INSERT query, CLEAR query]
  */
 export function rewriteMove (moveQuery: Algebra.UpdateCopyMoveNode, dataset: Dataset): [Algebra.UpdateClearNode, Algebra.UpdateQueryNode, Algebra.UpdateClearNode] {
   // first, build a classic COPY query

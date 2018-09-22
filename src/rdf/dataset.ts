@@ -36,34 +36,34 @@ export default abstract class Dataset {
   abstract get iris (): string[]
   /**
    * Set the Default Graph of the Dataset
-   * @param {Graph} g - Default Graph
+   * @param g - Default Graph
    */
   abstract setDefaultGraph (g: Graph): void
 
   /**
    * Get the Default Graph of the Dataset
-   * @return {Graph} The Default Graph of the Dataset
+   * @return The Default Graph of the Dataset
    */
   abstract getDefaultGraph (): Graph
 
   /**
    * Add a Named Graph to the Dataset
-   * @param {string} iri - IRI of the Named Graph
-   * @param {Graph} g    - RDF Graph
+   * @param iri - IRI of the Named Graph
+   * @param g    - RDF Graph
    */
   abstract addNamedGraph (iri: string, g: Graph): void
 
   /**
    * Get a Named Graph using its IRI
    * @param  {string} iri - IRI of the Named Graph to retrieve
-   * @return {Graph} The corresponding Named Graph
+   * @return The corresponding Named Graph
    */
   abstract getNamedGraph (iri: string): Graph
 
   /**
    * Return True if the Dataset contains a Named graph with the provided IRI
    * @param  {string} iri - IRI of the Named Graph
-   * @return {boolean} True if the Dataset contains a Named graph with the provided IRI
+   * @return True if the Dataset contains a Named graph with the provided IRI
    */
   abstract hasNamedGraph (iri: string): boolean
 
@@ -72,7 +72,7 @@ export default abstract class Dataset {
    * from the RDF Graphs in the Dataset.
    * @param  {string[]} iris                  - Iris of the named graphs to include in the union
    * @param  {Boolean} [includeDefault=false] - True if the default graph should be included
-   * @return {UnionGraph} The dynamic union of several graphs in the Dataset
+   * @return The dynamic union of several graphs in the Dataset
    */
   getUnionGraph (iris: string[], includeDefault: boolean = false): UnionGraph {
     let graphs: Graph[] = []
@@ -86,7 +86,7 @@ export default abstract class Dataset {
   /**
    * Returns all Graphs in the Dataset, including the Default one
    * @param  {Boolean} [includeDefault=false] - True if the default graph should be included
-   * @return {Graph[]} The list of all graphs in the Dataset
+   * @return The list of all graphs in the Dataset
    */
   getAllGraphs (includeDefault: boolean = true): Graph[] {
     const graphs: Graph[] = []

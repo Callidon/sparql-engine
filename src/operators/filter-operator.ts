@@ -31,13 +31,19 @@ import { Bindings } from '../rdf/bindings'
 
 /**
  * Evaluate SPARQL Filter clauses
- * @see https://www.w3.org/TR/sparql11-query/#expressions
+ * @see {@link https://www.w3.org/TR/sparql11-query/#expressions}
  * @extends TransformIterator
  * @author Thomas Minier
  */
 export default class FilterOperator extends TransformIterator<Bindings,Bindings> {
   private readonly _expression: SPARQLExpression
 
+  /**
+   * Constructor
+   * @param source  - Source iterator
+   * @param expression - FILTER expression
+   * @param options - Execution options
+   */
   constructor (source: AsyncIterator<Bindings>, expression: Algebra.Expression, options: Object) {
     super(source, options)
     this._expression = new SPARQLExpression(expression)

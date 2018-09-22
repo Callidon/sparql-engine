@@ -40,9 +40,9 @@ export default class OrderByOperator extends MaterializeOperator {
   private _comparator: (left: Bindings, right: Bindings) => number
   /**
    * Constructor
-   * @param {AsyncIterator} source - Source iterator
-   * @param {Object[]} comparators - Parsed ORDER BY clause
-   * @param {Object} options - Execution options
+   * @param source - Source iterator
+   * @param comparators - Parsed ORDER BY clause
+   * @param options - Execution options
    */
   constructor (source: AsyncIterator<Bindings>, comparators: Algebra.OrderComparator[], options: Object) {
     super(source, options)
@@ -55,7 +55,12 @@ export default class OrderByOperator extends MaterializeOperator {
     }))
   }
 
-  _buildComparator (comparators: Algebra.OrderComparator[]) {
+  /**
+   * Build a comparator function from an ORDER BY clause content
+   * @param  comparators - ORDER BY comparators
+   * @return A comparator function
+   */
+  private _buildComparator (comparators: Algebra.OrderComparator[]) {
     const comparatorsFuncs = comparators.map((c: Algebra.OrderComparator) => {
       return (left: Bindings, right: Bindings) => {
         if (left.get(c.expression)! < right.get(c.expression)!) {

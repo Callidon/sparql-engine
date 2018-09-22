@@ -57,11 +57,21 @@ function bindArgument (variable: string): (bindings: Bindings) => RDFTerm | null
  */
 export default class SPARQLExpression {
   private readonly _expression: CompiledExpression
+
+  /**
+   * Constructor
+   * @param expression - SPARQL expression
+   */
   constructor (expression: InputExpression) {
     this._expression = this._compileExpression(expression)
   }
 
-  _compileExpression (expression: InputExpression): CompiledExpression {
+  /**
+   * Recursively compile a SPARQL expression into a function
+   * @param  expression - SPARQL expression
+   * @return Compiled SPARQL expression
+   */
+  private _compileExpression (expression: InputExpression): CompiledExpression {
     // simple case: the expression is a SPARQL variable or a RDF term
     if (isString(expression)) {
       if (rdf.isVariable(expression)) {
@@ -101,7 +111,12 @@ export default class SPARQLExpression {
     throw new Error(`Unsupported SPARQL operation type found: ${expression.type}`)
   }
 
-  evaluate (bindings: Bindings) {
+  /**
+   * Evaluate the expression using a set of mappings
+   * @param  bindings - Set of mappings
+   * @return Results of the evaluation
+   */
+  evaluate (bindings: Bindings): RDFTerm | RDFTerm[] | null {
     return this._expression(bindings)
   }
 }

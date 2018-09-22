@@ -38,10 +38,10 @@ import { Bindings } from '../../rdf/bindings'
 export default abstract class ServiceExecutor extends Executor {
   /**
    * Build an iterator to evaluate a SERVICE clause
-   * @param  {AsyncIterator}  source  - Source iterator
-   * @param  {Object}         node    - Service clause
-   * @param  {Object}         options - Execution options
-   * @return {AsyncIterator} An iterator used to evaluate a SERVICE clause
+   * @param  source  - Source iterator
+   * @param  node    - Service clause
+   * @param  options - Execution options
+   * @return An iterator used to evaluate a SERVICE clause
    */
   buildIterator (source: AsyncIterator<Bindings>, node: Algebra.ServiceNode, options: any): AsyncIterator<Bindings> {
     let subquery: Algebra.RootNode
@@ -62,11 +62,11 @@ export default abstract class ServiceExecutor extends Executor {
   /**
    * Returns an iterator used to evaluate a SERVICE clause
    * @abstract
-   * @param  {AsyncIterator}  source    - Source iterator
-   * @param  {string}         iri       - Iri of the SERVICE clause
-   * @param  {Object}         subquery  - Subquery to be evaluated
-   * @param  {Object}         options   - Execution options
-   * @return {AsyncIterator} An iterator used to evaluate a SERVICE clause
+   * @param source    - Source iterator
+   * @param iri       - Iri of the SERVICE clause
+   * @param subquery  - Subquery to be evaluated
+   * @param options   - Execution options
+   * @return An iterator used to evaluate a SERVICE clause
    */
   abstract _execute (source: AsyncIterator<Bindings>, iri: string, subquery: Algebra.RootNode, options: Object): AsyncIterator<Bindings>
 }

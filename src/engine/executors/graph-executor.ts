@@ -42,7 +42,7 @@ export default class GraphExecutor extends Executor {
 
   /**
    * Constructor
-   * @param {Dataset} dataset - RDF Dataset used during query execution
+   * @param dataset - RDF Dataset used during query execution
    */
   constructor (dataset: Dataset) {
     super()
@@ -51,10 +51,10 @@ export default class GraphExecutor extends Executor {
 
   /**
    * Build an iterator to evaluate a GRAPH clause
-   * @param  {AsyncIterator}  source  - Source iterator
-   * @param  {Object}         node    - Graph clause
-   * @param  {Object}         options - Execution options
-   * @return {AsyncIterator} An iterator used to evaluate a GRAPH clause
+   * @param  source  - Source iterator
+   * @param  node    - Graph clause
+   * @param  options - Execution options
+   * @return An iterator used to evaluate a GRAPH clause
    */
   buildIterator (source: AsyncIterator<Bindings>, node: Algebra.GraphNode, options: any): AsyncIterator<Bindings> {
     let subquery: Algebra.RootNode
@@ -85,11 +85,11 @@ export default class GraphExecutor extends Executor {
 
   /**
    * Returns an iterator used to evaluate a GRAPH clause
-   * @param  {AsyncIterator}  source    - Source iterator
-   * @param  {string}         iri       - IRI of the GRAPH clause
-   * @param  {Object}         subquery  - Subquery to be evaluated
-   * @param  {Object}         options   - Execution options
-   * @return {AsyncIterator} An iterator used to evaluate a GRAPH clause
+   * @param  source    - Source iterator
+   * @param  iri       - IRI of the GRAPH clause
+   * @param  subquery  - Subquery to be evaluated
+   * @param  options   - Execution options
+   * @return An iterator used to evaluate a GRAPH clause
    */
   _execute (source: AsyncIterator<Bindings>, iri: string, subquery: Algebra.RootNode, options: any): AsyncIterator<Bindings> {
     const opts = cloneDeep(options)

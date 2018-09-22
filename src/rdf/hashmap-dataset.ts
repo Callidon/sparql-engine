@@ -37,8 +37,8 @@ export default class HashMapDataset extends Dataset {
   private readonly _namedGraphs: Map<string, Graph>
   /**
    * Constructor
-   * @param {string} defaultGraphIRI - IRI of the Default Graph
-   * @param {Graph} defaultGraph     - Default Graph
+   * @param defaultGraphIRI - IRI of the Default Graph
+   * @param defaultGraph     - Default Graph
    */
   constructor (defaultGraphIRI: string, defaultGraph: Graph) {
     super()

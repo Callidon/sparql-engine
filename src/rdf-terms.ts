@@ -62,9 +62,9 @@ export interface TypedLiteral extends RDFTerm {
 
 /**
  * Parse a RDF Literal to its Javascript representation
- * @param  {string} value - Literal value
- * @param  {string} type - Literal datatype
- * @return {String|Number|Date} Javascript representation of the literal
+ * @param value - Literal value
+ * @param type - Literal datatype
+ * @return Javascript representation of the literal
  */
 function literalToJS (value: string, type: string): any {
   switch (type) {
@@ -87,8 +87,8 @@ function literalToJS (value: string, type: string): any {
 
 /**
  * Creates an IRI in {@link RDFTerm} format
- * @param {string} iri - IRI
- * @return {IRI} A new IRI in {@link RDFTerm} format
+ * @param iri - IRI
+ * @return A new IRI in {@link RDFTerm} format
  */
 export function IRIDescriptor (iri: string): IRI {
   return {
@@ -101,8 +101,8 @@ export function IRIDescriptor (iri: string): IRI {
 
 /**
  * Creates a Literal in {@link RDFTerm} format
- * @param {string} literal - Literal
- * @return {RawLiteral} A new Literal in {@link RDFTerm} format
+ * @param literal - Literal
+ * @return A new Literal in {@link RDFTerm} format
  */
 export function RawLiteralDescriptor (literal: string): RawLiteral {
   const rdf = `"${literal}"`
@@ -116,9 +116,9 @@ export function RawLiteralDescriptor (literal: string): RawLiteral {
 
 /**
  * Creates a Literal with a datatype, in {@link RDFTerm} format
- * @param {string} literal - Literal
- * @param {string} type - Literal datatype
- * @return {TypedLiteral} A new typed Literal in {@link RDFTerm} format
+ * @param literal - Literal
+ * @param type - Literal datatype
+ * @return A new typed Literal in {@link RDFTerm} format
  */
 export function TypedLiteralDescriptor (literal: string, type: string): TypedLiteral {
   return {
@@ -132,9 +132,9 @@ export function TypedLiteralDescriptor (literal: string, type: string): TypedLit
 
 /**
  * Creates a Literal with a language tag, in {@link RDFTerm} format
- * @param {string} literal - Literal
- * @param {string} lang - Language tag
- * @return {LangLiteral} A new tagged Literal in {@link RDFTerm} format
+ * @param literal - Literal
+ * @param lang - Language tag
+ * @return A new tagged Literal in {@link RDFTerm} format
  */
 export function LangLiteralDescriptor (literal: string, lang: string): LangLiteral {
   const rdf = `"${literal}"@${lang}`
@@ -149,8 +149,8 @@ export function LangLiteralDescriptor (literal: string, lang: string): LangLiter
 
 /**
  * Creates a Literal from a boolean, in {@link RDFTerm} format
- * @param {boolean} value - Boolean
- * @return {TypedLiteral} A new typed Literal in {@link RDFTerm} format
+ * @param value - Boolean
+ * @return A new typed Literal in {@link RDFTerm} format
  */
 export function BooleanDescriptor (value: boolean): TypedLiteral {
   return {
@@ -164,9 +164,9 @@ export function BooleanDescriptor (value: boolean): TypedLiteral {
 
 /**
  * Creates a Literal from a number, in {@link RDFTerm} format
- * @param {number} value - Number
- * @param {string} type - Literal type
- * @return {TypedLiteral} A new typed Literal in {@link RDFTerm} format
+ * @param value - Number
+ * @param type - Literal type
+ * @return A new typed Literal in {@link RDFTerm} format
  */
 export function NumericOperation (value: number, type: string): TypedLiteral {
   return {
@@ -180,8 +180,8 @@ export function NumericOperation (value: number, type: string): TypedLiteral {
 
 /**
  * Creates a Literal from a Moment date, in {@link RDFTerm} format
- * @param {Moment} date - A Date, in Moment format
- * @return {TypedLiteral} A new typed Literal in {@link RDFTerm} format
+ * @param date - A Date, in Moment format
+ * @return A new typed Literal in {@link RDFTerm} format
  */
 export function DateLiteral (date: Moment): TypedLiteral {
   const value = date.toISOString()

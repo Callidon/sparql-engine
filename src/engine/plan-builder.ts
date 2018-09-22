@@ -79,15 +79,6 @@ export type QueryOutput = Bindings | Algebra.TripleObject | boolean
  * i.e., an iterator that can be consumed to get query results.
  * @author Thomas Minier
  * @author Corentin Marionneau
- * @example
- *  'use strict'
- *  import { PlanBuilder, Dataset } from 'saprql-engine'
- *
- *  const dataset: Dataset = // Get a RDF dataset...
- *
- *  const builder = new PlanBuilder(dataset)
- *  const iterator = builder.execute('select * where { ?s ?p ?o }')
- *  iterator.on('data', console.log)
  */
 export default class PlanBuilder {
   private readonly _dataset: Dataset
@@ -100,8 +91,8 @@ export default class PlanBuilder {
 
   /**
    * Constructor
-   * @param {Dataset} dataset - RDF Dataset used for query execution
-   * @param {Object} [prefixes={}] - Optional prefixes to use during query processing
+   * @param dataset - RDF Dataset used for query execution
+   * @param prefixes - Optional prefixes to use during query processing
    */
   constructor (dataset: Dataset, prefixes: any = {}) {
     this._dataset = dataset
@@ -117,7 +108,7 @@ export default class PlanBuilder {
 
   /**
    * Set the BGP executor used to evaluate Basic Graph patterns
-   * @param {BGPExecutor} executor - Executor used to evaluate Basic Graph patterns
+   * @param executor - Executor used to evaluate Basic Graph patterns
    */
   set bgpExecutor (executor: BGPExecutor) {
     this._bgpExecutor.builder = null
@@ -127,7 +118,7 @@ export default class PlanBuilder {
 
   /**
    * Set the BGP executor used to evaluate SPARQL Aggregates
-   * @param {AggregateExecutor} executor - Executor used to evaluate SPARQL Aggregates
+   * @param executor - Executor used to evaluate SPARQL Aggregates
    */
   set aggregateExecutor (executor: AggregateExecutor) {
     this._bgpExecutor.builder = null
@@ -137,7 +128,7 @@ export default class PlanBuilder {
 
   /**
    * Set the BGP executor used to evaluate SPARQL GRAPH clauses
-   * @param {GraphExecutor} executor - Executor used to evaluate SPARQL GRAPH clauses
+   * @param executor - Executor used to evaluate SPARQL GRAPH clauses
    */
   set graphExecutor (executor: GraphExecutor) {
     this._bgpExecutor.builder = null
@@ -147,7 +138,7 @@ export default class PlanBuilder {
 
   /**
    * Set the BGP executor used to evaluate SPARQL UPDATE queries
-   * @param {UpdateExecutor} executor - Executor used to evaluate SPARQL UPDATE queries
+   * @param executor - Executor used to evaluate SPARQL UPDATE queries
    */
   set updateExecutor (executor: UpdateExecutor) {
     this._bgpExecutor.builder = null
@@ -157,7 +148,7 @@ export default class PlanBuilder {
 
   /**
    * Set the executor used to evaluate SERVICE clauses
-   * @param {ServiceExecutor} executor - Executor used to evaluate SERVICE clauses
+   * @param executor - Executor used to evaluate SERVICE clauses
    */
   set serviceExecutor (executor: ServiceExecutor) {
     this._bgpExecutor.builder = null
@@ -168,9 +159,9 @@ export default class PlanBuilder {
   /**
    * Build the physical query execution of a SPARQL 1.1 query
    * and returns an iterator that can be consumed to evaluate the query.
-   * @param  {string}  query        - SPARQL query to evaluated
-   * @param  {Object} [options={}]  - Execution options
-   * @return {AsyncIterator} An iterator that can be consumed to evaluate the query.
+   * @param  query        - SPARQL query to evaluated
+   * @param  options  - Execution options
+   * @return An iterator that can be consumed to evaluate the query.
    */
   build (query: any, options: any = {}): AsyncIterator<QueryOutput> | Consumable {
     // If needed, parse the string query into a logical query execution plan
@@ -189,10 +180,10 @@ export default class PlanBuilder {
 
   /**
    * Build the physical query execution of a SPARQL query
-   * @param  {Object}        query         - Parsed SPARQL query
-   * @param  {Object}        [options={}]  - Execution options
-   * @param  {AsyncIterator} [source=null] - Source iterator
-   * @return {AsyncIterator} An iterator that can be consumed to evaluate the query.
+   * @param  query         - Parsed SPARQL query
+   * @param  options  - Execution options
+   * @param  source - Source iterator
+   * @return An iterator that can be consumed to evaluate the query.
    */
   _buildQueryPlan (query: Algebra.RootNode, options: any = {}, source?: AsyncIterator<Bindings>): AsyncIterator<Bindings> {
     if (isNull(source) || isUndefined(source)) {
@@ -284,10 +275,10 @@ export default class PlanBuilder {
 
   /**
    * Optimize a WHERE clause and build the corresponding physical plan
-   * @param  {AsyncIterator} source  - Source iterator
-   * @param  {Object[]}     groups   - WHERE clause to process
-   * @param  {Object}       options  - Execution options
-   * @return {AsyncIterator} An iterator used to evaluate the WHERE clause
+   * @param  source  - Source iterator
+   * @param  groups   - WHERE clause to process
+   * @param  options  - Execution options
+   * @return An iterator used to evaluate the WHERE clause
    */
   _buildWhere (source: AsyncIterator<Bindings>, groups: Algebra.PlanNode[], options: Object): AsyncIterator<Bindings> {
     groups = sortBy(groups, g => {
@@ -330,10 +321,10 @@ export default class PlanBuilder {
 
   /**
    * Build a physical plan for a SPARQL group clause
-   * @param  {AsyncIterator} source  - Source iterator
-   * @param  {Object}        group   - SPARQL Group
-   * @param  {Object}        options - Execution options
-   * @return {AsyncIterator} AN iterator used to evaluate the SPARQL Group
+   * @param  source  - Source iterator
+   * @param  group   - SPARQL Group
+   * @param  options - Execution options
+   * @return An iterator used to evaluate the SPARQL Group
    */
   _buildGroup (source: AsyncIterator<Bindings>, group: Algebra.PlanNode, options: Object): AsyncIterator<Bindings> {
     // Reset flags on the options for child iterators
@@ -410,10 +401,10 @@ export default class PlanBuilder {
    * Build an iterator which evaluates a SPARQL query with VALUES clause(s).
    * It rely on a query rewritiing approach:
    * ?s ?p ?o . VALUES ?s { :1 :2 } becomes {:1 ?p ?o} UNION {:2 ?p ?o}
-   * @param  {AsyncIterator} source  - Source iterator
-   * @param  {Object[]} groups  - Query body, i.e., WHERE clause
-   * @param  {Object} options - Execution options
-   * @return {AsyncIterator} An iterator which evaluates a SPARQL query with VALUES clause(s)
+   * @param source  - Source iterator
+   * @param groups  - Query body, i.e., WHERE clause
+   * @param options - Execution options
+   * @return An iterator which evaluates a SPARQL query with VALUES clause(s)
    */
   _buildValues (source: AsyncIterator<Bindings>, groups: Algebra.PlanNode[], options: Object): AsyncIterator<Bindings> {
     let [ values, others ] = partition(groups, g => g.type === 'values')

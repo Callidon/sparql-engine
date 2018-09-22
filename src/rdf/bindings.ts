@@ -39,47 +39,46 @@ export abstract class Bindings {
 
   /**
    * The number of mappings in the set
-   * @return {number} The number of mappings in the set
+   * @return The number of mappings in the set
    */
   abstract get size (): number
 
   /**
    * Returns True if the set is empty, False otherwise
-   * @return {boolean} True if the set is empty, False otherwise
+   * @return True if the set is empty, False otherwise
    */
   abstract get isEmpty (): boolean
 
   /**
    * Get an iterator over the SPARQL variables in the set
-   * @return {IterableIterator<string>} An iterator over the SPARQL variables in the set
+   * @return An iterator over the SPARQL variables in the set
    */
   abstract variables (): IterableIterator<string>
 
   /**
    * Get an iterator over the RDF terms in the set
-   * @return {IterableIterator<string>} An iterator over the RDF terms in the set
+   * @return An iterator over the RDF terms in the set
    */
   abstract values (): IterableIterator<string>
 
   /**
    * Get the RDF Term associated with a SPARQL variable
-   * @param {string} variable - SPARQL variable
-   * @return {string|null} The RDF Term associated with the given SPARQL variable
+   * @param variable - SPARQL variable
+   * @return The RDF Term associated with the given SPARQL variable
    */
   abstract get (variable: string): string | null
 
   /**
    * Test if mappings exists for a SPARQL variable
-   * @param {string} variable - SPARQL variable
-   * @return {boolean} True if a mappings exists for this variable, False otherwise
+   * @param variable - SPARQL variable
+   * @return True if a mappings exists for this variable, False otherwise
    */
   abstract has (variable: string): boolean
 
   /**
    * Add a mapping SPARQL variable -> RDF Term to the set
-   * @param {string} variable - SPARQL variable
-   * @param {string} value - RDF Term
-   * @return {void}
+   * @param variable - SPARQL variable
+   * @param value - RDF Term
    */
   abstract set (variable: string, value: string): void
 
@@ -97,20 +96,20 @@ export abstract class Bindings {
 
   /**
    * Invoke a callback on each mapping
-   * @param {function} callback - Callback to invoke
-   * @return {void}
+   * @param callback - Callback to invoke
+   * @return
    */
   abstract forEach (callback: (variable: string, value: string) => void): void
 
   /**
    * Remove all mappings from the set
-   * @return {void}
+   * @return
    */
   abstract clear (): void
 
   /**
    * Returns an empty set of mappings
-   * @return {Bindings} An empty set of mappings
+   * @return An empty set of mappings
    */
   abstract empty (): Bindings
 
@@ -123,7 +122,7 @@ export abstract class Bindings {
 
   /**
    * Creates a deep copy of the set of mappings
-   * @return {Bindings} A deep copy of the set
+   * @return A deep copy of the set
    */
   clone (): Bindings {
     const cloned = this.empty()
@@ -141,8 +140,8 @@ export abstract class Bindings {
 
   /**
    * Test the equality between two sets of mappings
-   * @param {Bindings} other - A set of mappings
-   * @return {boolean} True if the two sets are equal, False otherwise
+   * @param other - A set of mappings
+   * @return True if the two sets are equal, False otherwise
    */
   equals (other: Bindings): boolean {
     if (this.size !== other.size) {
@@ -158,8 +157,8 @@ export abstract class Bindings {
 
   /**
    * Bound a triple pattern using the set of mappings, i.e., substitute variables in the triple pattern
-   * @param {Object} triple  - Triple pattern
-   * @return {Object} An new, bounded triple pattern
+   * @param triple  - Triple pattern
+   * @return An new, bounded triple pattern
    */
   bound (triple: Algebra.TripleObject): Algebra.TripleObject {
     const newTriple = Object.assign({}, triple)
@@ -177,8 +176,8 @@ export abstract class Bindings {
 
   /**
    * Creates a new bindings with additionnal mappings
-   * @param  {Array<[string, string]>} values - Pairs [variable, value] to add to the set
-   * @return {Bindings} A new Bindings with the additionnal mappings
+   * @param values - Pairs [variable, value] to add to the set
+   * @return A new Bindings with the additionnal mappings
    */
   extendMany (values: Array<[string, string]>): Bindings {
     const cloned = this.clone()
@@ -190,8 +189,8 @@ export abstract class Bindings {
 
   /**
    * Perform the union of the set of mappings with another set
-   * @param {Bindings} other - Set of mappings
-   * @return {Bindings} The Union set of mappings
+   * @param other - Set of mappings
+   * @return The Union set of mappings
    */
   union (other: Bindings): Bindings {
     const cloned = this.clone()
@@ -203,8 +202,8 @@ export abstract class Bindings {
 
   /**
    * Perform the intersection of the set of mappings with another set
-   * @param {Bindings} other - Set of mappings
-   * @return {Bindings} The Intersection set of mappings
+   * @param other - Set of mappings
+   * @return The Intersection set of mappings
    */
   intersection (other: Bindings): Bindings {
     const res = this.empty()
@@ -218,8 +217,8 @@ export abstract class Bindings {
 
   /**
    * Creates a new set of mappings using a function to transform the current set
-   * @param {function} mapper - Transformation function (variable, value) => [string, string]
-   * @return {Bindings} A new set of mappings
+   * @param mapper - Transformation function (variable, value) => [string, string]
+   * @return A new set of mappings
    */
   map (mapper: (variable: string, value: string) => [string | null, string | null]): Bindings {
     const result = this.empty()
@@ -234,8 +233,8 @@ export abstract class Bindings {
 
   /**
    * Same as map, but only transform variables
-   * @param {function} mapper - Transformation function
-   * @return {Bindings} A new set of mappings
+   * @param mapper - Transformation function
+   * @return A new set of mappings
    */
   mapVariables (mapper: (variable: string, value: string) => string | null): Bindings {
     return this.map((variable, value) => [mapper(variable, value), value])
@@ -243,8 +242,8 @@ export abstract class Bindings {
 
   /**
    * Same as map, but only transform values
-   * @param {function} mapper - Transformation function
-   * @return {Bindings} A new set of mappings
+   * @param mapper - Transformation function
+   * @return A new set of mappings
    */
   mapValues (mapper: (variable: string, value: string) => string | null): Bindings {
     return this.map((variable, value) => [variable, mapper(variable, value)])
@@ -252,8 +251,8 @@ export abstract class Bindings {
 
   /**
    * Filter mappings from the set of mappings using a predicate function
-   * @param {function} predicate - Predicate function
-   * @return {Bindings} A new set of mappings
+   * @param predicate - Predicate function
+   * @return A new set of mappings
    */
   filter (predicate: (variable: string, value: string) => boolean): Bindings {
     return this.map((variable, value) => {
@@ -266,9 +265,9 @@ export abstract class Bindings {
 
   /**
    * Reduce the set of mappings to a value which is the accumulated result of running each element in collection thru a reducing function, where each successive invocation is supplied the return value of the previous.
-   * @param {function} reducer - Reducing function
-   * @param {T} start - Value used to start the accumulation
-   * @return {T} The accumulated value
+   * @param reducer - Reducing function
+   * @param start - Value used to start the accumulation
+   * @return The accumulated value
    */
   reduce<T> (reducer: (acc: T, variable: string, value: string) => T, start: T): T {
     let acc: T = start
@@ -300,8 +299,8 @@ export class BindingBase extends Bindings {
 
   /**
    * Creates a set of mappings from a plain Javascript Object
-   * @param {Object} obj - Source object to turn into a set of mappings
-   * @return {Bindings} A set of mappings
+   * @param obj - Source object to turn into a set of mappings
+   * @return A set of mappings
    */
   static fromObject (obj: Object): Bindings {
     const res = new BindingBase()

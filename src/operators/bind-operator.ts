@@ -31,7 +31,7 @@ import { Bindings } from '../rdf/bindings'
 
 /**
  * Apply a SPARQL BIND clause
- * @see https://www.w3.org/TR/sparql11-query/#bind
+ * @see {@link https://www.w3.org/TR/sparql11-query/#bind}
  * @extends TransformIterator
  * @author Thomas Minier
  * @author Corentin Marionneau
@@ -40,6 +40,13 @@ export default class BindOperator extends TransformIterator<Bindings,Bindings> {
   private readonly _variable: string
   private readonly _expression: SPARQLExpression
 
+  /**
+   * Constructor
+   * @param source - Input iterator
+   * @param variable  - SPARQL variable used to bind results
+   * @param expression - SPARQL expression
+   * @param options - Execution options
+   */
   constructor (source: AsyncIterator<Bindings>, variable: string, expression: Algebra.Expression | string, options: Object) {
     super(source, options)
     this._variable = variable

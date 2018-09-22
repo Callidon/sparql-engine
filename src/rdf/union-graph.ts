@@ -39,6 +39,11 @@ import { Algebra } from 'sparqljs'
  */
 export default class UnionGraph extends Graph {
   private readonly _graphs: Graph[]
+
+  /**
+   * Constructor
+   * @param graphs - Set of RDF graphs
+   */
   constructor (graphs: Graph[]) {
     super()
     this.iri = graphs.map(g => g.iri).join('+')

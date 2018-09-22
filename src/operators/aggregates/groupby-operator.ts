@@ -31,8 +31,8 @@ import { Bindings } from '../../rdf/bindings'
 
 /**
  * Build a new aggregate group from a set of SPARQL variables
- * @param  {string[]} variables - Set of SPARQL variables
- * @return {Object} A new aggregate group
+ * @param variables - Set of SPARQL variables
+ * @return A new aggregate group
  */
 function buildNewGroup (variables: string[]): Object {
   return variables.reduce((rows, v) => {
@@ -52,6 +52,12 @@ export default class GroupByOperator extends MaterializeOperator {
   private readonly _groups: Map<string, any>
   private readonly _keys: Map<string, Bindings>
 
+  /**
+   * Constructor
+   * @param source - Source iterator
+   * @param variables - GROUP BY Variables
+   * @param options - Execution options
+   */
   constructor (source: AsyncIterator<Bindings>, variables: string[], options: Object) {
     super(source, options)
     this._variables = variables

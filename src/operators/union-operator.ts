@@ -31,17 +31,16 @@ import { isNull, pull, range } from 'lodash'
  * UnionOperator implements a Bag Union between N operators
  * @template T - Type of the items produced by the Union of operators
  * @extends BufferedIterator
- * @memberof Operators
  * @author Thomas Minier
  */
 export default class UnionOperator<T> extends BufferedIterator<T> {
   private readonly _sources: AsyncIterator<T>[]
   private _sIndex: number
   private _openSources: number[]
+
   /**
    * Constructor
-   * @memberof Operators
-   * @param {AsyncIterator[]} sources - The sources to read from
+   * @param sources - The sources to read from
    */
   constructor (...sources: AsyncIterator<T>[]) {
     super()
@@ -57,7 +56,7 @@ export default class UnionOperator<T> extends BufferedIterator<T> {
 
   /**
    * Get the number of open sources, i.e. sources from which you can still read items
-   * @return {integer} The number of open sources
+   * @return The number of open sources
    */
   get nbOpenSources (): number {
     return this._openSources.length
@@ -65,8 +64,8 @@ export default class UnionOperator<T> extends BufferedIterator<T> {
 
   /**
    * Read an item from a given source
-   * @param  {integer} index - Index of the source to read from
-   * @return {*} The item read from the given source
+   * @param index - Index of the source to read from
+   * @return The item read from the given source
    */
   readFrom (index: number): any {
     const source = this._sources[index]
@@ -80,9 +79,8 @@ export default class UnionOperator<T> extends BufferedIterator<T> {
   /**
    * Try to read from each source in a round robin way, and stop when all source have been interrogated once
    * or `limit` reads have been performed.
-   * @param  {Function} callback - Callback invoked each item an item has been read with success
-   * @param  {integer}  limit    - Maximum number of items to read.
-   * @return {void}
+   * @param callback - Callback invoked each item an item has been read with success
+   * @param limit    - Maximum number of items to read.
    */
   cycle (callback: (item: any) => void, limit: number = Infinity): void {
     let item = null
@@ -105,9 +103,8 @@ export default class UnionOperator<T> extends BufferedIterator<T> {
   /**
    * Read the next available item from the remaining sources
    * @private
-   * @param {int} count - The number of items to generate
-   * @param {function} done - To be called when reading is completed
-   * @return {void}
+   * @param count - The number of items to generate
+   * @param done - To be called when reading is completed
    */
   _read (count: number, done: () => void): void {
     this.cycle(mappings => {

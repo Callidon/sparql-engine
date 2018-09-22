@@ -38,16 +38,11 @@ export default class AskOperator extends TransformIterator<Bindings, boolean> {
   private _noResults: boolean
   /**
    * Constructor
-   * @memberof Operators
-   * @param {AsyncIterator} source - Source iterator
+   * @param source - Source iterator
    */
   constructor (source: AsyncIterator<Bindings>) {
     super(source.take(1))
     this._noResults = true
-  }
-
-  get cardinality (): number {
-    return 1
   }
 
   _transform (bindings: Bindings, done: () => void): void {

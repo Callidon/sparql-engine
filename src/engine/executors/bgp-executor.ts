@@ -74,7 +74,7 @@ export default  class BGPExecutor extends Executor {
 
   /**
    * Constructor
-   * @param {Dataset} dataset - RDF Dataset used during query execution
+   * @param dataset - RDF Dataset used during query execution
    */
   constructor (dataset: Dataset) {
     super()
@@ -84,8 +84,8 @@ export default  class BGPExecutor extends Executor {
   /**
    * Returns True if the input iterator if the starting iterator in a pipeline
    * @private
-   * @param  {AsyncIterator} source - Source Iterator
-   * @return {Boolean} True if the input iterator if the starting iterator in a pipeline, False otherwise
+   * @param  source - Source Iterator
+   * @return True if the input iterator if the starting iterator in a pipeline, False otherwise
    */
   _isJoinIdentity (source: AsyncIterator<Bindings>): boolean {
     let isJoinIdentity = false
@@ -114,8 +114,8 @@ export default  class BGPExecutor extends Executor {
    * * If `iris` is empty, returns the default graph
    * * If `iris` has a single entry, returns the corresponding named graph
    * * Otherwise, returns an UnionGraph based on the provided iris
-   * @param  {string[]} iris - List of Graph's iris
-   * @return {Graph} An RDF Graph
+   * @param  iris - List of Graph's iris
+   * @return An RDF Graph
    */
   _getGraph (iris: string[]): Graph {
     if (iris.length === 0) {
@@ -128,10 +128,10 @@ export default  class BGPExecutor extends Executor {
 
   /**
    * Build an iterator to evaluate a BGP
-   * @param  {AsyncIterator}  source    - Source iterator
-   * @param  {Algebra.TripleObject[]} patterns  - Set of triple patterns
-   * @param  {*}  options   - Execution options
-   * @return {AsyncIterator} An iterator used to evaluate a Basic Graph pattern
+   * @param  source    - Source iterator
+   * @param  patterns  - Set of triple patterns
+   * @param  options   - Execution options
+   * @return An iterator used to evaluate a Basic Graph pattern
    */
   buildIterator (source: AsyncIterator<Bindings>, patterns: Algebra.TripleObject[], options: any): AsyncIterator<Bindings> {
     // select the graph to use for BGP evaluation
@@ -147,8 +147,8 @@ export default  class BGPExecutor extends Executor {
 
   /**
    * Replace the blank nodes in a BGP by SPARQL variables
-   * @param  {Object[]} patterns - BGP to rewrite, i.e., a set of triple patterns
-   * @return {Array} A Tuple [Rewritten BGP, List of SPARQL variable added]
+   * @param patterns - BGP to rewrite, i.e., a set of triple patterns
+   * @return A Tuple [Rewritten BGP, List of SPARQL variable added]
    */
   _replaceBlankNodes (patterns: Algebra.TripleObject[]): [Algebra.TripleObject[], string[]] {
     const newVariables: string[] = []
@@ -174,12 +174,12 @@ export default  class BGPExecutor extends Executor {
 
   /**
    * Returns an iterator used to evaluate a Basic Graph pattern
-   * @param  {AsyncIterator}  source         - Source iterator
-   * @param  {Graph}          graph          - The graph on which the BGP should be executed
-   * @param  {Object[]}       patterns       - Set of triple patterns
-   * @param  {Object}         options        - Execution options
-   * @param  {Boolean}        isJoinIdentity - True if the source iterator is the starting iterator of the pipeline
-   * @return {AsyncIterator} An iterator used to evaluate a Basic Graph pattern
+   * @param  source         - Source iterator
+   * @param  graph          - The graph on which the BGP should be executed
+   * @param  patterns       - Set of triple patterns
+   * @param  options        - Execution options
+   * @param  isJoinIdentity - True if the source iterator is the starting iterator of the pipeline
+   * @return An iterator used to evaluate a Basic Graph pattern
    */
   _execute (source: AsyncIterator<Bindings>, graph: Graph, patterns: Algebra.TripleObject[], options: Object, isJoinIdentity: boolean): AsyncIterator<Bindings> {
     return new BaseBGPIterator(source, patterns, graph, options)

@@ -25,6 +25,8 @@ SOFTWARE.
 'use strict'
 
 import { AsyncIterator, TransformIterator } from 'asynciterator'
+import { Algebra } from 'sparqljs'
+import PlanBuilder from '../engine/plan-builder'
 import { Bindings } from '../rdf/bindings'
 
 /**
@@ -33,14 +35,22 @@ import { Bindings } from '../rdf/bindings'
  * 2) Set a flag to False if the OPTIONAL clause yield at least one set of bindings.
  * 3) When the OPTIONAL clause if evaluated, check if the flag is True.
  * 4) If the flag is True, then we output all buffered values. Otherwise, we do nothing.
- * @see https://www.w3.org/TR/sparql11-query/#optionals
+ * @see {@link https://www.w3.org/TR/sparql11-query/#optionals}
  * @extends TransformIterator
  * @author Thomas Minier
  */
 export default class OptionalOperator extends TransformIterator<Bindings,Bindings> {
   private readonly _bufferedvalues: Bindings[]
   private _emptySource: boolean
-  constructor (source: AsyncIterator<Bindings>, patterns: Object[], builder: any, options: Object) {
+
+  /**
+   * Constructor
+   * @param source - Source iterator
+   * @param patterns - OPTIONAL content
+   * @param builder - Builder used to generate execution plans
+   * @param options - Execution options
+   */
+  constructor (source: AsyncIterator<Bindings>, patterns: Algebra.PlanNode[], builder: PlanBuilder, options: Object) {
     // set a spy on the sourcr iterator to buffer bindings
     let iter = source.map(v => {
       this._registerValue(v)

@@ -30,7 +30,7 @@ import { Bindings } from '../rdf/bindings'
 
 /**
  * Evaluates a SPARQL MINUS clause
- * @see https://www.w3.org/TR/sparql11-query/#neg-minus
+ * @see {@link https://www.w3.org/TR/sparql11-query/#neg-minus}
  * @extends TransformIterator
  * @author Thomas Minier
  */
@@ -39,6 +39,12 @@ export default class MinusOperator extends TransformIterator<Bindings,Bindings> 
   private _rightBuffer: Bindings[]
   private readonly _options: Object
 
+  /**
+   * Constructor
+   * @param leftSource - Left part of the MINUS operation
+   * @param rightSource - Right part of the MINUS operation
+   * @param options - Execution options
+   */
   constructor (leftSource: AsyncIterator<Bindings>, rightSource: AsyncIterator<Bindings>, options: Object) {
     super(leftSource, options)
     this._rightSource = rightSource

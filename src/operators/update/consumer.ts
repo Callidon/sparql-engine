@@ -32,12 +32,23 @@ import { Algebra } from 'sparqljs'
  * Something whose execution can be resolved as a Promise
  */
 export interface Consumable {
+  /**
+   * Execute the consumable
+   * @return A Promise fulfilled when the execution has been completed
+   */
   execute (): Promise<void>
 }
 
+/**
+ * A Consumable that always fails to execute
+ */
 export class ErrorConsumable implements Consumable {
   private readonly _reason: Error
 
+  /**
+   * Constructor
+   * @param reason - Cause of the failure
+   */
   constructor (reason: string) {
     this._reason = new Error(reason)
   }
@@ -57,6 +68,11 @@ export abstract class Consumer extends Writable implements Consumable {
   private readonly _source: AsyncIterator<Algebra.TripleObject>
   private readonly _options: Object
 
+  /**
+   * Constructor
+   * @param source - Source iterator
+   * @param options - Execution options
+   */
   constructor (source: AsyncIterator<Algebra.TripleObject>, options: Object) {
     super({ objectMode: true })
     this._source = source

@@ -36,6 +36,13 @@ import { Algebra } from 'sparqljs'
  */
 export default class InsertConsumer extends Consumer {
   private readonly _graph: Graph
+
+  /**
+   * Constructor
+   * @param source - Source iterator
+   * @param graph - Input RDF Graph
+   * @param options - Execution options
+   */
   constructor (source: AsyncIterator<Algebra.TripleObject>, graph: Graph, options: Object) {
     super(source, options)
     this._graph = graph

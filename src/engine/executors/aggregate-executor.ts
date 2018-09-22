@@ -42,10 +42,10 @@ import { Bindings } from '../../rdf/bindings'
 export default class AggregateExecutor extends Executor {
   /**
    * Build an iterator for the evaluation of SPARQL aggregations
-   * @param  {AsyncIterator} source  - Source iterator
-   * @param  {Object}       query   - Parsed SPARQL query (logical execution plan)
-   * @param  {Object}       options - Execution options
-   * @return {AsyncIterator} An iterator which evaluate SPARQL aggregations
+   * @param source  - Source iterator
+   * @param query   - Parsed SPARQL query (logical execution plan)
+   * @param options - Execution options
+   * @return An iterator which evaluate SPARQL aggregations
    */
   buildIterator (source: AsyncIterator<Bindings>, query: Algebra.RootNode, options: Object): AsyncIterator<Bindings> {
     if ('group' in query) {
@@ -62,10 +62,10 @@ export default class AggregateExecutor extends Executor {
 
   /**
    * Build an iterator for the evaluation of a GROUP BY clause
-   * @param  {AsyncIterator} source  - Source iterator
-   * @param  {Object[]}       groupby - GROUP BY clause
-   * @param  {Object}       options - Execution options
-   * @return {AsyncIterator} An iterator which evaluate a GROUP BY clause
+   * @param source  - Source iterator
+   * @param  groupby - GROUP BY clause
+   * @param  options - Execution options
+   * @return An iterator which evaluate a GROUP BY clause
    */
   _executeGroupBy (source: AsyncIterator<Bindings>, groupby: Algebra.Aggregation[], options: Object): AsyncIterator<Bindings> {
     let iterator = source
@@ -84,10 +84,10 @@ export default class AggregateExecutor extends Executor {
 
   /**
    * Build an iterator for the evaluation of a HAVING clause
-   * @param  {AsyncIterator} source  - Source iterator
-   * @param  {Object}       having  - HAVING clause
-   * @param  {Object}       options - Execution options
-   * @return {AsyncIterator} An iterator which evaluate a HAVING clause
+   * @param  source  - Source iterator
+   * @param  having  - HAVING clause
+   * @param  options - Execution options
+   * @return An iterator which evaluate a HAVING clause
    */
   _executeHaving (source: AsyncIterator<Bindings>, having: Algebra.Expression[], options: Object): AsyncIterator<Bindings> {
     // thanks to the flexibility of SPARQL expressions,

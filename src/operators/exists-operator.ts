@@ -26,6 +26,7 @@ SOFTWARE.
 
 import { AsyncIterator, single, TransformIterator } from 'asynciterator'
 import { Bindings } from '../rdf/bindings'
+import PlanBuilder from '../engine/plan-builder'
 
 /**
  * Evaluates a SPARQL FILTER (NOT) EXISTS clause
@@ -40,13 +41,13 @@ export default class ExistsOperator extends TransformIterator<Bindings,Bindings>
 
   /**
    * Constructor
-   * @param {AsyncIterator} source    - Source iterator
-   * @param {Object[]}      groups    - Content of the FILTER clause
-   * @param {PlanBuilder}   builder   - Plan builder used to evaluate subqueries
-   * @param {boolean}       notexists - True if the filter is NOT EXISTS, False otherwise
-   * @param {Object}        options   - Execution options
+   * @param source    - Source iterator
+   * @param groups    - Content of the FILTER clause
+   * @param builder   - Plan builder used to evaluate subqueries
+   * @param notexists - True if the filter is NOT EXISTS, False otherwise
+   * @param options   - Execution options
    */
-  constructor (source: AsyncIterator<Bindings>, groups: Object[], builder: any, notexists: boolean, options: Object) {
+  constructor (source: AsyncIterator<Bindings>, groups: Object[], builder: PlanBuilder, notexists: boolean, options: Object) {
     super(source, options)
     this._groups = groups
     this._builder = builder

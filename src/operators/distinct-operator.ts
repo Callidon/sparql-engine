@@ -39,8 +39,7 @@ export default class DistinctOperator extends TransformIterator<Bindings,Binding
 
   /**
    * Constructor
-   * @memberof Operators
-   * @param {AsyncIterator} source - The source operator
+   * @param source - The source operator
    */
   constructor (source: AsyncIterator<Bindings>) {
     super(source)
@@ -49,9 +48,8 @@ export default class DistinctOperator extends TransformIterator<Bindings,Binding
 
   /**
    * Filter unique mappings from the source operator
-   * @param {Object} item - The set of mappings to filter
-   * @param {function} done - To be called when filtering is done
-   * @return {void}
+   * @param item - The set of mappings to filter
+   * @param done - To be called when filtering is done
    */
   _transform (item: Bindings, done: () => void): void {
     const hash = this._hash(item)
@@ -64,8 +62,8 @@ export default class DistinctOperator extends TransformIterator<Bindings,Binding
 
   /**
    * Hash an item and produce an unique value
-   * @param {Object} item - The item to hash
-   * @return {string} An unique hash which identify the item
+   * @param item - The item to hash
+   * @return An unique hash which identify the item
    */
   _hash (item: any): string {
     return map(item, (v: string, k: string) => `${k}=${encodeURIComponent(v)}`).sort().join('&')

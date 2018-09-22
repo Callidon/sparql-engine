@@ -33,6 +33,11 @@ import Graph from '../../rdf/graph'
  */
 export default class ClearConsumer implements Consumable {
   private readonly _graph: Graph
+
+  /**
+   * Consuctor
+   * @param graph - Input RDF Graph
+   */
   constructor (graph: Graph) {
     this._graph = graph
   }

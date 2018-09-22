@@ -42,7 +42,7 @@ export interface PatternMetadata {
  * @private
  * @param  {Object} a - Metadata about left triple
  * @param  {Object} b - Metadata about right triple
- * @return {integer} Comparaison result (-1, 1, 0)
+ * @return Comparaison result (-1, 1, 0)
  */
 function sortPatterns (a: PatternMetadata, b: PatternMetadata): number {
   if (a.cardinality < b.cardinality) {
@@ -70,7 +70,7 @@ export default abstract class Graph {
 
   /**
    * Get the IRI of the Graph
-   * @return {string} The IRI of the Graph
+   * @return The IRI of the Graph
    */
   get iri (): string {
     return this._iri
@@ -78,7 +78,7 @@ export default abstract class Graph {
 
   /**
    * Set the IRI of the Graph
-   * @param  {string} value - The new IRI of the Graph
+   * @param value - The new IRI of the Graph
    */
   set iri (value: string) {
     this._iri = value
@@ -90,7 +90,7 @@ export default abstract class Graph {
    * @param  {string}   triple.subject - RDF triple's subject
    * @param  {string}   triple.predicate - RDF triple's predicate
    * @param  {string}   triple.object - RDF triple's object
-   * @return {Promise} A Promise fulfilled when the insertion has been completed
+   * @return A Promise fulfilled when the insertion has been completed
    */
   abstract insert (triple: Algebra.TripleObject): Promise<void>
 
@@ -100,7 +100,7 @@ export default abstract class Graph {
    * @param  {string}   triple.subject - RDF triple's subject
    * @param  {string}   triple.predicate - RDF triple's predicate
    * @param  {string}   triple.object - RDF triple's object
-   * @return {Promise} A Promise fulfilled when the deletion has been completed
+   * @return A Promise fulfilled when the deletion has been completed
    */
   abstract delete (triple: Algebra.TripleObject): Promise<void>
 
@@ -110,13 +110,13 @@ export default abstract class Graph {
    * @param  {string}   triple.subject - Triple pattern's subject
    * @param  {string}   triple.predicate - Triple pattern's predicate
    * @param  {string}   triple.object - Triple pattern's object
-   * @return {AsyncIterator} An iterator which finds RDF triples matching a triple pattern
+   * @return An iterator which finds RDF triples matching a triple pattern
    */
   abstract find (triple: Algebra.TripleObject, options: Object): AsyncIterator<Algebra.TripleObject>
 
   /**
    * Remove all RDF triples in the Graph
-   * @return {Promise} A Promise fulfilled when the clear operation has been completed
+   * @return A Promise fulfilled when the clear operation has been completed
    */
   abstract clear (): Promise<void>
 
@@ -127,7 +127,7 @@ export default abstract class Graph {
    * @param  {string}   triple.subject - Triple pattern's subject
    * @param  {string}   triple.predicate - Triple pattern's predicate
    * @param  {string}   triple.object - Triple pattern's object
-   * @return {Promise} A Promise fulfilled with the pattern's estimated cardinality
+   * @return A Promise fulfilled with the pattern's estimated cardinality
    */
   abstract estimateCardinality (triple: Algebra.TripleObject): Promise<number>
 
@@ -135,7 +135,7 @@ export default abstract class Graph {
    * Evaluates a Basic Graph pattern, i.e., a set of triple patterns, on the Graph using an iterator.
    * @param  {Object[]} bgp - The set of triple patterns to evaluate
    * @param  {Object} options - Execution options
-   * @return {AsyncIterator} An iterator which evaluates the Basic Graph pattern on the Graph
+   * @return An iterator which evaluates the Basic Graph pattern on the Graph
    */
   evalBGP (bgp: Algebra.TripleObject[], options: Object): AsyncIterator<Bindings> {
     const iter = new TransformIterator<Bindings,Bindings>()

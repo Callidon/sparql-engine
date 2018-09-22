@@ -39,12 +39,16 @@ import { Bindings } from '../../rdf/bindings'
 export default class SelectOperator extends TransformIterator<Bindings,Bindings> {
   private readonly _variables: string[]
   private readonly _selectAll: boolean
-  private readonly _options: Object
 
+  /**
+   * Constructor
+   * @param source - Source iterator
+   * @param query - SELECT query
+   * @param options - Execution options
+   */
   constructor (source: AsyncIterator<Bindings>, query: Algebra.RootNode, options: Object) {
-    super(source)
+    super(source, options)
     this._variables = <string[]> query.variables
-    this._options = options
     this._selectAll = this._variables.length === 1 && this._variables[0] === '*'
     source.on('error', (err: Error) => this.emit('error', err))
   }

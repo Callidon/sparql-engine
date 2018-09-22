@@ -40,9 +40,8 @@ export default class ConstructOperator extends MultiTransformIterator<Bindings, 
   private readonly _templates: Algebra.TripleObject[]
   /**
    * Constructor
-   * @memberof Operators
-   * @param {AsyncIterator} source  - Source iterator
-   * @param {Object[]} templates - Set of triples patterns in the CONSTRUCT clause
+   * @param source  - Source iterator
+   * @param templates - Set of triples patterns in the CONSTRUCT clause
    */
   constructor (source: AsyncIterator<Bindings>, query: any) {
     super(source)

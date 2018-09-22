@@ -46,10 +46,10 @@ export default class IndexJoinOperator extends MultiTransformIterator<Bindings,B
 
   /**
    * Constructor
-   * @param {AsyncIterator} source  - Source iterator (left relation)
-   * @param {Object}        pattern - Triple pattern to join with (right relation)
-   * @param {Graph}         graph   - RDF Graph on which the join is performed
-   * @param {Object}        options - Execution options
+   * @param source  - Source iterator (left relation)
+   * @param pattern - Triple pattern to join with (right relation)
+   * @param graph   - RDF Graph on which the join is performed
+   * @param options - Execution options
    */
   constructor (source: AsyncIterator<Bindings>, pattern: Algebra.TripleObject, graph: Graph, options: Object) {
     super(source, options)

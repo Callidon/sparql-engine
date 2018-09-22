@@ -38,6 +38,11 @@ export default class MaterializeOperator extends BufferedIterator<Bindings> {
   private _source: AsyncIterator<Bindings>
   private _bufferedValues: Bindings[]
 
+  /**
+   * Constructor
+   * @param source - Source iterator
+   * @param options - Execution options
+   */
   constructor (source: AsyncIterator<Bindings>, options: Object) {
     super(options)
     this._source = source
@@ -45,14 +50,29 @@ export default class MaterializeOperator extends BufferedIterator<Bindings> {
     this._source.on('error', err => this.emit('error', err))
   }
 
+  /**
+   * Used to transform bindings before putting them in a buffer.
+   * @param  value - Set of mappings to transform
+   * @return Transformed set of mappings
+   */
   _preTransform (value: Bindings): Bindings | null {
     return value
   }
 
+  /**
+   * Apply a transformation on the complete buffer of set of mappings, then returns it
+   * @param  values - The buffer of set of mappings
+   * @return The transformed buffer
+   */
   _transformAll (values: Bindings[]): Bindings[] {
     return values
   }
 
+  /**
+   * Used to transform set of bindings before sending them to the next stage in the pipeline.
+   * @param  value - Set of mappings to transform
+   * @return Transformed set of mappings
+   */
   _transform (value: Bindings, done: () => void): void {
     this._push(value)
     done()
