@@ -38,7 +38,7 @@ import { Algebra } from 'sparqljs'
  * @author Thomas Minier
  */
 export default class UnionGraph extends Graph {
-  readonly _graphs: Graph[]
+  private readonly _graphs: Graph[]
   constructor (graphs: Graph[]) {
     super()
     this.iri = graphs.map(g => g.iri).join('+')

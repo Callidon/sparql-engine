@@ -39,9 +39,9 @@ import { Bindings } from '../../rdf/bindings'
  * @extends MultiTransformIterator
  */
 class BaseBGPIterator extends MultiTransformIterator<Bindings,Bindings> {
-  readonly _bgp: Algebra.TripleObject[]
-  readonly _graph: Graph
-  readonly _options: Object
+  private readonly _bgp: Algebra.TripleObject[]
+  private readonly _graph: Graph
+  private readonly _options: Object
 
   constructor (source: AsyncIterator<Bindings>, bgp: Algebra.TripleObject[], graph: Graph, options: Object) {
     super(source, options)

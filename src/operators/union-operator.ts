@@ -35,7 +35,7 @@ import { isNull, pull, range } from 'lodash'
  * @author Thomas Minier
  */
 export default class UnionOperator<T> extends BufferedIterator<T> {
-  readonly _sources: AsyncIterator<T>[]
+  private readonly _sources: AsyncIterator<T>[]
   private _sIndex: number
   private _openSources: number[]
   /**

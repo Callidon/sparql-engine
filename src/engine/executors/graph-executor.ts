@@ -38,7 +38,7 @@ import { Bindings } from '../../rdf/bindings'
  * @author Thomas Minier
  */
 export default class GraphExecutor extends Executor {
-  readonly _dataset: Dataset
+  private readonly _dataset: Dataset
 
   /**
    * Constructor

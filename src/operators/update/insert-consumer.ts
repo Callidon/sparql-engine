@@ -35,7 +35,7 @@ import { Algebra } from 'sparqljs'
  * @author Thomas Minier
  */
 export default class InsertConsumer extends Consumer {
-  readonly _graph: Graph
+  private readonly _graph: Graph
   constructor (source: AsyncIterator<Algebra.TripleObject>, graph: Graph, options: Object) {
     super(source, options)
     this._graph = graph

@@ -38,8 +38,8 @@ import { Bindings } from '../rdf/bindings'
  * @author Thomas Minier
  */
 export default class OptionalOperator extends TransformIterator<Bindings,Bindings> {
-  _bufferedvalues: Bindings[]
-  _emptySource: boolean
+  private readonly _bufferedvalues: Bindings[]
+  private _emptySource: boolean
   constructor (source: AsyncIterator<Bindings>, patterns: Object[], builder: any, options: Object) {
     // set a spy on the sourcr iterator to buffer bindings
     let iter = source.map(v => {

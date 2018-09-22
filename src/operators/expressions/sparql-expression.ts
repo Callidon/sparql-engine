@@ -56,7 +56,7 @@ function bindArgument (variable: string): (bindings: Bindings) => RDFTerm | null
  * @author Thomas Minier
  */
 export default class SPARQLExpression {
-  readonly _expression: CompiledExpression
+  private readonly _expression: CompiledExpression
   constructor (expression: InputExpression) {
     this._expression = this._compileExpression(expression)
   }

@@ -34,7 +34,7 @@ import Dataset from './dataset'
  */
 export default class HashMapDataset extends Dataset {
   private _defaultGraph: Graph
-  private _namedGraphs: Map<string, Graph>
+  private readonly _namedGraphs: Map<string, Graph>
   /**
    * Constructor
    * @param {string} defaultGraphIRI - IRI of the Default Graph

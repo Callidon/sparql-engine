@@ -37,8 +37,8 @@ import { Bindings } from '../rdf/bindings'
  * @author Corentin Marionneau
  */
 export default class BindOperator extends TransformIterator<Bindings,Bindings> {
-  readonly _variable: string
-  readonly _expression: SPARQLExpression
+  private readonly _variable: string
+  private readonly _expression: SPARQLExpression
 
   constructor (source: AsyncIterator<Bindings>, variable: string, expression: Algebra.Expression | string, options: Object) {
     super(source, options)

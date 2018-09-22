@@ -36,7 +36,7 @@ export interface Consumable {
 }
 
 export class ErrorConsumable implements Consumable {
-  readonly _reason: Error
+  private readonly _reason: Error
 
   constructor (reason: string) {
     this._reason = new Error(reason)
@@ -54,8 +54,8 @@ export class ErrorConsumable implements Consumable {
  * @author Thomas Minier
  */
 export abstract class Consumer extends Writable implements Consumable {
-  readonly _source: AsyncIterator<Algebra.TripleObject>
-  readonly _options: Object
+  private readonly _source: AsyncIterator<Algebra.TripleObject>
+  private readonly _options: Object
 
   constructor (source: AsyncIterator<Algebra.TripleObject>, options: Object) {
     super({ objectMode: true })

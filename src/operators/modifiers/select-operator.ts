@@ -37,9 +37,9 @@ import { Bindings } from '../../rdf/bindings'
  * @see {@link https://www.w3.org/TR/2013/REC-sparql11-query-20130321/#select}
  */
 export default class SelectOperator extends TransformIterator<Bindings,Bindings> {
-  readonly _variables: string[]
-  readonly _selectAll: boolean
-  readonly _options: Object
+  private readonly _variables: string[]
+  private readonly _selectAll: boolean
+  private readonly _options: Object
 
   constructor (source: AsyncIterator<Bindings>, query: Algebra.RootNode, options: Object) {
     super(source)

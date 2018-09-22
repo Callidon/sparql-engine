@@ -31,7 +31,7 @@ import { isNull, isUndefined } from 'lodash'
  * A set of mappings from a variable to a RDF Term.
  */
 export abstract class Bindings {
-  readonly _properties: Map<string, any>
+  private readonly _properties: Map<string, any>
 
   constructor () {
     this._properties = new Map()
@@ -283,7 +283,7 @@ export abstract class Bindings {
  * A set of mappings from a variable to a RDF Term, implements using a HashMap
  */
 export class BindingBase extends Bindings {
-  readonly _content: Map<string, string>
+  private readonly _content: Map<string, string>
 
   constructor () {
     super()

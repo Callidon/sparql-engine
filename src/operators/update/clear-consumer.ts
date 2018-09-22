@@ -32,7 +32,7 @@ import Graph from '../../rdf/graph'
  * @author Thomas Minier
  */
 export default class ClearConsumer implements Consumable {
-  readonly _graph: Graph
+  private readonly _graph: Graph
   constructor (graph: Graph) {
     this._graph = graph
   }

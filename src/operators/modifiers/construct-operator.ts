@@ -37,7 +37,7 @@ import { Bindings } from '../../rdf/bindings'
  * @see {@link https://www.w3.org/TR/2013/REC-sparql11-query-20130321/#construct}
  */
 export default class ConstructOperator extends MultiTransformIterator<Bindings, Algebra.TripleObject> {
-  readonly _templates: Algebra.TripleObject[]
+  private readonly _templates: Algebra.TripleObject[]
   /**
    * Constructor
    * @memberof Operators

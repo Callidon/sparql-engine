@@ -38,8 +38,8 @@ import { Bindings } from '../../rdf/bindings'
  * @author Corentin Marionneau
  */
 export default class AggregateOperator extends TransformIterator<Bindings,Bindings> {
-  readonly _variable: string
-  readonly _expression: SPARQLExpression
+  private readonly _variable: string
+  private readonly _expression: SPARQLExpression
   constructor (source: AsyncIterator<Bindings>, operation: Algebra.Aggregation, options: Object) {
     super(source, options)
     this._variable = operation.variable

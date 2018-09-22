@@ -33,10 +33,10 @@ import { Bindings } from '../rdf/bindings'
  * @author Thomas Minier
  */
 export default class ExistsOperator extends TransformIterator<Bindings,Bindings> {
-  readonly _groups: Object[]
-  readonly _builder: any
-  readonly _options: Object
-  readonly _notexists: boolean
+  private readonly _groups: Object[]
+  private readonly _builder: any
+  private readonly _options: Object
+  private readonly _notexists: boolean
 
   /**
    * Constructor

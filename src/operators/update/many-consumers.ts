@@ -31,7 +31,7 @@ import { Consumable } from './consumer'
  * @author Thomas Minier
  */
 export default class ManyConsumers implements Consumable {
-  readonly _consumers: Consumable[]
+  private readonly _consumers: Consumable[]
   constructor (consumers: Consumable[]) {
     this._consumers = consumers
   }

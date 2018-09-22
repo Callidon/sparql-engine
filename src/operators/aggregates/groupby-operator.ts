@@ -48,9 +48,9 @@ function buildNewGroup (variables: string[]): Object {
  * @author Thomas Minier
  */
 export default class GroupByOperator extends MaterializeOperator {
-  readonly _variables: string[]
-  readonly _groups: Map<string, any>
-  readonly _keys: Map<string, Bindings>
+  private readonly _variables: string[]
+  private readonly _groups: Map<string, any>
+  private readonly _keys: Map<string, Bindings>
 
   constructor (source: AsyncIterator<Bindings>, variables: string[], options: Object) {
     super(source, options)

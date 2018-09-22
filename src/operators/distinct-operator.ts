@@ -35,7 +35,7 @@ import { Bindings } from '../rdf/bindings'
  * @see {@link https://www.w3.org/TR/2013/REC-sparql11-query-20130321/#modDuplicates}
  */
 export default class DistinctOperator extends TransformIterator<Bindings,Bindings> {
-  readonly _values: Map<string, Object>
+  private readonly _values: Map<string, Object>
 
   /**
    * Constructor

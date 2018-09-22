@@ -90,8 +90,8 @@ export type QueryOutput = Bindings | Algebra.TripleObject | boolean
  *  iterator.on('data', console.log)
  */
 export default class PlanBuilder {
-  readonly _dataset: Dataset
-  readonly _parser: Parser
+  private readonly _dataset: Dataset
+  private readonly _parser: Parser
   private _bgpExecutor: BGPExecutor
   private _aggExecutor: AggregateExecutor
   private _graphExecutor: GraphExecutor
@@ -175,7 +175,7 @@ export default class PlanBuilder {
   build (query: any, options: any = {}): AsyncIterator<QueryOutput> | Consumable {
     // If needed, parse the string query into a logical query execution plan
     if (typeof query === 'string') {
-      query = new Parser(options.prefixes).parse(query)
+      query = this._parser.parse(query)
     }
     switch (query.type) {
       case 'query':

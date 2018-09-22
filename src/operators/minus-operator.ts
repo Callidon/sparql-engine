@@ -35,9 +35,9 @@ import { Bindings } from '../rdf/bindings'
  * @author Thomas Minier
  */
 export default class MinusOperator extends TransformIterator<Bindings,Bindings> {
-  readonly _rightSource: AsyncIterator<Bindings>
-  _rightBuffer: Bindings[]
-  readonly _options: Object
+  private readonly _rightSource: AsyncIterator<Bindings>
+  private _rightBuffer: Bindings[]
+  private readonly _options: Object
 
   constructor (leftSource: AsyncIterator<Bindings>, rightSource: AsyncIterator<Bindings>, options: Object) {
     super(leftSource, options)

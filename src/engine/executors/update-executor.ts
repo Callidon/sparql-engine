@@ -37,6 +37,7 @@ import Graph from '../../rdf/graph'
 import Dataset from '../../rdf/dataset'
 import { Algebra } from 'sparqljs'
 import { Bindings, BindingBase } from '../../rdf/bindings'
+import { concat } from 'lodash'
 
 /**
  * An UpdateExecutor is an executor responsible for evaluating SPARQL UPDATE queries.
@@ -44,7 +45,7 @@ import { Bindings, BindingBase } from '../../rdf/bindings'
  * @author Thomas Minier
  */
 export default class UpdateExecutor extends Executor {
-  readonly _dataset: Dataset
+  private readonly _dataset: Dataset
 
   constructor (dataset: Dataset) {
     super()
@@ -108,8 +109,7 @@ export default class UpdateExecutor extends Executor {
   _handleInsertDelete (update: Algebra.UpdateQueryNode, options: any): Consumable {
     let source: AsyncIterator<Bindings> = single(new BindingBase())
     let graph: Graph | null = null
-    let deletes: DeleteConsumer[] = []
-    let inserts: InsertConsumer[] = []
+    let consumables: Consumable[] = []
 
     if (update.updateType === 'insertdelete') {
       graph = ('graph' in update) ? this._dataset.getNamedGraph(update.graph!) : null
@@ -128,18 +128,18 @@ export default class UpdateExecutor extends Executor {
 
     // build consumers to evaluate DELETE clauses
     if ('delete' in update && update.delete!.length > 0) {
-      deletes = update.delete!.map(v => {
+      consumables = consumables.concat(update.delete!.map(v => {
         return this._buildDeleteConsumer(source.clone(), v, graph, options)
-      })
+      }))
     }
 
     // build consumers to evaluate INSERT clauses
     if ('insert' in update && update.insert!.length > 0) {
-      inserts = update.insert!.map(v => {
+      consumables = consumables.concat(update.insert!.map(v => {
         return this._buildInsertConsumer(source.clone(), v, graph, options)
-      })
+      }))
     }
-    return new ManyConsumers(deletes.concat(inserts))
+    return new ManyConsumers(consumables)
   }
 
   /**

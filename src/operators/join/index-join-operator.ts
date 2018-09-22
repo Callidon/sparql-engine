@@ -40,9 +40,9 @@ import { mapKeys, pickBy, some, size } from 'lodash'
  * @author Thomas Minier
  */
 export default class IndexJoinOperator extends MultiTransformIterator<Bindings,Bindings> {
-  readonly _pattern: Algebra.TripleObject
-  readonly _graph: Graph
-  readonly _options: Object
+  private readonly _pattern: Algebra.TripleObject
+  private readonly _graph: Graph
+  private readonly _options: Object
 
   /**
    * Constructor
