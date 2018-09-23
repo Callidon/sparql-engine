@@ -26,7 +26,7 @@ SOFTWARE.
 
 const { Parser, Store } = require('n3')
 const fs = require('fs')
-const { HashMapDataset, Graph, PlanBuilder } = require('../src/api.js')
+const { HashMapDataset, Graph, PlanBuilder } = require('../dist/api.js')
 const { ArrayIterator } = require('asynciterator')
 const { pick } = require('lodash')
 
@@ -125,7 +125,16 @@ class TestEngine {
   }
 
   execute (query, format = 'raw') {
-    return this._builder.build(query, {format})
+    let iterator = this._builder.build(query, {format})
+    if ('read' in iterator) {
+      iterator = iterator.map(v => {
+        if (typeof v === 'object' && '_content' in v) {
+          return v.toObject()
+        }
+        return v
+      })
+    }
+    return iterator
   }
 }
 

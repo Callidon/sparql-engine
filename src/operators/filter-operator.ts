@@ -1,4 +1,4 @@
-/* file : graph-test.js
+/* file : filter-operator.ts
 MIT License
 
 Copyright (c) 2018 Thomas Minier
@@ -24,27 +24,36 @@ SOFTWARE.
 
 'use strict'
 
-const expect = require('chai').expect
-const { Graph } = require('../../dist/api.js')
+import SPARQLExpression from './expressions/sparql-expression'
+import { AsyncIterator, TransformIterator } from 'asynciterator'
+import { Algebra } from 'sparqljs'
+import { Bindings } from '../rdf/bindings'
 
-describe('Graph', () => {
-  it('should enforce subclasses to implement an "insert" method', () => {
-    const g = new Graph()
-    expect(() => g.insert()).to.throw(Error)
-  })
+/**
+ * Evaluate SPARQL Filter clauses
+ * @see {@link https://www.w3.org/TR/sparql11-query/#expressions}
+ * @extends TransformIterator
+ * @author Thomas Minier
+ */
+export default class FilterOperator extends TransformIterator<Bindings,Bindings> {
+  private readonly _expression: SPARQLExpression
 
-  it('should enforce subclasses to implement a "delete" method', () => {
-    const g = new Graph()
-    expect(() => g.delete()).to.throw(Error)
-  })
+  /**
+   * Constructor
+   * @param source  - Source iterator
+   * @param expression - FILTER expression
+   * @param options - Execution options
+   */
+  constructor (source: AsyncIterator<Bindings>, expression: Algebra.Expression, options: Object) {
+    super(source, options)
+    this._expression = new SPARQLExpression(expression)
+  }
 
-  it('should enforce subclasses to implement a "find" method', () => {
-    const g = new Graph()
-    expect(() => g.find()).to.throw(Error)
-  })
-
-  it('should enforce subclasses to implement a "clear" method', () => {
-    const g = new Graph()
-    expect(() => g.clear()).to.throw(Error)
-  })
-})
+  _transform (bindings: Bindings, done: () => void): void {
+    const value: any = this._expression.evaluate(bindings)
+    if (value !== null && value.asJS) {
+      this._push(bindings)
+    }
+    done()
+  }
+}

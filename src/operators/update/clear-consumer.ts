@@ -1,4 +1,4 @@
-/* file : graph-test.js
+/* file : clear-consumer.js
 MIT License
 
 Copyright (c) 2018 Thomas Minier
@@ -24,27 +24,25 @@ SOFTWARE.
 
 'use strict'
 
-const expect = require('chai').expect
-const { Graph } = require('../../dist/api.js')
+import { Consumable } from './consumer'
+import Graph from '../../rdf/graph'
 
-describe('Graph', () => {
-  it('should enforce subclasses to implement an "insert" method', () => {
-    const g = new Graph()
-    expect(() => g.insert()).to.throw(Error)
-  })
+/**
+ * Clear all RDF triples in a RDF Graph
+ * @author Thomas Minier
+ */
+export default class ClearConsumer implements Consumable {
+  private readonly _graph: Graph
 
-  it('should enforce subclasses to implement a "delete" method', () => {
-    const g = new Graph()
-    expect(() => g.delete()).to.throw(Error)
-  })
+  /**
+   * Consuctor
+   * @param graph - Input RDF Graph
+   */
+  constructor (graph: Graph) {
+    this._graph = graph
+  }
 
-  it('should enforce subclasses to implement a "find" method', () => {
-    const g = new Graph()
-    expect(() => g.find()).to.throw(Error)
-  })
-
-  it('should enforce subclasses to implement a "clear" method', () => {
-    const g = new Graph()
-    expect(() => g.clear()).to.throw(Error)
-  })
-})
+  execute (): Promise<void> {
+    return this._graph.clear()
+  }
+}

@@ -1,4 +1,4 @@
-/* file : graph-test.js
+/* file : insert-consumer.ts
 MIT License
 
 Copyright (c) 2018 Thomas Minier
@@ -24,27 +24,36 @@ SOFTWARE.
 
 'use strict'
 
-const expect = require('chai').expect
-const { Graph } = require('../../dist/api.js')
+import { Consumer } from './consumer'
+import Graph from '../../rdf/graph'
+import { AsyncIterator } from 'asynciterator'
+import { Algebra } from 'sparqljs'
 
-describe('Graph', () => {
-  it('should enforce subclasses to implement an "insert" method', () => {
-    const g = new Graph()
-    expect(() => g.insert()).to.throw(Error)
-  })
+/**
+ * An InsertConsumer evaluates a SPARQL INSERT clause
+ * @extends Consumer
+ * @author Thomas Minier
+ */
+export default class InsertConsumer extends Consumer {
+  private readonly _graph: Graph
 
-  it('should enforce subclasses to implement a "delete" method', () => {
-    const g = new Graph()
-    expect(() => g.delete()).to.throw(Error)
-  })
+  /**
+   * Constructor
+   * @param source - Source iterator
+   * @param graph - Input RDF Graph
+   * @param options - Execution options
+   */
+  constructor (source: AsyncIterator<Algebra.TripleObject>, graph: Graph, options: Object) {
+    super(source, options)
+    this._graph = graph
+  }
 
-  it('should enforce subclasses to implement a "find" method', () => {
-    const g = new Graph()
-    expect(() => g.find()).to.throw(Error)
-  })
-
-  it('should enforce subclasses to implement a "clear" method', () => {
-    const g = new Graph()
-    expect(() => g.clear()).to.throw(Error)
-  })
-})
+  _write (triple: Algebra.TripleObject, encoding: string | undefined, done: (err?: Error) => void): void {
+    this._graph.insert(triple)
+      .then(() => done())
+      .catch(err => {
+        this.emit('error', err)
+        done(err)
+      })
+  }
+}

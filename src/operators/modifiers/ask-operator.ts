@@ -1,4 +1,4 @@
-/* file : graph-test.js
+/* file : ask-operator.ts
 MIT License
 
 Copyright (c) 2018 Thomas Minier
@@ -24,27 +24,37 @@ SOFTWARE.
 
 'use strict'
 
-const expect = require('chai').expect
-const { Graph } = require('../../dist/api.js')
+import { AsyncIterator, TransformIterator } from 'asynciterator'
+import { Bindings } from '../../rdf/bindings'
 
-describe('Graph', () => {
-  it('should enforce subclasses to implement an "insert" method', () => {
-    const g = new Graph()
-    expect(() => g.insert()).to.throw(Error)
-  })
+/**
+ * A AskOperator output True if a source iterator has solutions, false otherwise.
+ * results are outputed following the SPARQL XML results format
+ * @extends TransformIterator
+ * @author Thomas Minier
+ * @see {@link https://www.w3.org/TR/2013/REC-sparql11-query-20130321/#ask}
+ */
+export default class AskOperator extends TransformIterator<Bindings, boolean> {
+  private _noResults: boolean
+  /**
+   * Constructor
+   * @param source - Source iterator
+   */
+  constructor (source: AsyncIterator<Bindings>) {
+    super(source.take(1))
+    this._noResults = true
+  }
 
-  it('should enforce subclasses to implement a "delete" method', () => {
-    const g = new Graph()
-    expect(() => g.delete()).to.throw(Error)
-  })
+  _transform (bindings: Bindings, done: () => void): void {
+    this._noResults = false
+    this._push(true)
+    done()
+  }
 
-  it('should enforce subclasses to implement a "find" method', () => {
-    const g = new Graph()
-    expect(() => g.find()).to.throw(Error)
-  })
-
-  it('should enforce subclasses to implement a "clear" method', () => {
-    const g = new Graph()
-    expect(() => g.clear()).to.throw(Error)
-  })
-})
+  _flush (done: () => void): void {
+    if (this._noResults) {
+      this._push(false)
+    }
+    done()
+  }
+}

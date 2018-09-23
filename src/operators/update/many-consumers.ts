@@ -1,4 +1,4 @@
-/* file : graph-test.js
+/* file : many-consumers.js
 MIT License
 
 Copyright (c) 2018 Thomas Minier
@@ -24,27 +24,29 @@ SOFTWARE.
 
 'use strict'
 
-const expect = require('chai').expect
-const { Graph } = require('../../dist/api.js')
+import { Consumable } from './consumer'
 
-describe('Graph', () => {
-  it('should enforce subclasses to implement an "insert" method', () => {
-    const g = new Graph()
-    expect(() => g.insert()).to.throw(Error)
-  })
+/**
+ * ManyConsumers group multiple {@link Consumable} to be evaluated in sequence
+ * @author Thomas Minier
+ */
+export default class ManyConsumers implements Consumable {
+  private readonly _consumers: Consumable[]
 
-  it('should enforce subclasses to implement a "delete" method', () => {
-    const g = new Graph()
-    expect(() => g.delete()).to.throw(Error)
-  })
+  /**
+   * Constructor
+   * @param consumers - Set of consumables
+   */
+  constructor (consumers: Consumable[]) {
+    this._consumers = consumers
+  }
 
-  it('should enforce subclasses to implement a "find" method', () => {
-    const g = new Graph()
-    expect(() => g.find()).to.throw(Error)
-  })
-
-  it('should enforce subclasses to implement a "clear" method', () => {
-    const g = new Graph()
-    expect(() => g.clear()).to.throw(Error)
-  })
-})
+  execute (): Promise<void> {
+    if (this._consumers.length === 1) {
+      return this._consumers[0].execute()
+    }
+    return this._consumers.reduce((prev, consumer) => {
+      return prev.then(() => consumer.execute())
+    }, Promise.resolve())
+  }
+}
