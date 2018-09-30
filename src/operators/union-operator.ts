@@ -70,7 +70,7 @@ export default class UnionOperator<T> extends BufferedIterator<T> {
   readFrom (index: number): any {
     const source = this._sources[index]
     const item = source.read()
-    if (source.closed) {
+    if (source.ended) {
       pull(this._openSources, index)
     }
     return item
@@ -82,34 +82,26 @@ export default class UnionOperator<T> extends BufferedIterator<T> {
    * @param callback - Callback invoked each item an item has been read with success
    * @param limit    - Maximum number of items to read.
    */
-  cycle (callback: (item: any) => void, limit: number = Infinity): void {
+  _read (count: number, done: () => void): void {
     let item = null
     let nbReads = 0
     let cycles = 0
     // read N items in a round robin way (N = limit) while there are still open sources
-    while (this.nbOpenSources > 0 && cycles < this.nbOpenSources && nbReads < limit) {
+    // && cycles < this.nbOpenSources && nbReads < count
+    while (this.nbOpenSources > 0 && nbReads < count && cycles < this.nbOpenSources) {
       item = this.readFrom(this._sIndex)
       this._sIndex = this._openSources[(this._sIndex + 1) % this.nbOpenSources]
       if (!isNull(item)) {
-        callback(item)
-        nbReads++
+        this._push(item)
       }
+      nbReads++
       cycles++
     }
-    // close operator when no more sources are available
-    if (this.nbOpenSources === 0) this.close()
-  }
-
-  /**
-   * Read the next available item from the remaining sources
-   * @private
-   * @param count - The number of items to generate
-   * @param done - To be called when reading is completed
-   */
-  _read (count: number, done: () => void): void {
-    this.cycle(mappings => {
-      this._push(mappings)
-    }, count)
+    if (this.nbOpenSources === 0) {
+      this.close()
+    }
     done()
+    // close operator when no more sources are available
+    // done()
   }
 }

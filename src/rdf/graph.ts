@@ -24,7 +24,7 @@ SOFTWARE.
 
 'use strict'
 
-import { AsyncIterator, single, TransformIterator } from 'asynciterator'
+import { Readable, AsyncIterator, single, TransformIterator } from 'asynciterator'
 import { Algebra } from 'sparqljs'
 import IndexJoinOperator from '../operators/join/index-join-operator'
 import { rdf } from '../utils'
@@ -112,7 +112,7 @@ export default abstract class Graph {
    * @param  {string}   triple.object - Triple pattern's object
    * @return An iterator which finds RDF triples matching a triple pattern
    */
-  abstract find (triple: Algebra.TripleObject, options: Object): AsyncIterator<Algebra.TripleObject>
+  abstract find (triple: Algebra.TripleObject, options: Object): Readable<Algebra.TripleObject>
 
   /**
    * Remove all RDF triples in the Graph

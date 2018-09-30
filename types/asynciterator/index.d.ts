@@ -23,14 +23,45 @@ SOFTWARE.
 */
 
 declare module 'asynciterator' {
+
+  /**
+   * A Readable is an abstraction for a source from which data is consumed.
+   * Exemple implementations: Node.js Readable streams, iterators from the `asynciterator` package
+   */
+  export interface Readable<T> {
+    /**
+     * Tries to read the next item from the Readable.
+     * @param count - Optional argument to specify how much data to read
+     * @return {T|null} The next item, or null if none is available
+     */
+    read (count?: number): T | null;
+
+    /**
+     * Synchronously calls each of the listeners registered for the event named eventName, in the order they were registered, passing the supplied arguments to each.
+     * @param event  - Event to trigger
+     * @param ...args - Arguments passed to each listener
+     */
+    emit (event: string, ...args: any[]): void;
+
+    /**
+     * Adds the listener function to the end of the listeners array for the event named eventName.
+     * No checks are made to see if the listener has already been added.
+     * Multiple calls passing the same combination of eventName and listener will result in the listener being added, and called, multiple times.
+     * @param  event - Event to listen
+     * @param  callback - Callback invoked when the event is emitted
+     */
+    on (event: string, callback: (value: any) => void): void;
+  }
+
   /**
    * An asynchronous iterator provides pull-based access to a stream of objects.
    */
-  export class AsyncIterator<T> {
+  export class AsyncIterator<T> implements Readable<T> {
     readonly readable: boolean;
     readonly closed: boolean;
     readonly ended: boolean;
     readonly destroyed: boolean;
+    readonly done: boolean;
 
     /**
      * Creates an iterator of natural numbers within the given range.
@@ -48,7 +79,7 @@ declare module 'asynciterator' {
      * @param {Object} options - Settings of the iterator
      * @return {AsyncIterator} A new iterator with the items from the given iterator
      */
-    static wrap<T> (source: AsyncIterator<T>, options?: Object): AsyncIterator<T>
+    static wrap<T> (source: Readable<T>, options?: Object): AsyncIterator<T>
 
     /**
      * Called by AsyncIterator#destroy. Implementers can override this, but this should not be called directly.
@@ -238,7 +269,7 @@ declare module 'asynciterator' {
    */
   export class TransformIterator<T,R> extends BufferedIterator<R> {
     source: AsyncIterator<T>
-    constructor(source?: AsyncIterator<T>, options?: Object);
+    constructor(source?: Readable<T>, options?: Object);
     _transform (item: T, done: () => void): void;
   }
 

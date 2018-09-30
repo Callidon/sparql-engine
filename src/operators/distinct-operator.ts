@@ -25,7 +25,6 @@ SOFTWARE.
 'use strict'
 
 import { AsyncIterator, TransformIterator } from 'asynciterator'
-import { map } from 'lodash'
 import { Bindings } from '../rdf/bindings'
 
 /**
@@ -35,7 +34,7 @@ import { Bindings } from '../rdf/bindings'
  * @see {@link https://www.w3.org/TR/2013/REC-sparql11-query-20130321/#modDuplicates}
  */
 export default class DistinctOperator extends TransformIterator<Bindings,Bindings> {
-  private readonly _values: Map<string, Object>
+  private readonly _values: Map<string, number>
 
   /**
    * Constructor
@@ -44,28 +43,32 @@ export default class DistinctOperator extends TransformIterator<Bindings,Binding
   constructor (source: AsyncIterator<Bindings>) {
     super(source)
     this._values = new Map()
+    source.on('error', (err: Error) => this.emit('error', err))
   }
 
   /**
-   * Filter unique mappings from the source operator
+   * Filter unique set of mappings from the source operator
    * @param item - The set of mappings to filter
    * @param done - To be called when filtering is done
    */
-  _transform (item: Bindings, done: () => void): void {
-    const hash = this._hash(item)
+  _transform (bindings: Bindings, done: () => void): void {
+    const hash = this._hash(bindings)
     if (!this._values.has(hash)) {
       this._values.set(hash, 1)
-      this._push(item)
+      this._push(bindings)
     }
     done()
   }
 
   /**
-   * Hash an item and produce an unique value
+   * Hash an set of mappings and produce an unique value
    * @param item - The item to hash
    * @return An unique hash which identify the item
    */
-  _hash (item: any): string {
-    return map(item, (v: string, k: string) => `${k}=${encodeURIComponent(v)}`).sort().join('&')
+  _hash (bindings: Bindings): string {
+    const items: string[] = []
+    bindings.forEach((k: string, v: string) => items.push(`${k}=${encodeURIComponent(v)}`))
+    items.sort()
+    return items.join('&')
   }
 }

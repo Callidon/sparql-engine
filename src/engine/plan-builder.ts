@@ -253,15 +253,16 @@ export default class PlanBuilder {
       graphIterator = new OrderByOperator(graphIterator, query.order!, options)
     }
 
+    // Create iterators for modifiers
+    if (query.distinct) {
+      graphIterator = new DistinctIterator(graphIterator)
+    }
+
     if (!(query.queryType in queryConstructors)) {
       throw new Error(`Unsupported SPARQL query type: ${query.queryType}`)
     }
     graphIterator = new queryConstructors[query.queryType](graphIterator, query, options)
 
-    // Create iterators for modifiers
-    if (query.distinct) {
-      graphIterator = new DistinctIterator(graphIterator)
-    }
     // Add offsets and limits if requested
     if ('offset' in query || 'limit' in query) {
       graphIterator = graphIterator.transform({

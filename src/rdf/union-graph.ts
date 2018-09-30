@@ -26,7 +26,7 @@ SOFTWARE.
 
 import Graph from './graph'
 import UnionOperator from '../operators/union-operator'
-import { AsyncIterator } from 'asynciterator'
+import { AsyncIterator, Readable } from 'asynciterator'
 import { Algebra } from 'sparqljs'
 
 /**
@@ -58,8 +58,10 @@ export default class UnionGraph extends Graph {
     return this._graphs.reduce((prev, g) => prev.then(() => g.delete(triple)), Promise.resolve())
   }
 
-  find (triple: Algebra.TripleObject, options: Object): AsyncIterator<Algebra.TripleObject> {
-    return new UnionOperator(...this._graphs.map(g => g.find(triple, options)))
+  find (triple: Algebra.TripleObject, options: Object): Readable<Algebra.TripleObject> {
+    const iterators = this._graphs
+      .map(g => AsyncIterator.wrap(g.find(triple, options)))
+    return new UnionOperator(...iterators)
   }
 
   clear (): Promise<void> {
