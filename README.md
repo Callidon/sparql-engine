@@ -70,7 +70,7 @@ The `sparql-engine` framework uses a pipeline of iterators to execute SPARQL que
 ```typescript
 interface Readable<T> {
   /**
-   * Tries to read the next item from the iterator.
+   * Tries to read the next item from the readable.
    * @return {T|null} The next item, or null if none is available
    */
   read (): T | null;
