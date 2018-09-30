@@ -82,14 +82,29 @@ export abstract class Bindings {
    */
   abstract set (variable: string, value: string): void
 
+  /**
+   * Get metadata attached to the set using a key
+   * @param  key - Metadata key
+   * @return The metadata associated with the given key
+   */
   getProperty (key: string): any {
     return this._properties.get(key)
   }
 
+  /**
+   * Check if a metadata with a given key is attached to the set
+   * @param  key - Metadata key
+   * @return Tur if the metadata exists, False otherwise
+   */
   hasProperty (key: string): boolean {
     return this._properties.has(key)
   }
 
+  /**
+   * Attach metadata to the set
+   * @param key - Key associated to the value
+   * @param value - Value to attach
+   */
   setProperty (key: string, value: any): void {
     this._properties.set(key, value)
   }
@@ -113,6 +128,10 @@ export abstract class Bindings {
    */
   abstract empty (): Bindings
 
+  /**
+   * Serialize the set of mappings as a plain JS Object
+   * @return The set of mappings as a plain JS Object
+   */
   toObject (): Object {
     return this.reduce((acc, variable, value) => {
       acc[variable] = value
