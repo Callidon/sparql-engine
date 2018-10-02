@@ -61,7 +61,7 @@ export default class IndexJoinOperator extends MultiTransformIterator<Bindings,B
   _createTransformer (bindings: Bindings): AsyncIterator<Bindings> {
     const boundedPattern = bindings.bound(this._pattern)
     const hasVars = some(boundedPattern, (v: any) => v.startsWith('?'))
-    return this._graph.find(boundedPattern, this._options)
+    return AsyncIterator.wrap(this._graph.find(boundedPattern, this._options))
       .map<Bindings>((item: Algebra.TripleObject) => {
         let temp = pickBy(item, (v, k) => {
           return rdf.isVariable(boundedPattern[k])

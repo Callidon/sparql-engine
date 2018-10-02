@@ -48,15 +48,33 @@ export interface RDFTerm {
   readonly asJS: any
 }
 
+/**
+ * An intermediate format to represent RDF IRIs
+ */
 export interface IRI extends RDFTerm {}
 
+/**
+ * An intermediate format to represent RDF plain Literals
+ */
 export interface RawLiteral extends RDFTerm {}
 
+/**
+ * An intermediate format to represent RDF Literal with a language tag
+ */
 export interface LangLiteral extends RDFTerm {
+  /**
+   * Language tag
+   */
   readonly lang: string
 }
 
+/**
+ * An intermediate format to represent RDF Literal with a datatype
+ */
 export interface TypedLiteral extends RDFTerm {
+  /**
+   * Datatype
+   */
   readonly datatype: string
 }
 

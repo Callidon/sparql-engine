@@ -1,10 +1,9 @@
 'use strict'
 
-const { HashMapDataset, Graph, PlanBuilder } = require('sparql-engine')
+const { BindingBase, HashMapDataset, Graph, PlanBuilder } = require('sparql-engine')
 const level = require('level')
 const levelgraph = require('levelgraph')
-const { TransformIterator } = require('asynciterator')
-const { mapKeys } = require('lodash')
+const { AsyncIterator } = require('asynciterator')
 
 class LevelRDFGraph extends Graph {
   constructor (db) {
@@ -26,12 +25,12 @@ class LevelRDFGraph extends Graph {
       }
       return t
     })
-    return new TransformIterator(this._db.searchStream(bgp))
+    // Transform the Stream returned by LevelGraph into an AsyncIterator
+    return AsyncIterator.wrap(this._db.searchStream(bgp))
       .map(item => {
-        // fix '?' prefixes (removed by levelgraph)
-        return mapKeys(item, (value, key) => {
-          return '?' + key
-        })
+        // Transform LevelGraph objects into set of mappings
+        // using BindingBase.fromObject
+        return BindingBase.fromObject(item)
       })
   }
 }

@@ -19,6 +19,7 @@ An open-source framework for building SPARQL query engines in Javascript.
 * [Installation](#installation)
 * [Getting started](#getting-started)
   * [Examples](#examples)
+  * [Preliminaries](#preliminaries)
   * [RDF Graphs](#rdf-graphs)
   * [RDF Datasets](#rdf-datasets)
   * [Running a SPARQL query](#running-a-sparql-query)
@@ -48,46 +49,69 @@ As a starting point, we provide you with two examples of integration:
 * With [N3.js](https://github.com/rdfjs/N3.js), available [here](https://github.com/Callidon/sparql-engine/tree/master/examples/n3.js).
 * With [LevelGraph](https://github.com/levelgraph/levelgraph), available [here](https://github.com/Callidon/sparql-engine/tree/master/examples/levelgraph.js).
 
+## Preliminaries
+
+### RDF triples representation
+
+This framework represents RDF triples using Javascript Object.
+You will find below, in Java-like syntax, the "shape" of such object.
+```typescript
+interface TripleObject {
+  subject: string; // The Triple's subject
+  predicate: string; // The Triple's predicate
+  object: string; // The Triple's object
+}
+```
+
+### Iterators
+
+The `sparql-engine` framework uses a pipeline of iterators to execute SPARQL queries. Thus, many methods encountered in this framework needs to return `Readable`, *i.e.*, objects that generates items in a pull-based fashion. You will find below, in java-like syntax, the interface of such `Readable`. Any class that implements the same methods can be used as a `Readable` in the framework.
+
+```typescript
+interface Readable<T> {
+  /**
+   * Tries to read the next item from the readable.
+   * @return {T|null} The next item, or null if none is available
+   */
+  read (): T | null;
+}
+```
+
+You can also use the [`asynciterator`](https://www.npmjs.com/package/asynciterator) package, which provides iterators compatible with this interface, alongside many utilities for working with pipelines of iterators.
+
 ## RDF Graphs
 
 The first thing to do is to implement a subclass of the `Graph` abstract class. A `Graph` represents an [RDF Graph](https://www.w3.org/TR/rdf11-concepts/#section-rdf-graph) and is responsible for inserting, deleting and searching for RDF triples in the database.
 
 The main method to implement is `Graph.find(triple)`, which is used by the framework to find RDF triples matching
 a [triple pattern](https://www.w3.org/TR/sparql11-query/#basicpatterns) in the RDF Graph.
-This method must return an [AsyncIterator](https://www.npmjs.com/package/asynciterator), which will be consumed to find matching RDF triples. You can find an **example** of such implementation in the [N3 example](https://github.com/Callidon/sparql-engine/tree/master/examples/n3.js).
+This method must return an `Readable<TripleObject>`, which will be consumed to find matching RDF triples. You can find an **example** of such implementation in the [N3 example](https://github.com/Callidon/sparql-engine/tree/master/examples/n3.js).
 
 Similarly, to support the [SPARQL UPDATE protocol](https://www.w3.org/TR/2013/REC-sparql11-update-20130321/), you have to provides a graph that implements the `Graph.insert(triple)` and `Graph.delete(triple)` methods, which insert and delete RDF triple from the graph, respectively. These methods must returns [Promises](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise), which are fulfilled when the insertion/deletion operation is completed.
 
 Finally, the `sparql-engine` framework also let your customize how [Basic graph patterns](https://www.w3.org/TR/2013/REC-sparql11-query-20130321/#BasicGraphPatterns) (BGPs) are evaluated against
-the RDF graph. By default, the engine provides a default implementation based on the `Graph.find` method and the
-*Index Nested Loop Join algorithm*. However, if you wish to supply your own implementation
-for BGP evaluation, you just have to provides a graph with an `evalBGP(triples)` method.
-This method must return an [AsyncIterator](https://www.npmjs.com/package/asynciterator),
-like the `Graph.find` method. Tou can find an example of such implementation in the [LevelGraph example](https://github.com/Callidon/sparql-engine/tree/master/examples/levelgraph.js).
+the RDF graph. The engine provides a **default implementation** based on the `Graph.find` method and the
+*Index Nested Loop Join algorithm*. However, if you wish to supply your own implementation for BGP evaluation, you just have to implement a `Graph` with an `evalBGP(triples)` method.
+This method must return a `Readable<Bindings>`. You can find an example of such implementation in the [LevelGraph example](https://github.com/Callidon/sparql-engine/tree/master/examples/levelgraph.js).
 
-```javascript
+You will find below, in Java-like syntax, an example subclass of a `Graph`.
+```typescript
   const { Graph } = require('sparql-engine')
 
   class CustomGraph extends Graph {
     /**
      * Returns an iterator that finds RDF triples matching a triple pattern in the graph.
      * @param  {Object}   triple - Triple pattern to find
-     * @param  {string}   triple.subject - Triple pattern's subject
-     * @param  {string}   triple.predicate - Triple pattern's predicate
-     * @param  {string}   triple.object - Triple pattern's object
      * @return {AsyncIterator} An iterator which finds RDF triples matching a triple pattern
      */
-    find (triple, options) { /* ... */ }
+    find (triple: TripleObject, options: Object): Readable<TripleObject> { /* ... */ }
 
     /**
      * Insert a RDF triple into the RDF Graph
      * @param  {Object}   triple - RDF Triple to insert
-     * @param  {string}   triple.subject - RDF triple's subject
-     * @param  {string}   triple.predicate - RDF triple's predicate
-     * @param  {string}   triple.object - RDF triple's object
      * @return {Promise} A Promise fulfilled when the insertion has been completed
      */
-    insert (triple) { /* ... */ }
+    insert (triple: TripleObject): Promise { /* ... */ }
 
     /**
      * Delete a RDF triple from the RDF Graph
@@ -97,7 +121,7 @@ like the `Graph.find` method. Tou can find an example of such implementation in 
      * @param  {string}   triple.object - RDF triple's object
      * @return {Promise} A Promise fulfilled when the deletion has been completed
      */
-    delete (triple) { /* ... */ }
+    delete (triple: : TripleObject): Promise { /* ... */ }
   }
 ```
 
@@ -155,8 +179,7 @@ Finally, to run a SPARQL query on your RDF dataset, you need to use the `PlanBui
 # Federated SPARQL Queries
 
 The `sparql-engine` framework provides support for evaluating [federated SPARQL queries](https://www.w3.org/TR/2013/REC-sparql11-federated-query-20130321/), using the **SERVICE keyword**.
-As with a `Graph`, you simply need to provides an implementation of a [`ServiceExecutor`](https://github.com/Callidon/sparql-engine/blob/master/src/engine/executors/service-executor.js),
-a class used as a building block by the engine to evaluates SERVICE clauses.
+As with a `Graph`, you simply need to provides an implementation of a [`ServiceExecutor`](https://github.com/Callidon/sparql-engine/blob/master/src/engine/executors/service-executor.js), a class used as a building block by the engine to evaluates SERVICE clauses.
 The only method that needs to be implemented is the `ServiceExecutor._execute` method,
 as detailed below.
 
