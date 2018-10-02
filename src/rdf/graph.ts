@@ -30,6 +30,9 @@ import IndexJoinOperator from '../operators/join/index-join-operator'
 import { rdf } from '../utils'
 import { Bindings, BindingBase } from './bindings'
 
+/**
+ * Metadata used for query optimization
+ */
 export interface PatternMetadata {
   triple: Algebra.TripleObject,
   cardinality: number,
@@ -137,7 +140,7 @@ export default abstract class Graph {
    * @param  {Object} options - Execution options
    * @return An iterator which evaluates the Basic Graph pattern on the Graph
    */
-  evalBGP (bgp: Algebra.TripleObject[], options: Object): AsyncIterator<Bindings> {
+  evalBGP (bgp: Algebra.TripleObject[], options: Object): Readable<Bindings> {
     const iter = new TransformIterator<Bindings,Bindings>()
     // collect cardinalities of each triple pattern
     Promise.all(bgp.map(triple => {

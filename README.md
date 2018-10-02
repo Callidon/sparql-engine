@@ -54,7 +54,7 @@ As a starting point, we provide you with two examples of integration:
 ### RDF triples representation
 
 This framework represents RDF triples using Javascript Object.
-You will find below, in java-like syntax, the "shape" of such object.
+You will find below, in Java-like syntax, the "shape" of such object.
 ```typescript
 interface TripleObject {
   subject: string; // The Triple's subject
@@ -90,10 +90,11 @@ This method must return an `Readable<TripleObject>`, which will be consumed to f
 Similarly, to support the [SPARQL UPDATE protocol](https://www.w3.org/TR/2013/REC-sparql11-update-20130321/), you have to provides a graph that implements the `Graph.insert(triple)` and `Graph.delete(triple)` methods, which insert and delete RDF triple from the graph, respectively. These methods must returns [Promises](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise), which are fulfilled when the insertion/deletion operation is completed.
 
 Finally, the `sparql-engine` framework also let your customize how [Basic graph patterns](https://www.w3.org/TR/2013/REC-sparql11-query-20130321/#BasicGraphPatterns) (BGPs) are evaluated against
-the RDF graph. By default, the engine provides a default implementation based on the `Graph.find` method and the
-*Index Nested Loop Join algorithm*. However, if you wish to supply your own implementation for BGP evaluation, you just have to provides a graph with an `evalBGP(triples)` method.
+the RDF graph. The engine provides a **default implementation** based on the `Graph.find` method and the
+*Index Nested Loop Join algorithm*. However, if you wish to supply your own implementation for BGP evaluation, you just have to implement a `Graph` with an `evalBGP(triples)` method.
 This method must return a `Readable<Bindings>`. You can find an example of such implementation in the [LevelGraph example](https://github.com/Callidon/sparql-engine/tree/master/examples/levelgraph.js).
 
+You will find below, in Java-like syntax, an example subclass of a `Graph`.
 ```typescript
   const { Graph } = require('sparql-engine')
 
