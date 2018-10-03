@@ -9,7 +9,7 @@ script:
   - npm run test
 after_success:
   - npm run doc
-  - npm run coverage
+  - npm run report
   - npm run codecov
   - ./node_modules/.bin/codecov
 deploy:
