@@ -10,7 +10,7 @@
     "build": "tsc",
     "report": "nyc --reporter=html --reporter=text mocha tests/**/*-test.js",
     "codecov": "nyc report --reporter=text-lcov > coverage.lcov",
-    "doc": "typedoc --out docs/"
+    "doc": "typedoc --mode file --out docs/"
   },
   "repository": {
     "type": "git",

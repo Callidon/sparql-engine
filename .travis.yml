@@ -8,6 +8,7 @@ before_script:
 script:
   - npm run test
 after_success:
+  - npm run doc
   - npm run coverage
   - npm run codecov
   - ./node_modules/.bin/codecov
@@ -18,3 +19,9 @@ deploy:
   api_key: $NPM_KEY
   on:
     tags: true
+- provider: pages
+  skip_cleanup: true
+  github_token: $GITHUB_TOKEN
+  local_dir: docs
+  on:
+    branch: master
