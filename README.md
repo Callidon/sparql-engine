@@ -3,6 +3,8 @@
 
 An open-source framework for building SPARQL query engines in Javascript.
 
+[Online documentation](https://callidon.github.io/sparql-engine/)
+
 **Main features**:
 * Build a [SPARQL](https://www.w3.org/TR/2013/REC-sparql11-overview-20130321/) query engine on top of any data storage system.
 * Supports [the full features of the SPARQL syntax](https://www.w3.org/TR/sparql11-query/) by *implementing a single class!*
