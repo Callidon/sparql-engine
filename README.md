@@ -65,19 +65,7 @@ interface TripleObject {
 
 ### Iterators
 
-The `sparql-engine` framework uses a pipeline of iterators to execute SPARQL queries. Thus, many methods encountered in this framework needs to return `Readable`, *i.e.*, objects that generates items in a pull-based fashion. You will find below, in java-like syntax, the interface of such `Readable`. Any class that implements the same methods can be used as a `Readable` in the framework.
-
-```typescript
-interface Readable<T> {
-  /**
-   * Tries to read the next item from the readable.
-   * @return {T|null} The next item, or null if none is available
-   */
-  read (): T | null;
-}
-```
-
-You can also use the [`asynciterator`](https://www.npmjs.com/package/asynciterator) package, which provides iterators compatible with this interface, alongside many utilities for working with pipelines of iterators.
+The `sparql-engine` framework uses a pipeline of iterators to execute SPARQL queries. Thus, many methods encountered in this framework needs to return `AsyncIterator<T>`, *i.e.*, objects that generates items of type `T` in a pull-based fashion. All iterators-related classes and methods are provided by the [`asynciterator`](https://www.npmjs.com/package/asynciterator) package.
 
 ## RDF Graphs
 
@@ -85,14 +73,14 @@ The first thing to do is to implement a subclass of the `Graph` abstract class. 
 
 The main method to implement is `Graph.find(triple)`, which is used by the framework to find RDF triples matching
 a [triple pattern](https://www.w3.org/TR/sparql11-query/#basicpatterns) in the RDF Graph.
-This method must return an `Readable<TripleObject>`, which will be consumed to find matching RDF triples. You can find an **example** of such implementation in the [N3 example](https://github.com/Callidon/sparql-engine/tree/master/examples/n3.js).
+This method must return an `AsyncIterator<TripleObject>`, which will be consumed to find matching RDF triples. You can find an **example** of such implementation in the [N3 example](https://github.com/Callidon/sparql-engine/tree/master/examples/n3.js).
 
 Similarly, to support the [SPARQL UPDATE protocol](https://www.w3.org/TR/2013/REC-sparql11-update-20130321/), you have to provides a graph that implements the `Graph.insert(triple)` and `Graph.delete(triple)` methods, which insert and delete RDF triple from the graph, respectively. These methods must returns [Promises](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise), which are fulfilled when the insertion/deletion operation is completed.
 
 Finally, the `sparql-engine` framework also let your customize how [Basic graph patterns](https://www.w3.org/TR/2013/REC-sparql11-query-20130321/#BasicGraphPatterns) (BGPs) are evaluated against
 the RDF graph. The engine provides a **default implementation** based on the `Graph.find` method and the
 *Index Nested Loop Join algorithm*. However, if you wish to supply your own implementation for BGP evaluation, you just have to implement a `Graph` with an `evalBGP(triples)` method.
-This method must return a `Readable<Bindings>`. You can find an example of such implementation in the [LevelGraph example](https://github.com/Callidon/sparql-engine/tree/master/examples/levelgraph.js).
+This method must return a `AsyncIterator<Bindings>`. You can find an example of such implementation in the [LevelGraph example](https://github.com/Callidon/sparql-engine/tree/master/examples/levelgraph.js).
 
 You will find below, in Java-like syntax, an example subclass of a `Graph`.
 ```typescript
@@ -104,7 +92,7 @@ You will find below, in Java-like syntax, an example subclass of a `Graph`.
      * @param  {Object}   triple - Triple pattern to find
      * @return {AsyncIterator} An iterator which finds RDF triples matching a triple pattern
      */
-    find (triple: TripleObject, options: Object): Readable<TripleObject> { /* ... */ }
+    find (triple: TripleObject, options: Object): AsyncIterator<TripleObject> { /* ... */ }
 
     /**
      * Insert a RDF triple into the RDF Graph
