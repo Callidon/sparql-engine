@@ -347,7 +347,7 @@ export default {
     // Implements https://tools.ietf.org/html/rfc4647#section-3.3.1
     const tag = langTag.value.toLowerCase()
     const range = langRange.value.toLowerCase()
-    const test = tag === tag ||
+    const test = tag === range ||
                   range === '*' ||
                   tag.substr(1, range.length + 1) === range + '-'
     return terms.BooleanDescriptor(test)

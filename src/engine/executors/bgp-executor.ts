@@ -55,7 +55,7 @@ class BaseBGPIterator extends MultiTransformIterator<Bindings,Bindings> {
     let boundedBGP = this._bgp.map(t => bindings.bound(t))
     const hasVars = boundedBGP.map(p => some(p, v => v!.startsWith('?')))
       .reduce((acc, v) => acc && v, true)
-    return AsyncIterator.wrap(this._graph.evalBGP(boundedBGP, this._options))
+    return this._graph.evalBGP(boundedBGP, this._options)
       .map((item: Bindings) => {
         if (item.size === 0 && hasVars) return null
         return item.union(bindings)

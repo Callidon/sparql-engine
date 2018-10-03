@@ -123,7 +123,7 @@ export default class PlanBuilder {
   set aggregateExecutor (executor: AggregateExecutor) {
     this._bgpExecutor.builder = null
     this._aggExecutor = executor
-    this._bgpExecutor.builder = this
+    this._aggExecutor.builder = this
   }
 
   /**
@@ -133,7 +133,7 @@ export default class PlanBuilder {
   set graphExecutor (executor: GraphExecutor) {
     this._bgpExecutor.builder = null
     this._graphExecutor = executor
-    this._bgpExecutor.builder = this
+    this._graphExecutor.builder = this
   }
 
   /**
@@ -143,7 +143,7 @@ export default class PlanBuilder {
   set updateExecutor (executor: UpdateExecutor) {
     this._bgpExecutor.builder = null
     this._updateExecutor = executor
-    this._bgpExecutor.builder = this
+    this._updateExecutor.builder = this
   }
 
   /**
@@ -153,7 +153,7 @@ export default class PlanBuilder {
   set serviceExecutor (executor: ServiceExecutor) {
     this._bgpExecutor.builder = null
     this._serviceExecutor = executor
-    this._bgpExecutor.builder = this
+    this._serviceExecutor.builder = this
   }
 
   /**
@@ -253,15 +253,15 @@ export default class PlanBuilder {
       graphIterator = new OrderByOperator(graphIterator, query.order!, options)
     }
 
-    // Create iterators for modifiers
-    if (query.distinct) {
-      graphIterator = new DistinctIterator(graphIterator)
-    }
-
     if (!(query.queryType in queryConstructors)) {
       throw new Error(`Unsupported SPARQL query type: ${query.queryType}`)
     }
     graphIterator = new queryConstructors[query.queryType](graphIterator, query, options)
+
+    // Create iterators for modifiers
+    if (query.distinct) {
+      graphIterator = new DistinctIterator(graphIterator)
+    }
 
     // Add offsets and limits if requested
     if ('offset' in query || 'limit' in query) {

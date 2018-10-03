@@ -65,8 +65,9 @@ export default class SelectOperator extends TransformIterator<Bindings,Bindings>
         return obj
       }, bindings.empty())
     }
+    const x = bindings.mapValues((k, v) => rdf.isVariable(k) && typeof v === 'string' ? v : null)
     // remove non-variables entries && non-string values
-    this._push(bindings.mapValues((k, v) => rdf.isVariable(k) && typeof v === 'string' ? v : null))
+    this._push(x)
     done()
   }
 }

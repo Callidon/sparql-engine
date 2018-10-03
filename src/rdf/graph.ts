@@ -24,7 +24,7 @@ SOFTWARE.
 
 'use strict'
 
-import { Readable, AsyncIterator, single, TransformIterator } from 'asynciterator'
+import { AsyncIterator, single, TransformIterator } from 'asynciterator'
 import { Algebra } from 'sparqljs'
 import IndexJoinOperator from '../operators/join/index-join-operator'
 import { rdf } from '../utils'
@@ -115,7 +115,7 @@ export default abstract class Graph {
    * @param  {string}   triple.object - Triple pattern's object
    * @return An iterator which finds RDF triples matching a triple pattern
    */
-  abstract find (triple: Algebra.TripleObject, options: Object): Readable<Algebra.TripleObject>
+  abstract find (triple: Algebra.TripleObject, options: Object): AsyncIterator<Algebra.TripleObject>
 
   /**
    * Remove all RDF triples in the Graph
@@ -140,7 +140,7 @@ export default abstract class Graph {
    * @param  {Object} options - Execution options
    * @return An iterator which evaluates the Basic Graph pattern on the Graph
    */
-  evalBGP (bgp: Algebra.TripleObject[], options: Object): Readable<Bindings> {
+  evalBGP (bgp: Algebra.TripleObject[], options: Object): AsyncIterator<Bindings> {
     const iter = new TransformIterator<Bindings,Bindings>()
     // collect cardinalities of each triple pattern
     Promise.all(bgp.map(triple => {
