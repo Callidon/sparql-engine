@@ -1,4 +1,4 @@
-/* file : insert-consumer.ts
+/* file : ask.ts
 MIT License
 
 Copyright (c) 2018 Thomas Minier
@@ -24,37 +24,46 @@ SOFTWARE.
 
 'use strict'
 
-import { Consumer } from './consumer'
-import Graph from '../../rdf/graph'
 import { Observable } from 'rxjs'
-import { AsyncIterator } from 'asynciterator'
-import { Algebra } from 'sparqljs'
+import { count, first, map } from 'rxjs/operators'
+import { Bindings } from '../../rdf/bindings'
 
 /**
- * A DeleteConsumer evaluates a SPARQL DELETE clause
- * @extends Consumer
+ * A AskOperator output True if a source iterator has solutions, false otherwise.
+ * results are outputed following the SPARQL XML results format
+ * @see {@link https://www.w3.org/TR/2013/REC-sparql11-query-20130321/#ask}
  * @author Thomas Minier
+ * @param source - Source observable
  */
-export default class DeleteConsumer extends Consumer {
-  private readonly _graph: Graph
-
-  /**
-   * Constructor
-   * @param source - Source iterator
-   * @param graph - Input RDF Graph
-   * @param options - Execution options
-   */
-  constructor (source: Observable<Algebra.TripleObject>, graph: Graph, options: Object) {
-    super(source, options)
-    this._graph = graph
-  }
-
-  _write (triple: Algebra.TripleObject, encoding: string | undefined, done: (err?: Error) => void): void {
-    this._graph.delete(triple)
-      .then(() => done())
-      .catch(err => {
-        this.emit('error', err)
-        done(err)
-      })
-  }
+export default function ask (source: Observable<Bindings>) {
+  return source
+    .pipe(first())
+    .pipe(count())
+    .pipe(map((nb: number) => {
+      return nb > 0
+    }))
 }
+// export default class AskOperator extends TransformIterator<Bindings, boolean> {
+//   private _noResults: boolean
+//   /**
+//    * Constructor
+//    * @param source - Source iterator
+//    */
+//   constructor (source: AsyncIterator<Bindings>) {
+//     super(source.take(1))
+//     this._noResults = true
+//   }
+//
+//   _transform (bindings: Bindings, done: () => void): void {
+//     this._noResults = false
+//     this._push(true)
+//     done()
+//   }
+//
+//   _flush (done: () => void): void {
+//     if (this._noResults) {
+//       this._push(false)
+//     }
+//     done()
+//   }
+// }

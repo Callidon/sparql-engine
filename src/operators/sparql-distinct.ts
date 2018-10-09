@@ -1,4 +1,4 @@
-/* file : insert-consumer.ts
+/* file : sparql-distinct.ts
 MIT License
 
 Copyright (c) 2018 Thomas Minier
@@ -24,37 +24,35 @@ SOFTWARE.
 
 'use strict'
 
-import { Consumer } from './consumer'
-import Graph from '../../rdf/graph'
-import { Observable } from 'rxjs'
-import { AsyncIterator } from 'asynciterator'
-import { Algebra } from 'sparqljs'
+import { distinct } from 'rxjs/operators'
+import { Bindings } from '../rdf/bindings'
 
 /**
- * A DeleteConsumer evaluates a SPARQL DELETE clause
- * @extends Consumer
+ * Hash an set of mappings and produce an unique value
+ * @param item - The item to hash
+ * @return An unique hash which identify the item
+ */
+function _hash (bindings: Bindings): string {
+  const items: string[] = []
+  bindings.forEach((k: string, v: string) => items.push(`${k}=${encodeURIComponent(v)}`))
+  items.sort()
+  return items.join('&')
+}
+
+/**
+ * Applies a DISTINCT modifier on the output of another operator.
+ * @see {@link https://www.w3.org/TR/2013/REC-sparql11-query-20130321/#modDuplicates}
  * @author Thomas Minier
  */
-export default class DeleteConsumer extends Consumer {
-  private readonly _graph: Graph
-
-  /**
-   * Constructor
-   * @param source - Source iterator
-   * @param graph - Input RDF Graph
-   * @param options - Execution options
-   */
-  constructor (source: Observable<Algebra.TripleObject>, graph: Graph, options: Object) {
-    super(source, options)
-    this._graph = graph
-  }
-
-  _write (triple: Algebra.TripleObject, encoding: string | undefined, done: (err?: Error) => void): void {
-    this._graph.delete(triple)
-      .then(() => done())
-      .catch(err => {
-        this.emit('error', err)
-        done(err)
-      })
-  }
+export default function sparqlDistinct () {
+  // const values: Map<string, number> = new Map()
+  return distinct((bindings: Bindings) => _hash(bindings))
+  // return filter((bindings: Bindings) => {
+  //   const hash = _hash(bindings)
+  //   if (!values.has(hash)) {
+  //     values.set(hash, 1)
+  //     return true
+  //   }
+  //   return false
+  // })
 }

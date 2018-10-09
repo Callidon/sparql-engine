@@ -26,6 +26,7 @@ SOFTWARE.
 
 import { Consumer } from './consumer'
 import Graph from '../../rdf/graph'
+import { Observable } from 'rxjs'
 import { AsyncIterator } from 'asynciterator'
 import { Algebra } from 'sparqljs'
 
@@ -43,7 +44,7 @@ export default class InsertConsumer extends Consumer {
    * @param graph - Input RDF Graph
    * @param options - Execution options
    */
-  constructor (source: AsyncIterator<Algebra.TripleObject>, graph: Graph, options: Object) {
+  constructor (source: Observable<Algebra.TripleObject>, graph: Graph, options: Object) {
     super(source, options)
     this._graph = graph
   }

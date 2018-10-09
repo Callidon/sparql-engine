@@ -92,9 +92,9 @@ class N3Graph extends Graph {
 
   find (triple) {
     const { subject, predicate, object } = formatTriplePattern(triple)
-    return new ArrayIterator(this._store.getTriples(subject, predicate, object).map(t => {
+    return this._store.getTriples(subject, predicate, object).map(t => {
       return pick(t, ['subject', 'predicate', 'object'])
-    }))
+    })
   }
 
   estimateCardinality (triple) {

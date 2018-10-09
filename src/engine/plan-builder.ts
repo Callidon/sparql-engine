@@ -26,25 +26,35 @@ SOFTWARE.
 
 // General libraries
 import { Algebra, Parser } from 'sparqljs'
-import { AsyncIterator, single } from 'asynciterator'
+import { Observable, of, merge } from 'rxjs'
+import { take, skip } from 'rxjs/operators'
+// import { AsyncIterator, single } from 'asynciterator'
 import { Consumable } from '../operators/update/consumer'
 // RDF core classes
 import { Bindings, BindingBase } from '../rdf/bindings'
 import Dataset from '../rdf/dataset'
 // SPARQL query operators
 import AggregateOperator from '../operators/aggregates/agg-operator'
-import BindOperator from '../operators/bind-operator'
-import DistinctIterator from '../operators/distinct-operator'
-import ExistsOperator from '../operators/exists-operator'
-import FilterOperator from '../operators/filter-operator'
+// import BindOperator from '../operators/bind-operator'
+import bind from '../operators/bind'
+// import DistinctIterator from '../operators/distinct-operator'
+import sparqlDistinct from '../operators/sparql-distinct'
+// import ExistsOperator from '../operators/exists-operator'
+import exists from '../operators/exists'
+// import FilterOperator from '../operators/filter-operator'
+import sparqlFilter from '../operators/sparql-filter'
 import MinusOperator from '../operators/minus-operator'
-import OptionalOperator from '../operators/optional-operator'
+// import OptionalOperator from '../operators/optional-operator'
+import optional from '../operators/optional'
 import OrderByOperator from '../operators/orderby-operator'
-import UnionOperator from '../operators/union-operator'
+// import UnionOperator from '../operators/union-operator'
 // Solution modifiers
-import AskOperator from '../operators/modifiers/ask-operator'
-import ConstructOperator from '../operators/modifiers/construct-operator'
-import SelectOperator from '../operators/modifiers/select-operator'
+// import AskOperator from '../operators/modifiers/ask-operator'
+import ask from '../operators/modifiers/ask'
+// import ConstructOperator from '../operators/modifiers/construct-operator'
+import construct from '../operators/modifiers/construct'
+// import SelectOperator from '../operators/modifiers/select-operator'
+import select from '../operators/modifiers/select'
 // Executors
 import AggregateExecutor from './executors/aggregate-executor'
 import BGPExecutor from './executors/bgp-executor'
@@ -63,10 +73,10 @@ import {
 } from 'lodash'
 import { extendByBindings, deepApplyBindings, rdf } from '../utils'
 
-const queryConstructors = {
-  SELECT: SelectOperator,
-  CONSTRUCT: ConstructOperator,
-  ASK: AskOperator
+const QUERY_MODIFIERS = {
+  SELECT: select,
+  CONSTRUCT: construct,
+  ASK: ask
 }
 
 /**
@@ -163,7 +173,7 @@ export default class PlanBuilder {
    * @param  options  - Execution options
    * @return An iterator that can be consumed to evaluate the query.
    */
-  build (query: any, options: any = {}): AsyncIterator<QueryOutput> | Consumable {
+  build (query: any, options: any = {}): Observable<QueryOutput> | Consumable {
     // If needed, parse the string query into a logical query execution plan
     if (typeof query === 'string') {
       query = this._parser.parse(query)
@@ -185,10 +195,10 @@ export default class PlanBuilder {
    * @param  source - Source iterator
    * @return An iterator that can be consumed to evaluate the query.
    */
-  _buildQueryPlan (query: Algebra.RootNode, options: any = {}, source?: AsyncIterator<Bindings>): AsyncIterator<Bindings> {
+  _buildQueryPlan (query: Algebra.RootNode, options: any = {}, source?: Observable<Bindings>): Observable<Bindings> {
     if (isNull(source) || isUndefined(source)) {
       // build pipeline starting iterator
-      source = single(new BindingBase())
+      source = of(new BindingBase())
     }
     options.prefixes = query.prefixes
 
@@ -223,11 +233,11 @@ export default class PlanBuilder {
     }
 
     // Handles WHERE clause
-    let graphIterator
+    let graphIterator: Observable<Bindings>
     if (query.where != null && query.where.length > 0) {
       graphIterator = this._buildWhere(source, query.where, options)
     } else {
-      graphIterator = single(new BindingBase())
+      graphIterator = of(new BindingBase())
     }
 
     // Parse query variable to separate projection & aggregate variables
@@ -239,38 +249,40 @@ export default class PlanBuilder {
     }
 
     // Handles Aggregates
-    graphIterator = this._aggExecutor.buildIterator(graphIterator, query, options)
+    // graphIterator = this._aggExecutor.buildIterator(graphIterator, query, options)
 
     // Handles transformers
-    if (aggregates.length > 0) {
-      graphIterator = aggregates.reduce((iter, agg) => {
-        return new AggregateOperator(iter, agg, options)
-      }, graphIterator)
-    }
+    // TODO restore
+    // if (aggregates.length > 0) {
+    //   graphIterator = aggregates.reduce((iter, agg) => {
+    //     return new AggregateOperator(iter, agg, options)
+    //   }, graphIterator)
+    // }
 
     // Handles ORDER BY
-    if ('order' in query) {
-      graphIterator = new OrderByOperator(graphIterator, query.order!, options)
-    }
+    // TODO restore
+    // if ('order' in query) {
+    //   graphIterator = new OrderByOperator(graphIterator, query.order!, options)
+    // }
 
-    if (!(query.queryType in queryConstructors)) {
+    if (!(query.queryType in QUERY_MODIFIERS)) {
       throw new Error(`Unsupported SPARQL query type: ${query.queryType}`)
     }
-    graphIterator = new queryConstructors[query.queryType](graphIterator, query, options)
+    graphIterator = QUERY_MODIFIERS[query.queryType](graphIterator, query, options)
 
     // Create iterators for modifiers
     if (query.distinct) {
-      graphIterator = new DistinctIterator(graphIterator)
+      graphIterator = graphIterator.pipe(sparqlDistinct())
     }
 
     // Add offsets and limits if requested
-    if ('offset' in query || 'limit' in query) {
-      graphIterator = graphIterator.transform({
-        offset: query.offset,
-        limit: query.limit
-      })
+    if ('offset' in query) {
+      graphIterator = graphIterator.pipe(skip(query.offset!))
     }
-    graphIterator.queryType = query.queryType
+    if ('limit' in query) {
+      graphIterator = graphIterator.pipe(take(query.limit!))
+    }
+    // graphIterator.queryType = query.queryType
     return graphIterator
   }
 
@@ -281,7 +293,7 @@ export default class PlanBuilder {
    * @param  options  - Execution options
    * @return An iterator used to evaluate the WHERE clause
    */
-  _buildWhere (source: AsyncIterator<Bindings>, groups: Algebra.PlanNode[], options: Object): AsyncIterator<Bindings> {
+  _buildWhere (source: Observable<Bindings>, groups: Algebra.PlanNode[], options: Object): Observable<Bindings> {
     groups = sortBy(groups, g => {
       switch (g.type) {
         case 'bgp':
@@ -327,7 +339,7 @@ export default class PlanBuilder {
    * @param  options - Execution options
    * @return An iterator used to evaluate the SPARQL Group
    */
-  _buildGroup (source: AsyncIterator<Bindings>, group: Algebra.PlanNode, options: Object): AsyncIterator<Bindings> {
+  _buildGroup (source: Observable<Bindings>, group: Algebra.PlanNode, options: Object): Observable<Bindings> {
     // Reset flags on the options for child iterators
     let childOptions = assign({}, options)
 
@@ -371,28 +383,31 @@ export default class PlanBuilder {
       case 'group':
         return this._buildWhere(source, (group as Algebra.GroupNode).patterns, childOptions)
       case 'optional':
-        return new OptionalOperator(source, (group as Algebra.GroupNode).patterns, this, options)
+        return optional(source, (group as Algebra.GroupNode).patterns, this, options)
       case 'union':
-        return new UnionOperator(...(group as Algebra.GroupNode).patterns.map(patternToken => {
-          return this._buildGroup(source.clone(), patternToken, childOptions)
+        return merge(...(group as Algebra.GroupNode).patterns.map(patternToken => {
+          return this._buildGroup(source, patternToken, childOptions)
         }))
-      case 'minus':
-        const rightSource = this._buildWhere(single(new BindingBase()), (group as Algebra.GroupNode).patterns, options)
-        return new MinusOperator(source, rightSource, options)
+      // TODO restore
+      // case 'minus':
+      //   const rightSource = this._buildWhere(of(new BindingBase()), (group as Algebra.GroupNode).patterns, options)
+      //   return new MinusOperator(source, rightSource, options)
       case 'filter':
         const filter = group as Algebra.FilterNode
         // FILTERs (NOT) EXISTS are handled using dedicated operators
         switch (filter.expression.operator) {
           case 'exists':
-            return new ExistsOperator(source, filter.expression.args, this, false, options)
+            // TODO fix
+            return source.pipe(exists(filter.expression.args, this, false, options))
           case 'notexists':
-            return new ExistsOperator(source, filter.expression.args, this, true, options)
+            // TODO fix
+            return source.pipe(exists(filter.expression.args, this, true, options))
           default:
-            return new FilterOperator(source, filter.expression, childOptions)
+            return source.pipe(sparqlFilter(filter.expression))
         }
       case 'bind':
-        const bind = group as Algebra.BindNode
-        return new BindOperator(source, bind.variable, bind.expression, childOptions)
+        const bindNode = group as Algebra.BindNode
+        return source.pipe(bind(bindNode.variable, bindNode.expression))
       default:
         throw new Error(`Unsupported SPARQL group pattern found in query: ${group.type}`)
     }
@@ -407,7 +422,7 @@ export default class PlanBuilder {
    * @param options - Execution options
    * @return An iterator which evaluates a SPARQL query with VALUES clause(s)
    */
-  _buildValues (source: AsyncIterator<Bindings>, groups: Algebra.PlanNode[], options: Object): AsyncIterator<Bindings> {
+  _buildValues (source: Observable<Bindings>, groups: Algebra.PlanNode[], options: Object): Observable<Bindings> {
     let [ values, others ] = partition(groups, g => g.type === 'values')
     const bindingsLists = values.map(g => (g as Algebra.ValuesNode).values)
     // for each VALUES clause
@@ -417,13 +432,13 @@ export default class PlanBuilder {
         const bindings = BindingBase.fromObject(b)
         // BIND each group with the set of bindings and then evaluates it
         const temp = others.map(g => deepApplyBindings(g, bindings))
-        return extendByBindings(this._buildWhere(source.clone(), temp, options), bindings)
+        return extendByBindings(this._buildWhere(source, temp, options), bindings)
       })
-      return new UnionOperator(...unionBranches)
+      return merge(...unionBranches)
     })
     // Users may use more than one VALUES clause
     if (iterators.length > 1) {
-      return new UnionOperator(...iterators)
+      return merge(...iterators)
     }
     return iterators[0]
   }

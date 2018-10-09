@@ -41,7 +41,7 @@ import { Bindings } from '../rdf/bindings'
 export default function bind (variable: string, expression: Algebra.Expression | string) {
   return function (source: Observable<Bindings>) {
     const expr = new SPARQLExpression(expression)
-    return new Observable(subscriber => {
+    return new Observable<Bindings>(subscriber => {
       return source.subscribe((bindings: Bindings) => {
         const res = bindings.clone()
         try {

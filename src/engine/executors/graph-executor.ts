@@ -25,11 +25,13 @@ SOFTWARE.
 'use strict'
 
 import Executor from './executor'
-import UnionOperator from '../../operators/union-operator'
+import { Observable, merge } from 'rxjs'
+import { map } from 'rxjs/operators'
+// import UnionOperator from '../../operators/union-operator'
 import { rdf } from '../../utils'
 import { cloneDeep, isArray }from 'lodash'
 import { Algebra } from 'sparqljs'
-import { AsyncIterator } from 'asynciterator'
+// import { AsyncIterator } from 'asynciterator'
 import Dataset from '../../rdf/dataset'
 import { Bindings } from '../../rdf/bindings'
 
@@ -56,7 +58,7 @@ export default class GraphExecutor extends Executor {
    * @param  options - Execution options
    * @return An iterator used to evaluate a GRAPH clause
    */
-  buildIterator (source: AsyncIterator<Bindings>, node: Algebra.GraphNode, options: any): AsyncIterator<Bindings> {
+  buildIterator (source: Observable<Bindings>, node: Algebra.GraphNode, options: any): Observable<Bindings> {
     let subquery: Algebra.RootNode
     if (node.patterns[0].type === 'query') {
       subquery = (<Algebra.RootNode> node.patterns[0])
@@ -73,11 +75,11 @@ export default class GraphExecutor extends Executor {
     if (rdf.isVariable(node.name) && '_from' in options && isArray(options._from.named)) {
       // execute the subquery using each graph, and bound the graph var to the graph iri
       const iterators = options._from.named.map((iri: string) => {
-        return this._execute(source.clone(), iri, subquery, options).map(b => {
+        return this._execute(source, iri, subquery, options).pipe(map(b => {
           return b.extendMany([[node.name, iri]])
-        })
+        }))
       })
-      return new UnionOperator(...iterators)
+      return merge(...iterators)
     }
     // otherwise, execute the subquery using the Graph
     return this._execute(source, node.name, subquery, options)
@@ -91,7 +93,7 @@ export default class GraphExecutor extends Executor {
    * @param  options   - Execution options
    * @return An iterator used to evaluate a GRAPH clause
    */
-  _execute (source: AsyncIterator<Bindings>, iri: string, subquery: Algebra.RootNode, options: any): AsyncIterator<Bindings> {
+  _execute (source: Observable<Bindings>, iri: string, subquery: Algebra.RootNode, options: any): Observable<Bindings> {
     const opts = cloneDeep(options)
     opts._from = {
       default: [ iri ],

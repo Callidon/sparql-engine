@@ -1,4 +1,4 @@
-/* file : insert-consumer.ts
+/* file : sparql-filter.ts
 MIT License
 
 Copyright (c) 2018 Thomas Minier
@@ -24,37 +24,22 @@ SOFTWARE.
 
 'use strict'
 
-import { Consumer } from './consumer'
-import Graph from '../../rdf/graph'
-import { Observable } from 'rxjs'
-import { AsyncIterator } from 'asynciterator'
+import { filter } from 'rxjs/operators'
+import SPARQLExpression from './expressions/sparql-expression'
 import { Algebra } from 'sparqljs'
+import { Bindings } from '../rdf/bindings'
 
 /**
- * A DeleteConsumer evaluates a SPARQL DELETE clause
- * @extends Consumer
+ * Evaluate SPARQL Filter clauses
+ * @see {@link https://www.w3.org/TR/sparql11-query/#expressions}
  * @author Thomas Minier
+ * @param expression - FILTER expression
+ * @return A Filter operator
  */
-export default class DeleteConsumer extends Consumer {
-  private readonly _graph: Graph
-
-  /**
-   * Constructor
-   * @param source - Source iterator
-   * @param graph - Input RDF Graph
-   * @param options - Execution options
-   */
-  constructor (source: Observable<Algebra.TripleObject>, graph: Graph, options: Object) {
-    super(source, options)
-    this._graph = graph
-  }
-
-  _write (triple: Algebra.TripleObject, encoding: string | undefined, done: (err?: Error) => void): void {
-    this._graph.delete(triple)
-      .then(() => done())
-      .catch(err => {
-        this.emit('error', err)
-        done(err)
-      })
-  }
+export default function sparqlFilter (expression: Algebra.Expression) {
+  const expr = new SPARQLExpression(expression)
+  return filter((bindings: Bindings) => {
+    const value: any = expr.evaluate(bindings)
+    return value !== null && value.asJS
+  })
 }
