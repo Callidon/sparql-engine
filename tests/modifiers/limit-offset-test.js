@@ -95,13 +95,12 @@ describe('SPARQL queries with LIMIT/OFFSET', () => {
       const expectedCardinality = d.results.length
       let nbResults = 0
       const iterator = engine.execute(d.query)
-      iterator.on('error', done)
-      iterator.on('data', b => {
+      iterator.subscribe(b => {
+        b = b.toObject()
         expect(b['?article']).to.be.oneOf(d.results)
         d.results.splice(d.results.indexOf(b['?article']), 1)
         nbResults++
-      })
-      iterator.on('end', () => {
+      }, done, () => {
         expect(nbResults).to.equal(expectedCardinality)
         done()
       })

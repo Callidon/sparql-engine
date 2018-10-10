@@ -25,84 +25,43 @@ SOFTWARE.
 'use strict'
 
 import { Observable, of } from 'rxjs'
-import { first } from 'rxjs/operators'
-import { Bindings } from '../rdf/bindings'
+import { first, map, mergeMap, defaultIfEmpty, filter } from 'rxjs/operators'
+import { Bindings, BindingBase } from '../rdf/bindings'
 import PlanBuilder from '../engine/plan-builder'
+
+interface ConditionalBindings {
+  bindings: Bindings,
+  output: boolean
+}
 
 /**
  * Evaluates a SPARQL FILTER (NOT) EXISTS clause
+ * @param source - Source observable
  * @param groups    - Content of the FILTER clause
  * @param builder   - Plan builder used to evaluate subqueries
  * @param notexists - True if the filter is NOT EXISTS, False otherwise
  * @param options   - Execution options
  * @author Thomas Minier
+ * TODO this function could be simplified using a filterMap like operator, we should check if Rxjs offers that filterMap
  */
-export default function exists (groups: any[], builder: PlanBuilder, notexists: boolean, options: Object) {
-  return function (source: Observable<Bindings>) {
-    return new Observable<Bindings>(subscriber => {
-      return source.subscribe((bindings: Bindings) => {
-        let exists = false
-        // build an iterator to evaluate the EXISTS clause using the set of bindings
-        // using a LIMIT 1, to minimize the evaluation cost
-        const evaluator = builder._buildWhere(of(bindings), groups, options).pipe(first())
-        evaluator.subscribe(() => {
-          exists = true
-        }, (err: Error) => subscriber.error(err), () => {
-          if (exists && (!notexists)) {
-            // EXISTS case
-            subscriber.next(bindings)
-          } else if ((!exists) && notexists) {
-            // NOT EXISTS case
-            subscriber.next(bindings)
+export default function exists (source: Observable<Bindings>, groups: any[], builder: PlanBuilder, notexists: boolean, options: Object) {
+  const defaultValue: Bindings = new BindingBase()
+  defaultValue.setProperty('exists', false)
+  return source
+    .pipe(mergeMap((bindings: Bindings) => {
+      return builder._buildWhere(of(bindings), groups, options)
+        .pipe(defaultIfEmpty(defaultValue))
+        .pipe(first())
+        .pipe(map((b: Bindings) => {
+          const exists: boolean = (!b.hasProperty('exists')) || b.getProperty('exists')
+          return {
+            bindings,
+            output: (exists && (!notexists)) || ((!exists) && notexists)
           }
-        })
-      },
-      err => subscriber.error(err),
-      () => subscriber.complete())
-    })
-  }
+        }))
+    }))
+    .pipe(filter((b: ConditionalBindings) => {
+      return b.output
+    }))
+    .pipe(map((b: ConditionalBindings) => b.bindings))
 }
-// export default class ExistsOperator extends TransformIterator<Bindings,Bindings> {
-//   private readonly _groups: Object[]
-//   private readonly _builder: any
-//   private readonly _options: Object
-//   private readonly _notexists: boolean
-//
-//   /**
-//    * Constructor
-//    * @param source    - Source iterator
-//    * @param groups    - Content of the FILTER clause
-//    * @param builder   - Plan builder used to evaluate subqueries
-//    * @param notexists - True if the filter is NOT EXISTS, False otherwise
-//    * @param options   - Execution options
-//    */
-//   constructor (source: AsyncIterator<Bindings>, groups: Object[], builder: PlanBuilder, notexists: boolean, options: Object) {
-//     super(source, options)
-//     this._groups = groups
-//     this._builder = builder
-//     this._options = options
-//     this._notexists = notexists
-//     source.on('error', err => this.emit('error', err))
-//   }
-//
-//   _transform (bindings: Bindings, done: () => void): void {
-//     let exists = false
-//     // build an iterator to evaluate the EXISTS clause using the set of bindings
-//     // using a LIMIT 1, to minimize the evaluation cost
-//     const iterator = this._builder._buildWhere(single(bindings), this._groups, this._options).take(1)
-//     iterator.on('error', (err: Error) => this.emit('error', err))
-//     iterator.on('end', () => {
-//       if (exists && (!this._notexists)) {
-//         // EXISTS case
-//         this._push(bindings)
-//       } else if ((!exists) && this._notexists) {
-//         // NOT EXISTS case
-//         this._push(bindings)
-//       }
-//       done()
-//     })
-//     iterator.on('data', () => {
-//       exists = true
-//     })
-//   }
-// }

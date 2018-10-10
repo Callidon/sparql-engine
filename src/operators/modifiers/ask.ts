@@ -25,8 +25,8 @@ SOFTWARE.
 'use strict'
 
 import { Observable } from 'rxjs'
-import { count, first, map } from 'rxjs/operators'
-import { Bindings } from '../../rdf/bindings'
+import { first, map, defaultIfEmpty } from 'rxjs/operators'
+import { Bindings, BindingBase } from '../../rdf/bindings'
 
 /**
  * A AskOperator output True if a source iterator has solutions, false otherwise.
@@ -36,11 +36,12 @@ import { Bindings } from '../../rdf/bindings'
  * @param source - Source observable
  */
 export default function ask (source: Observable<Bindings>) {
+  const defaultValue: Bindings = new BindingBase()
   return source
+    .pipe(defaultIfEmpty(defaultValue))
     .pipe(first())
-    .pipe(count())
-    .pipe(map((nb: number) => {
-      return nb > 0
+    .pipe(map((b: Bindings) => {
+      return b.size > 0
     }))
 }
 // export default class AskOperator extends TransformIterator<Bindings, boolean> {

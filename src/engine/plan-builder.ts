@@ -398,10 +398,10 @@ export default class PlanBuilder {
         switch (filter.expression.operator) {
           case 'exists':
             // TODO fix
-            return source.pipe(exists(filter.expression.args, this, false, options))
+            return exists(source, filter.expression.args, this, false, options)
           case 'notexists':
             // TODO fix
-            return source.pipe(exists(filter.expression.args, this, true, options))
+            return exists(source, filter.expression.args, this, true, options)
           default:
             return source.pipe(sparqlFilter(filter.expression))
         }

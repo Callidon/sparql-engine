@@ -46,13 +46,12 @@ describe('SPARQL BIND', () => {
     const results = []
 
     const iterator = engine.execute(query)
-    iterator.on('error', done)
-    iterator.on('data', b => {
+    iterator.subscribe(b => {
+      b = b.toObject()
       expect(b).to.have.all.keys('?s', '?name')
       expect(b['?name']).to.equal('"Thomas Minier"@fr')
       results.push(b)
-    })
-    iterator.on('end', () => {
+    }, done, () => {
       expect(results.length).to.equal(1)
       done()
     })
@@ -70,13 +69,12 @@ describe('SPARQL BIND', () => {
     const results = []
 
     const iterator = engine.execute(query)
-    iterator.on('error', done)
-    iterator.on('data', b => {
+    iterator.subscribe(b => {
+      b = b.toObject()
       expect(b).to.have.all.keys('?s', '?foo')
       expect(b['?foo']).to.equal('"30"^^http://www.w3.org/2001/XMLSchema#integer')
       results.push(b)
-    })
-    iterator.on('end', () => {
+    }, done, () => {
       expect(results.length).to.equal(1)
       done()
     })
@@ -95,14 +93,13 @@ describe('SPARQL BIND', () => {
     const results = []
 
     const iterator = engine.execute(query)
-    iterator.on('error', done)
-    iterator.on('data', b => {
+    iterator.subscribe(b => {
+      b = b.toObject()
       expect(b).to.have.all.keys('?s', '?name', '?foo')
       expect(b['?name']).to.equal('"Thomas Minier"@fr')
       expect(b['?foo']).to.equal('"30"^^http://www.w3.org/2001/XMLSchema#integer')
       results.push(b)
-    })
-    iterator.on('end', () => {
+    }, done, () => {
       expect(results.length).to.equal(1)
       done()
     })
