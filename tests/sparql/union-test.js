@@ -50,12 +50,11 @@ describe('SPARQL UNION', () => {
     }`
     const results = []
     const iterator = engine.execute(query)
-    iterator.on('error', done)
-    iterator.on('data', b => {
+    iterator.subscribe(b => {
+      b = b.toObject()
       expect(b).to.have.keys('?name')
       results.push(b)
-    })
-    iterator.on('end', () => {
+    }, done, () => {
       expect(results.length).to.equal(2)
       done()
     })

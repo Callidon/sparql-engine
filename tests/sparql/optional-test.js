@@ -49,13 +49,12 @@ describe('SPARQL queries with OPTIONAL', () => {
     const results = []
 
     const iterator = engine.execute(query)
-    iterator.on('error', done)
-    iterator.on('data', b => {
+    iterator.subscribe(b => {
+      b = b.toObject()
       expect(b).to.have.keys('?name', '?article', '?label')
       expect(b['?label']).to.equal('UNBOUND')
       results.push(b)
-    })
-    iterator.on('end', () => {
+    }, done, () => {
       expect(results.length).to.equal(5)
       done()
     })
@@ -75,13 +74,12 @@ describe('SPARQL queries with OPTIONAL', () => {
     const results = []
 
     const iterator = engine.execute(query)
-    iterator.on('error', done)
-    iterator.on('data', b => {
+    iterator.subscribe(b => {
+      b = b.toObject()
       expect(b).to.have.keys('?name', '?article')
       expect(b['?article']).to.not.equal('UNBOUND')
       results.push(b)
-    })
-    iterator.on('end', () => {
+    }, done, () => {
       expect(results.length).to.equal(5)
       done()
     })
@@ -102,13 +100,12 @@ describe('SPARQL queries with OPTIONAL', () => {
     const results = []
 
     const iterator = engine.execute(query)
-    iterator.on('error', done)
-    iterator.on('data', b => {
+    iterator.subscribe(b => {
+      b = b.toObject()
       expect(b).to.have.keys('?name', '?article')
       expect(b['?article']).to.equal('UNBOUND')
       results.push(b)
-    })
-    iterator.on('end', () => {
+    }, done, () => {
       expect(results.length).to.equal(1)
       done()
     })
@@ -129,13 +126,12 @@ describe('SPARQL queries with OPTIONAL', () => {
     const results = []
 
     const iterator = engine.execute(query)
-    iterator.on('error', done)
-    iterator.on('data', b => {
+    iterator.subscribe(b => {
+      b = b.toObject()
       expect(b).to.have.keys('?name', '?article')
       expect(b['?article']).to.not.equal('UNBOUND')
       results.push(b)
-    })
-    iterator.on('end', () => {
+    }, done, () => {
       expect(results.length).to.equal(5)
       done()
     })
