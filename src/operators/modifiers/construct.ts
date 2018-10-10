@@ -53,27 +53,3 @@ export default function construct (source: Observable<Bindings>, query: any) {
     }))
     .pipe(endWith(...rawTriples))
 }
-// export default class ConstructOperator extends MultiTransformIterator<Bindings, Algebra.TripleObject> {
-//   private readonly _templates: Algebra.TripleObject[]
-//   /**
-//    * Constructor
-//    * @param source  - Source iterator
-//    * @param templates - Set of triples patterns in the CONSTRUCT clause
-//    */
-//   constructor (source: AsyncIterator<Bindings>, query: any) {
-//     super(source)
-//     // filter out triples with no SPARQL variables to output them only once
-//     this._templates = query.template!.filter((t: any) => {
-//       if (rdf.isVariable(t.subject) || rdf.isVariable(t.predicate) || rdf.isVariable(t.object)) {
-//         return true
-//       }
-//       this._push(t)
-//       return false
-//     })
-//     source.on('error', err => this.emit('error', err))
-//   }
-//
-//   _createTransformer (bindings: Bindings): AsyncIterator<Algebra.TripleObject> {
-//     return new ArrayIterator(compact(this._templates.map(t => bindings.bound(t))))
-//   }
-// }

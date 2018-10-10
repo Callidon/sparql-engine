@@ -27,7 +27,6 @@ SOFTWARE.
 const { Parser, Store } = require('n3')
 const fs = require('fs')
 const { HashMapDataset, Graph, PlanBuilder } = require('../dist/api.js')
-const { ArrayIterator } = require('asynciterator')
 const { pick } = require('lodash')
 
 function getGraph (filePath = null) {

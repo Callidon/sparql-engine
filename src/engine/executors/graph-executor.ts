@@ -27,11 +27,9 @@ SOFTWARE.
 import Executor from './executor'
 import { Observable, merge } from 'rxjs'
 import { map, shareReplay } from 'rxjs/operators'
-// import UnionOperator from '../../operators/union-operator'
 import { rdf } from '../../utils'
 import { cloneDeep, isArray }from 'lodash'
 import { Algebra } from 'sparqljs'
-// import { AsyncIterator } from 'asynciterator'
 import Dataset from '../../rdf/dataset'
 import { Bindings } from '../../rdf/bindings'
 

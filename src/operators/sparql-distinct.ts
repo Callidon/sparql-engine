@@ -45,14 +45,5 @@ function _hash (bindings: Bindings): string {
  * @author Thomas Minier
  */
 export default function sparqlDistinct () {
-  // const values: Map<string, number> = new Map()
   return distinct((bindings: Bindings) => _hash(bindings))
-  // return filter((bindings: Bindings) => {
-  //   const hash = _hash(bindings)
-  //   if (!values.has(hash)) {
-  //     values.set(hash, 1)
-  //     return true
-  //   }
-  //   return false
-  // })
 }

@@ -27,7 +27,6 @@ SOFTWARE.
 import Executor from './executor'
 import { Algebra } from 'sparqljs'
 import { Observable } from 'rxjs'
-// import { AsyncIterator } from 'asynciterator'
 import { Bindings } from '../../rdf/bindings'
 
 /**

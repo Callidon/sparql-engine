@@ -87,11 +87,6 @@ export abstract class Consumer extends Writable implements Consumable {
       }, reject, () => {
         this.end(null, '', resolve)
       })
-      // this._source.on('end', () => {
-      //   this.end(null, '', resolve)
-      // })
-      // this._source.on('error', reject)
-      // this._source.on('data', )
     })
   }
 }

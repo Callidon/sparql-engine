@@ -36,4 +36,4 @@ export { default as GraphExecutor } from './engine/executors/graph-executor'
 export { default as ServiceExecutor } from './engine/executors/service-executor'
 export { default as UpdateExecutor } from './engine/executors/update-executor'
 // formatters
-export { default as XMLFormatter } from './formatters/xml-formatter'
+// export { default as XMLFormatter } from './formatters/xml-formatter'

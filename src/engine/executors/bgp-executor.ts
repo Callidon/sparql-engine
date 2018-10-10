@@ -27,7 +27,6 @@ SOFTWARE.
 import Executor from './executor'
 import { Observable, from } from 'rxjs'
 import { map, mergeMap } from 'rxjs/operators'
-// import { AsyncIterator, ClonedIterator, MultiTransformIterator, SingletonIterator } from 'asynciterator'
 import { some } from 'lodash'
 import { Algebra } from 'sparqljs'
 import Graph from '../../rdf/graph'
@@ -51,30 +50,6 @@ import { Bindings } from '../../rdf/bindings'
        }))
    })
  }
-// class BaseBGPIterator extends MultiTransformIterator<Bindings,Bindings> {
-//   private readonly _bgp: Algebra.TripleObject[]
-//   private readonly _graph: Graph
-//   private readonly _options: Object
-//
-//   constructor (source: AsyncIterator<Bindings>, bgp: Algebra.TripleObject[], graph: Graph, options: Object) {
-//     super(source, options)
-//     this._bgp = bgp
-//     this._graph = graph
-//     this._options = options
-//   }
-//
-//   _createTransformer (bindings: Bindings): AsyncIterator<Bindings> {
-//     // bound the BGP using incoming bindings, then delegate execution to the dataset
-//     let boundedBGP = this._bgp.map(t => bindings.bound(t))
-//     const hasVars = boundedBGP.map(p => some(p, v => v!.startsWith('?')))
-//       .reduce((acc, v) => acc && v, true)
-//     return from(this._graph.evalBGP(boundedBGP, this._options))
-//       .map((item: Bindings) => {
-//         if (item.size === 0 && hasVars) return null
-//         return item.union(bindings)
-//       })
-//   }
-// }
 
 /**
  * A BGPExecutor is responsible for evaluation BGP in a SPARQL query.
@@ -93,34 +68,6 @@ export default class BGPExecutor extends Executor {
     super()
     this._dataset = dataset
   }
-
-  /**
-   * Returns True if the input iterator if the starting iterator in a pipeline
-   * @private
-   * @param  source - Source Iterator
-   * @return True if the input iterator if the starting iterator in a pipeline, False otherwise
-   */
-  // _isJoinIdentity (source: Observable<Bindings>): boolean {
-  //   let isJoinIdentity = false
-  //   let typeFound = false
-  //   let tested = source
-  //   while (!typeFound) {
-  //     if (tested instanceof ClonedIterator) {
-  //       if (tested._source != null) {
-  //         tested = tested._source
-  //       } else {
-  //         isJoinIdentity = true
-  //         typeFound = true
-  //       }
-  //     } else if (tested instanceof SingletonIterator) {
-  //       isJoinIdentity = true
-  //       typeFound = true
-  //     } else {
-  //       typeFound = true
-  //     }
-  //   }
-  //   return isJoinIdentity
-  // }
 
   /**
    * Return the RDF Graph to be used for BGP evaluation.

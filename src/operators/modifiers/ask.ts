@@ -44,27 +44,3 @@ export default function ask (source: Observable<Bindings>) {
       return b.size > 0
     }))
 }
-// export default class AskOperator extends TransformIterator<Bindings, boolean> {
-//   private _noResults: boolean
-//   /**
-//    * Constructor
-//    * @param source - Source iterator
-//    */
-//   constructor (source: AsyncIterator<Bindings>) {
-//     super(source.take(1))
-//     this._noResults = true
-//   }
-//
-//   _transform (bindings: Bindings, done: () => void): void {
-//     this._noResults = false
-//     this._push(true)
-//     done()
-//   }
-//
-//   _flush (done: () => void): void {
-//     if (this._noResults) {
-//       this._push(false)
-//     }
-//     done()
-//   }
-// }

@@ -54,38 +54,3 @@ export default function select (source: Observable<Bindings>, query: Algebra.Roo
     return bindings.mapValues((k, v) => rdf.isVariable(k) && typeof v === 'string' ? v : null)
   }))
 }
-// export default class SelectOperator extends TransformIterator<Bindings,Bindings> {
-//   private readonly _variables: string[]
-//   private readonly _selectAll: boolean
-//
-//   /**
-//    * Constructor
-//    * @param source - Source iterator
-//    * @param query - SELECT query
-//    * @param options - Execution options
-//    */
-//   constructor (source: AsyncIterator<Bindings>, query: Algebra.RootNode, options: Object) {
-//     super(source, options)
-//     this._variables = <string[]> query.variables
-//     this._selectAll = this._variables.length === 1 && this._variables[0] === '*'
-//     source.on('error', (err: Error) => this.emit('error', err))
-//   }
-//
-//   _transform (bindings: Bindings, done: () => void): void {
-//     // perform projection (if necessary)
-//     if (!this._selectAll) {
-//       bindings = this._variables.reduce((obj, v) => {
-//         if (bindings.has(v)) {
-//           obj.set(v, bindings.get(v)!)
-//         } else {
-//           obj.set(v, 'UNBOUND')
-//         }
-//         return obj
-//       }, bindings.empty())
-//     }
-//     const x = bindings.mapValues((k, v) => rdf.isVariable(k) && typeof v === 'string' ? v : null)
-//     // remove non-variables entries && non-string values
-//     this._push(x)
-//     done()
-//   }
-// }
