@@ -43,7 +43,8 @@ import sparqlDistinct from '../operators/sparql-distinct'
 import exists from '../operators/exists'
 // import FilterOperator from '../operators/filter-operator'
 import sparqlFilter from '../operators/sparql-filter'
-import MinusOperator from '../operators/minus-operator'
+// import MinusOperator from '../operators/minus-operator'
+import minus from '../operators/minus'
 // import OptionalOperator from '../operators/optional-operator'
 import optional from '../operators/optional'
 // import OrderByOperator from '../operators/orderby-operator'
@@ -388,10 +389,9 @@ export default class PlanBuilder {
         return merge(...(group as Algebra.GroupNode).patterns.map(patternToken => {
           return this._buildGroup(source, patternToken, childOptions)
         }))
-      // TODO restore
-      // case 'minus':
-      //   const rightSource = this._buildWhere(of(new BindingBase()), (group as Algebra.GroupNode).patterns, options)
-      //   return new MinusOperator(source, rightSource, options)
+      case 'minus':
+        const rightSource = this._buildWhere(of(new BindingBase()), (group as Algebra.GroupNode).patterns, options)
+        return minus(source, rightSource)
       case 'filter':
         const filter = group as Algebra.FilterNode
         // FILTERs (NOT) EXISTS are handled using dedicated operators
