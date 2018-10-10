@@ -28,7 +28,6 @@ import * as terms from './rdf-terms'
 import { Util } from 'n3'
 import { Observable } from 'rxjs'
 import { map } from 'rxjs/operators'
-import { AsyncIterator } from 'asynciterator'
 import { Algebra } from 'sparqljs'
 import { Bindings } from './rdf/bindings'
 
