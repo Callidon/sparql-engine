@@ -26,6 +26,7 @@ SOFTWARE.
 
 import Executor from './executor'
 import { Observable, of } from 'rxjs'
+import { shareReplay } from 'rxjs/operators'
 // import { AsyncIterator, single } from 'asynciterator'
 import { Consumable, ErrorConsumable } from '../../operators/update/consumer'
 import InsertConsumer from '../../operators/update/insert-consumer'
@@ -130,6 +131,9 @@ export default class UpdateExecutor extends Executor {
       }
       source = this._builder!._buildQueryPlan(node)
     }
+
+    // clone the source first
+    source = source.pipe(shareReplay(5))
 
     // build consumers to evaluate DELETE clauses
     if ('delete' in update && update.delete!.length > 0) {

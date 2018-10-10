@@ -26,7 +26,7 @@ SOFTWARE.
 
 import Executor from './executor'
 import { Observable, merge } from 'rxjs'
-import { map } from 'rxjs/operators'
+import { map, shareReplay } from 'rxjs/operators'
 // import UnionOperator from '../../operators/union-operator'
 import { rdf } from '../../utils'
 import { cloneDeep, isArray }from 'lodash'
@@ -73,6 +73,8 @@ export default class GraphExecutor extends Executor {
     }
     // handle the case where the GRAPh IRI is a SPARQL variable
     if (rdf.isVariable(node.name) && '_from' in options && isArray(options._from.named)) {
+      // clone the source first
+      source = source.pipe(shareReplay(5))
       // execute the subquery using each graph, and bound the graph var to the graph iri
       const iterators = options._from.named.map((iri: string) => {
         return this._execute(source, iri, subquery, options).pipe(map(b => {

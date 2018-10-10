@@ -27,7 +27,7 @@ SOFTWARE.
 import { Consumer } from './consumer'
 import Graph from '../../rdf/graph'
 import { Observable } from 'rxjs'
-import { AsyncIterator } from 'asynciterator'
+// import { AsyncIterator } from 'asynciterator'
 import { Algebra } from 'sparqljs'
 
 /**
