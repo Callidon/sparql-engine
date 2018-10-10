@@ -54,12 +54,11 @@ describe('ORDER BY queries', () => {
     ]
 
     const iterator = engine.execute(query)
-    iterator.on('error', done)
-    iterator.on('data', b => {
+    iterator.subscribe(b => {
+      b = b.toObject()
       expect(b['?article']).to.equal(results[0])
       results.shift()
-    })
-    iterator.on('end', () => {
+    }, done, () => {
       expect(results.length).to.equal(0)
       done()
     })
@@ -85,12 +84,11 @@ describe('ORDER BY queries', () => {
     ]
 
     const iterator = engine.execute(query)
-    iterator.on('error', done)
-    iterator.on('data', b => {
+    iterator.subscribe(b => {
+      b = b.toObject()
       expect(b['?article']).to.equal(results[0])
       results.shift()
-    })
-    iterator.on('end', () => {
+    }, done, () => {
       expect(results.length).to.equal(0)
       done()
     })
@@ -116,12 +114,11 @@ describe('ORDER BY queries', () => {
     ]
 
     const iterator = engine.execute(query)
-    iterator.on('error', done)
-    iterator.on('data', b => {
+    iterator.subscribe(b => {
+      b = b.toObject()
       expect(b['?article']).to.equal(results[0])
       results.shift()
-    })
-    iterator.on('end', () => {
+    }, done, () => {
       expect(results.length).to.equal(0)
       done()
     })

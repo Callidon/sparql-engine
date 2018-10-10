@@ -46,7 +46,8 @@ import sparqlFilter from '../operators/sparql-filter'
 import MinusOperator from '../operators/minus-operator'
 // import OptionalOperator from '../operators/optional-operator'
 import optional from '../operators/optional'
-import OrderByOperator from '../operators/orderby-operator'
+// import OrderByOperator from '../operators/orderby-operator'
+import orderby from '../operators/orderby'
 // import UnionOperator from '../operators/union-operator'
 // Solution modifiers
 // import AskOperator from '../operators/modifiers/ask-operator'
@@ -260,10 +261,9 @@ export default class PlanBuilder {
     // }
 
     // Handles ORDER BY
-    // TODO restore
-    // if ('order' in query) {
-    //   graphIterator = new OrderByOperator(graphIterator, query.order!, options)
-    // }
+    if ('order' in query) {
+      graphIterator = orderby(graphIterator, query.order!)
+    }
 
     if (!(query.queryType in QUERY_MODIFIERS)) {
       throw new Error(`Unsupported SPARQL query type: ${query.queryType}`)
