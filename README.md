@@ -65,9 +65,20 @@ interface TripleObject {
 }
 ```
 
-### Iterators
+### Observable
 
-The `sparql-engine` framework uses a pipeline of iterators to execute SPARQL queries. Thus, many methods encountered in this framework needs to return `AsyncIterator<T>`, *i.e.*, objects that generates items of type `T` in a pull-based fashion. All iterators-related classes and methods are provided by the [`asynciterator`](https://www.npmjs.com/package/asynciterator) package.
+The `sparql-engine` framework uses a pipeline of iterators to execute SPARQL queries. Thus, many methods encountered in this framework needs to return `Observable<T>`, *i.e.*, objects that generates items of type `T` in a push-based fashion.
+An `Observable<T>` can be one of the following:
+* An **array** of elements of type `T`
+* A **Readable stream**, from Node.js stream library
+* An **EventEmitter** which emits elements of type `T` on a `data` event.
+* A **Promise** resolved with an array of elements of type `T`.
+
+```typescript
+type Observable<T> = Array<T> | Promise<Array<T>> | Readable<T> | EventEmitter<T>;
+```
+
+Internally, we use the [`rxjs`](https://rxjs-dev.firebaseapp.com) package for handling pipeline of iterators.
 
 ## RDF Graphs
 
@@ -75,14 +86,14 @@ The first thing to do is to implement a subclass of the `Graph` abstract class. 
 
 The main method to implement is `Graph.find(triple)`, which is used by the framework to find RDF triples matching
 a [triple pattern](https://www.w3.org/TR/sparql11-query/#basicpatterns) in the RDF Graph.
-This method must return an `AsyncIterator<TripleObject>`, which will be consumed to find matching RDF triples. You can find an **example** of such implementation in the [N3 example](https://github.com/Callidon/sparql-engine/tree/master/examples/n3.js).
+This method must return an `Observable<TripleObject>`, which will be consumed to find matching RDF triples. You can find an **example** of such implementation in the [N3 example](https://github.com/Callidon/sparql-engine/tree/master/examples/n3.js).
 
 Similarly, to support the [SPARQL UPDATE protocol](https://www.w3.org/TR/2013/REC-sparql11-update-20130321/), you have to provides a graph that implements the `Graph.insert(triple)` and `Graph.delete(triple)` methods, which insert and delete RDF triple from the graph, respectively. These methods must returns [Promises](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise), which are fulfilled when the insertion/deletion operation is completed.
 
 Finally, the `sparql-engine` framework also let your customize how [Basic graph patterns](https://www.w3.org/TR/2013/REC-sparql11-query-20130321/#BasicGraphPatterns) (BGPs) are evaluated against
 the RDF graph. The engine provides a **default implementation** based on the `Graph.find` method and the
 *Index Nested Loop Join algorithm*. However, if you wish to supply your own implementation for BGP evaluation, you just have to implement a `Graph` with an `evalBGP(triples)` method.
-This method must return a `AsyncIterator<Bindings>`. You can find an example of such implementation in the [LevelGraph example](https://github.com/Callidon/sparql-engine/tree/master/examples/levelgraph.js).
+This method must return a `Observable<Bindings>`. You can find an example of such implementation in the [LevelGraph example](https://github.com/Callidon/sparql-engine/tree/master/examples/levelgraph.js).
 
 You will find below, in Java-like syntax, an example subclass of a `Graph`.
 ```typescript
@@ -91,25 +102,22 @@ You will find below, in Java-like syntax, an example subclass of a `Graph`.
   class CustomGraph extends Graph {
     /**
      * Returns an iterator that finds RDF triples matching a triple pattern in the graph.
-     * @param  {Object}   triple - Triple pattern to find
-     * @return {AsyncIterator} An iterator which finds RDF triples matching a triple pattern
+     * @param  triple - Triple pattern to find
+     * @return An observable which finds RDF triples matching a triple pattern
      */
-    find (triple: TripleObject, options: Object): AsyncIterator<TripleObject> { /* ... */ }
+    find (triple: TripleObject, options: Object): Observable<TripleObject> { /* ... */ }
 
     /**
      * Insert a RDF triple into the RDF Graph
-     * @param  {Object}   triple - RDF Triple to insert
-     * @return {Promise} A Promise fulfilled when the insertion has been completed
+     * @param  triple - RDF Triple to insert
+     * @return A Promise fulfilled when the insertion has been completed
      */
     insert (triple: TripleObject): Promise { /* ... */ }
 
     /**
      * Delete a RDF triple from the RDF Graph
-     * @param  {Object}   triple - RDF Triple to delete
-     * @param  {string}   triple.subject - RDF triple's subject
-     * @param  {string}   triple.predicate - RDF triple's predicate
-     * @param  {string}   triple.object - RDF triple's object
-     * @return {Promise} A Promise fulfilled when the deletion has been completed
+     * @param  triple - RDF Triple to delete
+     * @return A Promise fulfilled when the deletion has been completed
      */
     delete (triple: : TripleObject): Promise { /* ... */ }
   }
@@ -159,11 +167,11 @@ Finally, to run a SPARQL query on your RDF dataset, you need to use the `PlanBui
   const iterator = builder.build(query)
 
   // Read results
-  iterator.on('data', b => console.log(b))
-  iterator.on('error', err => console.error(err))
-  iterator.on('end', () => {
-    console.log('Query evaluation complete!');
-  })
+  iterator.subscribe(
+    bindings => console.log(bindings),
+    err => console.error(err),
+    () => console.log('Query evaluation complete!')
+  )
 ```
 
 # Federated SPARQL Queries
@@ -173,23 +181,25 @@ As with a `Graph`, you simply need to provides an implementation of a [`ServiceE
 The only method that needs to be implemented is the `ServiceExecutor._execute` method,
 as detailed below.
 
-```javascript
-class ServiceExecutor {
+```typescript
+const { ServiceExecutor } = require('sparql-engine')
+
+class MyServiceExecutor extends ServiceExecutor {
   /**
    * Constructor
-   * @param {PlanBuilder} builder - PlanBuilder instance
+   * @param builder - PlanBuilder instance
    */
-  constructor (builder) {}
+  constructor (builder: PlanBuilder) {}
 
   /**
    * Returns an iterator used to evaluate a SERVICE clause
-   * @param  {AsyncIterator}  source    - Source iterator
-   * @param  {string}         iri       - Iri of the SERVICE clause
-   * @param  {Object}         subquery  - Subquery to be evaluated
-   * @param  {Object}         options   - Execution options
-   * @return {AsyncIterator} An iterator used to evaluate a SERVICE clause
+   * @param  source    - Source observable
+   * @param  iri       - Iri of the SERVICE clause
+   * @param  subquery  - Subquery to be evaluated
+   * @param  options   - Execution options
+   * @return An observable used to evaluate a SERVICE clause
    */
-  _execute (source, iri, subquery, options) { /* ... */}
+  _execute (source: Observable<Bindings>, iri: string, subquery: Object, options: Object): Observable<Bindings> { /* ... */}
 }
 ```
 
