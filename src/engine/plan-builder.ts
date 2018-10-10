@@ -251,15 +251,14 @@ export default class PlanBuilder {
     }
 
     // Handles Aggregates
-    // graphIterator = this._aggExecutor.buildIterator(graphIterator, query, options)
+    graphIterator = this._aggExecutor.buildIterator(graphIterator, query, options)
 
     // Handles transformers
-    // TODO restore
-    // if (aggregates.length > 0) {
-    //   graphIterator = aggregates.reduce((iter, agg) => {
-    //     return new AggregateOperator(iter, agg, options)
-    //   }, graphIterator)
-    // }
+    if (aggregates.length > 0) {
+      graphIterator = aggregates.reduce((obs: Observable<Bindings>, agg: Algebra.Aggregation) => {
+        return obs.pipe(bind(agg.variable, agg.expression))
+      }, graphIterator)
+    }
 
     // Handles ORDER BY
     if ('order' in query) {
@@ -397,10 +396,8 @@ export default class PlanBuilder {
         // FILTERs (NOT) EXISTS are handled using dedicated operators
         switch (filter.expression.operator) {
           case 'exists':
-            // TODO fix
             return exists(source, filter.expression.args, this, false, options)
           case 'notexists':
-            // TODO fix
             return exists(source, filter.expression.args, this, true, options)
           default:
             return source.pipe(sparqlFilter(filter.expression))
