@@ -24,9 +24,9 @@ SOFTWARE.
 
 'use strict'
 
-import { Observable, from } from 'rxjs'
-import { mergeMap, filter } from'rxjs/operators'
-import { intersection } from 'lodash'
+import { Observable } from 'rxjs'
+import { mergeMap, filter , reduce} from'rxjs/operators'
+import { concat, intersection } from 'lodash'
 import { Bindings } from '../rdf/bindings'
 
 /**
@@ -36,16 +36,16 @@ import { Bindings } from '../rdf/bindings'
  * @author Thomas Minier
  */
 export default function minus (source: Observable<Bindings>, rightSource: Observable<Bindings>) {
-  const rightBuffer: Bindings[] = []
   // first materialize the right source in a buffer, then apply difference on the left source
-  return from(rightSource.forEach((b: Bindings) => rightBuffer.push(b)))
-    .pipe(mergeMap<void, Bindings>(() => {
+  return rightSource
+    .pipe(reduce((acc: Bindings[], b: Bindings) => concat(acc, b), []))
+    .pipe(mergeMap((buffer: Bindings[]) => {
       return source
         .pipe(filter((bindings: Bindings) => {
           const leftKeys = Array.from(bindings.variables())
           // mu_a is compatible with mu_b if,
           // for all v in intersection(dom(mu_a), dom(mu_b)), mu_a[v] = mu_b[v]
-          const isCompatible = rightBuffer.some((b: Bindings) => {
+          const isCompatible = buffer.some((b: Bindings) => {
             const rightKeys = Array.from(b.variables())
             const commonKeys = intersection(leftKeys, rightKeys)
             return commonKeys.every((k: string) => b.get(k) === bindings.get(k))
