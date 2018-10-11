@@ -70,12 +70,12 @@ interface TripleObject {
 The `sparql-engine` framework uses a pipeline of iterators to execute SPARQL queries. Thus, many methods encountered in this framework needs to return `Observable<T>`, *i.e.*, objects that generates items of type `T` in a push-based fashion.
 An `Observable<T>` can be one of the following:
 * An **array** of elements of type `T`
-* A **Readable stream**, from Node.js stream library
-* An **EventEmitter** which emits elements of type `T` on a `data` event.
-* A **Promise** resolved with an array of elements of type `T`.
+* A [**Javascript Iterator**](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols), which yields elements of type `T`.
+* An [**EventEmitter**](https://nodejs.org/api/events.html#events_class_eventemitter) which emits elements of type `T` on a `data` event.
+* A [**Readable stream**](https://nodejs.org/api/stream.html#stream_readable_streams) which produces elements of type `T`.
 
 ```typescript
-type Observable<T> = Array<T> | Promise<Array<T>> | Readable<T> | EventEmitter<T>;
+type Observable<T> = Array<T> | Iterator<T> | EventEmitter<T> | Readable<T>;
 ```
 
 Internally, we use the [`rxjs`](https://rxjs-dev.firebaseapp.com) package for handling pipeline of iterators.
