@@ -1,4 +1,4 @@
-/* file : insert-consumer.ts
+/* file : bind.ts
 MIT License
 
 Copyright (c) 2018 Thomas Minier
@@ -24,36 +24,38 @@ SOFTWARE.
 
 'use strict'
 
-import { Consumer } from './consumer'
-import Graph from '../../rdf/graph'
 import { Observable } from 'rxjs'
+import SPARQLExpression from './expressions/sparql-expression'
 import { Algebra } from 'sparqljs'
+import { Bindings } from '../rdf/bindings'
 
 /**
- * An InsertConsumer evaluates a SPARQL INSERT clause
- * @extends Consumer
+ * Apply a SPARQL BIND clause
+ * @see {@link https://www.w3.org/TR/sparql11-query/#bind}
  * @author Thomas Minier
+ * @author Corentin Marionneau
+ * @param variable  - SPARQL variable used to bind results
+ * @param expression - SPARQL expression
+ * @return A Bind operator
  */
-export default class InsertConsumer extends Consumer {
-  private readonly _graph: Graph
-
-  /**
-   * Constructor
-   * @param source - Source iterator
-   * @param graph - Input RDF Graph
-   * @param options - Execution options
-   */
-  constructor (source: Observable<Algebra.TripleObject>, graph: Graph, options: Object) {
-    super(source, options)
-    this._graph = graph
-  }
-
-  _write (triple: Algebra.TripleObject, encoding: string | undefined, done: (err?: Error) => void): void {
-    this._graph.insert(triple)
-      .then(() => done())
-      .catch(err => {
-        this.emit('error', err)
-        done(err)
-      })
+export default function bind (variable: string, expression: Algebra.Expression | string) {
+  return function (source: Observable<Bindings>) {
+    const expr = new SPARQLExpression(expression)
+    return new Observable<Bindings>(subscriber => {
+      return source.subscribe((bindings: Bindings) => {
+        const res = bindings.clone()
+        try {
+          const value: any = expr.evaluate(bindings)
+          if (value !== null) {
+            res.set(variable, value.asRDF)
+          }
+        } catch (e) {
+          subscriber.error(e)
+        }
+        subscriber.next(res)
+      },
+      err => subscriber.error(err),
+      () => subscriber.complete())
+    })
   }
 }

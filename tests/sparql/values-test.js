@@ -49,16 +49,15 @@ describe('SPARQL VALUES', () => {
     const results = []
 
     const iterator = engine.execute(query)
-    iterator.on('error', done)
-    iterator.on('data', b => {
+    iterator.subscribe(b => {
+      b = b.toObject()
       expect(b).to.have.all.keys('?name', '?article')
       expect(b['?article']).to.be.oneOf([
         'https://dblp.org/rec/conf/esws/MinierMSM17',
         'https://dblp.org/rec/conf/esws/MinierSMV18a'
       ])
       results.push(b)
-    })
-    iterator.on('end', () => {
+    }, done, () => {
       expect(results.length).to.equal(2)
       done()
     })

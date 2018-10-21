@@ -24,9 +24,8 @@ SOFTWARE.
 
 'use strict'
 
+import { ObservableInput, merge } from 'rxjs'
 import Graph from './graph'
-import UnionOperator from '../operators/union-operator'
-import { AsyncIterator } from 'asynciterator'
 import { Algebra } from 'sparqljs'
 
 /**
@@ -58,10 +57,8 @@ export default class UnionGraph extends Graph {
     return this._graphs.reduce((prev, g) => prev.then(() => g.delete(triple)), Promise.resolve())
   }
 
-  find (triple: Algebra.TripleObject, options: Object): AsyncIterator<Algebra.TripleObject> {
-    const iterators = this._graphs
-      .map(g => g.find(triple, options))
-    return new UnionOperator(...iterators)
+  find (triple: Algebra.TripleObject, options: Object): ObservableInput<Algebra.TripleObject> {
+    return merge(...this._graphs.map(g => g.find(triple, options)))
   }
 
   clear (): Promise<void> {

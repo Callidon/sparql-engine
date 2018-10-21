@@ -24,9 +24,10 @@ SOFTWARE.
 
 'use strict'
 
-import { AsyncIterator, single, TransformIterator } from 'asynciterator'
+import { Observable, ObservableInput, of, from } from 'rxjs'
+import { mergeMap } from 'rxjs/operators'
 import { Algebra } from 'sparqljs'
-import IndexJoinOperator from '../operators/join/index-join-operator'
+import indexJoin from '../operators/join/index-join'
 import { rdf } from '../utils'
 import { Bindings, BindingBase } from './bindings'
 
@@ -115,7 +116,7 @@ export default abstract class Graph {
    * @param  {string}   triple.object - Triple pattern's object
    * @return An iterator which finds RDF triples matching a triple pattern
    */
-  abstract find (triple: Algebra.TripleObject, options: Object): AsyncIterator<Algebra.TripleObject>
+  abstract find (triple: Algebra.TripleObject, options: Object): ObservableInput<Algebra.TripleObject>
 
   /**
    * Remove all RDF triples in the Graph
@@ -124,8 +125,7 @@ export default abstract class Graph {
   abstract clear (): Promise<void>
 
   /**
-   * Estimate the cardinality of a Triple pattern, i.e.,
-   * the number of matching RDF Triples in the RDF Graph.
+   * Estimate the cardinality of a Triple pattern, i.e., the number of matching RDF Triples in the RDF Graph.
    * @param  {Object}   triple - Triple pattern to estimate cardinality
    * @param  {string}   triple.subject - Triple pattern's subject
    * @param  {string}   triple.predicate - Triple pattern's predicate
@@ -140,20 +140,32 @@ export default abstract class Graph {
    * @param  {Object} options - Execution options
    * @return An iterator which evaluates the Basic Graph pattern on the Graph
    */
-  evalBGP (bgp: Algebra.TripleObject[], options: Object): AsyncIterator<Bindings> {
-    const iter = new TransformIterator<Bindings,Bindings>()
-    // collect cardinalities of each triple pattern
-    Promise.all(bgp.map(triple => {
-      return this.estimateCardinality(triple).then(c => {
-        return { triple, cardinality: c, nbVars: rdf.countVariables(triple) }
-      })
-    })).then((results: PatternMetadata[]) => {
-      results.sort(sortPatterns)
-      const start: AsyncIterator<Bindings> = single(new BindingBase())
-      iter.source = results.reduce((iter: AsyncIterator<Bindings>, v: PatternMetadata) => {
-        return new IndexJoinOperator(iter, v.triple, this, options)
-      }, start)
-    })
-    return iter
+  evalBGP (bgp: Algebra.TripleObject[], options: Object): ObservableInput<Bindings> {
+      return from(Promise.all(bgp.map(triple => {
+        return this.estimateCardinality(triple).then(c => {
+          return { triple, cardinality: c, nbVars: rdf.countVariables(triple) }
+        })
+      })))
+      .pipe(mergeMap((results: PatternMetadata[]) => {
+        results.sort(sortPatterns)
+        const start = of(new BindingBase())
+        return results.reduce((iter: Observable<Bindings>, v: PatternMetadata) => {
+          return iter.pipe(indexJoin(v.triple, this, options))
+        }, start)
+      }))
+    // const iter = new TransformIterator<Bindings,Bindings>()
+    // // collect cardinalities of each triple pattern
+    // Promise.all(bgp.map(triple => {
+    //   return this.estimateCardinality(triple).then(c => {
+    //     return { triple, cardinality: c, nbVars: rdf.countVariables(triple) }
+    //   })
+    // })).then((results: PatternMetadata[]) => {
+    //   results.sort(sortPatterns)
+    //   const start: AsyncIterator<Bindings> = single(new BindingBase())
+    //   iter.source = results.reduce((iter: AsyncIterator<Bindings>, v: PatternMetadata) => {
+    //     return new IndexJoinOperator(iter, v.triple, this, options)
+    //   }, start)
+    // })
+    // return iter
   }
 }

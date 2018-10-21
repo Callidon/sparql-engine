@@ -1,4 +1,4 @@
-/* file : api.ts
+/* file : sparql-distinct.ts
 MIT License
 
 Copyright (c) 2018 Thomas Minier
@@ -24,16 +24,26 @@ SOFTWARE.
 
 'use strict'
 
-export { default as Dataset } from './rdf/dataset'
-export { BindingBase } from './rdf/bindings'
-export { default as HashMapDataset } from './rdf/hashmap-dataset'
-export { default as Graph } from './rdf/graph'
-export { default as PlanBuilder } from './engine/plan-builder'
-// executors
-export { default as AggregateExecutor } from './engine/executors/aggregate-executor'
-export { default as BGPExecutor } from './engine/executors/bgp-executor'
-export { default as GraphExecutor } from './engine/executors/graph-executor'
-export { default as ServiceExecutor } from './engine/executors/service-executor'
-export { default as UpdateExecutor } from './engine/executors/update-executor'
-// formatters
-// export { default as XMLFormatter } from './formatters/xml-formatter'
+import { distinct } from 'rxjs/operators'
+import { Bindings } from '../rdf/bindings'
+
+/**
+ * Hash an set of mappings and produce an unique value
+ * @param item - The item to hash
+ * @return An unique hash which identify the item
+ */
+function _hash (bindings: Bindings): string {
+  const items: string[] = []
+  bindings.forEach((k: string, v: string) => items.push(`${k}=${encodeURIComponent(v)}`))
+  items.sort()
+  return items.join('&')
+}
+
+/**
+ * Applies a DISTINCT modifier on the output of another operator.
+ * @see {@link https://www.w3.org/TR/2013/REC-sparql11-query-20130321/#modDuplicates}
+ * @author Thomas Minier
+ */
+export default function sparqlDistinct () {
+  return distinct((bindings: Bindings) => _hash(bindings))
+}

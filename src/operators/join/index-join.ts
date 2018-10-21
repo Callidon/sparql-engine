@@ -24,7 +24,8 @@ SOFTWARE.
 
 'use strict'
 
-import { AsyncIterator, MultiTransformIterator } from 'asynciterator'
+import { from } from 'rxjs'
+import { mergeMap, map } from 'rxjs/operators'
 import Graph from '../../rdf/graph'
 import { Bindings, BindingBase } from '../../rdf/bindings'
 import { Algebra } from 'sparqljs'
@@ -36,41 +37,25 @@ import { mapKeys, pickBy, some, size } from 'lodash'
  * and a triple pattern (right relation) using the Index Nested Loop Join algorithm.
  * This algorithm is more efficient if the cardinality of the left relation is smaller
  * than the cardinality of the right one.
- * @extends MultiTransformIterator
+ * @param pattern - Triple pattern to join with (right relation)
+ * @param graph   - RDF Graph on which the join is performed
+ * @param options - Execution options
  * @author Thomas Minier
  */
-export default class IndexJoinOperator extends MultiTransformIterator<Bindings,Bindings> {
-  private readonly _pattern: Algebra.TripleObject
-  private readonly _graph: Graph
-  private readonly _options: Object
-
-  /**
-   * Constructor
-   * @param source  - Source iterator (left relation)
-   * @param pattern - Triple pattern to join with (right relation)
-   * @param graph   - RDF Graph on which the join is performed
-   * @param options - Execution options
-   */
-  constructor (source: AsyncIterator<Bindings>, pattern: Algebra.TripleObject, graph: Graph, options: Object) {
-    super(source, options)
-    this._pattern = pattern
-    this._graph = graph
-    this._options = options
-  }
-
-  _createTransformer (bindings: Bindings): AsyncIterator<Bindings> {
-    const boundedPattern = bindings.bound(this._pattern)
-    const hasVars = some(boundedPattern, (v: any) => v.startsWith('?'))
-    return this._graph.find(boundedPattern, this._options)
-      .map<Bindings>((item: Algebra.TripleObject) => {
+export default function indexJoin (pattern: Algebra.TripleObject, graph: Graph, options: Object) {
+  return mergeMap((bindings: Bindings) => {
+    const boundedPattern = bindings.bound(pattern)
+    // const hasVars = some(boundedPattern, (v: any) => v.startsWith('?'))
+    return from(graph.find(boundedPattern, options))
+      .pipe(map((item: Algebra.TripleObject) => {
         let temp = pickBy(item, (v, k) => {
           return rdf.isVariable(boundedPattern[k])
         })
         temp = mapKeys(temp, (v, k) => {
           return boundedPattern[k]
         })
-        if (size(temp) === 0 && hasVars) return null
+        // if (size(temp) === 0 && hasVars) return null
         return BindingBase.fromObject(temp).union(bindings)
-      })
-  }
+      }))
+  })
 }

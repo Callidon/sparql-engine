@@ -26,7 +26,7 @@ SOFTWARE.
 
 import Executor from './executor'
 import { Algebra } from 'sparqljs'
-import { AsyncIterator } from 'asynciterator'
+import { Observable } from 'rxjs'
 import { Bindings } from '../../rdf/bindings'
 
 /**
@@ -43,7 +43,7 @@ export default abstract class ServiceExecutor extends Executor {
    * @param  options - Execution options
    * @return An iterator used to evaluate a SERVICE clause
    */
-  buildIterator (source: AsyncIterator<Bindings>, node: Algebra.ServiceNode, options: any): AsyncIterator<Bindings> {
+  buildIterator (source: Observable<Bindings>, node: Algebra.ServiceNode, options: any): Observable<Bindings> {
     let subquery: Algebra.RootNode
     if (node.patterns[0].type === 'query') {
       subquery = (<Algebra.RootNode> node.patterns[0])
@@ -68,5 +68,5 @@ export default abstract class ServiceExecutor extends Executor {
    * @param options   - Execution options
    * @return An iterator used to evaluate a SERVICE clause
    */
-  abstract _execute (source: AsyncIterator<Bindings>, iri: string, subquery: Algebra.RootNode, options: Object): AsyncIterator<Bindings>
+  abstract _execute (source: Observable<Bindings>, iri: string, subquery: Algebra.RootNode, options: Object): Observable<Bindings>
 }

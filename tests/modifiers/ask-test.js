@@ -46,12 +46,10 @@ describe('SPARQL ASK queries', () => {
     }`
     const results = []
     const iterator = engine.execute(query)
-    iterator.on('error', done)
-    iterator.on('data', b => {
+    iterator.subscribe(b => {
       expect(b).to.equal(true)
       results.push(b)
-    })
-    iterator.on('end', () => {
+    }, done, () => {
       expect(results.length).to.equal(1)
       done()
     })
@@ -69,12 +67,10 @@ describe('SPARQL ASK queries', () => {
     }`
     const results = []
     const iterator = engine.execute(query)
-    iterator.on('error', done)
-    iterator.on('data', b => {
+    iterator.subscribe(b => {
       expect(b).to.equal(false)
       results.push(b)
-    })
-    iterator.on('end', () => {
+    }, done, () => {
       expect(results.length).to.equal(1)
       done()
     })

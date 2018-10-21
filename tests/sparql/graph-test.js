@@ -161,12 +161,11 @@ describe('GRAPH/FROM queries', () => {
     it(d.text, done => {
       let nbResults = 0
       const iterator = engine.execute(d.query)
-      iterator.on('error', done)
-      iterator.on('data', b => {
+      iterator.subscribe(b => {
+        b = b.toObject()
         d.testFun(b)
         nbResults++
-      })
-      iterator.on('end', () => {
+      }, done, () => {
         expect(nbResults).to.equal(d.nbResults)
         done()
       })

@@ -45,8 +45,8 @@ describe('SPARQL aggregates', () => {
     const results = []
 
     const iterator = engine.execute(query)
-    iterator.on('error', done)
-    iterator.on('data', b => {
+    iterator.subscribe(b => {
+      b = b.toObject()
       expect(b).to.have.keys('?p', '?nbPreds')
       switch (b['?p']) {
         case 'https://dblp.uni-trier.de/rdf/schema-2017-04-18#primaryFullPersonName':
@@ -64,8 +64,7 @@ describe('SPARQL aggregates', () => {
           break
       }
       results.push(b)
-    })
-    iterator.on('end', () => {
+    }, done, () => {
       expect(results.length).to.equal(4)
       done()
     })
@@ -81,8 +80,8 @@ describe('SPARQL aggregates', () => {
     const results = []
 
     const iterator = engine.execute(query)
-    iterator.on('error', done)
-    iterator.on('data', b => {
+    iterator.subscribe(b => {
+      b = b.toObject()
       expect(b).to.have.keys('?p', '?nbPreds', '?z')
       expect(b['?z']).to.equal(`"10"^^${XSD('integer')}`)
       switch (b['?p']) {
@@ -101,8 +100,7 @@ describe('SPARQL aggregates', () => {
           break
       }
       results.push(b)
-    })
-    iterator.on('end', () => {
+    }, done, () => {
       expect(results.length).to.equal(4)
       done()
     })
@@ -118,8 +116,8 @@ describe('SPARQL aggregates', () => {
     const results = []
 
     const iterator = engine.execute(query)
-    iterator.on('error', done)
-    iterator.on('data', b => {
+    iterator.subscribe(b => {
+      b = b.toObject()
       expect(b).to.have.keys('?p', '?nbPreds')
       switch (b['?p']) {
         case 'https://dblp.uni-trier.de/rdf/schema-2017-04-18#primaryFullPersonName':
@@ -137,8 +135,7 @@ describe('SPARQL aggregates', () => {
           break
       }
       results.push(b)
-    })
-    iterator.on('end', () => {
+    }, done, () => {
       expect(results.length).to.equal(4)
       done()
     })
@@ -155,8 +152,8 @@ describe('SPARQL aggregates', () => {
     const results = []
 
     const iterator = engine.execute(query)
-    iterator.on('error', done)
-    iterator.on('data', b => {
+    iterator.subscribe(b => {
+      b = b.toObject()
       expect(b).to.have.keys('?p', '?nbPreds')
       switch (b['?p']) {
         case 'https://dblp.uni-trier.de/rdf/schema-2017-04-18#authorOf':
@@ -169,8 +166,7 @@ describe('SPARQL aggregates', () => {
           throw new Error(`Unexpected predicate found: ${b['?p']}`)
       }
       results.push(b)
-    })
-    iterator.on('end', () => {
+    }, done, () => {
       expect(results.length).to.equal(2)
       done()
     })
@@ -295,13 +291,12 @@ describe('SPARQL aggregates', () => {
     it(`should evaluate the "${d.name}" aggregate`, done => {
       const results = []
       const iterator = engine.execute(d.query)
-      iterator.on('error', done)
-      iterator.on('data', b => {
+      iterator.subscribe(b => {
+        b = b.toObject()
         expect(b).to.have.keys(...d.keys)
         d.testFun(b)
         results.push(b)
-      })
-      iterator.on('end', () => {
+      }, done, () => {
         expect(results.length).to.equal(d.nbResults)
         done()
       })

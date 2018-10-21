@@ -25,13 +25,14 @@ SOFTWARE.
 'use strict'
 
 import Executor from './executor'
-import { AsyncIterator, single } from 'asynciterator'
+import { Observable, of } from 'rxjs'
+import { shareReplay } from 'rxjs/operators'
 import { Consumable, ErrorConsumable } from '../../operators/update/consumer'
 import InsertConsumer from '../../operators/update/insert-consumer'
 import DeleteConsumer from '../../operators/update/delete-consumer'
 import ClearConsumer from '../../operators/update/clear-consumer'
 import ManyConsumers from '../../operators/update/many-consumers'
-import ConstructOperator from '../../operators/modifiers/construct-operator'
+import construct from '../../operators/modifiers/construct'
 import * as rewritings from './rewritings.js'
 import Graph from '../../rdf/graph'
 import Dataset from '../../rdf/dataset'
@@ -110,7 +111,7 @@ export default class UpdateExecutor extends Executor {
    * @return A Consumer used to evaluate SPARQL UPDATE queries
    */
   _handleInsertDelete (update: Algebra.UpdateQueryNode, options: any): Consumable {
-    let source: AsyncIterator<Bindings> = single(new BindingBase())
+    let source: Observable<Bindings> = of(new BindingBase())
     let graph: Graph | null = null
     let consumables: Consumable[] = []
 
@@ -129,17 +130,20 @@ export default class UpdateExecutor extends Executor {
       source = this._builder!._buildQueryPlan(node)
     }
 
+    // clone the source first
+    source = source.pipe(shareReplay(5))
+
     // build consumers to evaluate DELETE clauses
     if ('delete' in update && update.delete!.length > 0) {
       consumables = consumables.concat(update.delete!.map(v => {
-        return this._buildDeleteConsumer(source.clone(), v, graph, options)
+        return this._buildDeleteConsumer(source, v, graph, options)
       }))
     }
 
     // build consumers to evaluate INSERT clauses
     if ('insert' in update && update.insert!.length > 0) {
       consumables = consumables.concat(update.insert!.map(v => {
-        return this._buildInsertConsumer(source.clone(), v, graph, options)
+        return this._buildInsertConsumer(source, v, graph, options)
       }))
     }
     return new ManyConsumers(consumables)
@@ -153,8 +157,8 @@ export default class UpdateExecutor extends Executor {
    * @param graph - RDF Graph used to insert data
    * @return A consumer used to evaluate a SPARQL INSERT clause
    */
-  _buildInsertConsumer (source: AsyncIterator<Bindings>, group: Algebra.BGPNode | Algebra.UpdateGraphNode, graph: Graph | null, options: Object): InsertConsumer {
-    const tripleSource = new ConstructOperator(source, {template: group.triples})
+  _buildInsertConsumer (source: Observable<Bindings>, group: Algebra.BGPNode | Algebra.UpdateGraphNode, graph: Graph | null, options: Object): InsertConsumer {
+    const tripleSource = construct(source, {template: group.triples})
     if (graph === null) {
       graph = (group.type === 'graph' && 'name' in group) ? this._dataset.getNamedGraph(group.name) : this._dataset.getDefaultGraph()
     }
@@ -169,8 +173,8 @@ export default class UpdateExecutor extends Executor {
    * @param  graph - RDF Graph used to delete data
    * @return A consumer used to evaluate a SPARQL DELETE clause
    */
-  _buildDeleteConsumer (source: AsyncIterator<Bindings>, group: Algebra.BGPNode | Algebra.UpdateGraphNode, graph: Graph | null, options: Object): DeleteConsumer {
-    const tripleSource = new ConstructOperator(source, {template: group.triples})
+  _buildDeleteConsumer (source: Observable<Bindings>, group: Algebra.BGPNode | Algebra.UpdateGraphNode, graph: Graph | null, options: Object): DeleteConsumer {
+    const tripleSource = construct(source, {template: group.triples})
     if (graph === null) {
       graph = (group.type === 'graph' && 'name' in group) ? this._dataset.getNamedGraph(group.name) : this._dataset.getDefaultGraph()
     }

@@ -62,7 +62,7 @@ class N3Graph extends Graph {
 }
 
 const graph = new N3Graph()
-const dataset = new HashMapDataset(graph)
+const dataset = new HashMapDataset('http://example.org#default', graph)
 
 // Load some RDF data into the graph
 const parser = new Parser()

@@ -1,4 +1,4 @@
-/* file : filter-operator.ts
+/* file : construct.ts
 MIT License
 
 Copyright (c) 2018 Thomas Minier
@@ -24,36 +24,32 @@ SOFTWARE.
 
 'use strict'
 
-import SPARQLExpression from './expressions/sparql-expression'
-import { AsyncIterator, TransformIterator } from 'asynciterator'
+import { Observable } from 'rxjs'
+import { flatMap, endWith } from 'rxjs/operators'
 import { Algebra } from 'sparqljs'
-import { Bindings } from '../rdf/bindings'
+import { compact } from 'lodash'
+import { rdf } from '../../utils'
+import { Bindings } from '../../rdf/bindings'
 
 /**
- * Evaluate SPARQL Filter clauses
- * @see {@link https://www.w3.org/TR/sparql11-query/#expressions}
- * @extends TransformIterator
+ * A ConstructOperator transform solution mappings into RDF triples, according to a template
+ * @see {@link https://www.w3.org/TR/2013/REC-sparql11-query-20130321/#construct}
+ * @param source  - Source observable
+ * @param templates - Set of triples patterns in the CONSTRUCT clause
  * @author Thomas Minier
  */
-export default class FilterOperator extends TransformIterator<Bindings,Bindings> {
-  private readonly _expression: SPARQLExpression
-
-  /**
-   * Constructor
-   * @param source  - Source iterator
-   * @param expression - FILTER expression
-   * @param options - Execution options
-   */
-  constructor (source: AsyncIterator<Bindings>, expression: Algebra.Expression, options: Object) {
-    super(source, options)
-    this._expression = new SPARQLExpression(expression)
-  }
-
-  _transform (bindings: Bindings, done: () => void): void {
-    const value: any = this._expression.evaluate(bindings)
-    if (value !== null && value.asJS) {
-      this._push(bindings)
+export default function construct (source: Observable<Bindings>, query: any) {
+  const rawTriples: Algebra.TripleObject[] = []
+  const templates: Algebra.TripleObject[] = query.template!.filter((t: any) => {
+    if (rdf.isVariable(t.subject) || rdf.isVariable(t.predicate) || rdf.isVariable(t.object)) {
+      return true
     }
-    done()
-  }
+    rawTriples.push(t)
+    return false
+  })
+  return source
+    .pipe(flatMap((bindings: Bindings) => {
+      return compact(templates.map(t => bindings.bound(t)))
+    }))
+    .pipe(endWith(...rawTriples))
 }

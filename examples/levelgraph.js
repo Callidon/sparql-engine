@@ -42,7 +42,7 @@ var triple1 = { subject: 'http://example.org#a1', predicate: 'http://xmlns.com/f
 var triple2 = { subject: 'http://example.org#a2', predicate: 'http://xmlns.com/foaf/0.1/name', object: '"d"' }
 db.put([triple1, triple2], () => {
   const graph = new LevelRDFGraph(db)
-  const dataset = new HashMapDataset(graph)
+  const dataset = new HashMapDataset('http://example.org#default', graph)
 
   const query = `
     PREFIX foaf: <http://xmlns.com/foaf/0.1/>

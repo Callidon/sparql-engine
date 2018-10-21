@@ -6,8 +6,9 @@
   "types": "dist/api.d.ts",
   "scripts": {
     "lint": "tslint -c ./tslint.json --fix src/*.ts src/**/*.ts",
-    "test": "mocha tests/**/*-test.js",
     "build": "tsc",
+    "pretest": "npm run build",
+    "test": "mocha tests/**/*-test.js",
     "report": "nyc --reporter=html --reporter=text mocha tests/**/*-test.js",
     "codecov": "nyc report --reporter=text-lcov > coverage.lcov",
     "doc": "typedoc --mode file --out docs/"
@@ -51,10 +52,10 @@
     "typescript": "^3.0.3"
   },
   "dependencies": {
-    "asynciterator": "^2.0.0",
     "lodash": "^4.17.10",
     "moment": "^2.22.2",
     "n3": "^0.11.3",
+    "rxjs": "^6.3.3",
     "sparqljs": "^2.0.3",
     "uuid": "^3.3.2",
     "xml": "^1.0.1"

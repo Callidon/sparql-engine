@@ -44,16 +44,15 @@ describe('SPARQL MINUS', () => {
     }`
     let nbResults = 0
     const iterator = engine.execute(query)
-    iterator.on('error', done)
-    iterator.on('data', b => {
+    iterator.subscribe(b => {
+      b = b.toObject()
       expect(b).to.have.keys('?s', '?p', '?o')
       expect(b['?s']).to.be.oneOf([
         'https://dblp.uni-trier.de/pers/m/Minier:Thomas',
         'https://dblp.org/pers/m/Minier:Thomas.nt'
       ])
       nbResults++
-    })
-    iterator.on('end', () => {
+    }, done, () => {
       expect(nbResults).to.equal(6)
       done()
     })
@@ -69,11 +68,9 @@ describe('SPARQL MINUS', () => {
     }`
     let nbResults = 0
     const iterator = engine.execute(query)
-    iterator.on('error', done)
-    iterator.on('data', b => {
+    iterator.subscribe(() => {
       nbResults++
-    })
-    iterator.on('end', () => {
+    }, done, () => {
       expect(nbResults).to.equal(0)
       done()
     })

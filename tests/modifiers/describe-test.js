@@ -45,8 +45,7 @@ describe('DESCRIBE SPARQL queries', () => {
     const results = []
 
     const iterator = engine.execute(query)
-    iterator.on('error', done)
-    iterator.on('data', triple => {
+    iterator.subscribe(triple => {
       expect(triple).to.have.all.keys('subject', 'predicate', 'object')
       expect(triple.subject).to.equal('https://dblp.org/pers/m/Minier:Thomas')
       expect(triple.predicate).to.be.oneOf([
@@ -56,8 +55,7 @@ describe('DESCRIBE SPARQL queries', () => {
         'https://dblp.uni-trier.de/rdf/schema-2017-04-18#coCreatorWith'
       ])
       results.push(triple)
-    })
-    iterator.on('end', () => {
+    }, done, () => {
       expect(results.length).to.equal(11)
       done()
     })

@@ -107,8 +107,7 @@ describe('Union Graph', () => {
       ]
       const iterator = union.find(triple)
 
-      iterator.on('error', done)
-      iterator.on('data', b => {
+      iterator.subscribe(b => {
         expect(b).to.have.all.keys(['subject', 'predicate', 'object'])
         expect(b.subject).to.equal(triple.subject)
         expect(b.predicate).to.equal(triple.predicate)
@@ -116,9 +115,7 @@ describe('Union Graph', () => {
         const index = expectedArticles.findIndex(v => v === b.object)
         expectedArticles.splice(index, 1)
         nbResults++
-      })
-
-      iterator.on('end', () => {
+      }, done, () => {
         expect(nbResults).to.equal(10)
         expect(expectedArticles.length).to.equal(0)
         done()

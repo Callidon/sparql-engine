@@ -864,11 +864,9 @@ describe('FILTER SPARQL queries', () => {
     it(`should evaluate the "${d.name}" FILTER`, done => {
       const results = []
       const iterator = engine.execute(d.query)
-      iterator.on('error', done)
-      iterator.on('data', b => {
+      iterator.subscribe(b => {
         results.push(b)
-      })
-      iterator.on('end', () => {
+      }, done, () => {
         expect(results.length).to.equal(d.expectedNb)
         done()
       })

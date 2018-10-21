@@ -24,13 +24,13 @@ SOFTWARE.
 
 'use strict'
 
+import { Observable } from 'rxjs'
 import Executor from './executor'
-import BindOperator from '../../operators/bind-operator'
-import FilterOperator from '../../operators/filter-operator'
-import GroupByOperator from '../../operators/aggregates/groupby-operator'
+import bind from '../../operators/bind'
+import filter from '../../operators/sparql-filter'
+import groupBy from '../../operators/sparql-groupby'
 import { isString } from 'lodash'
 import { Algebra } from 'sparqljs'
-import { AsyncIterator } from 'asynciterator'
 import { Bindings } from '../../rdf/bindings'
 
 /**
@@ -47,7 +47,7 @@ export default class AggregateExecutor extends Executor {
    * @param options - Execution options
    * @return An iterator which evaluate SPARQL aggregations
    */
-  buildIterator (source: AsyncIterator<Bindings>, query: Algebra.RootNode, options: Object): AsyncIterator<Bindings> {
+  buildIterator (source: Observable<Bindings>, query: Algebra.RootNode, options: Object): Observable<Bindings> {
     if ('group' in query) {
       // first, group bindings using the GROUP BY clause
       let iterator = this._executeGroupBy(source, query.group || [], options)
@@ -67,7 +67,7 @@ export default class AggregateExecutor extends Executor {
    * @param  options - Execution options
    * @return An iterator which evaluate a GROUP BY clause
    */
-  _executeGroupBy (source: AsyncIterator<Bindings>, groupby: Algebra.Aggregation[], options: Object): AsyncIterator<Bindings> {
+  _executeGroupBy (source: Observable<Bindings>, groupby: Algebra.Aggregation[], options: Object): Observable<Bindings> {
     let iterator = source
     // extract GROUP By variables & rewrite SPARQL expressions into BIND clauses
     const variables: string[] = []
@@ -76,10 +76,10 @@ export default class AggregateExecutor extends Executor {
         variables.push(g.expression)
       } else {
         variables.push(g.variable)
-        iterator = new BindOperator(iterator, g.variable, g.expression, options)
+        iterator = iterator.pipe(bind(g.variable, g.expression))
       }
     })
-    return new GroupByOperator(iterator, variables, options)
+    return groupBy(iterator, variables)
   }
 
   /**
@@ -89,11 +89,11 @@ export default class AggregateExecutor extends Executor {
    * @param  options - Execution options
    * @return An iterator which evaluate a HAVING clause
    */
-  _executeHaving (source: AsyncIterator<Bindings>, having: Algebra.Expression[], options: Object): AsyncIterator<Bindings> {
+  _executeHaving (source: Observable<Bindings>, having: Algebra.Expression[], options: Object): Observable<Bindings> {
     // thanks to the flexibility of SPARQL expressions,
     // we can rewrite a HAVING clause in a set of FILTER clauses!
     return having.reduce((iter, expression) => {
-      return new FilterOperator(iter, expression, options)
+      return iter.pipe(filter(expression))
     }, source)
   }
 }

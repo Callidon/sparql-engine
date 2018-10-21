@@ -1,4 +1,4 @@
-/* file : agg-operator.ts
+/* file : select.ts
 MIT License
 
 Copyright (c) 2018 Thomas Minier
@@ -24,43 +24,33 @@ SOFTWARE.
 
 'use strict'
 
-import SPARQLExpression from '../expressions/sparql-expression'
-import { AsyncIterator, TransformIterator } from 'asynciterator'
+import { Observable } from 'rxjs'
+import { map } from 'rxjs/operators'
 import { Algebra } from 'sparqljs'
+import { rdf } from '../../utils'
 import { Bindings } from '../../rdf/bindings'
 
 /**
- * Apply a SPARQL Aggregation operation over set of bindings.
- * WARNING: In a pipeline of operators, this operator must be placed
- * AFTER a GroupByOperator or another AggregateOperator
- * @extends TransformIterator
+ * Evaluates a SPARQL SELECT operation, i.e., perform a selection over sets of solutions bindings
+ * @see {@link https://www.w3.org/TR/2013/REC-sparql11-query-20130321/#select}
+ * @param query - SELECT query
  * @author Thomas Minier
  * @author Corentin Marionneau
  */
-export default class AggregateOperator extends TransformIterator<Bindings,Bindings> {
-  private readonly _variable: string
-  private readonly _expression: SPARQLExpression
-
-  /**
-   * Constructor
-   * @param source - Source Iterator
-   * @param operation - Aggregation operation
-   * @param options - Execution options
-   */
-  constructor (source: AsyncIterator<Bindings>, operation: Algebra.Aggregation, options: Object) {
-    super(source, options)
-    this._variable = operation.variable
-    this._expression = new SPARQLExpression(operation.expression)
-  }
-
-  _transform (bindings: Bindings, done: () => void) {
-    try {
-      const value: any = this._expression.evaluate(bindings)
-      bindings.set(this._variable, value.asRDF)
-    } catch (e) {
-      this.emit('error', e)
+export default function select (source: Observable<Bindings>, query: Algebra.RootNode) {
+  const variables = <string[]> query.variables
+  const selectAll = variables.length === 1 && variables[0] === '*'
+  return source.pipe(map((bindings: Bindings) => {
+    if (!selectAll) {
+      bindings = variables.reduce((obj, v) => {
+        if (bindings.has(v)) {
+          obj.set(v, bindings.get(v)!)
+        } else {
+          obj.set(v, 'UNBOUND')
+        }
+        return obj
+      }, bindings.empty())
     }
-    this._push(bindings)
-    done()
-  }
+    return bindings.mapValues((k, v) => rdf.isVariable(k) && typeof v === 'string' ? v : null)
+  }))
 }

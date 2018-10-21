@@ -24,10 +24,36 @@ SOFTWARE.
 
 'use strict'
 
-import { AsyncIterator, TransformIterator } from 'asynciterator'
+import { Observable } from 'rxjs'
+import { tap } from 'rxjs/operators'
 import { Algebra } from 'sparqljs'
 import PlanBuilder from '../engine/plan-builder'
 import { Bindings } from '../rdf/bindings'
+
+/**
+ * Like rxjs.defaultIfEmpty, but emits an array of default values
+ * @author Thomas Minier
+ * @param  values - Default values
+ * @return An Observable that emits either the specified `defaultValues` if the source Observable emits no items, or the values emitted by the source Observable.
+ */
+function defaultValues (defaultValues: Bindings[]) {
+  return function (source: Observable<Bindings>) {
+    return new Observable<Bindings>(subscriber => {
+      let isEmpty: boolean = true
+      return source.subscribe((x: Bindings) => {
+        isEmpty = false
+        subscriber.next(x)
+      },
+      err => subscriber.error(err),
+      () => {
+        if (isEmpty) {
+          defaultValues.forEach((v: Bindings) => subscriber.next(v))
+        }
+        subscriber.complete()
+      })
+    })
+  }
+}
 
 /**
  * Handles an SPARQL OPTIONAL clause in the following way:
@@ -36,49 +62,14 @@ import { Bindings } from '../rdf/bindings'
  * 3) When the OPTIONAL clause if evaluated, check if the flag is True.
  * 4) If the flag is True, then we output all buffered values. Otherwise, we do nothing.
  * @see {@link https://www.w3.org/TR/sparql11-query/#optionals}
- * @extends TransformIterator
  * @author Thomas Minier
  */
-export default class OptionalOperator extends TransformIterator<Bindings,Bindings> {
-  private readonly _bufferedvalues: Bindings[]
-  private _emptySource: boolean
-
-  /**
-   * Constructor
-   * @param source - Source iterator
-   * @param patterns - OPTIONAL content
-   * @param builder - Builder used to generate execution plans
-   * @param options - Execution options
-   */
-  constructor (source: AsyncIterator<Bindings>, patterns: Algebra.PlanNode[], builder: PlanBuilder, options: Object) {
-    // set a spy on the sourcr iterator to buffer bindings
-    let iter = source.map(v => {
-      this._registerValue(v)
-      return v
-    })
-    // build a pipeline of iterators to evaluates the OPTIONAL
-    iter = builder._buildWhere(iter, patterns, options)
-    super(iter)
-    this._bufferedvalues = []
-    this._emptySource = true
-  }
-
-  _registerValue (v: Bindings): void {
-    this._bufferedvalues.push(v)
-  }
-
-  _transform (bindings: Bindings, done: () => void): void {
-    this._emptySource = false
-    this._push(bindings)
-    done()
-  }
-
-  _flush (done: () => void): void {
-    if (this._emptySource) {
-      this._bufferedvalues.forEach(v => {
-        this._push(v)
-      })
-    }
-    done()
-  }
+export default function optional (source: Observable<Bindings>, patterns: Algebra.PlanNode[], builder: PlanBuilder, options: Object) {
+  const buffer: Bindings[] = []
+  const start = source
+    .pipe(tap((bindings: Bindings) => {
+      buffer.push(bindings)
+    }))
+  return builder._buildWhere(start, patterns, options)
+    .pipe(defaultValues(buffer))
 }

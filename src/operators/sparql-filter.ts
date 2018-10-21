@@ -1,4 +1,4 @@
-/* file : bind-operator.ts
+/* file : sparql-filter.ts
 MIT License
 
 Copyright (c) 2018 Thomas Minier
@@ -24,45 +24,22 @@ SOFTWARE.
 
 'use strict'
 
-import { AsyncIterator, TransformIterator } from 'asynciterator'
+import { filter } from 'rxjs/operators'
 import SPARQLExpression from './expressions/sparql-expression'
 import { Algebra } from 'sparqljs'
 import { Bindings } from '../rdf/bindings'
 
 /**
- * Apply a SPARQL BIND clause
- * @see {@link https://www.w3.org/TR/sparql11-query/#bind}
- * @extends TransformIterator
+ * Evaluate SPARQL Filter clauses
+ * @see {@link https://www.w3.org/TR/sparql11-query/#expressions}
  * @author Thomas Minier
- * @author Corentin Marionneau
+ * @param expression - FILTER expression
+ * @return A Filter operator
  */
-export default class BindOperator extends TransformIterator<Bindings,Bindings> {
-  private readonly _variable: string
-  private readonly _expression: SPARQLExpression
-
-  /**
-   * Constructor
-   * @param source - Input iterator
-   * @param variable  - SPARQL variable used to bind results
-   * @param expression - SPARQL expression
-   * @param options - Execution options
-   */
-  constructor (source: AsyncIterator<Bindings>, variable: string, expression: Algebra.Expression | string, options: Object) {
-    super(source, options)
-    this._variable = variable
-    this._expression = new SPARQLExpression(expression)
-  }
-
-  _transform (bindings: Bindings, done: () => void): void {
-    try {
-      const value: any = this._expression.evaluate(bindings)
-      if (value !== null) {
-        bindings.set(this._variable, value.asRDF)
-      }
-    } catch (e) {
-      this.emit('error', e)
-    }
-    this._push(bindings)
-    done()
-  }
+export default function sparqlFilter (expression: Algebra.Expression) {
+  const expr = new SPARQLExpression(expression)
+  return filter((bindings: Bindings) => {
+    const value: any = expr.evaluate(bindings)
+    return value !== null && value.asJS
+  })
 }

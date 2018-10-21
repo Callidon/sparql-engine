@@ -26,7 +26,8 @@ SOFTWARE.
 
 import * as terms from './rdf-terms'
 import { Util } from 'n3'
-import { AsyncIterator } from 'asynciterator'
+import { Observable } from 'rxjs'
+import { map } from 'rxjs/operators'
 import { Algebra } from 'sparqljs'
 import { Bindings } from './rdf/bindings'
 
@@ -194,10 +195,10 @@ export function deepApplyBindings (group: Algebra.PlanNode, bindings: Bindings):
 
 /**
  * Extends all set of bindings produced by an iterator with another set of bindings
- * @param  {AsyncIterator} iterator - Source terator
- * @param  {Bindings} bindings - Bindings added to each set of bindings procuded by the iterator
+ * @param  source - Source terator
+ * @param  bindings - Bindings added to each set of bindings procuded by the iterator
  * @return An iterator that extends bindins produced by the source iterator
  */
-export function extendByBindings (iterator: AsyncIterator<Bindings>, bindings: Bindings): AsyncIterator<Bindings> {
-  return iterator.map((b: Bindings) => bindings.union(b))
+export function extendByBindings (source: Observable<Bindings>, bindings: Bindings): Observable<Bindings> {
+  return source.pipe(map((b: Bindings) => bindings.union(b)))
 }

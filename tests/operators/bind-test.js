@@ -1,4 +1,4 @@
-/* file : union-test.js
+/* file : bind.js
 MIT License
 
 Copyright (c) 2018 Thomas Minier
@@ -25,37 +25,33 @@ SOFTWARE.
 'use strict'
 
 const expect = require('chai').expect
-const { getGraph, TestEngine } = require('../utils.js')
+const { from } = require('rxjs')
+const { BindingBase } = require('../../dist/api.js')
+const bind = require('../../dist/operators/bind.js').default
 
-describe('SPARQL UNION', () => {
-  let engine = null
-  before(() => {
-    const g = getGraph('./tests/data/dblp.nt')
-    engine = new TestEngine(g)
-  })
-
-  it('should evaluate UNION queries', done => {
-    const query = `
-    PREFIX dblp-pers: <https://dblp.org/pers/m/>
-    PREFIX dblp-rdf: <https://dblp.uni-trier.de/rdf/schema-2017-04-18#>
-    PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-    SELECT ?name WHERE {
-      {
-        ?s rdf:type dblp-rdf:Person .
-        ?s dblp-rdf:primaryFullPersonName ?name .
-      } UNION {
-        ?s rdf:type dblp-rdf:Person .
-        ?s dblp-rdf:primaryFullPersonName ?name .
+describe('Bind operator', () => {
+  it('should bind results of valid SPARQL expression to a variable', done => {
+    let nbResults = 0
+    const source = from([
+      BindingBase.fromObject({'?x': '"1"^^http://www.w3.org/2001/XMLSchema#integer', '?y': '"2"^^http://www.w3.org/2001/XMLSchema#integer'}),
+      BindingBase.fromObject({'?x': '"2"^^http://www.w3.org/2001/XMLSchema#integer', '?y': '"3"^^http://www.w3.org/2001/XMLSchema#integer'})
+    ])
+    const expr = {
+      type: 'operation',
+      operator: '+',
+      args: ['?x', '?y']
+    }
+    const op = source.pipe(bind('?z', expr))
+    op.subscribe(value => {
+      expect(value.toObject()).to.have.all.keys('?x', '?y', '?z')
+      if (value.get('?x').startsWith('"1"')) {
+        expect(value.get('?z')).to.equal('"3"^^http://www.w3.org/2001/XMLSchema#integer')
+      } else {
+        expect(value.get('?z')).to.equal('"5"^^http://www.w3.org/2001/XMLSchema#integer')
       }
-    }`
-    const results = []
-    const iterator = engine.execute(query)
-    iterator.subscribe(b => {
-      b = b.toObject()
-      expect(b).to.have.keys('?name')
-      results.push(b)
+      nbResults++
     }, done, () => {
-      expect(results.length).to.equal(2)
+      expect(nbResults).to.equal(2)
       done()
     })
   })

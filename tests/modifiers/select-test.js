@@ -46,12 +46,11 @@ describe('SELECT SPARQL queries', () => {
     }`
     const results = []
     const iterator = engine.execute(query)
-    iterator.on('error', done)
-    iterator.on('data', b => {
+    iterator.subscribe(b => {
+      b = b.toObject()
       expect(b).to.have.keys('?name', '?article')
       results.push(b)
-    })
-    iterator.on('end', () => {
+    }, done, () => {
       expect(results.length).to.equal(5)
       done()
     })
@@ -69,12 +68,11 @@ describe('SELECT SPARQL queries', () => {
     }`
     const results = []
     const iterator = engine.execute(query)
-    iterator.on('error', done)
-    iterator.on('data', b => {
+    iterator.subscribe(b => {
+      b = b.toObject()
       expect(b).to.have.keys('?name', '?article', '?s')
       results.push(b)
-    })
-    iterator.on('end', () => {
+    }, done, () => {
       expect(results.length).to.equal(5)
       done()
     })
@@ -96,12 +94,11 @@ describe('SELECT SPARQL queries', () => {
     }`
     const results = []
     const iterator = engine.execute(query)
-    iterator.on('error', done)
-    iterator.on('data', b => {
+    iterator.subscribe(b => {
+      b = b.toObject()
       expect(b).to.have.keys('?name')
       results.push(b)
-    })
-    iterator.on('end', () => {
+    }, done, () => {
       expect(results.length).to.equal(1)
       done()
     })

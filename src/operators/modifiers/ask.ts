@@ -1,4 +1,4 @@
-/* file : ask-operator.ts
+/* file : ask.ts
 MIT License
 
 Copyright (c) 2018 Thomas Minier
@@ -24,37 +24,23 @@ SOFTWARE.
 
 'use strict'
 
-import { AsyncIterator, TransformIterator } from 'asynciterator'
-import { Bindings } from '../../rdf/bindings'
+import { Observable } from 'rxjs'
+import { first, map, defaultIfEmpty } from 'rxjs/operators'
+import { Bindings, BindingBase } from '../../rdf/bindings'
 
 /**
  * A AskOperator output True if a source iterator has solutions, false otherwise.
  * results are outputed following the SPARQL XML results format
- * @extends TransformIterator
- * @author Thomas Minier
  * @see {@link https://www.w3.org/TR/2013/REC-sparql11-query-20130321/#ask}
+ * @author Thomas Minier
+ * @param source - Source observable
  */
-export default class AskOperator extends TransformIterator<Bindings, boolean> {
-  private _noResults: boolean
-  /**
-   * Constructor
-   * @param source - Source iterator
-   */
-  constructor (source: AsyncIterator<Bindings>) {
-    super(source.take(1))
-    this._noResults = true
-  }
-
-  _transform (bindings: Bindings, done: () => void): void {
-    this._noResults = false
-    this._push(true)
-    done()
-  }
-
-  _flush (done: () => void): void {
-    if (this._noResults) {
-      this._push(false)
-    }
-    done()
-  }
+export default function ask (source: Observable<Bindings>) {
+  const defaultValue: Bindings = new BindingBase()
+  return source
+    .pipe(defaultIfEmpty(defaultValue))
+    .pipe(first())
+    .pipe(map((b: Bindings) => {
+      return b.size > 0
+    }))
 }

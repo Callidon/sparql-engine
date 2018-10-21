@@ -24,7 +24,7 @@ SOFTWARE.
 
 'use strict'
 
-import { AsyncIterator } from 'asynciterator'
+import { Observable } from 'rxjs'
 import { Writable } from 'stream'
 import { Algebra } from 'sparqljs'
 
@@ -65,7 +65,7 @@ export class ErrorConsumable implements Consumable {
  * @author Thomas Minier
  */
 export abstract class Consumer extends Writable implements Consumable {
-  private readonly _source: AsyncIterator<Algebra.TripleObject>
+  private readonly _source: Observable<Algebra.TripleObject>
   private readonly _options: Object
 
   /**
@@ -73,7 +73,7 @@ export abstract class Consumer extends Writable implements Consumable {
    * @param source - Source iterator
    * @param options - Execution options
    */
-  constructor (source: AsyncIterator<Algebra.TripleObject>, options: Object) {
+  constructor (source: Observable<Algebra.TripleObject>, options: Object) {
     super({ objectMode: true })
     this._source = source
     this._options = options
@@ -81,18 +81,11 @@ export abstract class Consumer extends Writable implements Consumable {
 
   execute (): Promise<void> {
     // if the source has already ended, no need to drain it
-    if (this._source.ended) {
-      return new Promise(resolve => {
-        this.end(null, '', resolve)
-      })
-    }
     return new Promise((resolve, reject) => {
-      this._source.on('end', () => {
-        this.end(null, '', resolve)
-      })
-      this._source.on('error', reject)
-      this._source.on('data', triple => {
+      this._source.subscribe(triple => {
         this.write(triple)
+      }, reject, () => {
+        this.end(null, '', resolve)
       })
     })
   }
