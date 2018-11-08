@@ -2,7 +2,6 @@
 
 const { Parser, Store } = require('n3')
 const { HashMapDataset, Graph, PlanBuilder } = require('sparql-engine')
-const { ArrayIterator } = require('asynciterator')
 
 // Format a triple pattern according to N3 API:
 // SPARQL variables must be replaced by `null` values
@@ -52,7 +51,7 @@ class N3Graph extends Graph {
 
   find (triple) {
     const { subject, predicate, object } = formatTriplePattern(triple)
-    return new ArrayIterator(this._store.getTriples(subject, predicate, object))
+    return this._store.getTriples(subject, predicate, object)
   }
 
   estimateCardinality (triple) {
@@ -89,8 +88,10 @@ const builder = new PlanBuilder(dataset)
 const iterator = builder.build(query)
 
 // Read results
-iterator.on('data', console.log)
-iterator.on('error', console.error)
-iterator.on('end', () => {
+iterator.subscribe(bindings => {
+  console.log('Find solutions:', bindings.toObject())
+}, err => {
+  console.error('error', err)
+}, () => {
   console.log('Query evaluation complete!')
 })

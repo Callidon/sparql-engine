@@ -3,7 +3,22 @@
 const { BindingBase, HashMapDataset, Graph, PlanBuilder } = require('sparql-engine')
 const level = require('level')
 const levelgraph = require('levelgraph')
-const { AsyncIterator } = require('asynciterator')
+const { Transform } = require('stream')
+
+// An utility class used to convert LevelGraph bindings
+// into a format undestood by sparql-engine
+class FormatterStream extends Transform {
+  constructor () {
+    super({objectMode: true})
+  }
+
+  _transform (item, encoding, callback) {
+    // Transform LevelGraph objects into set of mappings
+    // using BindingBase.fromObject
+    this.push(BindingBase.fromObject(item))
+    callback()
+  }
+}
 
 class LevelRDFGraph extends Graph {
   constructor (db) {
@@ -25,13 +40,8 @@ class LevelRDFGraph extends Graph {
       }
       return t
     })
-    // Transform the Stream returned by LevelGraph into an AsyncIterator
-    return AsyncIterator.wrap(this._db.searchStream(bgp))
-      .map(item => {
-        // Transform LevelGraph objects into set of mappings
-        // using BindingBase.fromObject
-        return BindingBase.fromObject(item)
-      })
+    // Transform the Stream returned by LevelGraph into an Stream of Bindings
+    return new FormatterStream(this._db.searchStream(bgp))
   }
 }
 
@@ -58,9 +68,11 @@ db.put([triple1, triple2], () => {
   const iterator = builder.build(query)
 
   // Read results
-  iterator.on('data', console.log)
-  iterator.on('error', console.error)
-  iterator.on('end', () => {
+  iterator.subscribe(bindings => {
+    console.log('Find solutions:', bindings.toObject())
+  }, err => {
+    console.error('error', err)
+  }, () => {
     console.log('Query evaluation complete!')
   })
 })

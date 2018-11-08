@@ -125,14 +125,6 @@ class TestEngine {
 
   execute (query, format = 'raw') {
     let iterator = this._builder.build(query, {format})
-    if ('read' in iterator) {
-      iterator = iterator.map(v => {
-        if (typeof v === 'object' && '_content' in v) {
-          return v.toObject()
-        }
-        return v
-      })
-    }
     return iterator
   }
 }

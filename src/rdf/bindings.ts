@@ -142,6 +142,20 @@ export abstract class Bindings {
   }
 
   /**
+   * Serialize the set of mappings as a string
+   * @return The set of mappings as a string
+   */
+  toString (): string {
+    const value = this.reduce((acc, variable, value) => {
+      if (! value.startsWith('"')) {
+        value = `<${value}>`
+      }
+      return `${acc} ${variable} -> ${value},`
+    }, '{')
+    return value.substring(0, value.length - 1) + ' }'
+  }
+
+  /**
    * Creates a deep copy of the set of mappings
    * @return A deep copy of the set
    */
