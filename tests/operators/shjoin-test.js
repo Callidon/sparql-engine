@@ -1,4 +1,4 @@
-/* file : hash-join-test.js
+/* file : shjoin-test.js
 MIT License
 
 Copyright (c) 2018 Thomas Minier
@@ -27,9 +27,9 @@ SOFTWARE.
 const expect = require('chai').expect
 const { from } = require('rxjs')
 const { BindingBase } = require('../../dist/api.js')
-const hashJoin = require('../../dist/operators/join/hash-join.js').default
+const symHashJoin = require('../../dist/operators/join/shjoin.js').default
 
-describe('Hash Join operator', () => {
+describe('Symmetric Hash Join operator', () => {
   it('should perform a join between two sources of bindings', done => {
     let nbResults = 0
     let nbEach = new Map()
@@ -48,7 +48,7 @@ describe('Hash Join operator', () => {
       BindingBase.fromObject({'?x': 'http://example.org#tata', '?y': '"5"'})
     ])
 
-    const op = hashJoin(left, right, '?x')
+    const op = symHashJoin('?x', left, right)
     op.subscribe(value => {
       expect(value.toObject()).to.have.all.keys('?x', '?y')
       switch (value.get('?x')) {
