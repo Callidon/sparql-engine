@@ -30,7 +30,7 @@ const { getGraph, TestEngine } = require('../utils.js')
 describe('SPARQL queries with OPTIONAL', () => {
   let engine = null
   before(() => {
-    const g = getGraph('./tests/data/dblp.nt')
+    const g = getGraph('./tests/data/dblp_opt.nt')
     engine = new TestEngine(g)
   })
 
@@ -64,9 +64,8 @@ describe('SPARQL queries with OPTIONAL', () => {
     const query = `
     PREFIX dblp-rdf: <https://dblp.uni-trier.de/rdf/schema-2017-04-18#>
     PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-    SELECT ?name ?article WHERE {
+    SELECT ?s ?article WHERE {
       ?s rdf:type dblp-rdf:Person .
-      ?s dblp-rdf:primaryFullPersonName ?name .
       OPTIONAL {
         ?s dblp-rdf:authorOf ?article .
       }
@@ -76,11 +75,16 @@ describe('SPARQL queries with OPTIONAL', () => {
     const iterator = engine.execute(query)
     iterator.subscribe(b => {
       b = b.toObject()
-      expect(b).to.have.keys('?name', '?article')
-      expect(b['?article']).to.not.equal('UNBOUND')
+      expect(b).to.have.keys('?s', '?article')
+      expect(b['?s']).to.be.oneOf(['https://dblp.org/pers/m/Minier:Thomas', 'https://dblp.org/pers/m/Minier:Thomas_2'])
+      if (b['?s'] === 'https://dblp.org/pers/m/Minier:Thomas_2') {
+        expect(b['?article']).to.equal('UNBOUND')
+      } else {
+        expect(b['?article']).to.not.equal('UNBOUND')
+      }
       results.push(b)
     }, done, () => {
-      expect(results.length).to.equal(5)
+      expect(results.length).to.equal(6)
       done()
     })
   })
@@ -115,12 +119,11 @@ describe('SPARQL queries with OPTIONAL', () => {
     const query = `
     PREFIX dblp-rdf: <https://dblp.uni-trier.de/rdf/schema-2017-04-18#>
     PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-    SELECT ?name ?article WHERE {
+    SELECT ?s ?article WHERE {
       ?s rdf:type dblp-rdf:Person .
-      ?s dblp-rdf:primaryFullPersonName ?name .
       OPTIONAL {
         ?s dblp-rdf:authorOf ?article .
-        FILTER(?article != "Very nice WWW article")
+        FILTER (?article != "Very nice WWW article")
       }
     }`
     const results = []
@@ -128,11 +131,16 @@ describe('SPARQL queries with OPTIONAL', () => {
     const iterator = engine.execute(query)
     iterator.subscribe(b => {
       b = b.toObject()
-      expect(b).to.have.keys('?name', '?article')
-      expect(b['?article']).to.not.equal('UNBOUND')
+      expect(b).to.have.keys('?s', '?article')
+      expect(b['?s']).to.be.oneOf(['https://dblp.org/pers/m/Minier:Thomas', 'https://dblp.org/pers/m/Minier:Thomas_2'])
+      if (b['?s'] === 'https://dblp.org/pers/m/Minier:Thomas_2') {
+        expect(b['?article']).to.equal('UNBOUND')
+      } else {
+        expect(b['?article']).to.not.equal('UNBOUND')
+      }
       results.push(b)
     }, done, () => {
-      expect(results.length).to.equal(5)
+      expect(results.length).to.equal(6)
       done()
     })
   })

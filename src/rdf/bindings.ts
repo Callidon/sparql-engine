@@ -250,6 +250,16 @@ export abstract class Bindings {
     return res
   }
 
+  isSubset (other: Bindings): boolean {
+    return Array.from(this.variables()).every((v: string) => {
+      return other.has(v) && other.get(v) === this.get(v)
+    })
+  }
+
+  // difference (other: Bindings): Bindings {
+  //
+  // }
+
   /**
    * Creates a new set of mappings using a function to transform the current set
    * @param mapper - Transformation function (variable, value) => [string, string]
