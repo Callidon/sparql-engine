@@ -110,11 +110,11 @@ function rewriteSolutions (bindings: Bindings, rewritingMap: RewritingTable): Bi
  * and then rewrite bindings generated and performs union with original bindings.
  * @author Thomas Minier
  * @private
- * @param  {SageGraph} graph - Graph queried
- * @param  {TripleObject[][]} bgpBucket - List of BGPs to evaluate
- * @param  {Map<String, Binding>} rewritingTable - Map <rewriting key -> original bindings>
- * @param  {Object} options - Query execution option
- * @return {Observable<Binding>} An Observable which evaluates the query.
+ * @param  graph - Graph queried
+ * @param  bgpBucket - List of BGPs to evaluate
+ * @param  rewritingTable - Map <rewriting key -> original bindings>
+ * @param  options - Query execution option
+ * @return An Observable which evaluates the query.
  */
 function rewritingOp (graph: Graph, bgpBucket: BGPBucket, rewritingTable: RewritingTable, options: Object): Observable<Bindings> {
   return from(graph.evalUnion(bgpBucket, options))
@@ -128,11 +128,11 @@ function rewritingOp (graph: Graph, bgpBucket: BGPBucket, rewritingTable: Rewrit
  * Performs a Bound Join
  * see https://link.springer.com/content/pdf/10.1007/978-3-642-25073-6_38.pdf for more details
  * @author Thomas Minier
- * @param  {Observable<Binding>} source - Source of bindings
- * @param  {TripleObject[]} bgp - Basic Pattern to join with
- * @param  {SageGraph} graph - Graphe queried
- * @param  {Object} options - Query execution options
- * @return {Observable<Binding>} An observable which evaluates the bound join
+ * @param  source - Source of bindings
+ * @param  bgp - Basic Pattern to join with
+ * @param  graph - Graphe queried
+ * @param  options - Query execution options
+ * @return An observable which evaluates the bound join
  */
 export default function boundJoin (source: Observable<Bindings>, bgp: Algebra.TripleObject[], graph: Graph, options: Object): Observable<Bindings> {
   return new Observable(observer => {
