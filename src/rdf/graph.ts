@@ -30,6 +30,7 @@ import { Algebra } from 'sparqljs'
 import indexJoin from '../operators/join/index-join'
 import { rdf } from '../utils'
 import { Bindings, BindingBase } from './bindings'
+import { GRAPH_CAPABILITY } from './graph_capability'
 
 /**
  * Metadata used for query optimization
@@ -61,6 +62,11 @@ function sortPatterns (a: PatternMetadata, b: PatternMetadata): number {
   return 0
 }
 
+function parseCapabilities (registry: Map<GRAPH_CAPABILITY, boolean>, proto: any): void {
+  registry.set(GRAPH_CAPABILITY.ESTIMATE_TRIPLE_CARD, proto.estimateCardinality != null)
+  registry.set(GRAPH_CAPABILITY.UNION, proto.evalUnion != null)
+}
+
 /**
  * An abstract RDF Graph, accessed through a RDF Dataset
  * @abstract
@@ -68,8 +74,12 @@ function sortPatterns (a: PatternMetadata, b: PatternMetadata): number {
  */
 export default abstract class Graph {
   private _iri: string
+  private _capabilities: Map<GRAPH_CAPABILITY, boolean>
+
   constructor () {
     this._iri = ''
+    this._capabilities = new Map()
+    parseCapabilities(this._capabilities, Object.getPrototypeOf(this))
   }
 
   /**
@@ -89,31 +99,31 @@ export default abstract class Graph {
   }
 
   /**
+   * Test if a graph has a capability
+   * @param  token - Capability tested
+   * @return True if the graph has the reuqested capability, false otherwise
+   */
+  _isCapable (token: GRAPH_CAPABILITY): boolean {
+    return this._capabilities.has(token) && this._capabilities.get(token)!
+  }
+
+  /**
    * Insert a RDF triple into the RDF Graph
-   * @param  {Object}   triple - RDF Triple to insert
-   * @param  {string}   triple.subject - RDF triple's subject
-   * @param  {string}   triple.predicate - RDF triple's predicate
-   * @param  {string}   triple.object - RDF triple's object
+   * @param  triple - RDF Triple to insert
    * @return A Promise fulfilled when the insertion has been completed
    */
   abstract insert (triple: Algebra.TripleObject): Promise<void>
 
   /**
    * Delete a RDF triple from the RDF Graph
-   * @param  {Object}   triple - RDF Triple to delete
-   * @param  {string}   triple.subject - RDF triple's subject
-   * @param  {string}   triple.predicate - RDF triple's predicate
-   * @param  {string}   triple.object - RDF triple's object
+   * @param  triple - RDF Triple to delete
    * @return A Promise fulfilled when the deletion has been completed
    */
   abstract delete (triple: Algebra.TripleObject): Promise<void>
 
   /**
    * Returns an iterator that finds RDF triples matching a triple pattern in the graph.
-   * @param  {Object}   triple - Triple pattern to find
-   * @param  {string}   triple.subject - Triple pattern's subject
-   * @param  {string}   triple.predicate - Triple pattern's predicate
-   * @param  {string}   triple.object - Triple pattern's object
+   * @param  triple - Triple pattern to find
    * @return An iterator which finds RDF triples matching a triple pattern
    */
   abstract find (triple: Algebra.TripleObject, options: Object): ObservableInput<Algebra.TripleObject>
@@ -126,21 +136,31 @@ export default abstract class Graph {
 
   /**
    * Estimate the cardinality of a Triple pattern, i.e., the number of matching RDF Triples in the RDF Graph.
-   * @param  {Object}   triple - Triple pattern to estimate cardinality
-   * @param  {string}   triple.subject - Triple pattern's subject
-   * @param  {string}   triple.predicate - Triple pattern's predicate
-   * @param  {string}   triple.object - Triple pattern's object
+   * @param  triple - Triple pattern to estimate cardinality
    * @return A Promise fulfilled with the pattern's estimated cardinality
    */
-  abstract estimateCardinality (triple: Algebra.TripleObject): Promise<number>
+  estimateCardinality (triple: Algebra.TripleObject): Promise<number> {
+    throw new SyntaxError('Error: this graph is not capable of estimating the cardinality of a triple pattern')
+  }
+
+  /**
+   * Evaluates an union of Basic Graph patterns on the Graph using an iterator.
+   * @param  patterns - The set of BGPs to evaluate
+   * @param  options - Execution options
+   * @return An iterator which evaluates the Basic Graph pattern on the Graph
+   */
+  evalUnion (patterns: Algebra.TripleObject[][], options: Object): ObservableInput<Bindings> {
+    throw new SyntaxError('Error: this graph is not capable of evaluating UNION queries')
+  }
 
   /**
    * Evaluates a Basic Graph pattern, i.e., a set of triple patterns, on the Graph using an iterator.
-   * @param  {Object[]} bgp - The set of triple patterns to evaluate
-   * @param  {Object} options - Execution options
+   * @param  bgp - The set of triple patterns to evaluate
+   * @param  options - Execution options
    * @return An iterator which evaluates the Basic Graph pattern on the Graph
    */
   evalBGP (bgp: Algebra.TripleObject[], options: Object): ObservableInput<Bindings> {
+    if (this._isCapable(GRAPH_CAPABILITY.ESTIMATE_TRIPLE_CARD)) {
       return from(Promise.all(bgp.map(triple => {
         return this.estimateCardinality(triple).then(c => {
           return { triple, cardinality: c, nbVars: rdf.countVariables(triple) }
@@ -153,19 +173,19 @@ export default abstract class Graph {
           return iter.pipe(indexJoin(v.triple, this, options))
         }, start)
       }))
-    // const iter = new TransformIterator<Bindings,Bindings>()
-    // // collect cardinalities of each triple pattern
-    // Promise.all(bgp.map(triple => {
-    //   return this.estimateCardinality(triple).then(c => {
-    //     return { triple, cardinality: c, nbVars: rdf.countVariables(triple) }
-    //   })
-    // })).then((results: PatternMetadata[]) => {
-    //   results.sort(sortPatterns)
-    //   const start: AsyncIterator<Bindings> = single(new BindingBase())
-    //   iter.source = results.reduce((iter: AsyncIterator<Bindings>, v: PatternMetadata) => {
-    //     return new IndexJoinOperator(iter, v.triple, this, options)
-    //   }, start)
-    // })
-    // return iter
+    } else {
+      // FIX ME: this trick is required, otherwise ADD, COPY and MOVE queries are not evaluated correctly. We need to find why...
+      return from(Promise.resolve(null))
+        .pipe(mergeMap(() => {
+          const start = of(new BindingBase())
+          return bgp.reduce((iter: Observable<Bindings>, t: Algebra.TripleObject) => {
+            return iter.pipe(indexJoin(t, this, options))
+          }, start)
+        }))
+    }
   }
 }
+
+// disable optional methods
+Object.defineProperty(Graph.prototype, 'estimateCardinality', {value: null})
+Object.defineProperty(Graph.prototype, 'evalUnion', {value: null})

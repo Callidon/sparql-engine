@@ -30,7 +30,7 @@ import Graph from '../../rdf/graph'
 import { Bindings, BindingBase } from '../../rdf/bindings'
 import { Algebra } from 'sparqljs'
 import { rdf } from '../../utils'
-import { mapKeys, pickBy, some, size } from 'lodash'
+import { mapKeys, pickBy } from 'lodash'
 
 /**
  * Perform a join between a source of solution bindings (left relation)
