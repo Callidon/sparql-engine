@@ -126,6 +126,7 @@ function rewritingOp (graph: Graph, bgpBucket: BGPBucket, rewritingTable: Rewrit
 
 /**
  * Performs a Bound Join
+ * see https://link.springer.com/content/pdf/10.1007/978-3-642-25073-6_38.pdf for more details
  * @author Thomas Minier
  * @param  {Observable<Binding>} source - Source of bindings
  * @param  {TripleObject[]} bgp - Basic Pattern to join with
