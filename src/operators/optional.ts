@@ -24,7 +24,7 @@ SOFTWARE.
 
 'use strict'
 
-import { Observable } from 'rxjs'
+import { Observable, concat, from } from 'rxjs'
 import { tap } from 'rxjs/operators'
 import { Algebra } from 'sparqljs'
 import PlanBuilder from '../engine/plan-builder'
@@ -64,12 +64,20 @@ function defaultValues (defaultValues: Bindings[]) {
  * @see {@link https://www.w3.org/TR/sparql11-query/#optionals}
  * @author Thomas Minier
  */
-export default function optional (source: Observable<Bindings>, patterns: Algebra.PlanNode[], builder: PlanBuilder, options: Object) {
-  const buffer: Bindings[] = []
+export default function optional (source: Observable<Bindings>, patterns: Algebra.PlanNode[], builder: PlanBuilder, options: Object): Observable<Bindings> {
+  const seenBefore: Bindings[] = []
   const start = source
     .pipe(tap((bindings: Bindings) => {
-      buffer.push(bindings)
+      seenBefore.push(bindings)
     }))
-  return builder._buildWhere(start, patterns, options)
-    .pipe(defaultValues(buffer))
+  return concat(builder._buildWhere(start, patterns, options)
+    .pipe(tap((bindings: Bindings) => {
+      // remove values that matches a results from seenBefore
+      const index = seenBefore.findIndex((b: Bindings) => {
+        return b.isSubset(bindings)
+      })
+      if (index > 0) {
+        seenBefore.splice(index, 1)
+      }
+    })), from(seenBefore))
 }

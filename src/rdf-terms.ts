@@ -25,6 +25,7 @@ SOFTWARE.
 'use strict'
 
 import { parseZone, Moment } from 'moment'
+import { rdf } from './utils'
 
 /**
  * An intermediate format to represent RDF Terms
@@ -80,26 +81,45 @@ export interface TypedLiteral extends RDFTerm {
 
 /**
  * Parse a RDF Literal to its Javascript representation
+ * See https://www.w3.org/TR/rdf11-concepts/#section-Datatypes for more details.
  * @param value - Literal value
  * @param type - Literal datatype
  * @return Javascript representation of the literal
  */
 function literalToJS (value: string, type: string): any {
   switch (type) {
-    case 'http://www.w3.org/2001/XMLSchema#string':
-      return value
-    case 'http://www.w3.org/2001/XMLSchema#integer':
-    case 'http://www.w3.org/2001/XMLSchema#number':
-    case 'http://www.w3.org/2001/XMLSchema#float':
-    case 'http://www.w3.org/2001/XMLSchema#decimal':
-    case 'http://www.w3.org/2001/XMLSchema#double':
+    case rdf.XSD('integer'):
+    case rdf.XSD('byte'):
+    case rdf.XSD('short'):
+    case rdf.XSD('int'):
+    case rdf.XSD('unsignedByte'):
+    case rdf.XSD('unsignedShort'):
+    case rdf.XSD('unsignedInt'):
+    case rdf.XSD('number'):
+    case rdf.XSD('float'):
+    case rdf.XSD('decimal'):
+    case rdf.XSD('double'):
+    case rdf.XSD('long'):
+    case rdf.XSD('unsignedLong'):
+    case rdf.XSD('positiveInteger'):
+    case rdf.XSD('nonPositiveInteger'):
+    case rdf.XSD('negativeInteger'):
+    case rdf.XSD('nonNegativeInteger'):
       return Number(value)
-    case 'http://www.w3.org/2001/XMLSchema#boolean':
-      return value === '"true"'
-    case 'http://www.w3.org/2001/XMLSchema#dateTime':
+    case rdf.XSD('boolean'):
+      return value === '"true"' || value === '"1"'
+    case rdf.XSD('dateTime'):
+    case rdf.XSD('dateTimeStamp'):
+    case rdf.XSD('date'):
+    case rdf.XSD('time'):
+    case rdf.XSD('duration'):
       return parseZone(value)
+    case rdf.XSD('hexBinary'):
+      return Buffer.from(value, 'hex')
+    case rdf.XSD('base64Binary'):
+      return Buffer.from(value, 'base64')
     default:
-      throw new Error(`Unknown Datatype found during RDF Term parsing: ${value} (datatype: ${type})`)
+      return value
   }
 }
 

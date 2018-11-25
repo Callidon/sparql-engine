@@ -238,7 +238,7 @@ export abstract class Bindings {
   /**
    * Perform the intersection of the set of mappings with another set
    * @param other - Set of mappings
-   * @return The Intersection set of mappings
+   * @return The intersection set of mappings
    */
   intersection (other: Bindings): Bindings {
     const res = this.empty()
@@ -248,6 +248,28 @@ export abstract class Bindings {
       }
     })
     return res
+  }
+
+  /**
+  * Performs a set difference with another set of mappings, i.e., A.difference(B) returns all mappings that are in A and not in B.
+  * @param  other - Set of mappings
+  * @return The results of the set difference
+  */
+  difference (other: Bindings): Bindings {
+    return this.filter((variable: string, value: string) => {
+      return (!other.has(variable)) || (value !== other.get(variable))
+    })
+  }
+
+  /**
+   * Test if the set of bindings is a subset of another set of mappings.
+   * @param  other - Superset of mappings
+   * @return Ture if the set of bindings is a subset of another set of mappings, False otherwise
+   */
+  isSubset (other: Bindings): boolean {
+    return Array.from(this.variables()).every((v: string) => {
+      return other.has(v) && other.get(v) === this.get(v)
+    })
   }
 
   /**
@@ -310,6 +332,32 @@ export abstract class Bindings {
       acc = reducer(acc, variable, value)
     })
     return acc
+  }
+
+  /**
+   * Test if some mappings in the set pass a predicate function
+   * @param  predicate - Function to test for each mapping
+   * @return True if some mappings in the set some the predicate function, False otheriwse
+   */
+  some (predicate: (variable: string, value: string) => boolean): boolean {
+    let res = false
+    this.forEach((variable, value) => {
+      res = res || predicate(variable, value)
+    })
+    return res
+  }
+
+  /**
+   * Test if every mappings in the set pass a predicate function
+   * @param  predicate - Function to test for each mapping
+   * @return True if every mappings in the set some the predicate function, False otheriwse
+   */
+  every (predicate: (variable: string, value: string) => boolean): boolean {
+    let res = true
+    this.forEach((variable, value) => {
+      res = res && predicate(variable, value)
+    })
+    return res
   }
 }
 
