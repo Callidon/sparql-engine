@@ -27,11 +27,14 @@ SOFTWARE.
 import Executor from './executor'
 import { Observable, from } from 'rxjs'
 import { map, mergeMap } from 'rxjs/operators'
-import { some } from 'lodash'
+// import { some } from 'lodash'
 import { Algebra } from 'sparqljs'
 import Graph from '../../rdf/graph'
 import Dataset from '../../rdf/dataset'
 import { Bindings } from '../../rdf/bindings'
+import { GRAPH_CAPABILITY } from '../../rdf/graph_capability'
+
+import boundJoin from '../../operators/join/bound-join'
 
 /**
  * Basic iterator used to evaluate Basic graph patterns using the "evalBGP" method
@@ -41,8 +44,8 @@ import { Bindings } from '../../rdf/bindings'
  function bgpEvaluation (bgp: Algebra.TripleObject[], graph: Graph, options: Object) {
    return mergeMap((bindings: Bindings) => {
      let boundedBGP = bgp.map(t => bindings.bound(t))
-     const hasVars = boundedBGP.map(p => some(p, v => v!.startsWith('?')))
-       .reduce((acc, v) => acc && v, true)
+     // const hasVars = boundedBGP.map(p => some(p, v => v!.startsWith('?')))
+     //   .reduce((acc, v) => acc && v, true)
      return from(graph.evalBGP(boundedBGP, options))
        .pipe(map((item: Bindings) => {
          // if (item.size === 0 && hasVars) return null
@@ -142,6 +145,9 @@ export default class BGPExecutor extends Executor {
    * @return An iterator used to evaluate a Basic Graph pattern
    */
   _execute (source: Observable<Bindings>, graph: Graph, patterns: Algebra.TripleObject[], options: Object): Observable<Bindings> {
+    if (graph._isCapable(GRAPH_CAPABILITY.UNION)) {
+      return boundJoin(source, patterns, graph, options)
+    }
     return source.pipe(bgpEvaluation(patterns, graph, options))
   }
 }
