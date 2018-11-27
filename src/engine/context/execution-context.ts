@@ -50,6 +50,10 @@ export default class ExecutionContext {
     return this._defaultGraphs
   }
 
+  /**
+   * Update the set of graphs used as the default graph
+   * @param  values - The set of graphs used as the default graph
+   */
   set defaultGraphs (values: string[]) {
     this._defaultGraphs = values.slice(0)
   }
@@ -62,6 +66,10 @@ export default class ExecutionContext {
     return this._namedGraphs
   }
 
+  /**
+   * Update the set of graphs used as named graphs
+   * @param  values - The set of graphs used as named graphs
+   */
   set namedGraphs (values: string[]) {
     this._namedGraphs = values.slice(0)
   }
@@ -74,18 +82,37 @@ export default class ExecutionContext {
     return this._hints
   }
 
+  /**
+   * Update the query hints
+   * @param  newHints - New query hints
+   */
   set hints (newHints: QueryHints) {
     this._hints = newHints
   }
 
+  /**
+   * Get a property associated with a key
+   * @param  key - Key associated with the property
+   * @return  The value associated with the key
+   */
   getProperty (key: string): any | null {
     return this._properties.get(key)
   }
 
+  /**
+   * Test if the context contains a property associated with a key
+   * @param  key - Key associated with the property
+   * @return True if the context contains a property associated with the key
+   */
   hasProperty (key: string): boolean {
     return this._properties.has(key)
   }
 
+  /**
+   * Set a (key, value) property in the context
+   * @param key - Key of the property
+   * @param value - Value of the property
+   */
   setProperty (key: string, value: any): void {
     this._properties.set(key, value)
   }

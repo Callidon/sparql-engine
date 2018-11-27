@@ -61,24 +61,55 @@ export class QueryHints {
     this._bgpHints = new Map()
   }
 
+  /**
+   * Clone the set of query hints
+   * @return The cloned set of query hints
+   */
   clone (): QueryHints {
     const res = new QueryHints()
     this._bgpHints.forEach((value, key) => res.add(QUERY_HINT_SCOPE.BGP, key))
     return res
   }
 
+  /**
+   * Merge the current hints with another set of hints
+   * @param  other - Query hints to merge with
+   * @return The merged set of query hints
+   */
   merge (other: QueryHints): QueryHints {
     const res = this.clone()
     other._bgpHints.forEach((value, key) => res.add(QUERY_HINT_SCOPE.BGP, key))
     return res
   }
 
+  /**
+   * Add a query hint to the set
+   * @param scope - Scope of the hint (Query, BGP, etc)
+   * @param hint - Type of hint
+   */
   add (scope: QUERY_HINT_SCOPE, hint: QUERY_HINT): void {
     if (scope === QUERY_HINT_SCOPE.BGP) {
       this._bgpHints.set(hint, true)
     }
   }
 
+  /**
+   * Test if a hint exists
+   * @param scope - Scope of the hint (Query, BGP, etc)
+   * @param hint - Type of hint
+   * @return True if the hint exists, False otherwise
+   */
+  has (scope: QUERY_HINT_SCOPE, hint: QUERY_HINT): boolean {
+    if (scope === QUERY_HINT_SCOPE.BGP) {
+      return this._bgpHints.has(hint)
+    }
+    return false
+  }
+
+  /**
+   * Serialize the set of query hints into a string
+   * @return A string which represents the set of query hints
+   */
   toString (): string {
     let res = ''
     this._bgpHints.forEach((value, key) => {
