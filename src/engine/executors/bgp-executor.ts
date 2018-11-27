@@ -33,6 +33,7 @@ import Graph from '../../rdf/graph'
 import Dataset from '../../rdf/dataset'
 import { Bindings } from '../../rdf/bindings'
 import { GRAPH_CAPABILITY } from '../../rdf/graph_capability'
+import ExecutionContext from '../context/execution-context'
 
 import boundJoin from '../../operators/join/bound-join'
 
@@ -41,12 +42,12 @@ import boundJoin from '../../operators/join/bound-join'
  * available
  * @private
  */
- function bgpEvaluation (bgp: Algebra.TripleObject[], graph: Graph, options: Object) {
+ function bgpEvaluation (bgp: Algebra.TripleObject[], graph: Graph, context: ExecutionContext) {
    return mergeMap((bindings: Bindings) => {
      let boundedBGP = bgp.map(t => bindings.bound(t))
      // const hasVars = boundedBGP.map(p => some(p, v => v!.startsWith('?')))
      //   .reduce((acc, v) => acc && v, true)
-     return from(graph.evalBGP(boundedBGP, options))
+     return from(graph.evalBGP(boundedBGP, context))
        .pipe(map((item: Bindings) => {
          // if (item.size === 0 && hasVars) return null
          return item.union(bindings)
@@ -96,12 +97,12 @@ export default class BGPExecutor extends Executor {
    * @param  options   - Execution options
    * @return An iterator used to evaluate a Basic Graph pattern
    */
-  buildIterator (source: Observable<Bindings>, patterns: Algebra.TripleObject[], options: any): Observable<Bindings> {
+  buildIterator (source: Observable<Bindings>, patterns: Algebra.TripleObject[], context: ExecutionContext): Observable<Bindings> {
     // select the graph to use for BGP evaluation
-    const graph = ('_from' in options) ? this._getGraph(options._from.default) : this._dataset.getDefaultGraph()
+    const graph = (context.defaultGraphs.length > 0) ? this._getGraph(context.defaultGraphs) : this._dataset.getDefaultGraph()
     // rewrite a BGP to remove blank node addedd by the Turtle notation
     const [bgp, artificals] = this._replaceBlankNodes(patterns)
-    let iterator = this._execute(source, graph, bgp, options)
+    let iterator = this._execute(source, graph, bgp, context)
     if (artificals.length > 0) {
       iterator = iterator.pipe(map(b => b.filter(variable => artificals.indexOf(variable) < 0)))
     }
@@ -144,10 +145,10 @@ export default class BGPExecutor extends Executor {
    * @param  isJoinIdentity - True if the source iterator is the starting iterator of the pipeline
    * @return An iterator used to evaluate a Basic Graph pattern
    */
-  _execute (source: Observable<Bindings>, graph: Graph, patterns: Algebra.TripleObject[], options: Object): Observable<Bindings> {
+  _execute (source: Observable<Bindings>, graph: Graph, patterns: Algebra.TripleObject[], context: ExecutionContext): Observable<Bindings> {
     if (graph._isCapable(GRAPH_CAPABILITY.UNION)) {
-      return boundJoin(source, patterns, graph, options)
+      return boundJoin(source, patterns, graph, context)
     }
-    return source.pipe(bgpEvaluation(patterns, graph, options))
+    return source.pipe(bgpEvaluation(patterns, graph, context))
   }
 }

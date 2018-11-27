@@ -28,6 +28,7 @@ import Executor from './executor'
 import { Algebra } from 'sparqljs'
 import { Observable } from 'rxjs'
 import { Bindings } from '../../rdf/bindings'
+import ExecutionContext from '../context/execution-context'
 
 /**
  * A ServiceExecutor is responsible for evaluation a SERVICE clause in a SPARQL query.
@@ -43,20 +44,20 @@ export default abstract class ServiceExecutor extends Executor {
    * @param  options - Execution options
    * @return An iterator used to evaluate a SERVICE clause
    */
-  buildIterator (source: Observable<Bindings>, node: Algebra.ServiceNode, options: any): Observable<Bindings> {
+  buildIterator (source: Observable<Bindings>, node: Algebra.ServiceNode, context: ExecutionContext): Observable<Bindings> {
     let subquery: Algebra.RootNode
     if (node.patterns[0].type === 'query') {
       subquery = (<Algebra.RootNode> node.patterns[0])
     } else {
       subquery = {
-        prefixes: options.prefixes,
+        prefixes: context.getProperty('prefixes'),
         queryType: 'SELECT',
         variables: ['*'],
         type: 'query',
         where: node.patterns
       }
     }
-    return this._execute(source, node.name, subquery, options)
+    return this._execute(source, node.name, subquery, context)
   }
 
   /**
@@ -68,5 +69,5 @@ export default abstract class ServiceExecutor extends Executor {
    * @param options   - Execution options
    * @return An iterator used to evaluate a SERVICE clause
    */
-  abstract _execute (source: Observable<Bindings>, iri: string, subquery: Algebra.RootNode, options: Object): Observable<Bindings>
+  abstract _execute (source: Observable<Bindings>, iri: string, subquery: Algebra.RootNode, context: ExecutionContext): Observable<Bindings>
 }

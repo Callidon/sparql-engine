@@ -27,6 +27,7 @@ SOFTWARE.
 import { ObservableInput, merge } from 'rxjs'
 import Graph from './graph'
 import { Algebra } from 'sparqljs'
+import ExecutionContext from '../engine/context/execution-context'
 
 /**
  * An UnionGraph represents the dynamic union of several graphs.
@@ -57,8 +58,8 @@ export default class UnionGraph extends Graph {
     return this._graphs.reduce((prev, g) => prev.then(() => g.delete(triple)), Promise.resolve())
   }
 
-  find (triple: Algebra.TripleObject, options: Object): ObservableInput<Algebra.TripleObject> {
-    return merge(...this._graphs.map(g => g.find(triple, options)))
+  find (triple: Algebra.TripleObject, context: ExecutionContext): ObservableInput<Algebra.TripleObject> {
+    return merge(...this._graphs.map(g => g.find(triple, context)))
   }
 
   clear (): Promise<void> {

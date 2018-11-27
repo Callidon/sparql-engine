@@ -31,6 +31,7 @@ import indexJoin from '../operators/join/index-join'
 import { rdf } from '../utils'
 import { Bindings, BindingBase } from './bindings'
 import { GRAPH_CAPABILITY } from './graph_capability'
+import ExecutionContext from '../engine/context/execution-context'
 
 /**
  * Metadata used for query optimization
@@ -126,7 +127,7 @@ export default abstract class Graph {
    * @param  triple - Triple pattern to find
    * @return An iterator which finds RDF triples matching a triple pattern
    */
-  abstract find (triple: Algebra.TripleObject, options: Object): ObservableInput<Algebra.TripleObject>
+  abstract find (triple: Algebra.TripleObject, context: ExecutionContext): ObservableInput<Algebra.TripleObject>
 
   /**
    * Remove all RDF triples in the Graph
@@ -149,7 +150,7 @@ export default abstract class Graph {
    * @param  options - Execution options
    * @return An iterator which evaluates the Basic Graph pattern on the Graph
    */
-  evalUnion (patterns: Algebra.TripleObject[][], options: Object): ObservableInput<Bindings> {
+  evalUnion (patterns: Algebra.TripleObject[][], context: ExecutionContext): ObservableInput<Bindings> {
     throw new SyntaxError('Error: this graph is not capable of evaluating UNION queries')
   }
 
@@ -159,7 +160,7 @@ export default abstract class Graph {
    * @param  options - Execution options
    * @return An iterator which evaluates the Basic Graph pattern on the Graph
    */
-  evalBGP (bgp: Algebra.TripleObject[], options: Object): ObservableInput<Bindings> {
+  evalBGP (bgp: Algebra.TripleObject[], context: ExecutionContext): ObservableInput<Bindings> {
     if (this._isCapable(GRAPH_CAPABILITY.ESTIMATE_TRIPLE_CARD)) {
       return from(Promise.all(bgp.map(triple => {
         return this.estimateCardinality(triple).then(c => {
@@ -170,7 +171,7 @@ export default abstract class Graph {
         results.sort(sortPatterns)
         const start = of(new BindingBase())
         return results.reduce((iter: Observable<Bindings>, v: PatternMetadata) => {
-          return iter.pipe(indexJoin(v.triple, this, options))
+          return iter.pipe(indexJoin(v.triple, this, context))
         }, start)
       }))
     } else {
@@ -179,7 +180,7 @@ export default abstract class Graph {
         .pipe(mergeMap(() => {
           const start = of(new BindingBase())
           return bgp.reduce((iter: Observable<Bindings>, t: Algebra.TripleObject) => {
-            return iter.pipe(indexJoin(t, this, options))
+            return iter.pipe(indexJoin(t, this, context))
           }, start)
         }))
     }

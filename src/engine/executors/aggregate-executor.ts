@@ -32,6 +32,7 @@ import groupBy from '../../operators/sparql-groupby'
 import { isString } from 'lodash'
 import { Algebra } from 'sparqljs'
 import { Bindings } from '../../rdf/bindings'
+import ExecutionContext from '../context/execution-context'
 
 /**
  * An AggregateExecutor handles the evaluation of Aggregations operations,
@@ -47,13 +48,13 @@ export default class AggregateExecutor extends Executor {
    * @param options - Execution options
    * @return An iterator which evaluate SPARQL aggregations
    */
-  buildIterator (source: Observable<Bindings>, query: Algebra.RootNode, options: Object): Observable<Bindings> {
+  buildIterator (source: Observable<Bindings>, query: Algebra.RootNode, context: ExecutionContext): Observable<Bindings> {
     if ('group' in query) {
       // first, group bindings using the GROUP BY clause
-      let iterator = this._executeGroupBy(source, query.group || [], options)
+      let iterator = this._executeGroupBy(source, query.group || [], context)
       // next, apply the optional HAVING clause to filter groups
       if ('having' in query) {
-        iterator = this._executeHaving(iterator, query.having || [], options)
+        iterator = this._executeHaving(iterator, query.having || [], context)
       }
       return iterator
     }
@@ -67,7 +68,7 @@ export default class AggregateExecutor extends Executor {
    * @param  options - Execution options
    * @return An iterator which evaluate a GROUP BY clause
    */
-  _executeGroupBy (source: Observable<Bindings>, groupby: Algebra.Aggregation[], options: Object): Observable<Bindings> {
+  _executeGroupBy (source: Observable<Bindings>, groupby: Algebra.Aggregation[], context: ExecutionContext): Observable<Bindings> {
     let iterator = source
     // extract GROUP By variables & rewrite SPARQL expressions into BIND clauses
     const variables: string[] = []
@@ -89,7 +90,7 @@ export default class AggregateExecutor extends Executor {
    * @param  options - Execution options
    * @return An iterator which evaluate a HAVING clause
    */
-  _executeHaving (source: Observable<Bindings>, having: Algebra.Expression[], options: Object): Observable<Bindings> {
+  _executeHaving (source: Observable<Bindings>, having: Algebra.Expression[], context: ExecutionContext): Observable<Bindings> {
     // thanks to the flexibility of SPARQL expressions,
     // we can rewrite a HAVING clause in a set of FILTER clauses!
     return having.reduce((iter, expression) => {
