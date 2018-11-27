@@ -26,7 +26,7 @@ SOFTWARE.
 
 import { Algebra } from 'sparqljs'
 
-const HINT_PREFIX = 'http://www.bigdata.com/queryHints#'
+const HINT_PREFIX = 'http://callidon.github.io/sparql-engine/hints#'
 
 /**
  * Build an URI under the <http://www.bigdata.com/queryHints#> namespace
@@ -77,6 +77,21 @@ export class QueryHints {
     if (scope === QUERY_HINT_SCOPE.BGP) {
       this._bgpHints.set(hint, true)
     }
+  }
+
+  toString (): string {
+    let res = ''
+    this._bgpHints.forEach((value, key) => {
+      switch (key) {
+        case QUERY_HINT.USE_SYMMETRIC_HASH_JOIN:
+          res += `<${HINT('BGP')}> <${HINT('SymmetricHashJoin')}> "true"^^<http://www.w3.org/2001/XMLSchema#boolean> .\n`
+          break
+        default:
+          res += `<${HINT('BGP')}> _:${key} "${value}".\n`
+          break
+      }
+    })
+    return res
   }
 }
 

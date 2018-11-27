@@ -33,6 +33,7 @@ import Graph from '../../rdf/graph'
 import Dataset from '../../rdf/dataset'
 import { Bindings } from '../../rdf/bindings'
 import { GRAPH_CAPABILITY } from '../../rdf/graph_capability'
+import { parseHints } from '../context/query-hints'
 import ExecutionContext from '../context/execution-context'
 
 import boundJoin from '../../operators/join/bound-join'
@@ -100,8 +101,11 @@ export default class BGPExecutor extends Executor {
   buildIterator (source: Observable<Bindings>, patterns: Algebra.TripleObject[], context: ExecutionContext): Observable<Bindings> {
     // select the graph to use for BGP evaluation
     const graph = (context.defaultGraphs.length > 0) ? this._getGraph(context.defaultGraphs) : this._dataset.getDefaultGraph()
+    // extract eventual query hints from the BGP & merge them into the context
+    let extraction = parseHints(patterns, context.hints)
+    context.hints = extraction[1]
     // rewrite a BGP to remove blank node addedd by the Turtle notation
-    const [bgp, artificals] = this._replaceBlankNodes(patterns)
+    const [bgp, artificals] = this._replaceBlankNodes(extraction[0])
     let iterator = this._execute(source, graph, bgp, context)
     if (artificals.length > 0) {
       iterator = iterator.pipe(map(b => b.filter(variable => artificals.indexOf(variable) < 0)))

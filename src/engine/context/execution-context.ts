@@ -74,6 +74,10 @@ export default class ExecutionContext {
     return this._hints
   }
 
+  set hints (newHints: QueryHints) {
+    this._hints = newHints
+  }
+
   getProperty (key: string): any | null {
     return this._properties.get(key)
   }
