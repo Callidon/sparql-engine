@@ -27,7 +27,7 @@ SOFTWARE.
 // General libraries
 import { Algebra, Parser } from 'sparqljs'
 import { Observable, of, merge } from 'rxjs'
-import { take, skip } from 'rxjs/operators'
+import { map, take, skip } from 'rxjs/operators'
 import { Consumable } from '../operators/update/consumer'
 // RDF core classes
 import { Bindings, BindingBase } from '../rdf/bindings'
@@ -47,6 +47,7 @@ import select from '../operators/modifiers/select'
 // Executors
 import AggregateExecutor from './executors/aggregate-executor'
 import BGPExecutor from './executors/bgp-executor'
+import PathExecutor from './executors/path-executor'
 import GraphExecutor from './executors/graph-executor'
 import UpdateExecutor from './executors/update-executor'
 import ServiceExecutor from './executors/service-executor'
@@ -60,6 +61,7 @@ import {
   sortBy
 } from 'lodash'
 import ExecutionContext from './context/execution-context'
+import { extractPropertyPaths } from './executors/rewritings'
 import { extendByBindings, deepApplyBindings, rdf } from '../utils'
 
 const QUERY_MODIFIERS = {
@@ -83,6 +85,7 @@ export default class PlanBuilder {
   private readonly _dataset: Dataset
   private readonly _parser: Parser
   private _bgpExecutor: BGPExecutor
+  private _pathExecutor: PathExecutor | null
   private _aggExecutor: AggregateExecutor
   private _graphExecutor: GraphExecutor
   private _updateExecutor: UpdateExecutor
@@ -103,6 +106,7 @@ export default class PlanBuilder {
     this._updateExecutor = new UpdateExecutor(this._dataset)
     this._updateExecutor.builder = this
     this._serviceExecutor = null
+    this._pathExecutor = null
   }
 
   /**
@@ -116,11 +120,23 @@ export default class PlanBuilder {
   }
 
   /**
+   * Set the BGP executor used to evaluate Basic Graph patterns
+   * @param executor - Executor used to evaluate Basic Graph patterns
+   */
+  set pathExecutor (executor: PathExecutor) {
+    if (this._pathExecutor !== null) {
+      this._pathExecutor.builder = null
+    }
+    this._pathExecutor = executor
+    this._pathExecutor.builder = this
+  }
+
+  /**
    * Set the BGP executor used to evaluate SPARQL Aggregates
    * @param executor - Executor used to evaluate SPARQL Aggregates
    */
   set aggregateExecutor (executor: AggregateExecutor) {
-    this._bgpExecutor.builder = null
+    this._aggExecutor.builder = null
     this._aggExecutor = executor
     this._aggExecutor.builder = this
   }
@@ -130,7 +146,7 @@ export default class PlanBuilder {
    * @param executor - Executor used to evaluate SPARQL GRAPH clauses
    */
   set graphExecutor (executor: GraphExecutor) {
-    this._bgpExecutor.builder = null
+    this._graphExecutor.builder = null
     this._graphExecutor = executor
     this._graphExecutor.builder = this
   }
@@ -140,7 +156,7 @@ export default class PlanBuilder {
    * @param executor - Executor used to evaluate SPARQL UPDATE queries
    */
   set updateExecutor (executor: UpdateExecutor) {
-    this._bgpExecutor.builder = null
+    this._updateExecutor.builder = null
     this._updateExecutor = executor
     this._updateExecutor.builder = this
   }
@@ -150,7 +166,9 @@ export default class PlanBuilder {
    * @param executor - Executor used to evaluate SERVICE clauses
    */
   set serviceExecutor (executor: ServiceExecutor) {
-    this._bgpExecutor.builder = null
+    if (this._serviceExecutor !== null) {
+      this._serviceExecutor.builder = null
+    }
     this._serviceExecutor = executor
     this._serviceExecutor.builder = this
   }
@@ -339,24 +357,25 @@ export default class PlanBuilder {
         if (isNull(this._bgpExecutor)) {
           throw new Error('A PlanBuilder cannot evaluate a Basic Graph Pattern without a BGPExecutor')
         }
-        // var copyGroup = Object.assign({}, group)
-        // // evaluate possible Property paths
-        // var ret = transformPath(copyGroup.triples, copyGroup, options)
-        // var bgp = ret[0]
-        // var union = ret[1]
-        // var filter = ret[2]
-        // if (union != null) {
-        //   return this._buildGroup(source, union, childOptions)
-        // } else if (filter.length > 0) {
-        //   var groups = [{type: 'bgp', triples: bgp}]
-        //   for (let i = 0; i < filter.length; i++) {
-        //     groups.push(filter[i])
-        //   }
-        //   return this._buildWhere(source, groups, childOptions)
-        // } else {
-        // delegate BGP evaluation to an executor
-        return this._bgpExecutor.buildIterator(source, (group as Algebra.BGPNode).triples, childContext)
-        // }
+        // find possible Property paths
+        let [classicTriples, pathTriples, tempVariables] = extractPropertyPaths(group as Algebra.BGPNode)
+        if (pathTriples.length > 0) {
+          if (isNull(this._pathExecutor)) {
+            throw new Error('A PlanBuilder cannot evaluate property paths without a PathExecutor')
+          }
+          source = this._pathExecutor.executeManyPaths(source, pathTriples, context)
+        }
+
+        // delegate remaining BGP evaluation to the dedicated executor
+        let iter = this._bgpExecutor.buildIterator(source, classicTriples as Algebra.TripleObject[], childContext)
+
+        // filter out variables added by the rewriting of property paths
+        if (tempVariables.length > 0) {
+          iter = iter.pipe(map(bindings => {
+            return bindings.filter(v => tempVariables.indexOf(v) == -1)
+          }))
+        }
+        return iter
       case 'query':
         return this._buildQueryPlan(group as Algebra.RootNode, childContext, source)
       case 'graph':
@@ -404,7 +423,7 @@ export default class PlanBuilder {
   /**
    * Build an iterator which evaluates a SPARQL query with VALUES clause(s).
    * It rely on a query rewritiing approach:
-   * ?s ?p ?o . VALUES ?s { :1 :2 } becomes {:1 ?p ?o} UNION {:2 ?p ?o}
+   * ?s ?p ?o . VALUES ?s { :1 :2 } becomes {:1 ?p ?o BIND(:1 AS ?s)} UNION {:2 ?p ?o BIND(:2 AS ?s)}
    * @param source  - Source iterator
    * @param groups  - Query body, i.e., WHERE clause
    * @param options - Execution options

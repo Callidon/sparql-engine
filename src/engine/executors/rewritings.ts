@@ -26,6 +26,7 @@ SOFTWARE.
 
 import { Algebra } from 'sparqljs'
 import Dataset from '../../rdf/dataset'
+import { partition } from 'lodash'
 
 /**
  * Create a triple pattern that matches all RDF triples in a graph
@@ -170,4 +171,52 @@ export function rewriteMove (moveQuery: Algebra.UpdateCopyMoveNode, dataset: Dat
     clear_after.graph.name = moveQuery.source.name
   }
   return [clear_before, update, clear_after]
+}
+
+/**
+ * Extract property paths triples and classic triples from a set of RDF triples.
+ * It also performs a first rewriting of some property paths.
+ * @param  bgp - Set of RDF triples
+ * @return A tuple [classic triples, triples with property paths, set of variables added during rewriting]
+ */
+export function extractPropertyPaths (bgp: Algebra.BGPNode): [Algebra.TripleObject[], Algebra.PathTripleObject[], string[]] {
+  const parts = partition(bgp.triples, triple => typeof(triple.predicate) === 'string')
+  let classicTriples: Algebra.TripleObject[] = parts[0] as Algebra.TripleObject[]
+  let pathTriples: Algebra.PathTripleObject[] = parts[1] as Algebra.PathTripleObject[]
+  let variables: string[] = []
+
+  if (pathTriples.length > 0) {
+    // review property paths and rewrite those equivalent to a regular BGP
+    const paths: Algebra.PathTripleObject[] = []
+    // first rewriting phase
+    pathTriples.forEach((triple, tIndex) => {
+      const t = triple as Algebra.PathTripleObject
+      // 1) unpack sequence paths into a set of RDF triples
+      if (t.predicate.pathType === '/') {
+        t.predicate.items.forEach((pred, seqIndex) => {
+          const joinVar = `?seq_${tIndex}_join_${seqIndex}`
+          const nextJoinVar = `?seq_${tIndex}_join_${seqIndex + 1}`
+          variables.push(joinVar)
+          // non-property paths triples are fed to the BGP executor
+          if (typeof(pred) === 'string') {
+            classicTriples.push({
+              subject: (seqIndex == 0) ? triple.subject : joinVar,
+              predicate: pred,
+              object: (seqIndex == t.predicate.items.length - 1) ? triple.object : nextJoinVar
+            })
+          } else {
+            paths.push({
+              subject: (seqIndex == 0) ? triple.subject : joinVar,
+              predicate: pred,
+              object: (seqIndex == t.predicate.items.length - 1) ? triple.object : nextJoinVar
+            })
+          }
+        })
+      } else {
+        paths.push(t)
+      }
+    })
+    pathTriples = paths
+  }
+  return [classicTriples, pathTriples, variables]
 }
