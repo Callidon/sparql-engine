@@ -389,10 +389,7 @@ export class BindingBase extends Bindings {
   static fromObject (obj: Object): Bindings {
     const res = new BindingBase()
     for (let key in obj) {
-      if (!key.startsWith('?')) {
-        key = '?' + key
-      }
-      res.set(key, obj[key])
+      res.set(!key.startsWith('?') ? `?${key}` : key, obj[key])
     }
     return res
   }
