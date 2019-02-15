@@ -29,6 +29,7 @@ import { tap } from 'rxjs/operators'
 import { Algebra } from 'sparqljs'
 import PlanBuilder from '../engine/plan-builder'
 import { Bindings } from '../rdf/bindings'
+import ExecutionContext from '../engine/context/execution-context'
 
 /**
  * Like rxjs.defaultIfEmpty, but emits an array of default values
@@ -64,13 +65,13 @@ function defaultValues (defaultValues: Bindings[]) {
  * @see {@link https://www.w3.org/TR/sparql11-query/#optionals}
  * @author Thomas Minier
  */
-export default function optional (source: Observable<Bindings>, patterns: Algebra.PlanNode[], builder: PlanBuilder, options: Object): Observable<Bindings> {
+export default function optional (source: Observable<Bindings>, patterns: Algebra.PlanNode[], builder: PlanBuilder, context: ExecutionContext): Observable<Bindings> {
   const seenBefore: Bindings[] = []
   const start = source
     .pipe(tap((bindings: Bindings) => {
       seenBefore.push(bindings)
     }))
-  return concat(builder._buildWhere(start, patterns, options)
+  return concat(builder._buildWhere(start, patterns, context)
     .pipe(tap((bindings: Bindings) => {
       // remove values that matches a results from seenBefore
       const index = seenBefore.findIndex((b: Bindings) => {

@@ -31,6 +31,7 @@ import { Bindings, BindingBase } from '../../rdf/bindings'
 import { Algebra } from 'sparqljs'
 import { rdf } from '../../utils'
 import { mapKeys, pickBy } from 'lodash'
+import ExecutionContext from '../../engine/context/execution-context'
 
 /**
  * Perform a join between a source of solution bindings (left relation)
@@ -42,11 +43,11 @@ import { mapKeys, pickBy } from 'lodash'
  * @param options - Execution options
  * @author Thomas Minier
  */
-export default function indexJoin (pattern: Algebra.TripleObject, graph: Graph, options: Object) {
+export default function indexJoin (pattern: Algebra.TripleObject, graph: Graph, context: ExecutionContext) {
   return mergeMap((bindings: Bindings) => {
     const boundedPattern = bindings.bound(pattern)
     // const hasVars = some(boundedPattern, (v: any) => v.startsWith('?'))
-    return from(graph.find(boundedPattern, options))
+    return from(graph.find(boundedPattern, context))
       .pipe(map((item: Algebra.TripleObject) => {
         let temp = pickBy(item, (v, k) => {
           return rdf.isVariable(boundedPattern[k])

@@ -170,9 +170,11 @@ export function applyBindings (triple: Algebra.TripleObject, bindings: Bindings)
 export function deepApplyBindings (group: Algebra.PlanNode, bindings: Bindings): Algebra.PlanNode {
   switch (group.type) {
     case 'bgp':
+      // WARNING property paths are not supported here
+      const triples = (group as Algebra.BGPNode).triples as Algebra.TripleObject[]
       const bgp: Algebra.BGPNode = {
         type: 'bgp',
-        triples: (group as Algebra.BGPNode).triples.map(t => bindings.bound(t))
+        triples: triples.map(t => bindings.bound(t))
       }
       return bgp
     case 'group':

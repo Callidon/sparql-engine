@@ -28,6 +28,7 @@ import { Observable, of } from 'rxjs'
 import { first, map, mergeMap, defaultIfEmpty, filter } from 'rxjs/operators'
 import { Bindings, BindingBase } from '../rdf/bindings'
 import PlanBuilder from '../engine/plan-builder'
+import ExecutionContext from '../engine/context/execution-context'
 
 interface ConditionalBindings {
   bindings: Bindings,
@@ -44,12 +45,12 @@ interface ConditionalBindings {
  * @author Thomas Minier
  * TODO this function could be simplified using a filterMap like operator, we should check if Rxjs offers that filterMap
  */
-export default function exists (source: Observable<Bindings>, groups: any[], builder: PlanBuilder, notexists: boolean, options: Object) {
+export default function exists (source: Observable<Bindings>, groups: any[], builder: PlanBuilder, notexists: boolean, context: ExecutionContext) {
   const defaultValue: Bindings = new BindingBase()
   defaultValue.setProperty('exists', false)
   return source
     .pipe(mergeMap((bindings: Bindings) => {
-      return builder._buildWhere(of(bindings), groups, options)
+      return builder._buildWhere(of(bindings), groups, context)
         .pipe(defaultIfEmpty(defaultValue))
         .pipe(first())
         .pipe(map((b: Bindings) => {

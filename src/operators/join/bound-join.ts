@@ -28,6 +28,7 @@ import Graph from '../../rdf/graph'
 import { Bindings } from '../../rdf/bindings'
 import { Algebra } from 'sparqljs'
 import { rdf } from '../../utils'
+import ExecutionContext from '../../engine/context/execution-context'
 
 const BIND_JOIN_BUFFER_SIZE = 15
 
@@ -116,8 +117,8 @@ function rewriteSolutions (bindings: Bindings, rewritingMap: RewritingTable): Bi
  * @param  options - Query execution option
  * @return An Observable which evaluates the query.
  */
-function rewritingOp (graph: Graph, bgpBucket: BGPBucket, rewritingTable: RewritingTable, options: Object): Observable<Bindings> {
-  return from(graph.evalUnion(bgpBucket, options))
+function rewritingOp (graph: Graph, bgpBucket: BGPBucket, rewritingTable: RewritingTable, context: ExecutionContext): Observable<Bindings> {
+  return from(graph.evalUnion(bgpBucket, context))
     .pipe(map(bindings => {
       const x = rewriteSolutions(bindings, rewritingTable)
       return x
@@ -134,7 +135,7 @@ function rewritingOp (graph: Graph, bgpBucket: BGPBucket, rewritingTable: Rewrit
  * @param  options - Query execution options
  * @return An observable which evaluates the bound join
  */
-export default function boundJoin (source: Observable<Bindings>, bgp: Algebra.TripleObject[], graph: Graph, options: Object): Observable<Bindings> {
+export default function boundJoin (source: Observable<Bindings>, bgp: Algebra.TripleObject[], graph: Graph, context: ExecutionContext): Observable<Bindings> {
   return new Observable(observer => {
     let sourceClosed = false
     let activeIterators = 0
@@ -154,7 +155,7 @@ export default function boundJoin (source: Observable<Bindings>, bgp: Algebra.Tr
           activeIterators++
           // simple case: first join in the pipeline
           if (bucket.length === 1 && bucket[0].isEmpty) {
-            from(graph.evalBGP(bgp, options)).subscribe(b => {
+            from(graph.evalBGP(bgp, context)).subscribe(b => {
               observer.next(b)
             }, err => observer.error(err), () => tryClose())
           } else {
@@ -177,7 +178,7 @@ export default function boundJoin (source: Observable<Bindings>, bgp: Algebra.Tr
               key++
             })
             // execute the bucket
-            rewritingOp(graph, bgpBucket, rewritingTable, options)
+            rewritingOp(graph, bgpBucket, rewritingTable, context)
               .subscribe(b => observer.next(b), err => observer.error(err), () => tryClose())
           }
         },

@@ -124,7 +124,7 @@ class TestEngine {
   }
 
   execute (query, format = 'raw') {
-    let iterator = this._builder.build(query, {format})
+    let iterator = this._builder.build(query)
     return iterator
   }
 }

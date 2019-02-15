@@ -28,10 +28,10 @@ import Executor from './executor'
 import { Observable, merge } from 'rxjs'
 import { map, shareReplay } from 'rxjs/operators'
 import { rdf } from '../../utils'
-import { cloneDeep, isArray }from 'lodash'
 import { Algebra } from 'sparqljs'
 import Dataset from '../../rdf/dataset'
 import { Bindings } from '../../rdf/bindings'
+import ExecutionContext from '../context/execution-context'
 
 /**
  * A GraphExecutor is responsible for evaluation a GRAPH clause in a SPARQL query.
@@ -56,13 +56,13 @@ export default class GraphExecutor extends Executor {
    * @param  options - Execution options
    * @return An iterator used to evaluate a GRAPH clause
    */
-  buildIterator (source: Observable<Bindings>, node: Algebra.GraphNode, options: any): Observable<Bindings> {
+  buildIterator (source: Observable<Bindings>, node: Algebra.GraphNode, context: ExecutionContext): Observable<Bindings> {
     let subquery: Algebra.RootNode
     if (node.patterns[0].type === 'query') {
       subquery = (<Algebra.RootNode> node.patterns[0])
     } else {
       subquery = {
-        prefixes: options.prefixes,
+        prefixes: context.getProperty('prefixes'),
         queryType: 'SELECT',
         variables: ['*'],
         type: 'query',
@@ -70,19 +70,19 @@ export default class GraphExecutor extends Executor {
       }
     }
     // handle the case where the GRAPh IRI is a SPARQL variable
-    if (rdf.isVariable(node.name) && '_from' in options && isArray(options._from.named)) {
+    if (rdf.isVariable(node.name) && context.namedGraphs.length > 0) {
       // clone the source first
       source = source.pipe(shareReplay(5))
       // execute the subquery using each graph, and bound the graph var to the graph iri
-      const iterators = options._from.named.map((iri: string) => {
-        return this._execute(source, iri, subquery, options).pipe(map(b => {
+      const iterators = context.namedGraphs.map((iri: string) => {
+        return this._execute(source, iri, subquery, context).pipe(map(b => {
           return b.extendMany([[node.name, iri]])
         }))
       })
       return merge(...iterators)
     }
     // otherwise, execute the subquery using the Graph
-    return this._execute(source, node.name, subquery, options)
+    return this._execute(source, node.name, subquery, context)
   }
 
   /**
@@ -93,12 +93,9 @@ export default class GraphExecutor extends Executor {
    * @param  options   - Execution options
    * @return An iterator used to evaluate a GRAPH clause
    */
-  _execute (source: Observable<Bindings>, iri: string, subquery: Algebra.RootNode, options: any): Observable<Bindings> {
-    const opts = cloneDeep(options)
-    opts._from = {
-      default: [ iri ],
-      named: []
-    }
+  _execute (source: Observable<Bindings>, iri: string, subquery: Algebra.RootNode, context: ExecutionContext): Observable<Bindings> {
+    const opts = context.clone()
+    opts.defaultGraphs = [ iri ]
     return this._builder!._buildQueryPlan(subquery, opts, source)
   }
 }

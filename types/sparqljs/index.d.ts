@@ -36,27 +36,58 @@ declare module 'sparqljs' {
     }
 
     /**
+    * A Triple pattern in Object format with property path(s)
+    */
+    export interface PathTripleObject {
+      subject: string;
+      predicate: PropertyPath;
+      object: string;
+      graph?: string;
+    }
+
+    /**
+     * A Property path
+     */
+    export interface PropertyPath {
+      items: Array<string | PropertyPath>;
+      pathType: string;
+      type: string;
+    }
+
+    /**
     * A generic node in a parsed plan
     */
     export interface PlanNode {
       type: string;
     }
 
+    /**
+     * An abstract (SPARQL) expression
+     */
     export interface Expression {
       type: string;
     }
 
+    /**
+     * A SPARQL expression (=, <, +, -, LANG, BOUND, etc)
+     */
     export interface SPARQLExpression extends Expression {
       args: Array<string | string[] | Expression>;
       operator: string;
     }
 
+    /**
+     * An aggregation pexression (COUNT, SUM, AVG, etc)
+     */
     export interface AggregateExpression extends Expression {
       aggregation: string;
       expression: string | Expression;
       separator?: string;
     }
 
+    /**
+     * A SPARQL aggregation, which bounds an aggregation to a SPARQL variable
+     */
     export interface Aggregation {
       variable: string;
       expression: Expression;
@@ -74,8 +105,8 @@ declare module 'sparqljs' {
     }
 
     /**
-    * Root of a SPARQL 1.1 query
-    */
+     * Root of a SPARQL 1.1 query
+     */
     export interface RootNode extends PlanNode {
       distinct?: boolean;
       prefixes: any;
@@ -124,6 +155,9 @@ declare module 'sparqljs' {
       silent: boolean;
     }
 
+    /**
+     * A SPARQL CLEAR node
+     */
     export interface UpdateClearNode extends PlanNode {
       silent: boolean;
       graph: UpdateClearTarget;
@@ -137,6 +171,9 @@ declare module 'sparqljs' {
       name?: string;
     }
 
+    /**
+     * The source or destination of a SPARQL CLEAR query
+     */
     export interface UpdateClearTarget extends UpdateGraphTarget {
       named?: string;
       all?: boolean;
@@ -157,7 +194,7 @@ declare module 'sparqljs' {
       /**
       * BGP's triples
       */
-      triples: Array<TripleObject>;
+      triples: Array<TripleObject|PathTripleObject>;
     }
 
     /**
@@ -197,26 +234,38 @@ declare module 'sparqljs' {
       silent: boolean;
     }
 
+    /**
+     * A SPARQL BIND node
+     */
     export interface BindNode extends PlanNode {
       expression: string | SPARQLExpression;
       variable: string;
     }
 
+    /**
+     * A SPARQL VALUES node
+     */
     export interface ValuesNode extends PlanNode {
       values: any[]
     }
   }
 
+  /**
+   * Compile SPARQL queries from their string representation to logical query execution plans
+   */
   export class Parser {
     constructor(prefixes?: any)
     /**
-     * Parse a SPARQL query from a string representation to a intermediate format
-     * @param  query [string] - String query
+     * Parse a SPARQL query
+     * @param  query - String query
      * @return Parsed query
      */
     parse(query: string): Algebra.RootNode;
   }
 
+  /**
+   * Compile SPARQL queries from their logical query execution plans to string representations
+   */
   export class Generator {
     stringify(plan: Algebra.RootNode): string;
   }

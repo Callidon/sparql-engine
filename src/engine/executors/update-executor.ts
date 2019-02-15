@@ -38,6 +38,7 @@ import Graph from '../../rdf/graph'
 import Dataset from '../../rdf/dataset'
 import { Algebra } from 'sparqljs'
 import { Bindings, BindingBase } from '../../rdf/bindings'
+import ExecutionContext from '../context/execution-context'
 
 /**
  * An UpdateExecutor is an executor responsible for evaluating SPARQL UPDATE queries.
@@ -62,7 +63,7 @@ export default class UpdateExecutor extends Executor {
    * @param options - Execution options
    * @return A Consumable used to evaluatethe set of update queries
    */
-  execute (updates: Array<Algebra.UpdateQueryNode | Algebra.UpdateClearNode | Algebra.UpdateCopyMoveNode>, options: Object): Consumable {
+  execute (updates: Array<Algebra.UpdateQueryNode | Algebra.UpdateClearNode | Algebra.UpdateCopyMoveNode>, context: ExecutionContext): Consumable {
     let queries
     return new ManyConsumers(updates.map(update => {
       if ('updateType' in update) {
@@ -70,7 +71,7 @@ export default class UpdateExecutor extends Executor {
           case 'insert':
           case 'delete':
           case 'insertdelete':
-            return this._handleInsertDelete(<Algebra.UpdateQueryNode> update, options)
+            return this._handleInsertDelete(<Algebra.UpdateQueryNode> update, context)
           default:
             return new ErrorConsumable(`Unsupported SPARQL UPDATE query: ${update.updateType}`)
         }
@@ -79,20 +80,20 @@ export default class UpdateExecutor extends Executor {
           case 'clear':
             return this._handleClearQuery(<Algebra.UpdateClearNode> update)
           case 'add':
-            return this._handleInsertDelete(rewritings.rewriteAdd(<Algebra.UpdateCopyMoveNode> update, this._dataset), options)
+            return this._handleInsertDelete(rewritings.rewriteAdd(<Algebra.UpdateCopyMoveNode> update, this._dataset), context)
           case 'copy':
             // A COPY query is rewritten into a sequence [CLEAR query, INSERT query]
             queries = rewritings.rewriteCopy(<Algebra.UpdateCopyMoveNode> update, this._dataset)
             return new ManyConsumers([
               this._handleClearQuery(queries[0]),
-              this._handleInsertDelete(queries[1], options)
+              this._handleInsertDelete(queries[1], context)
             ])
           case 'move':
             // A MOVE query is rewritten into a sequence [CLEAR query, INSERT query, CLEAR query]
             queries = rewritings.rewriteMove(<Algebra.UpdateCopyMoveNode> update, this._dataset)
             return new ManyConsumers([
               this._handleClearQuery(queries[0]),
-              this._handleInsertDelete(queries[1], options),
+              this._handleInsertDelete(queries[1], context),
               this._handleClearQuery(queries[2])
             ])
           default:
@@ -110,7 +111,7 @@ export default class UpdateExecutor extends Executor {
    * @param options - Execution options
    * @return A Consumer used to evaluate SPARQL UPDATE queries
    */
-  _handleInsertDelete (update: Algebra.UpdateQueryNode, options: any): Consumable {
+  _handleInsertDelete (update: Algebra.UpdateQueryNode, context: ExecutionContext): Consumable {
     let source: Observable<Bindings> = of(new BindingBase())
     let graph: Graph | null = null
     let consumables: Consumable[] = []
@@ -119,7 +120,7 @@ export default class UpdateExecutor extends Executor {
       graph = ('graph' in update) ? this._dataset.getNamedGraph(update.graph!) : null
       // evaluate the WHERE clause as a classic SELECT query
       const node: Algebra.RootNode = {
-        prefixes: options.prefixes,
+        prefixes: context.getProperty('prefixes'),
         type: 'query',
         where: update.where!,
         queryType: 'SELECT',
@@ -127,7 +128,7 @@ export default class UpdateExecutor extends Executor {
         // copy the FROM clause from the original UPDATE query
         from: ('from' in update) ? update.from : undefined
       }
-      source = this._builder!._buildQueryPlan(node)
+      source = this._builder!._buildQueryPlan(node, context)
     }
 
     // clone the source first
@@ -136,14 +137,14 @@ export default class UpdateExecutor extends Executor {
     // build consumers to evaluate DELETE clauses
     if ('delete' in update && update.delete!.length > 0) {
       consumables = consumables.concat(update.delete!.map(v => {
-        return this._buildDeleteConsumer(source, v, graph, options)
+        return this._buildDeleteConsumer(source, v, graph, context)
       }))
     }
 
     // build consumers to evaluate INSERT clauses
     if ('insert' in update && update.insert!.length > 0) {
       consumables = consumables.concat(update.insert!.map(v => {
-        return this._buildInsertConsumer(source, v, graph, options)
+        return this._buildInsertConsumer(source, v, graph, context)
       }))
     }
     return new ManyConsumers(consumables)
@@ -157,12 +158,12 @@ export default class UpdateExecutor extends Executor {
    * @param graph - RDF Graph used to insert data
    * @return A consumer used to evaluate a SPARQL INSERT clause
    */
-  _buildInsertConsumer (source: Observable<Bindings>, group: Algebra.BGPNode | Algebra.UpdateGraphNode, graph: Graph | null, options: Object): InsertConsumer {
+  _buildInsertConsumer (source: Observable<Bindings>, group: Algebra.BGPNode | Algebra.UpdateGraphNode, graph: Graph | null, context: ExecutionContext): InsertConsumer {
     const tripleSource = construct(source, {template: group.triples})
     if (graph === null) {
       graph = (group.type === 'graph' && 'name' in group) ? this._dataset.getNamedGraph(group.name) : this._dataset.getDefaultGraph()
     }
-    return new InsertConsumer(tripleSource, graph, options)
+    return new InsertConsumer(tripleSource, graph, context)
   }
 
   /**
@@ -173,12 +174,12 @@ export default class UpdateExecutor extends Executor {
    * @param  graph - RDF Graph used to delete data
    * @return A consumer used to evaluate a SPARQL DELETE clause
    */
-  _buildDeleteConsumer (source: Observable<Bindings>, group: Algebra.BGPNode | Algebra.UpdateGraphNode, graph: Graph | null, options: Object): DeleteConsumer {
+  _buildDeleteConsumer (source: Observable<Bindings>, group: Algebra.BGPNode | Algebra.UpdateGraphNode, graph: Graph | null, context: ExecutionContext): DeleteConsumer {
     const tripleSource = construct(source, {template: group.triples})
     if (graph === null) {
       graph = (group.type === 'graph' && 'name' in group) ? this._dataset.getNamedGraph(group.name) : this._dataset.getDefaultGraph()
     }
-    return new DeleteConsumer(tripleSource, graph, options)
+    return new DeleteConsumer(tripleSource, graph, context)
   }
 
   /**
