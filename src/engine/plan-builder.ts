@@ -90,13 +90,14 @@ export default class PlanBuilder {
   private _graphExecutor: GraphExecutor
   private _updateExecutor: UpdateExecutor
   private _serviceExecutor: ServiceExecutor | null
+  private _additionalOperations: any
 
   /**
    * Constructor
    * @param dataset - RDF Dataset used for query execution
    * @param prefixes - Optional prefixes to use during query processing
    */
-  constructor (dataset: Dataset, prefixes: any = {}) {
+  constructor (dataset: Dataset, prefixes: any = {}, customOperators: any) {
     this._dataset = dataset
     this._parser = new Parser(prefixes)
     this._bgpExecutor = new BGPExecutor(this._dataset)
@@ -105,6 +106,7 @@ export default class PlanBuilder {
     this._graphExecutor.builder = this
     this._updateExecutor = new UpdateExecutor(this._dataset)
     this._updateExecutor.builder = this
+    this._additionalOperations = customOperators
     this._serviceExecutor = null
     this._pathExecutor = null
   }
@@ -260,12 +262,12 @@ export default class PlanBuilder {
     }
 
     // Handles Aggregates
-    graphIterator = this._aggExecutor.buildIterator(graphIterator, query, context)
+    graphIterator = this._aggExecutor.buildIterator(graphIterator, query, context, this._additionalOperations)
 
     // Handles transformers
     if (aggregates.length > 0) {
       graphIterator = aggregates.reduce((obs: Observable<Bindings>, agg: Algebra.Aggregation) => {
-        return obs.pipe(bind(agg.variable, agg.expression))
+        return obs.pipe(bind(agg.variable, agg.expression, this._additionalOperations))
       }, graphIterator)
     }
 
@@ -410,11 +412,11 @@ export default class PlanBuilder {
           case 'notexists':
             return exists(source, filter.expression.args, this, true, childContext)
           default:
-            return source.pipe(sparqlFilter(filter.expression))
+            return source.pipe(sparqlFilter(filter.expression, this._additionalOperations))
         }
       case 'bind':
         const bindNode = group as Algebra.BindNode
-        return source.pipe(bind(bindNode.variable, bindNode.expression))
+        return source.pipe(bind(bindNode.variable, bindNode.expression, this._additionalOperations))
       default:
         throw new Error(`Unsupported SPARQL group pattern found in query: ${group.type}`)
     }

@@ -77,6 +77,15 @@ declare module 'sparqljs' {
     }
 
     /**
+     * A custom function expression (BIND(foo:FOO(?s) as ?foo)) etc. 
+     */
+    export interface FunctionCallExpression extends Expression {
+      args: Array<string | string[] | Expression>;
+      function: string;
+      distinct: boolean;
+      
+    }
+    /**
      * An aggregation pexression (COUNT, SUM, AVG, etc)
      */
     export interface AggregateExpression extends Expression {

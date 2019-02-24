@@ -33,8 +33,8 @@ describe('Bind operator', () => {
   it('should bind results of valid SPARQL expression to a variable', done => {
     let nbResults = 0
     const source = from([
-      BindingBase.fromObject({'?x': '"1"^^http://www.w3.org/2001/XMLSchema#integer', '?y': '"2"^^http://www.w3.org/2001/XMLSchema#integer'}),
-      BindingBase.fromObject({'?x': '"2"^^http://www.w3.org/2001/XMLSchema#integer', '?y': '"3"^^http://www.w3.org/2001/XMLSchema#integer'})
+      BindingBase.fromObject({ '?x': '"1"^^http://www.w3.org/2001/XMLSchema#integer', '?y': '"2"^^http://www.w3.org/2001/XMLSchema#integer' }),
+      BindingBase.fromObject({ '?x': '"2"^^http://www.w3.org/2001/XMLSchema#integer', '?y': '"3"^^http://www.w3.org/2001/XMLSchema#integer' })
     ])
     const expr = {
       type: 'operation',
