@@ -62,8 +62,8 @@ export default class SPARQLExpression {
    * Constructor
    * @param expression - SPARQL expression
    */
-  constructor (expression: InputExpression, customOperators: any) {
-    this._expression = this._compileExpression(expression, customOperators)
+  constructor (expression: InputExpression, customFunctions?: any) {
+    this._expression = this._compileExpression(expression, customFunctions)
   }
 
   /**
@@ -71,7 +71,7 @@ export default class SPARQLExpression {
    * @param  expression - SPARQL expression
    * @return Compiled SPARQL expression
    */
-  private _compileExpression (expression: InputExpression, customOperators: any): CompiledExpression {
+  private _compileExpression (expression: InputExpression, customFunctions?: any): CompiledExpression {
     // simple case: the expression is a SPARQL variable or a RDF term
     if (isString(expression)) {
       if (rdf.isVariable(expression)) {
@@ -86,7 +86,7 @@ export default class SPARQLExpression {
     } else if (expression.type === 'operation') {
       const opExpression = <Algebra.SPARQLExpression> expression
       // operation case: recursively compile each argument, then evaluate the expression
-      const args = opExpression.args.map(arg => this._compileExpression(arg, customOperators))
+      const args = opExpression.args.map(arg => this._compileExpression(arg, customFunctions))
       if (!(opExpression.operator in SPARQL_OPERATIONS)) {
         throw new Error(`Unsupported SPARQL operation: ${opExpression.operator}`)
       }
@@ -109,13 +109,20 @@ export default class SPARQLExpression {
       }
     } else if (expression.type === 'functionCall') {
       const functionExpression = <Algebra.FunctionCallExpression> expression
-      if (!(functionExpression.function in customOperators)) {
+      if (!(functionExpression.function in customFunctions)) {
         throw new Error(`Custom function could not be found: ${functionExpression.function}`)
       }
-      const customFunction = customOperators[functionExpression.function]
+      const customFunction = customFunctions[functionExpression.function]
       return (bindings: Bindings) => {
-        const args = functionExpression.args.map(arg => this._compileExpression(arg, customOperators))
-        return customFunction(...args.map(arg => arg(bindings)))
+        try{
+          const args = functionExpression.args.map(arg => this._compileExpression(arg, customFunction))
+          return customFunction(...args.map(arg => arg(bindings)))
+        } catch (e) {
+          // In section 10 of the sparql docs (https://www.w3.org/TR/sparql11-query/#assignment) it states:
+          // "If the evaluation of the expression produces an error, the variable remains unbound for that solution but the query evaluation continues."
+          // unfortunately this means the error is silent unless some logging is introduced here
+          return null
+        }
       }
     }
     throw new Error(`Unsupported SPARQL operation type found: ${expression.type}`)

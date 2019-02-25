@@ -36,8 +36,8 @@ import { Bindings } from '../rdf/bindings'
  * @param expression - FILTER expression
  * @return A Filter operator
  */
-export default function sparqlFilter (expression: Algebra.Expression, customOperators: any) {
-  const expr = new SPARQLExpression(expression, customOperators)
+export default function sparqlFilter (expression: Algebra.Expression, customFunctions?: any) {
+  const expr = new SPARQLExpression(expression, customFunctions)
   return filter((bindings: Bindings) => {
     const value: any = expr.evaluate(bindings)
     return value !== null && value.asJS

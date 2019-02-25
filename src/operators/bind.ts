@@ -38,9 +38,9 @@ import { Bindings } from '../rdf/bindings'
  * @param expression - SPARQL expression
  * @return A Bind operator
  */
-export default function bind (variable: string, expression: Algebra.Expression | string, customOperators: {}) {
+export default function bind (variable: string, expression: Algebra.Expression | string, customFunctions: {}) {
   return function (source: Observable<Bindings>) {
-    const expr = new SPARQLExpression(expression, customOperators)
+    const expr = new SPARQLExpression(expression, customFunctions)
     return new Observable<Bindings>(subscriber => {
       return source.subscribe((bindings: Bindings) => {
         const res = bindings.clone()

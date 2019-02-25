@@ -97,7 +97,7 @@ export default class PlanBuilder {
    * @param dataset - RDF Dataset used for query execution
    * @param prefixes - Optional prefixes to use during query processing
    */
-  constructor (dataset: Dataset, prefixes: any = {}, customOperators: any) {
+  constructor (dataset: Dataset, prefixes: any = {}, customFunctions?: any) {
     this._dataset = dataset
     this._parser = new Parser(prefixes)
     this._bgpExecutor = new BGPExecutor(this._dataset)
@@ -106,7 +106,7 @@ export default class PlanBuilder {
     this._graphExecutor.builder = this
     this._updateExecutor = new UpdateExecutor(this._dataset)
     this._updateExecutor.builder = this
-    this._additionalOperations = customOperators
+    this._additionalOperations = customFunctions
     this._serviceExecutor = null
     this._pathExecutor = null
   }
