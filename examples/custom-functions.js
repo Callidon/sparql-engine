@@ -97,10 +97,7 @@ function cloneLiteral(base, newValue) {
 
 const customFunctions = {
   'http://example.com#REVERSE': function (a) {
-    console.log("a", a)
-    const reversed = cloneLiteral(a, a.value.split("").reverse().join(""))
-    console.log("reversed", reversed)
-    return reversed
+    return cloneLiteral(a, a.value.split("").reverse().join(""))
   }
 }
 
