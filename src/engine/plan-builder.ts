@@ -112,7 +112,7 @@ export default class PlanBuilder {
   private _graphExecutor: GraphExecutor
   private _updateExecutor: UpdateExecutor
   private _serviceExecutor: ServiceExecutor | null
-  private _additionalOperations: any
+  private _customFunctions?: CustomFunctions
 
   /**
    * Constructor
@@ -128,7 +128,7 @@ export default class PlanBuilder {
     this._graphExecutor.builder = this
     this._updateExecutor = new UpdateExecutor(this._dataset)
     this._updateExecutor.builder = this
-    this._additionalOperations = customFunctions
+    this._customFunctions = customFunctions
     this._serviceExecutor = null
     this._pathExecutor = null
   }
@@ -284,12 +284,12 @@ export default class PlanBuilder {
     }
 
     // Handles Aggregates
-    graphIterator = this._aggExecutor.buildIterator(graphIterator, query, context, this._additionalOperations)
+    graphIterator = this._aggExecutor.buildIterator(graphIterator, query, context, this._customFunctions)
 
     // Handles transformers
     if (aggregates.length > 0) {
       graphIterator = aggregates.reduce((obs: Observable<Bindings>, agg: Algebra.Aggregation) => {
-        return obs.pipe(bind(agg.variable, agg.expression, this._additionalOperations))
+        return obs.pipe(bind(agg.variable, agg.expression, this._customFunctions))
       }, graphIterator)
     }
 
@@ -434,11 +434,11 @@ export default class PlanBuilder {
           case 'notexists':
             return exists(source, filter.expression.args, this, true, childContext)
           default:
-            return source.pipe(sparqlFilter(filter.expression, this._additionalOperations))
+            return source.pipe(sparqlFilter(filter.expression, this._customFunctions))
         }
       case 'bind':
         const bindNode = group as Algebra.BindNode
-        return source.pipe(bind(bindNode.variable, bindNode.expression, this._additionalOperations))
+        return source.pipe(bind(bindNode.variable, bindNode.expression, this._customFunctions))
       default:
         throw new Error(`Unsupported SPARQL group pattern found in query: ${group.type}`)
     }
