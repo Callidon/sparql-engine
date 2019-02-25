@@ -78,7 +78,7 @@ const QUERY_MODIFIERS = {
 export type QueryOutput = Bindings | Algebra.TripleObject | boolean
 
 /**
- * Type alias to describe the shape of custom functions. It's basically a JSON object from an IRI to a function of 0 to many RDFTerms that produces an RDFTerm:
+ * Type alias to describe the shape of custom functions. It's basically a JSON object from an IRI (in string form) to a function of 0 to many RDFTerms that produces an RDFTerm:
  * const customFunctions = {
  *   'http://example.com#REVERSE': function (a) {
  *     const reverseValue = a.value.split("").reverse().join("")
