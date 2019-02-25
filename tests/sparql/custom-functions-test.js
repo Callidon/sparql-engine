@@ -49,6 +49,7 @@ describe('SPARQL custom operators', () => {
         return cloneLiteral(a, a.value.split("").reverse().join(""))
       }
     }
+
     const g = getGraph('./tests/data/dblp.nt')
     const engine = new TestEngine(g, null, customFunctions)
 

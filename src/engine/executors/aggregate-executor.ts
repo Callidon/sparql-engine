@@ -26,6 +26,7 @@ SOFTWARE.
 
 import { Observable } from 'rxjs'
 import Executor from './executor'
+import { CustomFunctions } from '../../engine/plan-builder'
 import bind from '../../operators/bind'
 import filter from '../../operators/sparql-filter'
 import groupBy from '../../operators/sparql-groupby'
@@ -48,7 +49,7 @@ export default class AggregateExecutor extends Executor {
    * @param options - Execution options
    * @return An iterator which evaluate SPARQL aggregations
    */
-  buildIterator (source: Observable<Bindings>, query: Algebra.RootNode, context: ExecutionContext, customFunctions?: any): Observable<Bindings> {
+  buildIterator (source: Observable<Bindings>, query: Algebra.RootNode, context: ExecutionContext, customFunctions?: CustomFunctions): Observable<Bindings> {
     if ('group' in query) {
       // first, group bindings using the GROUP BY clause
       let iterator = this._executeGroupBy(source, query.group || [], context, customFunctions)
@@ -68,7 +69,7 @@ export default class AggregateExecutor extends Executor {
    * @param  options - Execution options
    * @return An iterator which evaluate a GROUP BY clause
    */
-  _executeGroupBy (source: Observable<Bindings>, groupby: Algebra.Aggregation[], context: ExecutionContext, customFunctions?: any): Observable<Bindings> {
+  _executeGroupBy (source: Observable<Bindings>, groupby: Algebra.Aggregation[], context: ExecutionContext, customFunctions?: CustomFunctions): Observable<Bindings> {
     let iterator = source
     // extract GROUP By variables & rewrite SPARQL expressions into BIND clauses
     const variables: string[] = []
@@ -90,7 +91,7 @@ export default class AggregateExecutor extends Executor {
    * @param  options - Execution options
    * @return An iterator which evaluate a HAVING clause
    */
-  _executeHaving (source: Observable<Bindings>, having: Algebra.Expression[], context: ExecutionContext, customFunctions?: any): Observable<Bindings> {
+  _executeHaving (source: Observable<Bindings>, having: Algebra.Expression[], context: ExecutionContext, customFunctions?: CustomFunctions): Observable<Bindings> {
     // thanks to the flexibility of SPARQL expressions,
     // we can rewrite a HAVING clause in a set of FILTER clauses!
     return having.reduce((iter, expression) => {

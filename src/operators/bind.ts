@@ -28,6 +28,7 @@ import { Observable } from 'rxjs'
 import SPARQLExpression from './expressions/sparql-expression'
 import { Algebra } from 'sparqljs'
 import { Bindings } from '../rdf/bindings'
+import { CustomFunctions } from '../engine/plan-builder'
 
 /**
  * Apply a SPARQL BIND clause
@@ -38,7 +39,7 @@ import { Bindings } from '../rdf/bindings'
  * @param expression - SPARQL expression
  * @return A Bind operator
  */
-export default function bind (variable: string, expression: Algebra.Expression | string, customFunctions: {}) {
+export default function bind (variable: string, expression: Algebra.Expression | string, customFunctions?: CustomFunctions) {
   return function (source: Observable<Bindings>) {
     const expr = new SPARQLExpression(expression, customFunctions)
     return new Observable<Bindings>(subscriber => {

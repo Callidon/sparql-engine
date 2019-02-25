@@ -82,7 +82,7 @@ const query = `
   SELECT ?length
   WHERE {
     ?s foaf:name ?name . FILTER (!example:IS_PALINDROME(?name)) .
-    BIND(example:REVERSE(?name) as ?reverse) .
+    BIND(example:REVERSE(?name) as ?reverse) . # this bind is not critical to this query, but is here for illustrative purposes
     BIND(STRLEN(?reverse) as ?length)
   }
   GROUP BY ?length 
