@@ -31,7 +31,7 @@ const { getGraph, TestEngine } = require('../utils.js')
 
 describe('SPARQL custom operators', () => {
 
-  it('should allow for custom functions', done => {
+  it('should allow for custom functions in BIND', done => {
 
     function cloneLiteral(base, newValue) {
       switch (base.type) {
@@ -69,6 +69,73 @@ describe('SPARQL custom operators', () => {
       expect(b['?reversed']).to.equal('"reiniM samohT"@en')
       results.push(b)
     }, done, () => {
+      done()
+    })
+  })
+
+  it('should allow for custom functions in FILTER', done => {
+
+    const customFunctions = {
+      'http://test.com#CONTAINS_THOMAS': function (a) {
+        return terms.BooleanDescriptor(a.value.toLowerCase().indexOf("thomas") >= 0)
+      }
+    }
+    const g = getGraph('./tests/data/dblp.nt')
+    const engine = new TestEngine(g, null, customFunctions)
+
+    const query = `
+    PREFIX test: <http://test.com#>
+    SELECT ?o
+    WHERE
+    {
+      ?s ?p ?o . FILTER(test:CONTAINS_THOMAS(?o))
+    }
+    `
+    const results = []
+    const iterator = engine.execute(query)
+    iterator.subscribe(b => {
+      b = b.toObject()
+      expect(b).to.have.keys('?o')
+      results.push(b)
+    }, done, () => {
+      expect(results.length).to.equal(3)
+      done()
+    })
+  })
+
+  it('should allow for custom functions in HAVING', done => {
+
+    const customFunctions = {
+      'http://test.com#IS_EVEN': function (a) {
+        return terms.BooleanDescriptor(a.value % 2 === 0)
+      }
+    }
+    const g = getGraph('./tests/data/dblp.nt')
+    const engine = new TestEngine(g, null, customFunctions)
+
+    const query = `
+    PREFIX test: <http://test.com#>
+    SELECT ?length
+    WHERE
+    {
+      ?s ?p ?o .
+      BIND (STRLEN(?o) as ?length)
+    }
+    GROUP BY ?length
+    HAVING (test:IS_EVEN(?length))
+    `
+    const results = []
+    const iterator = engine.execute(query)
+    iterator.subscribe(b => {
+
+      b = b.toObject()
+      expect(b).to.have.keys('?length')
+      const length = parseInt(b["?length"].split("^^")[0].replace(/"/g, ""))
+      expect(length % 2).to.equal(0)
+
+      results.push(b)
+    }, done, () => {
+      expect(results.length).to.equal(8)
       done()
     })
   })

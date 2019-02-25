@@ -69,8 +69,9 @@ const parser = new Parser()
 parser.parse(`
   @prefix foaf: <http://xmlns.com/foaf/0.1/> .
   @prefix : <http://example.org#> .
-  :a foaf:name "abc" .
+  :a foaf:name "abcd" .
   :b foaf:name "xyz" .
+  :b foaf:name "racecar" .
 `).forEach(t => {
   graph._store.addTriple(t)
 })
@@ -78,11 +79,15 @@ parser.parse(`
 const query = `
   PREFIX foaf: <http://xmlns.com/foaf/0.1/>
   PREFIX example: <http://example.com#>
-  SELECT ?name ?reversed
+  SELECT ?length
   WHERE {
-    ?s foaf:name ?name .
-    BIND(example:REVERSE(?name) as ?reversed) .
-  }`
+    ?s foaf:name ?name . FILTER (!example:IS_PALINDROME(?name)) .
+    BIND(example:REVERSE(?name) as ?reverse) .
+    BIND(STRLEN(?reverse) as ?length)
+  }
+  GROUP BY ?length 
+  HAVING (example:IS_EVEN(?length))
+  `
 
 function cloneLiteral(base, newValue) {
   switch (base.type) {
@@ -97,7 +102,16 @@ function cloneLiteral(base, newValue) {
 
 const customFunctions = {
   'http://example.com#REVERSE': function (a) {
-    return cloneLiteral(a, a.value.split("").reverse().join(""))
+    const reverseValue = a.value.split("").reverse().join("")
+    return cloneLiteral(a, reverseValue)
+  },
+  'http://example.com#IS_PALINDROME': function (a) {
+    const result = a.value.split("").reverse().join("") === a.value
+    return terms.BooleanDescriptor(result)
+  },
+  'http://example.com#IS_EVEN': function (a) {
+    const result = a.value % 2 === 0
+    return terms.BooleanDescriptor(result)
   }
 }
 
