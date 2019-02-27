@@ -82,7 +82,7 @@ const query = `
   SELECT ?length
   WHERE {
     ?s foaf:name ?name . FILTER (!example:IS_PALINDROME(?name)) .
-    BIND(example:REVERSE(?name) as ?reverse) . # this bind is not critical to this query, but is here for illustrative purposes
+    BIND(<http://example.com#REVERSE>(?name) as ?reverse) . # this bind is not critical to this query, but is here for illustrative purposes
     BIND(STRLEN(?reverse) as ?length)
   }
   GROUP BY ?length 
@@ -101,16 +101,16 @@ function cloneLiteral(base, newValue) {
 }
 
 const customFunctions = {
-  'http://example.com#REVERSE': function (a) {
-    const reverseValue = a.value.split("").reverse().join("")
-    return cloneLiteral(a, reverseValue)
+  'http://example.com#REVERSE': function (rdfTerm) {
+    const reverseValue = rdfTerm.value.split("").reverse().join("")
+    return cloneLiteral(rdfTerm, reverseValue)
   },
-  'http://example.com#IS_PALINDROME': function (a) {
-    const result = a.value.split("").reverse().join("") === a.value
+  'http://example.com#IS_PALINDROME': function (rdfTerm) {
+    const result = rdfTerm.value.split("").reverse().join("") === rdfTerm.value
     return terms.BooleanDescriptor(result)
   },
-  'http://example.com#IS_EVEN': function (a) {
-    const result = a.value % 2 === 0
+  'http://example.com#IS_EVEN': function (rdfTerm) {
+    const result = rdfTerm.value % 2 === 0
     return terms.BooleanDescriptor(result)
   }
 }
