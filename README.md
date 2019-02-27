@@ -179,7 +179,7 @@ Finally, to run a SPARQL query on your RDF dataset, you need to use the `PlanBui
 
 It is easy to define and use custom functions in `BIND`, `FILTER`, and `HAVING` clauses. There are two steps:
 
-## Creating a JSON object mapping
+## Create a JSON object mapping
 
 You must create a JSON object that maps an `IRI` to a function that takes a variable number of [RDFTerms](./src/rdf-terms.ts) and returns an `RDFTerm`. Here is a snipped from the working [example](./examples/custom-functions.js):
 
