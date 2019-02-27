@@ -202,6 +202,12 @@ const customFunctions = {
 
 It's fairly straight forward what the functions do, but note that `#IS_PALINDROME` and `#IS_EVEN` are function that return "booleans", so the `BooleanDescriptor` function from [rdf-terms](./src/rdf-terms.ts) is called with the boolean `result`, which creates an `RDFTerm` with the `xsd:boolean` type. Also note that `#REVERSE` doesn't just create a new `RDFTerm`, but it clones the `rdfTerm` passed into the function, which will copy over any additional attributes like a language descriptor. `cloneLiteral` is defined in the example, and is pretty straight forward.
 
+This JSON object is then passed into the constructor of your PlanBuilder: 
+
+```javascript
+const builder = new PlanBuilder(dataset, {}, customFunctions)
+```
+
 ## Use the function in a query
 
 Here's a query using everything supported:
