@@ -28,6 +28,7 @@ import { filter } from 'rxjs/operators'
 import SPARQLExpression from './expressions/sparql-expression'
 import { Algebra } from 'sparqljs'
 import { Bindings } from '../rdf/bindings'
+import { CustomFunctions } from "../engine/plan-builder"
 
 /**
  * Evaluate SPARQL Filter clauses
@@ -36,8 +37,8 @@ import { Bindings } from '../rdf/bindings'
  * @param expression - FILTER expression
  * @return A Filter operator
  */
-export default function sparqlFilter (expression: Algebra.Expression) {
-  const expr = new SPARQLExpression(expression)
+export default function sparqlFilter (expression: Algebra.Expression, customFunctions?: CustomFunctions) {
+  const expr = new SPARQLExpression(expression, customFunctions)
   return filter((bindings: Bindings) => {
     const value: any = expr.evaluate(bindings)
     return value !== null && value.asJS

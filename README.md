@@ -25,6 +25,7 @@ An open-source framework for building SPARQL query engines in Javascript.
   * [RDF Graphs](#rdf-graphs)
   * [RDF Datasets](#rdf-datasets)
   * [Running a SPARQL query](#running-a-sparql-query)
+* [Custom Functions](#custom-functions)
 * [Federated SPARQL Queries](#federated-sparql-queries)
 * [Advanced Usage](#advanced-usage)
 * [Documentation](#documentation)
@@ -173,6 +174,58 @@ Finally, to run a SPARQL query on your RDF dataset, you need to use the `PlanBui
     () => console.log('Query evaluation complete!')
   )
 ```
+
+# Custom Functions
+
+It is easy to define and use custom functions in `BIND`, `FILTER`, and `HAVING` clauses. There are two steps:
+
+## Create a JSON object mapping
+
+You must create a JSON object that maps an `IRI` to a function that takes a variable number of [RDFTerms](./src/rdf-terms.ts) and returns an `RDFTerm`. Here is a snipped from the working [example](./examples/custom-functions.js):
+
+```javascript
+const customFunctions = {
+  'http://example.com#REVERSE': function (rdfTerm) {
+    const reverseValue = rdfTerm.value.split("").reverse().join("")
+    return cloneLiteral(rdfTerm, reverseValue)
+  },
+  'http://example.com#IS_PALINDROME': function (rdfTerm) {
+    const result = rdfTerm.value.split("").reverse().join("") === rdfTerm.value
+    return terms.BooleanDescriptor(result)
+  },
+  'http://example.com#IS_EVEN': function (rdfTerm) {
+    const result = rdfTerm.value % 2 === 0
+    return terms.BooleanDescriptor(result)
+  }
+}
+```
+
+It's fairly straight forward what the functions do, but note that `#IS_PALINDROME` and `#IS_EVEN` are function that return "booleans", so the `BooleanDescriptor` function from [rdf-terms](./src/rdf-terms.ts) is called with the boolean `result`, which creates an `RDFTerm` with the `xsd:boolean` type. Also note that `#REVERSE` doesn't just create a new `RDFTerm`, but it clones the `rdfTerm` passed into the function, which will copy over any additional attributes like a language descriptor. `cloneLiteral` is defined in the example, and is pretty straight forward.
+
+This JSON object is then passed into the constructor of your PlanBuilder: 
+
+```javascript
+const builder = new PlanBuilder(dataset, {}, customFunctions)
+```
+
+## Use the function in a query
+
+Here's a query using everything supported:
+
+```
+PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+PREFIX example: <http://example.com#>
+SELECT ?length
+WHERE {
+  ?s foaf:name ?name . FILTER (!example:IS_PALINDROME(?name)) .
+  BIND(<http://example.com#REVERSE>(?name) as ?reverse) . # this bind is not critical to this query, but is here for illustrative purposes
+  BIND(STRLEN(?reverse) as ?length)
+}
+GROUP BY ?length 
+HAVING (example:IS_EVEN(?length))
+```
+
+The example is a bit silly since `<http://example.com#REVERSE>` is unnecessary, but it illustrates the usage: you can either define a `PREFIX` for your function and call your function like `example:IS_PALINDROME(?name)` in the `FILTER` clause. Or you can be very explicit with a named node like `<http://example.com#REVERSE>(?name)` in the `BIND` clause.
 
 # Federated SPARQL Queries
 

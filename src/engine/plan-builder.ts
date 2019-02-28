@@ -30,6 +30,7 @@ import { Observable, of, merge } from 'rxjs'
 import { map, take, skip } from 'rxjs/operators'
 import { Consumable } from '../operators/update/consumer'
 // RDF core classes
+import { IRI, RDFTerm } from '../rdf-terms'
 import { Bindings, BindingBase } from '../rdf/bindings'
 import Dataset from '../rdf/dataset'
 // SPARQL query operators
@@ -60,6 +61,7 @@ import {
   some,
   sortBy
 } from 'lodash'
+
 import ExecutionContext from './context/execution-context'
 import { extractPropertyPaths } from './executors/rewritings'
 import { extendByBindings, deepApplyBindings, rdf } from '../utils'
@@ -76,6 +78,26 @@ const QUERY_MODIFIERS = {
 export type QueryOutput = Bindings | Algebra.TripleObject | boolean
 
 /**
+ * Type alias to describe the shape of custom functions. It's basically a JSON object from an IRI (in string form) to a function of 0 to many RDFTerms that produces an RDFTerm:
+ * const customFunctions = {
+ *   'http://example.com#REVERSE': function (a) {
+ *     const reverseValue = a.value.split("").reverse().join("")
+ *     return cloneLiteral(a, reverseValue)
+ *   },
+ *   'http://example.com#IS_PALINDROME': function (a) {
+ *     const result = a.value.split("").reverse().join("") === a.value
+ *     return terms.BooleanDescriptor(result)
+ *   },
+ *   'http://example.com#IS_EVEN': function (a) {
+ *     const result = a.value % 2 === 0
+ *     return terms.BooleanDescriptor(result)
+ *   }
+ * } 
+ * 
+ */
+export type CustomFunctions = { [key:string]: (...args: (RDFTerm | RDFTerm[] | null)[]) => RDFTerm }
+
+/**
  * A PlanBuilder builds a physical query execution plan of a SPARQL query,
  * i.e., an iterator that can be consumed to get query results.
  * @author Thomas Minier
@@ -90,13 +112,14 @@ export default class PlanBuilder {
   private _graphExecutor: GraphExecutor
   private _updateExecutor: UpdateExecutor
   private _serviceExecutor: ServiceExecutor | null
+  private _customFunctions?: CustomFunctions
 
   /**
    * Constructor
    * @param dataset - RDF Dataset used for query execution
    * @param prefixes - Optional prefixes to use during query processing
    */
-  constructor (dataset: Dataset, prefixes: any = {}) {
+  constructor (dataset: Dataset, prefixes: any = {}, customFunctions?: CustomFunctions) {
     this._dataset = dataset
     this._parser = new Parser(prefixes)
     this._bgpExecutor = new BGPExecutor(this._dataset)
@@ -105,6 +128,7 @@ export default class PlanBuilder {
     this._graphExecutor.builder = this
     this._updateExecutor = new UpdateExecutor(this._dataset)
     this._updateExecutor.builder = this
+    this._customFunctions = customFunctions
     this._serviceExecutor = null
     this._pathExecutor = null
   }
@@ -260,12 +284,12 @@ export default class PlanBuilder {
     }
 
     // Handles Aggregates
-    graphIterator = this._aggExecutor.buildIterator(graphIterator, query, context)
+    graphIterator = this._aggExecutor.buildIterator(graphIterator, query, context, this._customFunctions)
 
     // Handles transformers
     if (aggregates.length > 0) {
       graphIterator = aggregates.reduce((obs: Observable<Bindings>, agg: Algebra.Aggregation) => {
-        return obs.pipe(bind(agg.variable, agg.expression))
+        return obs.pipe(bind(agg.variable, agg.expression, this._customFunctions))
       }, graphIterator)
     }
 
@@ -410,11 +434,11 @@ export default class PlanBuilder {
           case 'notexists':
             return exists(source, filter.expression.args, this, true, childContext)
           default:
-            return source.pipe(sparqlFilter(filter.expression))
+            return source.pipe(sparqlFilter(filter.expression, this._customFunctions))
         }
       case 'bind':
         const bindNode = group as Algebra.BindNode
-        return source.pipe(bind(bindNode.variable, bindNode.expression))
+        return source.pipe(bind(bindNode.variable, bindNode.expression, this._customFunctions))
       default:
         throw new Error(`Unsupported SPARQL group pattern found in query: ${group.type}`)
     }

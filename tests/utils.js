@@ -29,7 +29,7 @@ const fs = require('fs')
 const { HashMapDataset, Graph, PlanBuilder } = require('../dist/api.js')
 const { pick } = require('lodash')
 
-function getGraph (filePath = null) {
+function getGraph(filePath = null) {
   const graph = new N3Graph()
   if (filePath !== null) {
     graph.parse(filePath)
@@ -37,7 +37,7 @@ function getGraph (filePath = null) {
   return graph
 }
 
-function formatTriplePattern (triple) {
+function formatTriplePattern(triple) {
   let subject = null
   let predicate = null
   let object = null
@@ -54,20 +54,20 @@ function formatTriplePattern (triple) {
 }
 
 class N3Graph extends Graph {
-  constructor () {
+  constructor() {
     super()
     this._store = Store()
     this._parser = Parser()
   }
 
-  parse (file) {
+  parse(file) {
     const content = fs.readFileSync(file).toString('utf-8')
     this._parser.parse(content).forEach(t => {
       this._store.addTriple(t)
     })
   }
 
-  insert (triple) {
+  insert(triple) {
     return new Promise((resolve, reject) => {
       try {
         this._store.addTriple(triple.subject, triple.predicate, triple.object)
@@ -78,7 +78,7 @@ class N3Graph extends Graph {
     })
   }
 
-  delete (triple) {
+  delete(triple) {
     return new Promise((resolve, reject) => {
       try {
         this._store.removeTriple(triple.subject, triple.predicate, triple.object)
@@ -89,19 +89,19 @@ class N3Graph extends Graph {
     })
   }
 
-  find (triple) {
+  find(triple) {
     const { subject, predicate, object } = formatTriplePattern(triple)
     return this._store.getTriples(subject, predicate, object).map(t => {
       return pick(t, ['subject', 'predicate', 'object'])
     })
   }
 
-  estimateCardinality (triple) {
+  estimateCardinality(triple) {
     const { subject, predicate, object } = formatTriplePattern(triple)
     return Promise.resolve(this._store.countTriples(subject, predicate, object))
   }
 
-  clear () {
+  clear() {
     const triples = this._store.getTriples(null, null, null)
     this._store.removeTriples(triples)
     return Promise.resolve()
@@ -109,21 +109,21 @@ class N3Graph extends Graph {
 }
 
 class TestEngine {
-  constructor (graph, defaultGraphIRI = null) {
+  constructor(graph, defaultGraphIRI = null, customOperations = {}) {
     this._graph = graph
     this._dataset = new HashMapDataset(defaultGraphIRI, this._graph)
-    this._builder = new PlanBuilder(this._dataset)
+    this._builder = new PlanBuilder(this._dataset, {}, customOperations)
   }
 
-  addNamedGraph (iri, db) {
+  addNamedGraph(iri, db) {
     this._dataset.addNamedGraph(iri, db)
   }
 
-  getNamedGraph (iri) {
+  getNamedGraph(iri) {
     return this._dataset.getNamedGraph(iri)
   }
 
-  execute (query, format = 'raw') {
+  execute(query, format = 'raw') {
     let iterator = this._builder.build(query)
     return iterator
   }
