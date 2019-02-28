@@ -131,6 +131,7 @@ export namespace terms {
 
   /**
    * Creates an IRI in {@link RDFTerm} format
+   * @see https://www.w3.org/TR/rdf11-concepts/#section-IRIs
    * @param iri - IRI
    * @return A new IRI in {@link RDFTerm} format
    */
@@ -145,6 +146,7 @@ export namespace terms {
 
   /**
    * Creates a Literal in {@link RDFTerm} format
+   * @see https://www.w3.org/TR/rdf11-concepts/#section-Graph-Literal
    * @param literal - Literal
    * @return A new Literal in {@link RDFTerm} format
    */
@@ -160,6 +162,7 @@ export namespace terms {
 
   /**
    * Creates a Literal with a datatype, in {@link RDFTerm} format
+   * @see https://www.w3.org/TR/rdf11-concepts/#section-Graph-Literal
    * @param literal - Literal
    * @param type - Literal datatype
    * @return A new typed Literal in {@link RDFTerm} format
@@ -176,6 +179,7 @@ export namespace terms {
 
   /**
    * Creates a Literal with a language tag, in {@link RDFTerm} format
+   * @see https://www.w3.org/TR/rdf11-concepts/#section-Graph-Literal
    * @param literal - Literal
    * @param lang - Language tag
    * @return A new tagged Literal in {@link RDFTerm} format
@@ -258,31 +262,67 @@ export namespace terms {
   /**
    * Test if Two RDF Terms are equals
    * @see https://www.w3.org/TR/sparql11-query/#func-RDFterm-equal
-   * @param {Object} a - Left Term
-   * @param {Object} b - Right term
-   * @return {Object} A RDF Literal with the results of the test
+   * @param left - Left Term
+   * @param right - Right term
+   * @return A RDF Literal with the results of the test (True or False)
    */
-  export function equals (a: RDFTerm, b: RDFTerm): RDFTerm {
-    if (a.type !== b.type) {
+  export function equals (left: RDFTerm, right: RDFTerm): RDFTerm {
+    if (left.type !== right.type) {
       return createBoolean(false)
     }
-    switch (a.type) {
+    switch (left.type) {
       case 'iri':
       case 'literal':
-        return createBoolean(a.value === b.value)
+        return createBoolean(left.value === right.value)
       case 'literal+type':
-        return createBoolean(a.value === b.value && (<TypedLiteral> a).datatype === (<TypedLiteral> b).datatype)
+        return createBoolean(left.value === right.value && (<TypedLiteral> left).datatype === (<TypedLiteral> right).datatype)
       case 'literal+lang':
-        return createBoolean(a.value === b.value && (<LangLiteral> a).lang === (<LangLiteral> b).lang)
+        return createBoolean(left.value === right.value && (<LangLiteral> left).lang === (<LangLiteral> right).lang)
       default:
         return createBoolean(false)
     }
   }
 
   /**
-   * Test if a literal is a Date
-   * @param  {Object}  literal - Literal to analyze
-   * @return {Boolean} True if a literal is a Date, False otherwise
+   * Test if a RDF Term is an IRI
+   * @param  term - RDF Term to test
+   * @return True if the term is an IRI, False otherwise
+   */
+  export function isIRI (term: RDFTerm) {
+    return term.type === 'iri'
+  }
+
+  /**
+   * Test if a RDF Term is a Literal (regardless of the lang/datatype)
+   * @param  term - RDF Term to test
+   * @return True if the term is a Literal, False otherwise
+   */
+  export function isLiteral (term: RDFTerm) {
+    return term.type.startsWith('literal')
+  }
+
+  /**
+   * Test if a RDF Term is a Literal with a datatype
+   * @param  term - RDF Term to test
+   * @return True if the term is a Literal with a datatype, False otherwise
+   */
+  export function isTypedLiteral (term: RDFTerm) {
+    return term.type === 'literal+type'
+  }
+
+  /**
+   * Test if a RDF Term is a Literal with a language
+   * @param  term - RDF Term to test
+   * @return True if the term is a Literal with a language, False otherwise
+   */
+  export function isLangLiteral (term: RDFTerm) {
+    return term.type === 'literal+lang'
+  }
+
+  /**
+   * Test if a RDF Term is a Date literal
+   * @param  literal - RDF Term to test
+   * @return True if the term is a Date literal, False otherwise
    */
   export function isDate (literal: RDFTerm): boolean {
       return literal.type === 'literal+type' && (<TypedLiteral> literal).datatype === rdf.XSD('dateTime')
