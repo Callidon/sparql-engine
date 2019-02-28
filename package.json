@@ -52,7 +52,7 @@
     "typescript": "^3.0.3"
   },
   "dependencies": {
-    "lodash": "^4.17.10",
+    "lodash": "^4.17.11",
     "moment": "^2.22.2",
     "n3": "^0.11.3",
     "rxjs": "^6.3.3",
