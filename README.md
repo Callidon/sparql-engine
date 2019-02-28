@@ -182,10 +182,10 @@ The `sparql-engine` framework provides a supports for declaring such custom func
 
 ## Setp 1: Create a JSON object mapping
 
-A SPARQL custom functions is defined by an `IRI` (or prefixed name) in `FILTER`, `BIND` or `HAVING BY` expressions. 
-You must create a JSON object that maps each `IRI` to a function that takes a variable number of [RDFTerms](./src/rdf-terms.ts) and returns an `RDFTerm`. 
+A SPARQL custom functions is defined by an `IRI` (or prefixed name) in `FILTER`, `BIND` or `HAVING BY` expressions.
+You must create a JSON object that maps each `IRI` to a function that takes a variable number of [RDFTerms](./src/rdf-terms.ts) and returns an `RDFTerm`.
 Here is a snipped from the working [example](./examples/custom-functions.js).
-See [these utility functions](https://github.com/Callidon/sparql-engine/blob/master/src/rdf-terms.ts) for more details on how to manipulate RDF terms.
+See [the `rdf-terms` documentation](https://github.com/Callidon/sparql-engine/blob/master/src/rdf-terms.ts) for more details on how to manipulate RDF terms.
 
 ```javascript
 // load the utility functions used to manipulate RDF terms
@@ -195,20 +195,20 @@ const terms = require('sparql-engine/dist/rdf-terms')
 const customFunctions = {
   'http://example.com#REVERSE': function (rdfTerm) {
     const reverseValue = rdfTerm.value.split("").reverse().join("")
-    return cloneLiteral(rdfTerm, reverseValue)
+    return terms.replaceLiteralValue(rdfTerm, reverseValue)
   },
   'http://example.com#IS_PALINDROME': function (rdfTerm) {
     const result = rdfTerm.value.split("").reverse().join("") === rdfTerm.value
-    return terms.BooleanDescriptor(result)
+    return terms.createBoolean(result)
   },
   'http://example.com#IS_EVEN': function (rdfTerm) {
     const result = rdfTerm.value % 2 === 0
-    return terms.BooleanDescriptor(result)
+    return terms.createBoolean(result)
   }
 }
 ```
 
-This JSON object is then passed into the constructor of your PlanBuilder: 
+This JSON object is then passed into the constructor of your PlanBuilder:
 
 ```javascript
 const builder = new PlanBuilder(dataset, {}, customFunctions)
@@ -223,12 +223,12 @@ PREFIX foaf: <http://xmlns.com/foaf/0.1/>
 PREFIX example: <http://example.com#>
 SELECT ?length
 WHERE {
-  ?s foaf:name ?name . 
+  ?s foaf:name ?name .
   FILTER (!example:IS_PALINDROME(?name)) .
   BIND(<http://example.com#REVERSE>(?name) as ?reverse) . # this bind is not critical to this query, but is here for illustrative purposes
   BIND(STRLEN(?reverse) as ?length)
 }
-GROUP BY ?length 
+GROUP BY ?length
 HAVING (example:IS_EVEN(?length))
 ```
 
