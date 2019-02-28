@@ -38,7 +38,7 @@ describe('SPARQL custom operators', () => {
         case 'literal+type':
           return terms.TypedLiteralDescriptor(newValue, base.datatype)
         case 'literal+lang':
-          return terms.LangLiteralDescriptor(newValue, base.lang)
+          return terms.createLangLiteral(newValue, base.lang)
         default:
           return terms.RawLiteralDescriptor(newValue)
       }
@@ -78,7 +78,7 @@ describe('SPARQL custom operators', () => {
 
     const customFunctions = {
       'http://test.com#CONTAINS_THOMAS': function (a) {
-        return terms.BooleanDescriptor(a.value.toLowerCase().indexOf("thomas") >= 0)
+        return terms.createBoolean(a.value.toLowerCase().indexOf("thomas") >= 0)
       }
     }
     const g = getGraph('./tests/data/dblp.nt')
@@ -108,7 +108,7 @@ describe('SPARQL custom operators', () => {
 
     const customFunctions = {
       'http://test.com#IS_EVEN': function (a) {
-        return terms.BooleanDescriptor(a.value % 2 === 0)
+        return terms.createBoolean(a.value % 2 === 0)
       }
     }
     const g = getGraph('./tests/data/dblp.nt')
@@ -193,5 +193,3 @@ describe('SPARQL custom operators', () => {
   })
 
 })
-
-

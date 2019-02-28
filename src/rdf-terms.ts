@@ -128,7 +128,7 @@ function literalToJS (value: string, type: string): any {
  * @param iri - IRI
  * @return A new IRI in {@link RDFTerm} format
  */
-export function IRIDescriptor (iri: string): IRI {
+export function createIRI (iri: string): IRI {
   return {
     type: 'iri',
     value: iri,
@@ -142,7 +142,7 @@ export function IRIDescriptor (iri: string): IRI {
  * @param literal - Literal
  * @return A new Literal in {@link RDFTerm} format
  */
-export function RawLiteralDescriptor (literal: string): RawLiteral {
+export function createLiteral (literal: string): RawLiteral {
   const rdf = `"${literal}"`
   return {
     type: 'literal',
@@ -158,7 +158,7 @@ export function RawLiteralDescriptor (literal: string): RawLiteral {
  * @param type - Literal datatype
  * @return A new typed Literal in {@link RDFTerm} format
  */
-export function TypedLiteralDescriptor (literal: string, type: string): TypedLiteral {
+export function createTypedLiteral (literal: string, type: string): TypedLiteral {
   return {
     type: 'literal+type',
     value: literal,
@@ -174,7 +174,7 @@ export function TypedLiteralDescriptor (literal: string, type: string): TypedLit
  * @param lang - Language tag
  * @return A new tagged Literal in {@link RDFTerm} format
  */
-export function LangLiteralDescriptor (literal: string, lang: string): LangLiteral {
+export function createLangLiteral (literal: string, lang: string): LangLiteral {
   const rdf = `"${literal}"@${lang}`
   return {
     type: 'literal+lang',
@@ -190,7 +190,7 @@ export function LangLiteralDescriptor (literal: string, lang: string): LangLiter
  * @param value - Boolean
  * @return A new typed Literal in {@link RDFTerm} format
  */
-export function BooleanDescriptor (value: boolean): TypedLiteral {
+export function createBoolean (value: boolean): TypedLiteral {
   return {
     type: 'literal+type',
     value: `"${value}"`,
@@ -206,7 +206,7 @@ export function BooleanDescriptor (value: boolean): TypedLiteral {
  * @param type - Literal type
  * @return A new typed Literal in {@link RDFTerm} format
  */
-export function NumericOperation (value: number, type: string): TypedLiteral {
+export function createNumber (value: number, type: string): TypedLiteral {
   return {
     type: 'literal+type',
     value: value.toString(),
@@ -221,7 +221,7 @@ export function NumericOperation (value: number, type: string): TypedLiteral {
  * @param date - A Date, in Moment format
  * @return A new typed Literal in {@link RDFTerm} format
  */
-export function DateLiteral (date: Moment): TypedLiteral {
+export function createDate (date: Moment): TypedLiteral {
   const value = date.toISOString()
   return {
     type: 'literal+type',
