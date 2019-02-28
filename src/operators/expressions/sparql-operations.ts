@@ -32,50 +32,6 @@ import { isNull } from 'lodash'
 import * as crypto from 'crypto'
 
 /**
- * Test if Two RDF Terms are equal
- * @see https://www.w3.org/TR/sparql11-query/#func-RDFterm-equal
- * @param {Object} a - Left Term
- * @param {Object} b - Right term
- * @return {Object} A RDF Literal with the results of the test
- */
-function RDFTermEqual (a: terms.RDFTerm, b: terms.RDFTerm): terms.RDFTerm {
-  if (a.type !== b.type) {
-    return terms.createBoolean(false)
-  }
-  switch (a.type) {
-    case 'iri':
-    case 'literal':
-      return terms.createBoolean(a.value === b.value)
-    case 'literal+type':
-      return terms.createBoolean(a.value === b.value && (<terms.TypedLiteral> a).datatype === (<terms.TypedLiteral> b).datatype)
-    case 'literal+lang':
-      return terms.createBoolean(a.value === b.value && (<terms.LangLiteral> a).lang === (<terms.LangLiteral> b).lang)
-    default:
-      return terms.createBoolean(false)
-  }
-}
-
-/**
- * Return True if a literal is a Date
- * @param  {Object}  literal - Literal to analyze
- * @return {Boolean} True if a literal is a Date, False otherwise
- */
-function isDate (literal: terms.RDFTerm): boolean {
-    return literal.type === 'literal+type' && (<terms.TypedLiteral> literal).datatype === rdf.XSD('dateTime')
-}
-
-function cloneLiteral (base: terms.RDFTerm, newValue: string): terms.RDFTerm {
-  switch (base.type) {
-    case 'literal+type':
-      return terms.createTypedLiteral(newValue, (<terms.TypedLiteral> base).datatype)
-    case 'literal+lang':
-      return terms.createLangLiteral(newValue, (<terms.LangLiteral> base).lang)
-    default:
-      return terms.createLiteral(newValue)
-  }
-}
-
-/**
  * Return a high-orderpply a Hash function  to a RDF
  * and returns the corresponding RDF Literal
  * @param  {string} hashType - Type of hash (md5, sha256, etc)
@@ -103,7 +59,7 @@ export default {
     XQuery & XPath functions https://www.w3.org/TR/sparql11-query/#OperatorMapping
   */
   '+': function (a: terms.RDFTerm, b: terms.RDFTerm): terms.RDFTerm {
-    if (isDate(a) || isDate(b)) {
+    if (terms.isDate(a) || terms.isDate(b)) {
       return terms.createDate(a.asJS + b.asJS)
     } else if (a.type === 'literal+type' && b.type === 'literal+type') {
       return terms.createNumber(a.asJS + b.asJS, (<terms.TypedLiteral> a).datatype)
@@ -112,7 +68,7 @@ export default {
   },
 
   '-': function (a: terms.RDFTerm, b: terms.RDFTerm): terms.RDFTerm {
-    if (isDate(a) || isDate(b)) {
+    if (terms.isDate(a) || terms.isDate(b)) {
       return terms.createDate(moment(a.asJS - b.asJS))
     } else if (a.type === 'literal+type' && b.type === 'literal+type') {
       return terms.createNumber(a.asJS - b.asJS, (<terms.TypedLiteral> a).datatype)
@@ -121,7 +77,7 @@ export default {
   },
 
   '*': function (a: terms.RDFTerm, b: terms.RDFTerm): terms.RDFTerm {
-    if (isDate(a) || isDate(b)) {
+    if (terms.isDate(a) || terms.isDate(b)) {
       return terms.createDate(moment(a.asJS * b.asJS))
     } else if (a.type === 'literal+type' && b.type === 'literal+type') {
       return terms.createNumber(a.asJS * b.asJS, (<terms.TypedLiteral> a).datatype)
@@ -130,7 +86,7 @@ export default {
   },
 
   '/': function (a: terms.RDFTerm, b: terms.RDFTerm): terms.RDFTerm {
-    if (isDate(a) || isDate(b)) {
+    if (terms.isDate(a) || terms.isDate(b)) {
       return terms.createDate(moment(a.asJS / b.asJS))
     } else if (a.type === 'literal+type' && b.type === 'literal+type') {
       return terms.createNumber(a.asJS / b.asJS, (<terms.TypedLiteral> a).datatype)
@@ -139,42 +95,42 @@ export default {
   },
 
   '=': function (a: terms.RDFTerm, b: terms.RDFTerm): terms.RDFTerm {
-    if (isDate(a) && isDate(b)) {
+    if (terms.isDate(a) && terms.isDate(b)) {
       return terms.createBoolean(a.asJS.isSame(b.asJS))
     }
-    return RDFTermEqual(a, b)
+    return terms.equals(a, b)
   },
 
   '!=': function (a: terms.RDFTerm, b: terms.RDFTerm): terms.RDFTerm {
-    if (isDate(a) && isDate(b)) {
+    if (terms.isDate(a) && terms.isDate(b)) {
       return terms.createBoolean(!(a.asJS.isSame(b.asJS)))
     }
     return terms.createBoolean(a.asJS !== b.asJS)
   },
 
   '<': function (a: terms.RDFTerm, b: terms.RDFTerm): terms.RDFTerm {
-    if (isDate(a) && isDate(b)) {
+    if (terms.isDate(a) && terms.isDate(b)) {
       return terms.createBoolean(a.asJS.isBefore(b.asJS))
     }
     return terms.createBoolean(a.asJS < b.asJS)
   },
 
   '<=': function (a: terms.RDFTerm, b: terms.RDFTerm): terms.RDFTerm {
-    if (isDate(a) && isDate(b)) {
+    if (terms.isDate(a) && terms.isDate(b)) {
       return terms.createBoolean(a.asJS.isSameOrBefore(b.asJS))
     }
     return terms.createBoolean(a.asJS <= b.asJS)
   },
 
   '>': function (a: terms.RDFTerm, b: terms.RDFTerm): terms.RDFTerm {
-    if (isDate(a) && isDate(b)) {
+    if (terms.isDate(a) && terms.isDate(b)) {
       return terms.createBoolean(a.asJS.isAfter(b.asJS))
     }
     return terms.createBoolean(a.asJS > b.asJS)
   },
 
   '>=': function (a: terms.RDFTerm, b: terms.RDFTerm): terms.RDFTerm {
-    if (isDate(a) && isDate(b)) {
+    if (terms.isDate(a) && terms.isDate(b)) {
       return terms.createBoolean(a.asJS.isSameOrAfter(b.asJS))
     }
     return terms.createBoolean(a.asJS >= b.asJS)
@@ -200,7 +156,7 @@ export default {
   },
 
   'sameterm': function (a: terms.RDFTerm, b: terms.RDFTerm): terms.RDFTerm {
-    return RDFTermEqual(a, b)
+    return terms.equals(a, b)
   },
 
   'in': function (a: terms.RDFTerm, b: terms.RDFTerm[]): terms.RDFTerm {
@@ -291,15 +247,15 @@ export default {
     if (length !== null && length !== undefined) {
       value = value.substring(0, length.asJS)
     }
-    return cloneLiteral(str, value)
+    return terms.replaceLiteralValue(str, value)
   },
 
   'ucase': function (a: terms.RDFTerm): terms.RDFTerm {
-    return cloneLiteral(a, a.value.toUpperCase())
+    return terms.replaceLiteralValue(a, a.value.toUpperCase())
   },
 
   'lcase': function (a: terms.RDFTerm): terms.RDFTerm {
-    return cloneLiteral(a, a.value.toLowerCase())
+    return terms.replaceLiteralValue(a, a.value.toLowerCase())
   },
 
   'strstarts': function (string: terms.RDFTerm, substring: terms.RDFTerm): terms.RDFTerm {
@@ -323,13 +279,13 @@ export default {
   'strbefore': function (str: terms.RDFTerm, token: terms.RDFTerm): terms.RDFTerm {
     const index = str.value.indexOf(token.value)
     const value = (index > -1) ? str.value.substring(0, index) : ''
-    return cloneLiteral(str, value)
+    return terms.replaceLiteralValue(str, value)
   },
 
   'strafter': function (str: terms.RDFTerm, token: terms.RDFTerm): terms.RDFTerm {
     const index = str.value.indexOf(token.value)
     const value = (index > -1) ? str.value.substring(index + token.value.length) : ''
-    return cloneLiteral(str, value)
+    return terms.replaceLiteralValue(str, value)
   },
 
   'encode_for_uri': function (a: terms.RDFTerm): terms.RDFTerm {
@@ -340,7 +296,7 @@ export default {
     if (a.type !== b.type) {
       return terms.createLiteral(a.value + b.value)
     }
-    return cloneLiteral(a, a.value + b.value)
+    return terms.replaceLiteralValue(a, a.value + b.value)
   },
 
   'langmatches': function (langTag: terms.RDFTerm, langRange: terms.RDFTerm): terms.RDFTerm {

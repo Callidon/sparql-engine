@@ -33,20 +33,9 @@ describe('SPARQL custom operators', () => {
 
   it('should allow for custom functions in BIND', done => {
 
-    function cloneLiteral(base, newValue) {
-      switch (base.type) {
-        case 'literal+type':
-          return terms.TypedLiteralDescriptor(newValue, base.datatype)
-        case 'literal+lang':
-          return terms.createLangLiteral(newValue, base.lang)
-        default:
-          return terms.RawLiteralDescriptor(newValue)
-      }
-    }
-
     const customFunctions = {
       'http://test.com#REVERSE': function (a) {
-        return cloneLiteral(a, a.value.split("").reverse().join(""))
+        return terms.replaceLiteralValue(a, a.value.split("").reverse().join(""))
       }
     }
 

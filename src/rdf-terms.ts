@@ -231,3 +231,53 @@ export function createDate (date: Moment): TypedLiteral {
     asJS: date
   }
 }
+
+/**
+ * Clone a literal and replace its value with another one
+ * @param  base     - Literal to clone
+ * @param  newValue - New literal value
+ * @return The literal with its new value
+ */
+export function replaceLiteralValue (term: RDFTerm, newValue: string): RDFTerm {
+  switch (term.type) {
+    case 'literal+type':
+      return createTypedLiteral(newValue, (<TypedLiteral> term).datatype)
+    case 'literal+lang':
+      return createLangLiteral(newValue, (<LangLiteral> term).lang)
+    default:
+      return createLiteral(newValue)
+  }
+}
+
+/**
+ * Test if Two RDF Terms are equals
+ * @see https://www.w3.org/TR/sparql11-query/#func-RDFterm-equal
+ * @param {Object} a - Left Term
+ * @param {Object} b - Right term
+ * @return {Object} A RDF Literal with the results of the test
+ */
+export function equals (a: RDFTerm, b: RDFTerm): RDFTerm {
+  if (a.type !== b.type) {
+    return createBoolean(false)
+  }
+  switch (a.type) {
+    case 'iri':
+    case 'literal':
+      return createBoolean(a.value === b.value)
+    case 'literal+type':
+      return createBoolean(a.value === b.value && (<TypedLiteral> a).datatype === (<TypedLiteral> b).datatype)
+    case 'literal+lang':
+      return createBoolean(a.value === b.value && (<LangLiteral> a).lang === (<LangLiteral> b).lang)
+    default:
+      return createBoolean(false)
+  }
+}
+
+/**
+ * Test if a literal is a Date
+ * @param  {Object}  literal - Literal to analyze
+ * @return {Boolean} True if a literal is a Date, False otherwise
+ */
+export function isDate (literal: RDFTerm): boolean {
+    return literal.type === 'literal+type' && (<TypedLiteral> literal).datatype === rdf.XSD('dateTime')
+}
