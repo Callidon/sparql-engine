@@ -175,15 +175,23 @@ Finally, to run a SPARQL query on your RDF dataset, you need to use the `PlanBui
   )
 ```
 
-# Custom Functions
+# SPARQL Custom Functions
 
-It is easy to define and use custom functions in `BIND`, `FILTER`, and `HAVING` clauses. There are two steps:
+SPARQL allows custom functions in expressions so that queries can be used on domain-specific data.
+The `sparql-engine` framework provides a supports for declaring such custom functions.
 
-## Create a JSON object mapping
+## Setp 1: Create a JSON object mapping
 
-You must create a JSON object that maps an `IRI` to a function that takes a variable number of [RDFTerms](./src/rdf-terms.ts) and returns an `RDFTerm`. Here is a snipped from the working [example](./examples/custom-functions.js):
+A SPARQL custom functions is defined by an `IRI` (or prefixed name) in `FILTER`, `BIND` or `HAVING BY` expressions. 
+You must create a JSON object that maps each `IRI` to a function that takes a variable number of [RDFTerms](./src/rdf-terms.ts) and returns an `RDFTerm`. 
+Here is a snipped from the working [example](./examples/custom-functions.js).
+See [these utility functions](https://github.com/Callidon/sparql-engine/blob/master/src/rdf-terms.ts) for more details on how to manipulate RDF terms.
 
 ```javascript
+// load the utility functions used to manipulate RDF terms
+const terms = require('sparql-engine/dist/rdf-terms')
+
+// define some custom SPARQL functions
 const customFunctions = {
   'http://example.com#REVERSE': function (rdfTerm) {
     const reverseValue = rdfTerm.value.split("").reverse().join("")
@@ -200,8 +208,6 @@ const customFunctions = {
 }
 ```
 
-It's fairly straight forward what the functions do, but note that `#IS_PALINDROME` and `#IS_EVEN` are function that return "booleans", so the `BooleanDescriptor` function from [rdf-terms](./src/rdf-terms.ts) is called with the boolean `result`, which creates an `RDFTerm` with the `xsd:boolean` type. Also note that `#REVERSE` doesn't just create a new `RDFTerm`, but it clones the `rdfTerm` passed into the function, which will copy over any additional attributes like a language descriptor. `cloneLiteral` is defined in the example, and is pretty straight forward.
-
 This JSON object is then passed into the constructor of your PlanBuilder: 
 
 ```javascript
@@ -210,22 +216,21 @@ const builder = new PlanBuilder(dataset, {}, customFunctions)
 
 ## Use the function in a query
 
-Here's a query using everything supported:
+Here's a query using the newly defined custom SPARQL functions:
 
 ```
 PREFIX foaf: <http://xmlns.com/foaf/0.1/>
 PREFIX example: <http://example.com#>
 SELECT ?length
 WHERE {
-  ?s foaf:name ?name . FILTER (!example:IS_PALINDROME(?name)) .
+  ?s foaf:name ?name . 
+  FILTER (!example:IS_PALINDROME(?name)) .
   BIND(<http://example.com#REVERSE>(?name) as ?reverse) . # this bind is not critical to this query, but is here for illustrative purposes
   BIND(STRLEN(?reverse) as ?length)
 }
 GROUP BY ?length 
 HAVING (example:IS_EVEN(?length))
 ```
-
-The example is a bit silly since `<http://example.com#REVERSE>` is unnecessary, but it illustrates the usage: you can either define a `PREFIX` for your function and call your function like `example:IS_PALINDROME(?name)` in the `FILTER` clause. Or you can be very explicit with a named node like `<http://example.com#REVERSE>(?name)` in the `BIND` clause.
 
 # Federated SPARQL Queries
 
