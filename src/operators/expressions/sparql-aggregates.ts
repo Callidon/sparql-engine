@@ -25,7 +25,7 @@ SOFTWARE.
 'use strict'
 
 import { rdf } from '../../utils'
-import * as terms from '../../rdf-terms'
+import { terms } from '../../rdf-terms'
 import { maxBy, meanBy, minBy, sample } from 'lodash'
 
 /**

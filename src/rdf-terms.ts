@@ -28,58 +28,6 @@ import { parseZone, Moment } from 'moment'
 import { rdf } from './utils'
 
 /**
- * An intermediate format to represent RDF Terms
- */
-export interface RDFTerm {
-  /**
-   * Type of the term
-   */
-  readonly type: string,
-  /**
-   * Value of the term, in string format
-   */
-  readonly value: string,
-  /**
-   * RDF representation of the term
-   */
-  readonly asRDF: string,
-  /**
-   * JS representation of the term
-   */
-  readonly asJS: any
-}
-
-/**
- * An intermediate format to represent RDF IRIs
- */
-export interface IRI extends RDFTerm {}
-
-/**
- * An intermediate format to represent RDF plain Literals
- */
-export interface RawLiteral extends RDFTerm {}
-
-/**
- * An intermediate format to represent RDF Literal with a language tag
- */
-export interface LangLiteral extends RDFTerm {
-  /**
-   * Language tag
-   */
-  readonly lang: string
-}
-
-/**
- * An intermediate format to represent RDF Literal with a datatype
- */
-export interface TypedLiteral extends RDFTerm {
-  /**
-   * Datatype
-   */
-  readonly datatype: string
-}
-
-/**
  * Parse a RDF Literal to its Javascript representation
  * See https://www.w3.org/TR/rdf11-concepts/#section-Datatypes for more details.
  * @param value - Literal value
@@ -124,160 +72,219 @@ function literalToJS (value: string, type: string): any {
 }
 
 /**
- * Creates an IRI in {@link RDFTerm} format
- * @param iri - IRI
- * @return A new IRI in {@link RDFTerm} format
+ * Utilities used to manipulate RDF terms
+ * @param  iri [description]
+ * @return     [description]
  */
-export function createIRI (iri: string): IRI {
-  return {
-    type: 'iri',
-    value: iri,
-    asRDF: iri,
-    asJS: iri
+export namespace terms {
+  /**
+   * An intermediate format to represent RDF Terms
+   */
+  export interface RDFTerm {
+    /**
+     * Type of the term
+     */
+    readonly type: string,
+    /**
+     * Value of the term, in string format
+     */
+    readonly value: string,
+    /**
+     * RDF representation of the term
+     */
+    readonly asRDF: string,
+    /**
+     * JS representation of the term
+     */
+    readonly asJS: any
   }
-}
 
-/**
- * Creates a Literal in {@link RDFTerm} format
- * @param literal - Literal
- * @return A new Literal in {@link RDFTerm} format
- */
-export function createLiteral (literal: string): RawLiteral {
-  const rdf = `"${literal}"`
-  return {
-    type: 'literal',
-    value: literal,
-    asRDF: rdf,
-    asJS: rdf
-  }
-}
+  /**
+   * An intermediate format to represent RDF IRIs
+   */
+  export interface IRI extends RDFTerm {}
 
-/**
- * Creates a Literal with a datatype, in {@link RDFTerm} format
- * @param literal - Literal
- * @param type - Literal datatype
- * @return A new typed Literal in {@link RDFTerm} format
- */
-export function createTypedLiteral (literal: string, type: string): TypedLiteral {
-  return {
-    type: 'literal+type',
-    value: literal,
-    datatype: type,
-    asRDF: `"${literal}"^^${type}`,
-    asJS: literalToJS(literal, type)
-  }
-}
+  /**
+   * An intermediate format to represent RDF plain Literals
+   */
+  export interface RawLiteral extends RDFTerm {}
 
-/**
- * Creates a Literal with a language tag, in {@link RDFTerm} format
- * @param literal - Literal
- * @param lang - Language tag
- * @return A new tagged Literal in {@link RDFTerm} format
- */
-export function createLangLiteral (literal: string, lang: string): LangLiteral {
-  const rdf = `"${literal}"@${lang}`
-  return {
-    type: 'literal+lang',
-    value: literal,
-    lang,
-    asRDF: rdf,
-    asJS: rdf
+  /**
+   * An intermediate format to represent RDF Literal with a language tag
+   */
+  export interface LangLiteral extends RDFTerm {
+    /**
+     * Language tag
+     */
+    readonly lang: string
   }
-}
 
-/**
- * Creates a Literal from a boolean, in {@link RDFTerm} format
- * @param value - Boolean
- * @return A new typed Literal in {@link RDFTerm} format
- */
-export function createBoolean (value: boolean): TypedLiteral {
-  return {
-    type: 'literal+type',
-    value: `"${value}"`,
-    datatype: 'http://www.w3.org/2001/XMLSchema#boolean',
-    asRDF: `"${value}"^^http://www.w3.org/2001/XMLSchema#boolean`,
-    asJS: value
+  /**
+   * An intermediate format to represent RDF Literal with a datatype
+   */
+  export interface TypedLiteral extends RDFTerm {
+    /**
+     * Datatype
+     */
+    readonly datatype: string
   }
-}
 
-/**
- * Creates a Literal from a number, in {@link RDFTerm} format
- * @param value - Number
- * @param type - Literal type
- * @return A new typed Literal in {@link RDFTerm} format
- */
-export function createNumber (value: number, type: string): TypedLiteral {
-  return {
-    type: 'literal+type',
-    value: value.toString(),
-    datatype: type,
-    asRDF: `"${value}"^^${type}`,
-    asJS: value
+  /**
+   * Creates an IRI in {@link RDFTerm} format
+   * @param iri - IRI
+   * @return A new IRI in {@link RDFTerm} format
+   */
+  export function createIRI (iri: string): IRI {
+    return {
+      type: 'iri',
+      value: iri,
+      asRDF: iri,
+      asJS: iri
+    }
   }
-}
 
-/**
- * Creates a Literal from a Moment date, in {@link RDFTerm} format
- * @param date - A Date, in Moment format
- * @return A new typed Literal in {@link RDFTerm} format
- */
-export function createDate (date: Moment): TypedLiteral {
-  const value = date.toISOString()
-  return {
-    type: 'literal+type',
-    value: value,
-    datatype: 'http://www.w3.org/2001/XMLSchema#dateTime',
-    asRDF: `"${value}"^^http://www.w3.org/2001/XMLSchema#dateTime`,
-    asJS: date
+  /**
+   * Creates a Literal in {@link RDFTerm} format
+   * @param literal - Literal
+   * @return A new Literal in {@link RDFTerm} format
+   */
+  export function createLiteral (literal: string): RawLiteral {
+    const rdf = `"${literal}"`
+    return {
+      type: 'literal',
+      value: literal,
+      asRDF: rdf,
+      asJS: rdf
+    }
   }
-}
 
-/**
- * Clone a literal and replace its value with another one
- * @param  base     - Literal to clone
- * @param  newValue - New literal value
- * @return The literal with its new value
- */
-export function replaceLiteralValue (term: RDFTerm, newValue: string): RDFTerm {
-  switch (term.type) {
-    case 'literal+type':
-      return createTypedLiteral(newValue, (<TypedLiteral> term).datatype)
-    case 'literal+lang':
-      return createLangLiteral(newValue, (<LangLiteral> term).lang)
-    default:
-      return createLiteral(newValue)
+  /**
+   * Creates a Literal with a datatype, in {@link RDFTerm} format
+   * @param literal - Literal
+   * @param type - Literal datatype
+   * @return A new typed Literal in {@link RDFTerm} format
+   */
+  export function createTypedLiteral (literal: string, type: string): TypedLiteral {
+    return {
+      type: 'literal+type',
+      value: literal,
+      datatype: type,
+      asRDF: `"${literal}"^^${type}`,
+      asJS: literalToJS(literal, type)
+    }
   }
-}
 
-/**
- * Test if Two RDF Terms are equals
- * @see https://www.w3.org/TR/sparql11-query/#func-RDFterm-equal
- * @param {Object} a - Left Term
- * @param {Object} b - Right term
- * @return {Object} A RDF Literal with the results of the test
- */
-export function equals (a: RDFTerm, b: RDFTerm): RDFTerm {
-  if (a.type !== b.type) {
-    return createBoolean(false)
+  /**
+   * Creates a Literal with a language tag, in {@link RDFTerm} format
+   * @param literal - Literal
+   * @param lang - Language tag
+   * @return A new tagged Literal in {@link RDFTerm} format
+   */
+  export function createLangLiteral (literal: string, lang: string): LangLiteral {
+    const rdf = `"${literal}"@${lang}`
+    return {
+      type: 'literal+lang',
+      value: literal,
+      lang,
+      asRDF: rdf,
+      asJS: rdf
+    }
   }
-  switch (a.type) {
-    case 'iri':
-    case 'literal':
-      return createBoolean(a.value === b.value)
-    case 'literal+type':
-      return createBoolean(a.value === b.value && (<TypedLiteral> a).datatype === (<TypedLiteral> b).datatype)
-    case 'literal+lang':
-      return createBoolean(a.value === b.value && (<LangLiteral> a).lang === (<LangLiteral> b).lang)
-    default:
+
+  /**
+   * Creates a Literal from a boolean, in {@link RDFTerm} format
+   * @param value - Boolean
+   * @return A new typed Literal in {@link RDFTerm} format
+   */
+  export function createBoolean (value: boolean): TypedLiteral {
+    return {
+      type: 'literal+type',
+      value: `"${value}"`,
+      datatype: 'http://www.w3.org/2001/XMLSchema#boolean',
+      asRDF: `"${value}"^^http://www.w3.org/2001/XMLSchema#boolean`,
+      asJS: value
+    }
+  }
+
+  /**
+   * Creates a Literal from a number, in {@link RDFTerm} format
+   * @param value - Number
+   * @param type - Literal type
+   * @return A new typed Literal in {@link RDFTerm} format
+   */
+  export function createNumber (value: number, type: string): TypedLiteral {
+    return {
+      type: 'literal+type',
+      value: value.toString(),
+      datatype: type,
+      asRDF: `"${value}"^^${type}`,
+      asJS: value
+    }
+  }
+
+  /**
+   * Creates a Literal from a Moment date, in {@link RDFTerm} format
+   * @param date - A Date, in Moment format
+   * @return A new typed Literal in {@link RDFTerm} format
+   */
+  export function createDate (date: Moment): TypedLiteral {
+    const value = date.toISOString()
+    return {
+      type: 'literal+type',
+      value: value,
+      datatype: 'http://www.w3.org/2001/XMLSchema#dateTime',
+      asRDF: `"${value}"^^http://www.w3.org/2001/XMLSchema#dateTime`,
+      asJS: date
+    }
+  }
+
+  /**
+   * Clone a literal and replace its value with another one
+   * @param  base     - Literal to clone
+   * @param  newValue - New literal value
+   * @return The literal with its new value
+   */
+  export function replaceLiteralValue (term: RDFTerm, newValue: string): RDFTerm {
+    switch (term.type) {
+      case 'literal+type':
+        return createTypedLiteral(newValue, (<TypedLiteral> term).datatype)
+      case 'literal+lang':
+        return createLangLiteral(newValue, (<LangLiteral> term).lang)
+      default:
+        return createLiteral(newValue)
+    }
+  }
+
+  /**
+   * Test if Two RDF Terms are equals
+   * @see https://www.w3.org/TR/sparql11-query/#func-RDFterm-equal
+   * @param {Object} a - Left Term
+   * @param {Object} b - Right term
+   * @return {Object} A RDF Literal with the results of the test
+   */
+  export function equals (a: RDFTerm, b: RDFTerm): RDFTerm {
+    if (a.type !== b.type) {
       return createBoolean(false)
+    }
+    switch (a.type) {
+      case 'iri':
+      case 'literal':
+        return createBoolean(a.value === b.value)
+      case 'literal+type':
+        return createBoolean(a.value === b.value && (<TypedLiteral> a).datatype === (<TypedLiteral> b).datatype)
+      case 'literal+lang':
+        return createBoolean(a.value === b.value && (<LangLiteral> a).lang === (<LangLiteral> b).lang)
+      default:
+        return createBoolean(false)
+    }
   }
-}
 
-/**
- * Test if a literal is a Date
- * @param  {Object}  literal - Literal to analyze
- * @return {Boolean} True if a literal is a Date, False otherwise
- */
-export function isDate (literal: RDFTerm): boolean {
-    return literal.type === 'literal+type' && (<TypedLiteral> literal).datatype === rdf.XSD('dateTime')
+  /**
+   * Test if a literal is a Date
+   * @param  {Object}  literal - Literal to analyze
+   * @return {Boolean} True if a literal is a Date, False otherwise
+   */
+  export function isDate (literal: RDFTerm): boolean {
+      return literal.type === 'literal+type' && (<TypedLiteral> literal).datatype === rdf.XSD('dateTime')
+  }
 }

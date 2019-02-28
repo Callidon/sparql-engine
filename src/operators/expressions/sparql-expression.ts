@@ -26,7 +26,7 @@ SOFTWARE.
 
 import SPARQL_AGGREGATES from './sparql-aggregates'
 import SPARQL_OPERATIONS from './sparql-operations'
-import { RDFTerm } from '../../rdf-terms'
+import { terms } from '../../rdf-terms'
 import { rdf } from '../../utils'
 import { isArray, isString } from 'lodash'
 import { Algebra } from 'sparqljs'
@@ -41,9 +41,9 @@ export type InputExpression = Algebra.Expression | string | string[]
 /**
  * A SPARQL expression compiled as a function
  */
-export type CompiledExpression = (bindings: Bindings) => RDFTerm | RDFTerm[] | null
+export type CompiledExpression = (bindings: Bindings) => terms.RDFTerm | terms.RDFTerm[] | null
 
-function bindArgument (variable: string): (bindings: Bindings) => RDFTerm | null {
+function bindArgument (variable: string): (bindings: Bindings) => terms.RDFTerm | null {
   return (bindings: Bindings) => {
     if (bindings.has(variable)) {
       return rdf.parseTerm(bindings.get(variable)!)
@@ -110,9 +110,9 @@ export default class SPARQLExpression {
       }
     } else if (expression.type === 'functionCall') {
       const functionExpression = <Algebra.FunctionCallExpression> expression
-      const customFunction = 
-        (customFunctions && customFunctions[functionExpression.function]) 
-          ? customFunctions[functionExpression.function] 
+      const customFunction =
+        (customFunctions && customFunctions[functionExpression.function])
+          ? customFunctions[functionExpression.function]
           : null
 
       if (!customFunction) {
@@ -139,7 +139,7 @@ export default class SPARQLExpression {
    * @param  bindings - Set of mappings
    * @return Results of the evaluation
    */
-  evaluate (bindings: Bindings): RDFTerm | RDFTerm[] | null {
+  evaluate (bindings: Bindings): terms.RDFTerm | terms.RDFTerm[] | null {
     return this._expression(bindings)
   }
 }

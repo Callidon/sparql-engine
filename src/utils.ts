@@ -24,7 +24,7 @@ SOFTWARE.
 
 'use strict'
 
-import * as terms from './rdf-terms'
+import { terms } from './rdf-terms'
 import { Util } from 'n3'
 import { Observable } from 'rxjs'
 import { map } from 'rxjs/operators'

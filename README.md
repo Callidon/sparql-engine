@@ -185,11 +185,11 @@ The `sparql-engine` framework provides a supports for declaring such custom func
 A SPARQL custom functions is defined by an `IRI` (or prefixed name) in `FILTER`, `BIND` or `HAVING BY` expressions.
 You must create a JSON object that maps each `IRI` to a function that takes a variable number of [RDFTerms](./src/rdf-terms.ts) and returns an `RDFTerm`.
 Here is a snipped from the working [example](./examples/custom-functions.js).
-See [the `rdf-terms` documentation](https://github.com/Callidon/sparql-engine/blob/master/src/rdf-terms.ts) for more details on how to manipulate RDF terms.
+See [the `terms` package documentation](https://callidon.github.io/sparql-engine/modules/terms.html) for more details on how to manipulate RDF terms.
 
 ```javascript
 // load the utility functions used to manipulate RDF terms
-const terms = require('sparql-engine/dist/rdf-terms')
+const { terms } = require('sparql-engine')
 
 // define some custom SPARQL functions
 const customFunctions = {

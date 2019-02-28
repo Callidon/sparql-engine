@@ -25,7 +25,7 @@ SOFTWARE.
 'use strict'
 
 import { rdf } from '../../utils'
-import * as terms from '../../rdf-terms'
+import { terms } from '../../rdf-terms'
 import * as moment from 'moment'
 import * as uuid from 'uuid/v4'
 import { isNull } from 'lodash'

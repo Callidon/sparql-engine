@@ -30,7 +30,7 @@ import { Observable, of, merge } from 'rxjs'
 import { map, take, skip } from 'rxjs/operators'
 import { Consumable } from '../operators/update/consumer'
 // RDF core classes
-import { IRI, RDFTerm } from '../rdf-terms'
+import { terms } from '../rdf-terms'
 import { Bindings, BindingBase } from '../rdf/bindings'
 import Dataset from '../rdf/dataset'
 // SPARQL query operators
@@ -78,24 +78,9 @@ const QUERY_MODIFIERS = {
 export type QueryOutput = Bindings | Algebra.TripleObject | boolean
 
 /**
- * Type alias to describe the shape of custom functions. It's basically a JSON object from an IRI (in string form) to a function of 0 to many RDFTerms that produces an RDFTerm:
- * const customFunctions = {
- *   'http://example.com#REVERSE': function (a) {
- *     const reverseValue = a.value.split("").reverse().join("")
- *     return cloneLiteral(a, reverseValue)
- *   },
- *   'http://example.com#IS_PALINDROME': function (a) {
- *     const result = a.value.split("").reverse().join("") === a.value
- *     return terms.BooleanDescriptor(result)
- *   },
- *   'http://example.com#IS_EVEN': function (a) {
- *     const result = a.value % 2 === 0
- *     return terms.BooleanDescriptor(result)
- *   }
- * } 
- * 
+ * Type alias to describe the shape of custom functions. It's basically a JSON object from an IRI (in string form) to a function of 0 to many RDFTerms that produces an RDFTerm.
  */
-export type CustomFunctions = { [key:string]: (...args: (RDFTerm | RDFTerm[] | null)[]) => RDFTerm }
+export type CustomFunctions = { [key:string]: (...args: (terms.RDFTerm | terms.RDFTerm[] | null)[]) => terms.RDFTerm }
 
 /**
  * A PlanBuilder builds a physical query execution plan of a SPARQL query,

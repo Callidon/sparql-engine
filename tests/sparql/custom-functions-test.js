@@ -26,7 +26,7 @@ SOFTWARE.
 
 const expect = require('chai').expect
 const { XSD } = require('../../dist/utils.js').rdf
-const terms = require('../../dist/rdf-terms')
+const terms = require('../../dist/api').terms
 const { getGraph, TestEngine } = require('../utils.js')
 
 describe('SPARQL custom operators', () => {
