@@ -9,6 +9,7 @@ An open-source framework for building SPARQL query engines in Javascript.
 * Build a [SPARQL](https://www.w3.org/TR/2013/REC-sparql11-overview-20130321/) query engine on top of any data storage system.
 * Supports [the full features of the SPARQL syntax](https://www.w3.org/TR/sparql11-query/) by *implementing a single class!*
 * Implements advanced *SPARQL query rewriting techniques* for transparently optimizing SPARQL query processing.
+* Supports [Custom SPARQL functions](#custom-functions).
 * Supports the [SPARQL UPDATE protocol](https://www.w3.org/TR/2013/REC-sparql11-update-20130321/).
 * Supports Basic [Federated SPARQL queries](https://www.w3.org/TR/2013/REC-sparql11-federated-query-20130321/) using **SERVICE clauses**.
 * Customize every step of SPARQL query processing, thanks to a component-based architecture.
@@ -182,41 +183,47 @@ The `sparql-engine` framework provides a supports for declaring such custom func
 
 ## Setp 1: Create a JSON object mapping
 
-A SPARQL custom functions is defined by an `IRI` (or prefixed name) in `FILTER`, `BIND` or `HAVING BY` expressions.
-You must create a JSON object that maps each `IRI` to a function that takes a variable number of [RDFTerms](./src/rdf-terms.ts) and returns an `RDFTerm`.
-Here is a snipped from the working [example](./examples/custom-functions.js).
+A SPARQL value function is an extension point of the SPARQL query language that allows URI to name a function in the query processor.
+It is defined by an `IRI` in a `FILTER`, `BIND` or `HAVING BY` expression.
+To register custom functions, you must create a JSON object that maps each `IRI` to a Javascript function that takes a variable number of [RDFTerms](./src/rdf-terms.ts) arguments and returns an `RDFTerm`.
 See [the `terms` package documentation](https://callidon.github.io/sparql-engine/modules/terms.html) for more details on how to manipulate RDF terms.
 
+The following shows a declaration of some simple custom functions.
 ```javascript
 // load the utility functions used to manipulate RDF terms
 const { terms } = require('sparql-engine')
 
 // define some custom SPARQL functions
 const customFunctions = {
+  // reverse a RDF literal
   'http://example.com#REVERSE': function (rdfTerm) {
     const reverseValue = rdfTerm.value.split("").reverse().join("")
     return terms.replaceLiteralValue(rdfTerm, reverseValue)
   },
+  // Test if a RDF Luteral is a palindrome
   'http://example.com#IS_PALINDROME': function (rdfTerm) {
     const result = rdfTerm.value.split("").reverse().join("") === rdfTerm.value
     return terms.createBoolean(result)
   },
+  // Test if a number is even
   'http://example.com#IS_EVEN': function (rdfTerm) {
-    const result = rdfTerm.value % 2 === 0
-    return terms.createBoolean(result)
+    if (terms.isNumber(rdfTerm)) {
+      const result = rdfTerm.value % 2 === 0
+      return terms.createBoolean(result)
+    }
+    return terms.createBoolean(false)
   }
 }
 ```
 
-This JSON object is then passed into the constructor of your PlanBuilder:
+Then, this JSON object is passed into the constructor of your PlanBuilder.
 
 ```javascript
 const builder = new PlanBuilder(dataset, {}, customFunctions)
 ```
 
-## Use the function in a query
-
-Here's a query using the newly defined custom SPARQL functions:
+Now, you can execute SPARQL queries with your custom functions!
+For example, here is a query that uses our newly defined custom SPARQL functions.
 
 ```
 PREFIX foaf: <http://xmlns.com/foaf/0.1/>
@@ -224,9 +231,14 @@ PREFIX example: <http://example.com#>
 SELECT ?length
 WHERE {
   ?s foaf:name ?name .
-  FILTER (!example:IS_PALINDROME(?name)) .
-  BIND(<http://example.com#REVERSE>(?name) as ?reverse) . # this bind is not critical to this query, but is here for illustrative purposes
+
+  # this bind is not critical, but is here for illustrative purposes
+  BIND(<http://example.com#REVERSE>(?name) as ?reverse)
+
   BIND(STRLEN(?reverse) as ?length)
+
+  # only keeps palindromes
+  FILTER (!example:IS_PALINDROME(?name))
 }
 GROUP BY ?length
 HAVING (example:IS_EVEN(?length))
