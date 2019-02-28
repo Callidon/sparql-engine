@@ -24,7 +24,7 @@ SOFTWARE.
 
 'use strict'
 
-import * as terms from './rdf-terms'
+import { terms } from './rdf-terms'
 import { Util } from 'n3'
 import { Observable } from 'rxjs'
 import { map } from 'rxjs/operators'
@@ -57,17 +57,17 @@ export namespace rdf {
   export function parseTerm (term: string): terms.RDFTerm {
     let parsed = null
     if (Util.isIRI(term)) {
-      parsed = terms.IRIDescriptor(term)
+      parsed = terms.createIRI(term)
     } else if (Util.isLiteral(term)) {
       const value = Util.getLiteralValue(term)
       const lang = Util.getLiteralLanguage(term)
       const type = cleanIRI(Util.getLiteralType(term))
       if (lang !== null && lang !== undefined && lang !== '') {
-        parsed = terms.LangLiteralDescriptor(value, lang)
+        parsed = terms.createLangLiteral(value, lang)
       } else if (term.indexOf('^^') > -1) {
-        parsed = terms.TypedLiteralDescriptor(value, type)
+        parsed = terms.createTypedLiteral(value, type)
       } else {
-        parsed = terms.RawLiteralDescriptor(value)
+        parsed = terms.createLiteral(value)
       }
     } else {
       throw new SyntaxError(`Unknown RDF Term encoutered during parsing: ${term}`)

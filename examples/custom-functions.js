@@ -1,8 +1,7 @@
 'use strict'
 
 const { Parser, Store } = require('n3')
-const { HashMapDataset, Graph, PlanBuilder } = require('../')
-const terms = require('../dist/rdf-terms')
+const { HashMapDataset, Graph, PlanBuilder, terms } = require('../')
 
 // Format a triple pattern according to N3 API:
 // SPARQL variables must be replaced by `null` values
@@ -85,33 +84,22 @@ const query = `
     BIND(<http://example.com#REVERSE>(?name) as ?reverse) . # this bind is not critical to this query, but is here for illustrative purposes
     BIND(STRLEN(?reverse) as ?length)
   }
-  GROUP BY ?length 
+  GROUP BY ?length
   HAVING (example:IS_EVEN(?length))
   `
-
-function cloneLiteral(base, newValue) {
-  switch (base.type) {
-    case 'literal+type':
-      return terms.TypedLiteralDescriptor(newValue, base.datatype)
-    case 'literal+lang':
-      return terms.LangLiteralDescriptor(newValue, base.lang)
-    default:
-      return terms.RawLiteralDescriptor(newValue)
-  }
-}
 
 const customFunctions = {
   'http://example.com#REVERSE': function (rdfTerm) {
     const reverseValue = rdfTerm.value.split("").reverse().join("")
-    return cloneLiteral(rdfTerm, reverseValue)
+    return terms.replaceLiteralValue(rdfTerm, reverseValue)
   },
   'http://example.com#IS_PALINDROME': function (rdfTerm) {
     const result = rdfTerm.value.split("").reverse().join("") === rdfTerm.value
-    return terms.BooleanDescriptor(result)
+    return terms.createBoolean(result)
   },
   'http://example.com#IS_EVEN': function (rdfTerm) {
     const result = rdfTerm.value % 2 === 0
-    return terms.BooleanDescriptor(result)
+    return terms.createBoolean(result)
   }
 }
 

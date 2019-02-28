@@ -25,7 +25,7 @@ SOFTWARE.
 'use strict'
 
 import { rdf } from '../../utils'
-import * as terms from '../../rdf-terms'
+import { terms } from '../../rdf-terms'
 import { maxBy, meanBy, minBy, sample } from 'lodash'
 
 /**
@@ -42,7 +42,7 @@ export default {
     if (variable in rows) {
       count = rows[variable].map((v: string[]) => v !== null).length
     }
-    return terms.NumericOperation(count, rdf.XSD('integer'))
+    return terms.createNumber(count, rdf.XSD('integer'))
   },
 
   'sum': function (variable: string, rows: Object[]): terms.RDFTerm {
@@ -52,7 +52,7 @@ export default {
         return acc + b.asJS
       }, 0)
     }
-    return terms.NumericOperation(sum, rdf.XSD('integer'))
+    return terms.createNumber(sum, rdf.XSD('integer'))
   },
 
   'avg': function (variable: string, rows: Object[]): terms.RDFTerm {
@@ -60,20 +60,20 @@ export default {
     if (variable in rows) {
       avg = meanBy(rows[variable], (v: terms.RDFTerm) => v.asJS)
     }
-    return terms.NumericOperation(avg, rdf.XSD('integer'))
+    return terms.createNumber(avg, rdf.XSD('integer'))
   },
 
   'min': function (variable: string, rows: Object[]): terms.RDFTerm {
-    return minBy(rows[variable], (v: terms.RDFTerm) => v.asJS) || terms.NumericOperation(-1, rdf.XSD('integer'))
+    return minBy(rows[variable], (v: terms.RDFTerm) => v.asJS) || terms.createNumber(-1, rdf.XSD('integer'))
   },
 
   'max': function (variable: string, rows: Object[]): terms.RDFTerm {
-    return maxBy(rows[variable], (v: terms.RDFTerm) => v.asJS) || terms.NumericOperation(-1, rdf.XSD('integer'))
+    return maxBy(rows[variable], (v: terms.RDFTerm) => v.asJS) || terms.createNumber(-1, rdf.XSD('integer'))
   },
 
   'group_concat': function (variable: string, rows: Object[], sep: string): terms.RDFTerm {
     const value = rows[variable].map((v: terms.RDFTerm) => v.value).join(sep)
-    return terms.RawLiteralDescriptor(value)
+    return terms.createLiteral(value)
   },
 
   'sample': function (variable: string, rows: Object[]): terms.RDFTerm {

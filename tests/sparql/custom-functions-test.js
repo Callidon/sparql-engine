@@ -26,27 +26,16 @@ SOFTWARE.
 
 const expect = require('chai').expect
 const { XSD } = require('../../dist/utils.js').rdf
-const terms = require('../../dist/rdf-terms')
+const terms = require('../../dist/api').terms
 const { getGraph, TestEngine } = require('../utils.js')
 
 describe('SPARQL custom operators', () => {
 
   it('should allow for custom functions in BIND', done => {
 
-    function cloneLiteral(base, newValue) {
-      switch (base.type) {
-        case 'literal+type':
-          return terms.TypedLiteralDescriptor(newValue, base.datatype)
-        case 'literal+lang':
-          return terms.LangLiteralDescriptor(newValue, base.lang)
-        default:
-          return terms.RawLiteralDescriptor(newValue)
-      }
-    }
-
     const customFunctions = {
       'http://test.com#REVERSE': function (a) {
-        return cloneLiteral(a, a.value.split("").reverse().join(""))
+        return terms.replaceLiteralValue(a, a.value.split("").reverse().join(""))
       }
     }
 
@@ -78,7 +67,7 @@ describe('SPARQL custom operators', () => {
 
     const customFunctions = {
       'http://test.com#CONTAINS_THOMAS': function (a) {
-        return terms.BooleanDescriptor(a.value.toLowerCase().indexOf("thomas") >= 0)
+        return terms.createBoolean(a.value.toLowerCase().indexOf("thomas") >= 0)
       }
     }
     const g = getGraph('./tests/data/dblp.nt')
@@ -108,7 +97,7 @@ describe('SPARQL custom operators', () => {
 
     const customFunctions = {
       'http://test.com#IS_EVEN': function (a) {
-        return terms.BooleanDescriptor(a.value % 2 === 0)
+        return terms.createBoolean(a.value % 2 === 0)
       }
     }
     const g = getGraph('./tests/data/dblp.nt')
@@ -193,5 +182,3 @@ describe('SPARQL custom operators', () => {
   })
 
 })
-
-

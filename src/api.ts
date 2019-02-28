@@ -35,5 +35,7 @@ export { default as BGPExecutor } from './engine/executors/bgp-executor'
 export { default as GraphExecutor } from './engine/executors/graph-executor'
 export { default as ServiceExecutor } from './engine/executors/service-executor'
 export { default as UpdateExecutor } from './engine/executors/update-executor'
+// RDF terms Utilities
+export { terms } from './rdf-terms' 
 // formatters
 // export { default as XMLFormatter } from './formatters/xml-formatter'
