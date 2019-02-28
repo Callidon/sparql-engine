@@ -181,8 +181,6 @@ Finally, to run a SPARQL query on your RDF dataset, you need to use the `PlanBui
 SPARQL allows custom functions in expressions so that queries can be used on domain-specific data.
 The `sparql-engine` framework provides a supports for declaring such custom functions.
 
-## Setp 1: Create a JSON object mapping
-
 A SPARQL value function is an extension point of the SPARQL query language that allows URI to name a function in the query processor.
 It is defined by an `IRI` in a `FILTER`, `BIND` or `HAVING BY` expression.
 To register custom functions, you must create a JSON object that maps each `IRI` to a Javascript function that takes a variable number of [RDFTerms](./src/rdf-terms.ts) arguments and returns an `RDFTerm`.
