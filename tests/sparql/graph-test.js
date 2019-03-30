@@ -146,7 +146,7 @@ describe('GRAPH/FROM queries', () => {
         expect(b).to.have.all.keys(['?s', '?s2', '?coCreator', '?name', '?g'])
         expect(b['?s']).to.equal('https://dblp.org/pers/m/Minier:Thomas')
         expect(b['?s2']).to.equal('https://dblp.org/pers/g/Grall:Arnaud')
-        expect(b['?g']).to.be.oneOf([ GRAPH_A_IRI, GRAPH_B_IRI ])
+        expect(b['?g']).to.be.oneOf([GRAPH_A_IRI, GRAPH_B_IRI])
         expect(b['?name']).to.equal('"Arnaud Grall"')
         expect(b['?coCreator']).to.be.oneOf([
           'https://dblp.org/pers/m/Molli:Pascal',
@@ -171,4 +171,46 @@ describe('GRAPH/FROM queries', () => {
       })
     })
   })
+
+  it('should allow for bound variables to be used in GRAPH clauses', done => {
+    // this test case comes from the SPARQL 1.1 Spec, section 13.3.4 
+    const defaultGraph = getGraph('./tests/data/SPARQL-1.1-13.3.4.default.ttl');
+    const graph1 = getGraph('./tests/data/SPARQL-1.1-13.3.4.graph1.ttl');
+    const graph2 = getGraph('./tests/data/SPARQL-1.1-13.3.4.graph2.ttl');
+    engine = new TestEngine(defaultGraph, 'tag:example.org,2005-06-06:default')
+    engine.addNamedGraph('tag:example.org,2005-06-06:graph1', graph1)
+    engine.addNamedGraph('tag:example.org,2005-06-06:graph2', graph2)
+
+    const query = `
+      PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+      PREFIX dc:   <http://purl.org/dc/elements/1.1/>
+
+      SELECT ?name ?mbox ?date
+      WHERE
+      {  ?g dc:publisher ?name ;
+            dc:date ?date .
+        GRAPH ?g
+          { ?person foaf:name ?name ; foaf:mbox ?mbox }
+      }
+    `;
+
+    const iterator = engine.execute(query)
+
+    let nbResults = 0
+    iterator.subscribe(bindings => {
+      nbResults++
+      const b = bindings.toObject()
+      expect(b['?name']).to.be.equal('"Bob"')
+      expect(b['?mbox']).to.be.oneOf(['mailto:bob@oldcorp.example.org', 'mailto:bob@newcorp.example.org'])
+      expect(b['?date']).to.be.oneOf(['"2004-12-06"^^http://www.w3.org/2001/XMLSchema#date', '"2005-01-10"^^http://www.w3.org/2001/XMLSchema#date'])
+    }, err => {
+      console.error('error', err)
+    }, () => {
+      expect(nbResults).to.be.equal(2)
+    })
+
+    done()
+  })
+
+
 })
