@@ -73,6 +73,8 @@ export default class GraphExecutor extends Executor {
 
     //if the node is a variable, check to see if it's either a bound variable or a named graph
     if(rdf.isVariable(node.name)){
+      // clone the source first
+      source = source.pipe(shareReplay(5))
       return source.pipe(mergeMap(bindings => {
         //check for bound variable
         const eachBinding = from([bindings])
