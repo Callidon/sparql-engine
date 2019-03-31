@@ -100,11 +100,6 @@ export default class BGPExecutor extends Executor {
    */
   buildIterator (source: Observable<Bindings>, patterns: Algebra.TripleObject[], context: ExecutionContext): Observable<Bindings> {
     // select the graph to use for BGP evaluation
-    // console.log(patterns)
-    // console.log("\n\n")
-    // console.log(context)
-
-
     const graph = (context.defaultGraphs.length > 0) ? this._getGraph(context.defaultGraphs) : this._dataset.getDefaultGraph()
     // extract eventual query hints from the BGP & merge them into the context
     let extraction = parseHints(patterns, context.hints)
