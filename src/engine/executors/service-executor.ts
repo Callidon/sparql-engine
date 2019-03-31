@@ -26,7 +26,9 @@ SOFTWARE.
 
 import Executor from './executor'
 import { Algebra } from 'sparqljs'
-import { Observable } from 'rxjs'
+import { Observable, merge, from } from 'rxjs'
+import { map, shareReplay, mergeMap } from 'rxjs/operators'
+import { rdf } from '../../utils'
 import { Bindings } from '../../rdf/bindings'
 import ExecutionContext from '../context/execution-context'
 
@@ -44,6 +46,7 @@ export default abstract class ServiceExecutor extends Executor {
    * @param  options - Execution options
    * @return An iterator used to evaluate a SERVICE clause
    */
+  /*
   buildIterator (source: Observable<Bindings>, node: Algebra.ServiceNode, context: ExecutionContext): Observable<Bindings> {
     let subquery: Algebra.RootNode
     if (node.patterns[0].type === 'query') {
@@ -57,6 +60,41 @@ export default abstract class ServiceExecutor extends Executor {
         where: node.patterns
       }
     }
+    return this._execute(source, node.name, subquery, context)
+  }*/
+
+  buildIterator (source: Observable<Bindings>, node: Algebra.GraphNode, context: ExecutionContext): Observable<Bindings> {
+
+    let subquery: Algebra.RootNode
+    if (node.patterns[0].type === 'query') {
+      subquery = (<Algebra.RootNode> node.patterns[0])
+    } else {
+      subquery = {
+        prefixes: context.getProperty('prefixes'),
+        queryType: 'SELECT',
+        variables: ['*'],
+        type: 'query',
+        where: node.patterns
+      }
+    }
+
+    //if the node is a variable, check to see if it's either a bound variable or a named graph
+    if(rdf.isVariable(node.name)){
+      // clone the source first
+      source = source.pipe(shareReplay(5))
+      return source.pipe(mergeMap(bindings => {
+        //check for bound variable
+        const eachBinding = from([bindings])
+        const variableIRI = bindings.get(node.name)
+        if(variableIRI){
+          return this._execute(eachBinding, variableIRI, subquery, context)
+        }
+        return eachBinding
+      }))
+
+    }
+  
+    // otherwise, execute the subquery using the Graph
     return this._execute(source, node.name, subquery, context)
   }
 

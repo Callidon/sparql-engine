@@ -25,7 +25,7 @@ SOFTWARE.
 'use strict'
 
 import Executor from './executor'
-import { Observable, merge, from, concat } from 'rxjs'
+import { Observable, merge, from } from 'rxjs'
 import { map, shareReplay, mergeMap } from 'rxjs/operators'
 import { rdf } from '../../utils'
 import { Algebra } from 'sparqljs'
