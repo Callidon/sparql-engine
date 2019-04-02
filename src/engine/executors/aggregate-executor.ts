@@ -78,7 +78,7 @@ export default class AggregateExecutor extends Executor {
         variables.push(g.expression)
       } else {
         variables.push(g.variable)
-        iterator = iterator.pipe(bind(g.variable, g.expression, customFunctions))
+        iterator = bind(iterator, g.variable, g.expression, customFunctions)
       }
     })
     return groupBy(iterator, variables)

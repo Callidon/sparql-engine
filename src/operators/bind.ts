@@ -25,6 +25,7 @@ SOFTWARE.
 'use strict'
 
 import { Observable } from 'rxjs'
+import { map } from 'rxjs/operators'
 import SPARQLExpression from './expressions/sparql-expression'
 import { Algebra } from 'sparqljs'
 import { Bindings } from '../rdf/bindings'
@@ -35,28 +36,21 @@ import { CustomFunctions } from '../engine/plan-builder'
  * @see {@link https://www.w3.org/TR/sparql11-query/#bind}
  * @author Thomas Minier
  * @author Corentin Marionneau
+ * @param source - Source observable
  * @param variable  - SPARQL variable used to bind results
  * @param expression - SPARQL expression
  * @return A Bind operator
  */
-export default function bind (variable: string, expression: Algebra.Expression | string, customFunctions?: CustomFunctions) {
-  return function (source: Observable<Bindings>) {
-    const expr = new SPARQLExpression(expression, customFunctions)
-    return new Observable<Bindings>(subscriber => {
-      return source.subscribe((bindings: Bindings) => {
-        const res = bindings.clone()
-        try {
-          const value: any = expr.evaluate(bindings)
-          if (value !== null) {
-            res.set(variable, value.asRDF)
-          }
-        } catch (e) {
-          subscriber.error(e)
-        }
-        subscriber.next(res)
-      },
-      err => subscriber.error(err),
-      () => subscriber.complete())
-    })
-  }
+export default function bind (source: Observable<Bindings>, variable: string, expression: Algebra.Expression | string, customFunctions?: CustomFunctions) {
+  const expr = new SPARQLExpression(expression, customFunctions)
+  return source.pipe(map(bindings => {
+    const res = bindings.clone()
+    try {
+      const value: any = expr.evaluate(bindings)
+      if (value !== null) {
+        res.set(variable, value.asRDF)
+      }
+    } catch (e) {}
+    return res
+  }))
 }

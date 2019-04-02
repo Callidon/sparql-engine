@@ -274,7 +274,7 @@ export default class PlanBuilder {
     // Handles transformers
     if (aggregates.length > 0) {
       graphIterator = aggregates.reduce((obs: Observable<Bindings>, agg: Algebra.Aggregation) => {
-        return obs.pipe(bind(agg.variable, agg.expression, this._customFunctions))
+        return bind(obs, agg.variable, agg.expression, this._customFunctions)
       }, graphIterator)
     }
 
@@ -423,7 +423,7 @@ export default class PlanBuilder {
         }
       case 'bind':
         const bindNode = group as Algebra.BindNode
-        return source.pipe(bind(bindNode.variable, bindNode.expression, this._customFunctions))
+        return bind(source, bindNode.variable, bindNode.expression, this._customFunctions)
       default:
         throw new Error(`Unsupported SPARQL group pattern found in query: ${group.type}`)
     }
