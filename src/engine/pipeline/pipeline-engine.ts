@@ -75,6 +75,13 @@ export abstract class PipelineEngine {
   abstract from<T>(value: ObservableInput<T>): PipelineStage<T>;
 
   /**
+   * Clone a PipelineStage
+   * @param  stage - PipelineStage to clone
+   * @return Cloned PipelineStage
+   */
+  abstract clone<T>(stage: PipelineStage<T>): PipelineStage<T>;
+
+  /**
    * Creates an output PipelineStage which concurrently emits all values from every given input PipelineStage.
    * @param  inputs - Inputs PipelineStage
    * @return Output PipelineStage
