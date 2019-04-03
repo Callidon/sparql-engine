@@ -24,30 +24,29 @@ SOFTWARE.
 
 'use strict'
 
-import { PipelineEngine, PipelineStage } from './pipeline-engine'
+import { PipelineEngine } from './pipeline-engine'
 import RxjsPipeline from './rxjs-pipeline'
-import { Bindings } from '../../rdf/bindings'
 
 // current pipeline engine used for processing bindings
-let _currentEngineBindings: PipelineEngine<Bindings, PipelineStage<Bindings>, PipelineStage<Bindings[]>> = new RxjsPipeline<Bindings>()
+let _currentEngine: PipelineEngine = new RxjsPipeline()
 
 /**
  * Singleton class used to access the current pipeline engine
  */
-export class BindingsPipeline {
+export class Pipeline {
   /**
    * Get the instance of the current pipeline engine
    * @return The instance of the current pipeline engine
    */
-  static getInstance(): PipelineEngine<Bindings, PipelineStage<Bindings>, PipelineStage<Bindings[]>> {
-    return _currentEngineBindings
+  static getInstance(): PipelineEngine {
+    return _currentEngine
   }
 
   /**
    * Set the instance of the current pipeline engine
    * @param instance  - New pipeline engine to use as the current one
    */
-  static setInstance(instance: PipelineEngine<Bindings, PipelineStage<Bindings>, PipelineStage<Bindings[]>>): void {
-    _currentEngineBindings = instance
+  static setInstance(instance: PipelineEngine): void {
+    _currentEngine = instance
   }
 }

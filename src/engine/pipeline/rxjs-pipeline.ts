@@ -47,81 +47,81 @@ import { PipelineEngine } from './pipeline-engine'
  * A pipeline implemented using Rx.js
  * @author Thomas Minier
  */
-export default class RxjsPipeline<T> extends PipelineEngine<T, Observable<T>, Observable<T[]>> {
+export default class RxjsPipeline extends PipelineEngine {
 
-  empty(): Observable<T> {
+  empty(): Observable<void> {
     return empty()
   }
 
-  of(...values: T[]): Observable<T> {
+  of<T>(...values: T[]): Observable<T> {
     return of(...values)
   }
 
-  from(x: ObservableInput<T>): Observable<T> {
+  from<T>(x: ObservableInput<T>): Observable<T> {
     return from(x)
   }
 
-  merge (...inputs: Observable<T>[]): Observable<T> {
+  merge<T>(...inputs: Observable<T>[]): Observable<T> {
     return merge(...inputs)
   }
 
-  map(input: Observable<T>, mapper: (value: T) => T): Observable<T> {
+  map<F,T>(input: Observable<F>, mapper: (value: F) => T): Observable<T> {
     return input.pipe(map(mapper))
   }
 
-  flatMap(input: Observable<T>, mapper: (value: T) => T[]): Observable<T> {
+  flatMap<F,T>(input: Observable<F>, mapper: (value: F) => T[]): Observable<T> {
     return input.pipe(flatMap(mapper))
   }
 
-  mergeMap(input: Observable<T>, mapper: (value: T) => Observable<T>): Observable<T> {
+  mergeMap<F,T>(input: Observable<F>, mapper: (value: F) => Observable<T>): Observable<T> {
     return input.pipe(mergeMap(mapper))
   }
 
-  filter(input: Observable<T>, predicate: (value: T) => boolean): Observable<T> {
+  filter<T>(input: Observable<T>, predicate: (value: T) => boolean): Observable<T> {
     return input.pipe(filter(predicate))
   }
 
-  reduce(input: Observable<T>, reducer: (acc: T, value: T) => T, initial?: T): Observable<T> {
+  reduce<T>(input: Observable<T>, reducer: (acc: T, value: T) => T, initial?: T): Observable<T> {
     return input.pipe(reduce(reducer, initial))
   }
 
-  limit(input: Observable<T>, stopAfter: number): Observable<T> {
+  limit<T>(input: Observable<T>, stopAfter: number): Observable<T> {
     return input.pipe(take(stopAfter))
   }
 
-  skip(input: Observable<T>, toSkip: number): Observable<T> {
+  skip<T>(input: Observable<T>, toSkip: number): Observable<T> {
     return input.pipe(skip(toSkip))
   }
 
-  distinct(input: Observable<T>): Observable<T> {
+  distinct<T>(input: Observable<T>): Observable<T> {
     return input.pipe(distinct())
   }
 
-  defaultIfEmpty(input: Observable<T>, defaultValue: T): Observable<T> {
+  defaultIfEmpty<T>(input: Observable<T>, defaultValue: T): Observable<T> {
     return input.pipe(defaultIfEmpty(defaultValue))
   }
 
-  bufferCount(input: Observable<T>, count: number): Observable<T[]> {
+  bufferCount<T>(input: Observable<T>, count: number): Observable<T[]> {
     return input.pipe(bufferCount(count))
   }
 
-  forEach(input: Observable<T>, cb: (value: T) => void): void {
+  forEach<T>(input: Observable<T>, cb: (value: T) => void): void {
     input.forEach(cb)
   }
 
-  first(input: Observable<T>): Observable<T> {
+  first<T>(input: Observable<T>): Observable<T> {
     return input.pipe(first())
   }
 
-  endWith(input: Observable<T>, values: T[]): Observable<T> {
+  endWith<T>(input: Observable<T>, values: T[]): Observable<T> {
     return input.pipe(endWith(...values))
   }
 
-  tap(input: Observable<T>, cb: (value: T) => void): Observable<T> {
+  tap<T>(input: Observable<T>, cb: (value: T) => void): Observable<T> {
     return input.pipe(tap(cb))
   }
 
-  collect(input: Observable<T>): Observable<T[]> {
+  collect<T>(input: Observable<T>): Observable<T[]> {
     return input.pipe(toArray())
   }
 }
