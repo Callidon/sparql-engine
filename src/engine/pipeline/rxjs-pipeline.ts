@@ -39,7 +39,7 @@ import {
   mergeMap,
   tap,
   toArray,
-  share,
+  shareReplay,
   reduce
 } from 'rxjs/operators'
 import { PipelineEngine } from './pipeline-engine'
@@ -63,7 +63,7 @@ export default class RxjsPipeline extends PipelineEngine {
   }
 
   clone<T>(stage: Observable<T>): Observable<T> {
-    return stage.pipe(share())
+    return stage.pipe(shareReplay(5))
   }
 
   merge<T>(...inputs: Observable<T>[]): Observable<T> {
