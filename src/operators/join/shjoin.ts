@@ -22,8 +22,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-import { Observable, from, merge, empty } from 'rxjs'
-import { mergeMap } from 'rxjs/operators'
+import { Pipeline } from '../../engine/pipeline/pipeline'
+import { PipelineStage } from '../../engine/pipeline/pipeline-engine'
 import HashJoinTable from './hash-join-table'
 import { Bindings } from '../../rdf/bindings'
 
@@ -35,10 +35,11 @@ import { Bindings } from '../../rdf/bindings'
  * @param  outerTable - Hash table in which bindings are probed
  * @return An Observable that performs one half of a symmetric hash join
  */
-function halfHashJoin (joinKey: string, source: Observable<Bindings>, innerTable: HashJoinTable, outerTable: HashJoinTable): Observable<Bindings> {
-  return source.pipe(mergeMap((bindings: Bindings) => {
+function halfHashJoin (joinKey: string, source: PipelineStage<Bindings>, innerTable: HashJoinTable, outerTable: HashJoinTable): PipelineStage<Bindings> {
+  const engine = Pipeline.getInstance()
+  return engine.mergeMap(source, (bindings: Bindings) => {
     if (!bindings.has(joinKey)) {
-      return empty()
+      return engine.empty<Bindings>()
     }
     const key = bindings.get(joinKey)!
 
@@ -46,8 +47,8 @@ function halfHashJoin (joinKey: string, source: Observable<Bindings>, innerTable
     innerTable.put(key, bindings)
 
     // probe into outer table
-    return from(outerTable.join(key, bindings))
-  }))
+    return engine.from(outerTable.join(key, bindings))
+  })
 }
 
 /**
@@ -57,10 +58,10 @@ function halfHashJoin (joinKey: string, source: Observable<Bindings>, innerTable
  * @param  right - Right source
  * @return An Observable that performs a symmetric hash join between the sources
  */
-export default function symHashJoin (joinKey: string, left: Observable<Bindings>, right: Observable<Bindings>) {
+export default function symHashJoin (joinKey: string, left: PipelineStage<Bindings>, right: PipelineStage<Bindings>) {
   const leftTable = new HashJoinTable()
   const rightTable = new HashJoinTable()
   const leftOp = halfHashJoin(joinKey, left, leftTable, rightTable)
   const rightOp = halfHashJoin(joinKey, right, rightTable, leftTable)
-  return merge(leftOp, rightOp)
+  return Pipeline.getInstance().merge(leftOp, rightOp)
 }

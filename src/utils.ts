@@ -26,8 +26,8 @@ SOFTWARE.
 
 import { terms } from './rdf-terms'
 import { Util } from 'n3'
-import { Observable } from 'rxjs'
-import { map } from 'rxjs/operators'
+import { Pipeline } from './engine/pipeline/pipeline'
+import { PipelineStage } from './engine/pipeline/pipeline-engine'
 import { Algebra } from 'sparqljs'
 import { Bindings } from './rdf/bindings'
 
@@ -201,6 +201,6 @@ export function deepApplyBindings (group: Algebra.PlanNode, bindings: Bindings):
  * @param  bindings - Bindings added to each set of bindings procuded by the iterator
  * @return An iterator that extends bindins produced by the source iterator
  */
-export function extendByBindings (source: Observable<Bindings>, bindings: Bindings): Observable<Bindings> {
-  return source.pipe(map((b: Bindings) => bindings.union(b)))
+export function extendByBindings (source: PipelineStage<Bindings>, bindings: Bindings): PipelineStage<Bindings> {
+  return Pipeline.getInstance().map(source, (b: Bindings) => bindings.union(b))
 }

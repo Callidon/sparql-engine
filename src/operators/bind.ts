@@ -24,8 +24,8 @@ SOFTWARE.
 
 'use strict'
 
-import { Observable } from 'rxjs'
-import { map } from 'rxjs/operators'
+import { Pipeline } from '../engine/pipeline/pipeline'
+import { PipelineStage } from '../engine/pipeline/pipeline-engine'
 import SPARQLExpression from './expressions/sparql-expression'
 import { Algebra } from 'sparqljs'
 import { Bindings } from '../rdf/bindings'
@@ -41,9 +41,9 @@ import { CustomFunctions } from '../engine/plan-builder'
  * @param expression - SPARQL expression
  * @return A Bind operator
  */
-export default function bind (source: Observable<Bindings>, variable: string, expression: Algebra.Expression | string, customFunctions?: CustomFunctions) {
+export default function bind (source: PipelineStage<Bindings>, variable: string, expression: Algebra.Expression | string, customFunctions?: CustomFunctions): PipelineStage<Bindings> {
   const expr = new SPARQLExpression(expression, customFunctions)
-  return source.pipe(map(bindings => {
+  return Pipeline.getInstance().map(source, bindings => {
     const res = bindings.clone()
     try {
       const value: any = expr.evaluate(bindings)
@@ -52,5 +52,5 @@ export default function bind (source: Observable<Bindings>, variable: string, ex
       }
     } catch (e) {}
     return res
-  }))
+  })
 }

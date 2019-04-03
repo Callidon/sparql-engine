@@ -26,9 +26,10 @@ SOFTWARE.
 
 // General libraries
 import { Algebra, Parser } from 'sparqljs'
-import { Observable, of, merge } from 'rxjs'
-import { map, take, skip } from 'rxjs/operators'
 import { Consumable } from '../operators/update/consumer'
+// pipelining engine
+import { Pipeline } from '../engine/pipeline/pipeline'
+import { PipelineStage } from '../engine/pipeline/pipeline-engine'
 // RDF core classes
 import { terms } from '../rdf-terms'
 import { Bindings, BindingBase } from '../rdf/bindings'
@@ -189,7 +190,7 @@ export default class PlanBuilder {
    * @param  options  - Execution options
    * @return An iterator that can be consumed to evaluate the query.
    */
-  build (query: any, context?: ExecutionContext): Observable<QueryOutput> | Consumable {
+  build (query: any, context?: ExecutionContext): PipelineStage<QueryOutput> | Consumable {
     // If needed, parse the string query into a logical query execution plan
     if (typeof query === 'string') {
       query = this._parser.parse(query)
@@ -214,10 +215,11 @@ export default class PlanBuilder {
    * @param  source - Source iterator
    * @return An iterator that can be consumed to evaluate the query.
    */
-  _buildQueryPlan (query: Algebra.RootNode, context: ExecutionContext, source?: Observable<Bindings>): Observable<Bindings> {
+  _buildQueryPlan (query: Algebra.RootNode, context: ExecutionContext, source?: PipelineStage<Bindings>): PipelineStage<Bindings> {
+    const engine = Pipeline.getInstance()
     if (isNull(source) || isUndefined(source)) {
       // build pipeline starting iterator
-      source = of(new BindingBase())
+      source = engine.of(new BindingBase())
     }
     context.setProperty('prefixes', query.prefixes)
 
@@ -253,11 +255,11 @@ export default class PlanBuilder {
     }
 
     // Handles WHERE clause
-    let graphIterator: Observable<Bindings>
+    let graphIterator: PipelineStage<Bindings>
     if (query.where != null && query.where.length > 0) {
       graphIterator = this._buildWhere(source, query.where, context)
     } else {
-      graphIterator = of(new BindingBase())
+      graphIterator = engine.of(new BindingBase())
     }
 
     // Parse query variable to separate projection & aggregate variables
@@ -273,7 +275,7 @@ export default class PlanBuilder {
 
     // Handles transformers
     if (aggregates.length > 0) {
-      graphIterator = aggregates.reduce((obs: Observable<Bindings>, agg: Algebra.Aggregation) => {
+      graphIterator = aggregates.reduce((obs: PipelineStage<Bindings>, agg: Algebra.Aggregation) => {
         return bind(obs, agg.variable, agg.expression, this._customFunctions)
       }, graphIterator)
     }
@@ -290,15 +292,15 @@ export default class PlanBuilder {
 
     // Create iterators for modifiers
     if (query.distinct) {
-      graphIterator = graphIterator.pipe(sparqlDistinct())
+      graphIterator = sparqlDistinct(graphIterator)
     }
 
     // Add offsets and limits if requested
     if ('offset' in query) {
-      graphIterator = graphIterator.pipe(skip(query.offset!))
+      graphIterator = engine.skip(graphIterator, query.offset!)
     }
     if ('limit' in query) {
-      graphIterator = graphIterator.pipe(take(query.limit!))
+      graphIterator = engine.limit(graphIterator, query.limit!)
     }
     // graphIterator.queryType = query.queryType
     return graphIterator
@@ -311,7 +313,7 @@ export default class PlanBuilder {
    * @param  options  - Execution options
    * @return An iterator used to evaluate the WHERE clause
    */
-  _buildWhere (source: Observable<Bindings>, groups: Algebra.PlanNode[], context: ExecutionContext): Observable<Bindings> {
+  _buildWhere (source: PipelineStage<Bindings>, groups: Algebra.PlanNode[], context: ExecutionContext): PipelineStage<Bindings> {
     groups = sortBy(groups, g => {
       switch (g.type) {
         case 'bgp':
@@ -357,7 +359,8 @@ export default class PlanBuilder {
    * @param  options - Execution options
    * @return An iterator used to evaluate the SPARQL Group
    */
-  _buildGroup (source: Observable<Bindings>, group: Algebra.PlanNode, context: ExecutionContext): Observable<Bindings> {
+  _buildGroup (source: PipelineStage<Bindings>, group: Algebra.PlanNode, context: ExecutionContext): PipelineStage<Bindings> {
+    const engine = Pipeline.getInstance()
     // Reset flags on the options for child iterators
     let childContext = context.clone()
 
@@ -380,9 +383,9 @@ export default class PlanBuilder {
 
         // filter out variables added by the rewriting of property paths
         if (tempVariables.length > 0) {
-          iter = iter.pipe(map(bindings => {
+          iter = engine.map(iter, bindings => {
             return bindings.filter(v => tempVariables.indexOf(v) == -1)
-          }))
+          })
         }
         return iter
       case 'query':
@@ -404,11 +407,11 @@ export default class PlanBuilder {
       case 'optional':
         return optional(source, (group as Algebra.GroupNode).patterns, this, childContext)
       case 'union':
-        return merge(...(group as Algebra.GroupNode).patterns.map(patternToken => {
+        return engine.merge(...(group as Algebra.GroupNode).patterns.map(patternToken => {
           return this._buildGroup(source, patternToken, childContext)
         }))
       case 'minus':
-        const rightSource = this._buildWhere(of(new BindingBase()), (group as Algebra.GroupNode).patterns, childContext)
+        const rightSource = this._buildWhere(engine.of(new BindingBase()), (group as Algebra.GroupNode).patterns, childContext)
         return minus(source, rightSource)
       case 'filter':
         const filter = group as Algebra.FilterNode
@@ -419,7 +422,7 @@ export default class PlanBuilder {
           case 'notexists':
             return exists(source, filter.expression.args, this, true, childContext)
           default:
-            return source.pipe(sparqlFilter(filter.expression, this._customFunctions))
+            return sparqlFilter(source, filter.expression, this._customFunctions)
         }
       case 'bind':
         const bindNode = group as Algebra.BindNode
@@ -438,7 +441,7 @@ export default class PlanBuilder {
    * @param options - Execution options
    * @return An iterator which evaluates a SPARQL query with VALUES clause(s)
    */
-  _buildValues (source: Observable<Bindings>, groups: Algebra.PlanNode[], context: ExecutionContext): Observable<Bindings> {
+  _buildValues (source: PipelineStage<Bindings>, groups: Algebra.PlanNode[], context: ExecutionContext): PipelineStage<Bindings> {
     let [ values, others ] = partition(groups, g => g.type === 'values')
     const bindingsLists = values.map(g => (g as Algebra.ValuesNode).values)
     // for each VALUES clause
@@ -450,11 +453,11 @@ export default class PlanBuilder {
         const temp = others.map(g => deepApplyBindings(g, bindings))
         return extendByBindings(this._buildWhere(source, temp, context), bindings)
       })
-      return merge(...unionBranches)
+      return Pipeline.getInstance().merge(...unionBranches)
     })
     // Users may use more than one VALUES clause
     if (iterators.length > 1) {
-      return merge(...iterators)
+      return Pipeline.getInstance().merge(...iterators)
     }
     return iterators[0]
   }

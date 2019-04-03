@@ -24,8 +24,8 @@ SOFTWARE.
 
 'use strict'
 
-import { Observable, from } from 'rxjs'
-import { mergeMap, toArray } from 'rxjs/operators'
+import { Pipeline } from '../engine/pipeline/pipeline'
+import { PipelineStage } from '../engine/pipeline/pipeline-engine'
 import { Algebra } from 'sparqljs'
 import { Bindings } from '../rdf/bindings'
 
@@ -65,7 +65,7 @@ function _compileComparators (comparators: Algebra.OrderComparator[]) {
  * @author Thomas Minier
  * @see {@link https://www.w3.org/TR/2013/REC-sparql11-query-20130321/#modOrderBy}
  */
-export default function orderby (source: Observable<Bindings>, comparators: Algebra.OrderComparator[]) {
+export default function orderby (source: PipelineStage<Bindings>, comparators: Algebra.OrderComparator[]) {
   const comparator = _compileComparators(comparators.map((c: Algebra.OrderComparator) => {
     // explicity tag ascending comparators (sparqljs leaves them untagged)
     if (!('descending' in c)) {
@@ -73,10 +73,9 @@ export default function orderby (source: Observable<Bindings>, comparators: Alge
     }
     return c
   }))
-  return source
-    .pipe(toArray())
-    .pipe(mergeMap((values: Bindings[]) => {
-      values.sort((a, b) => comparator(a, b))
-      return from(values)
-    }))
+  const engine = Pipeline.getInstance()
+  return engine.mergeMap(engine.collect(source), (values: Bindings[]) => {
+    values.sort((a, b) => comparator(a, b))
+    return engine.from(values)
+  })
 }

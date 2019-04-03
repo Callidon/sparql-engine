@@ -24,8 +24,9 @@ SOFTWARE.
 
 'use strict'
 
-import { Observable, ObservableInput, of, from } from 'rxjs'
-import { mergeMap } from 'rxjs/operators'
+import { Pipeline } from '../engine/pipeline/pipeline'
+import { PipelineStage } from '../engine/pipeline/pipeline-engine'
+import { ObservableInput } from 'rxjs'
 import { Algebra } from 'sparqljs'
 import indexJoin from '../operators/join/index-join'
 import { rdf } from '../utils'
@@ -160,29 +161,29 @@ export default abstract class Graph {
    * @param  options - Execution options
    * @return An iterator which evaluates the Basic Graph pattern on the Graph
    */
-  evalBGP (bgp: Algebra.TripleObject[], context: ExecutionContext): ObservableInput<Bindings> {
+  evalBGP (bgp: Algebra.TripleObject[], context: ExecutionContext): PipelineStage<Bindings> {
+    const engine = Pipeline.getInstance()
     if (this._isCapable(GRAPH_CAPABILITY.ESTIMATE_TRIPLE_CARD)) {
-      return from(Promise.all(bgp.map(triple => {
+      const op = engine.from(Promise.all(bgp.map(triple => {
         return this.estimateCardinality(triple).then(c => {
           return { triple, cardinality: c, nbVars: rdf.countVariables(triple) }
         })
       })))
-      .pipe(mergeMap((results: PatternMetadata[]) => {
+      return engine.mergeMap(op, (results: PatternMetadata[]) => {
         results.sort(sortPatterns)
-        const start = of(new BindingBase())
-        return results.reduce((iter: Observable<Bindings>, v: PatternMetadata) => {
-          return iter.pipe(indexJoin(v.triple, this, context))
+        const start = engine.of(new BindingBase())
+        return results.reduce((iter: PipelineStage<Bindings>, v: PatternMetadata) => {
+          return indexJoin(iter, v.triple, this, context)
         }, start)
-      }))
+      })
     } else {
       // FIX ME: this trick is required, otherwise ADD, COPY and MOVE queries are not evaluated correctly. We need to find why...
-      return from(Promise.resolve(null))
-        .pipe(mergeMap(() => {
-          const start = of(new BindingBase())
-          return bgp.reduce((iter: Observable<Bindings>, t: Algebra.TripleObject) => {
-            return iter.pipe(indexJoin(t, this, context))
-          }, start)
-        }))
+      return engine.mergeMap(engine.from(Promise.resolve(null)), () => {
+        const start = engine.of(new BindingBase())
+        return bgp.reduce((iter: PipelineStage<Bindings>, t: Algebra.TripleObject) => {
+          return indexJoin(iter, t, this, context)
+        }, start)
+      })
     }
   }
 }

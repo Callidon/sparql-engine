@@ -24,37 +24,12 @@ SOFTWARE.
 
 'use strict'
 
-import { Observable, concat, from } from 'rxjs'
-import { tap } from 'rxjs/operators'
+import { Pipeline } from '../engine/pipeline/pipeline'
+import { PipelineStage } from '../engine/pipeline/pipeline-engine'
 import { Algebra } from 'sparqljs'
 import PlanBuilder from '../engine/plan-builder'
 import { Bindings } from '../rdf/bindings'
 import ExecutionContext from '../engine/context/execution-context'
-
-/**
- * Like rxjs.defaultIfEmpty, but emits an array of default values
- * @author Thomas Minier
- * @param  values - Default values
- * @return An Observable that emits either the specified `defaultValues` if the source Observable emits no items, or the values emitted by the source Observable.
- */
-function defaultValues (defaultValues: Bindings[]) {
-  return function (source: Observable<Bindings>) {
-    return new Observable<Bindings>(subscriber => {
-      let isEmpty: boolean = true
-      return source.subscribe((x: Bindings) => {
-        isEmpty = false
-        subscriber.next(x)
-      },
-      err => subscriber.error(err),
-      () => {
-        if (isEmpty) {
-          defaultValues.forEach((v: Bindings) => subscriber.next(v))
-        }
-        subscriber.complete()
-      })
-    })
-  }
-}
 
 /**
  * Handles an SPARQL OPTIONAL clause in the following way:
@@ -65,20 +40,21 @@ function defaultValues (defaultValues: Bindings[]) {
  * @see {@link https://www.w3.org/TR/sparql11-query/#optionals}
  * @author Thomas Minier
  */
-export default function optional (source: Observable<Bindings>, patterns: Algebra.PlanNode[], builder: PlanBuilder, context: ExecutionContext): Observable<Bindings> {
+export default function optional (source: PipelineStage<Bindings>, patterns: Algebra.PlanNode[], builder: PlanBuilder, context: ExecutionContext): PipelineStage<Bindings> {
   const seenBefore: Bindings[] = []
-  const start = source
-    .pipe(tap((bindings: Bindings) => {
-      seenBefore.push(bindings)
-    }))
-  return concat(builder._buildWhere(start, patterns, context)
-    .pipe(tap((bindings: Bindings) => {
-      // remove values that matches a results from seenBefore
-      const index = seenBefore.findIndex((b: Bindings) => {
-        return b.isSubset(bindings)
-      })
-      if (index > 0) {
-        seenBefore.splice(index, 1)
-      }
-    })), from(seenBefore))
+  const engine = Pipeline.getInstance()
+  const start = engine.tap(source, (bindings: Bindings) => {
+    seenBefore.push(bindings)
+  })
+  let leftOp = builder._buildWhere(start, patterns, context)
+  leftOp = engine.tap(leftOp, (bindings: Bindings) => {
+    // remove values that matches a results from seenBefore
+    const index = seenBefore.findIndex((b: Bindings) => {
+      return b.isSubset(bindings)
+    })
+    if (index > 0) {
+      seenBefore.splice(index, 1)
+    }
+  })
+  return engine.merge(leftOp, engine.from(seenBefore))
 }

@@ -24,8 +24,8 @@ SOFTWARE.
 
 'use strict'
 
-import { Observable } from 'rxjs'
-import { map } from 'rxjs/operators'
+import { Pipeline } from '../../engine/pipeline/pipeline'
+import { PipelineStage } from '../../engine/pipeline/pipeline-engine'
 import { Algebra } from 'sparqljs'
 import { rdf } from '../../utils'
 import { Bindings } from '../../rdf/bindings'
@@ -37,10 +37,10 @@ import { Bindings } from '../../rdf/bindings'
  * @author Thomas Minier
  * @author Corentin Marionneau
  */
-export default function select (source: Observable<Bindings>, query: Algebra.RootNode) {
+export default function select (source: PipelineStage<Bindings>, query: Algebra.RootNode) {
   const variables = <string[]> query.variables
   const selectAll = variables.length === 1 && variables[0] === '*'
-  return source.pipe(map((bindings: Bindings) => {
+  return Pipeline.getInstance().map(source, (bindings: Bindings) => {
     if (!selectAll) {
       bindings = variables.reduce((obj, v) => {
         if (bindings.has(v)) {
@@ -52,5 +52,5 @@ export default function select (source: Observable<Bindings>, query: Algebra.Roo
       }, bindings.empty())
     }
     return bindings.mapValues((k, v) => rdf.isVariable(k) && typeof v === 'string' ? v : null)
-  }))
+  })
 }

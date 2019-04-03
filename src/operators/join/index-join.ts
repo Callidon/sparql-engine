@@ -24,8 +24,8 @@ SOFTWARE.
 
 'use strict'
 
-import { from } from 'rxjs'
-import { mergeMap, map } from 'rxjs/operators'
+import { Pipeline } from '../../engine/pipeline/pipeline'
+import { PipelineStage } from '../../engine/pipeline/pipeline-engine'
 import Graph from '../../rdf/graph'
 import { Bindings, BindingBase } from '../../rdf/bindings'
 import { Algebra } from 'sparqljs'
@@ -43,20 +43,20 @@ import ExecutionContext from '../../engine/context/execution-context'
  * @param options - Execution options
  * @author Thomas Minier
  */
-export default function indexJoin (pattern: Algebra.TripleObject, graph: Graph, context: ExecutionContext) {
-  return mergeMap((bindings: Bindings) => {
+export default function indexJoin (source: PipelineStage<Bindings>, pattern: Algebra.TripleObject, graph: Graph, context: ExecutionContext) {
+  const engine = Pipeline.getInstance()
+  return engine.mergeMap(source, (bindings: Bindings) => {
     const boundedPattern = bindings.bound(pattern)
     // const hasVars = some(boundedPattern, (v: any) => v.startsWith('?'))
-    return from(graph.find(boundedPattern, context))
-      .pipe(map((item: Algebra.TripleObject) => {
-        let temp = pickBy(item, (v, k) => {
-          return rdf.isVariable(boundedPattern[k])
-        })
-        temp = mapKeys(temp, (v, k) => {
-          return boundedPattern[k]
-        })
-        // if (size(temp) === 0 && hasVars) return null
-        return BindingBase.fromObject(temp).union(bindings)
-      }))
+    return engine.map(engine.from(graph.find(boundedPattern, context)), (item: Algebra.TripleObject) => {
+      let temp = pickBy(item, (v, k) => {
+        return rdf.isVariable(boundedPattern[k])
+      })
+      temp = mapKeys(temp, (v, k) => {
+        return boundedPattern[k]
+      })
+      // if (size(temp) === 0 && hasVars) return null
+      return BindingBase.fromObject(temp).union(bindings)
+    })
   })
 }

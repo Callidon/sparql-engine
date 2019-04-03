@@ -25,8 +25,8 @@ SOFTWARE.
 'use strict'
 
 import Executor from './executor'
-import { Observable, merge } from 'rxjs'
-import { map, shareReplay } from 'rxjs/operators'
+import { Pipeline } from '../pipeline/pipeline'
+import { PipelineStage } from '../pipeline/pipeline-engine'
 import { rdf } from '../../utils'
 import { Algebra } from 'sparqljs'
 import Dataset from '../../rdf/dataset'
@@ -56,7 +56,7 @@ export default class GraphExecutor extends Executor {
    * @param  options - Execution options
    * @return An iterator used to evaluate a GRAPH clause
    */
-  buildIterator (source: Observable<Bindings>, node: Algebra.GraphNode, context: ExecutionContext): Observable<Bindings> {
+  buildIterator (source: PipelineStage<Bindings>, node: Algebra.GraphNode, context: ExecutionContext): PipelineStage<Bindings> {
     let subquery: Algebra.RootNode
     if (node.patterns[0].type === 'query') {
       subquery = (<Algebra.RootNode> node.patterns[0])
@@ -69,17 +69,18 @@ export default class GraphExecutor extends Executor {
         where: node.patterns
       }
     }
+    const engine = Pipeline.getInstance()
     // handle the case where the GRAPh IRI is a SPARQL variable
     if (rdf.isVariable(node.name) && context.namedGraphs.length > 0) {
       // clone the source first
-      source = source.pipe(shareReplay(5))
+      source = engine.clone(source)
       // execute the subquery using each graph, and bound the graph var to the graph iri
       const iterators = context.namedGraphs.map((iri: string) => {
-        return this._execute(source, iri, subquery, context).pipe(map(b => {
+        return engine.map(this._execute(source, iri, subquery, context), (b: Bindings) => {
           return b.extendMany([[node.name, iri]])
-        }))
+        })
       })
-      return merge(...iterators)
+      return engine.merge(...iterators)
     }
     // otherwise, execute the subquery using the Graph
     return this._execute(source, node.name, subquery, context)
@@ -93,7 +94,7 @@ export default class GraphExecutor extends Executor {
    * @param  options   - Execution options
    * @return An iterator used to evaluate a GRAPH clause
    */
-  _execute (source: Observable<Bindings>, iri: string, subquery: Algebra.RootNode, context: ExecutionContext): Observable<Bindings> {
+  _execute (source: PipelineStage<Bindings>, iri: string, subquery: Algebra.RootNode, context: ExecutionContext): PipelineStage<Bindings> {
     const opts = context.clone()
     opts.defaultGraphs = [ iri ]
     return this._builder!._buildQueryPlan(subquery, opts, source)

@@ -24,7 +24,8 @@ SOFTWARE.
 
 'use strict'
 
-import { filter } from 'rxjs/operators'
+import { Pipeline } from '../engine/pipeline/pipeline'
+import { PipelineStage } from '../engine/pipeline/pipeline-engine'
 import SPARQLExpression from './expressions/sparql-expression'
 import { Algebra } from 'sparqljs'
 import { Bindings } from '../rdf/bindings'
@@ -37,9 +38,9 @@ import { CustomFunctions } from "../engine/plan-builder"
  * @param expression - FILTER expression
  * @return A Filter operator
  */
-export default function sparqlFilter (expression: Algebra.Expression, customFunctions?: CustomFunctions) {
+export default function sparqlFilter (source: PipelineStage<Bindings>, expression: Algebra.Expression, customFunctions?: CustomFunctions) {
   const expr = new SPARQLExpression(expression, customFunctions)
-  return filter((bindings: Bindings) => {
+  return Pipeline.getInstance().filter(source, (bindings: Bindings) => {
     const value: any = expr.evaluate(bindings)
     return value !== null && value.asJS
   })

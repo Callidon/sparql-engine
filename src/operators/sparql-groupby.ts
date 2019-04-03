@@ -24,8 +24,8 @@ SOFTWARE.
 
 'use strict'
 
-import { Observable, from } from 'rxjs'
-import { map, mergeMap, toArray } from 'rxjs/operators'
+import { Pipeline } from '../engine/pipeline/pipeline'
+import { PipelineStage } from '../engine/pipeline/pipeline-engine'
 import { rdf } from '../utils'
 import { Bindings } from '../rdf/bindings'
 
@@ -53,38 +53,35 @@ function _hashBindings (variables: string[], bindings: Bindings): string {
 /**
  * Apply a SPARQL GROUP BY clause
  * @see https://www.w3.org/TR/sparql11-query/#groupby
- * @extends MaterializeOperator
  * @author Thomas Minier
  */
-export default function sparqlGroupBy (source: Observable<Bindings>, variables: string[]) {
+export default function sparqlGroupBy (source: PipelineStage<Bindings>, variables: string[]) {
   const groups: Map<string, any> = new Map()
   const keys: Map<string, Bindings> = new Map()
-  return source
-    .pipe(map((bindings: Bindings) => {
-      const key = _hashBindings(variables, bindings)
-        // create a new group is needed
-        if (!groups.has(key)) {
-          keys.set(key, bindings.filter(variable => variables.indexOf(variable) > -1))
-          groups.set(key, buildNewGroup(Array.from(bindings.variables())))
-        }
-        // parse each binding in the intermediate format used by SPARQL expressions
-        // and insert it into the corresponding group
-        bindings.forEach((variable, value) => {
-          groups.get(key)[variable].push(rdf.parseTerm(value))
-        })
-        return null
-    }))
-    .pipe(toArray())
-    .pipe(mergeMap(() => {
-      const aggregates: any[] = []
-        // transform each group in a set of bindings
-        groups.forEach((group, key) => {
-          // also add the GROUP BY keys to the set of bindings
-          const b = keys.get(key)!.clone()
-          b.setProperty('__aggregate', group)
-          aggregates.push(b)
-        })
-        return from(aggregates)
-    }))
-
+  const engine = Pipeline.getInstance()
+  let op = engine.map(source, (bindings: Bindings) => {
+    const key = _hashBindings(variables, bindings)
+      // create a new group is needed
+      if (!groups.has(key)) {
+        keys.set(key, bindings.filter(variable => variables.indexOf(variable) > -1))
+        groups.set(key, buildNewGroup(Array.from(bindings.variables())))
+      }
+      // parse each binding in the intermediate format used by SPARQL expressions
+      // and insert it into the corresponding group
+      bindings.forEach((variable, value) => {
+        groups.get(key)[variable].push(rdf.parseTerm(value))
+      })
+      return null
+  })
+  return engine.mergeMap(engine.collect(op), () => {
+    const aggregates: any[] = []
+      // transform each group in a set of bindings
+      groups.forEach((group, key) => {
+        // also add the GROUP BY keys to the set of bindings
+        const b = keys.get(key)!.clone()
+        b.setProperty('__aggregate', group)
+        aggregates.push(b)
+      })
+      return engine.from(aggregates)
+  })
 }

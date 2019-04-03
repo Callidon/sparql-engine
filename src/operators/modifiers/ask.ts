@@ -24,8 +24,8 @@ SOFTWARE.
 
 'use strict'
 
-import { Observable } from 'rxjs'
-import { first, map, defaultIfEmpty } from 'rxjs/operators'
+import { Pipeline } from '../../engine/pipeline/pipeline'
+import { PipelineStage } from '../../engine/pipeline/pipeline-engine'
 import { Bindings, BindingBase } from '../../rdf/bindings'
 
 /**
@@ -35,12 +35,10 @@ import { Bindings, BindingBase } from '../../rdf/bindings'
  * @author Thomas Minier
  * @param source - Source observable
  */
-export default function ask (source: Observable<Bindings>) {
+export default function ask (source: PipelineStage<Bindings>) {
   const defaultValue: Bindings = new BindingBase()
-  return source
-    .pipe(defaultIfEmpty(defaultValue))
-    .pipe(first())
-    .pipe(map((b: Bindings) => {
-      return b.size > 0
-    }))
+  const engine = Pipeline.getInstance()
+  let op = engine.defaultValues(source, defaultValue)
+  op = engine.first(op)
+  return engine.map(op, b => b.size > 0)
 }

@@ -24,7 +24,7 @@ SOFTWARE.
 
 'use strict'
 
-import { Observable } from 'rxjs'
+import { PipelineStage } from '../pipeline/pipeline-engine'
 import Executor from './executor'
 import { CustomFunctions } from '../../engine/plan-builder'
 import bind from '../../operators/bind'
@@ -49,7 +49,7 @@ export default class AggregateExecutor extends Executor {
    * @param options - Execution options
    * @return An iterator which evaluate SPARQL aggregations
    */
-  buildIterator (source: Observable<Bindings>, query: Algebra.RootNode, context: ExecutionContext, customFunctions?: CustomFunctions): Observable<Bindings> {
+  buildIterator (source: PipelineStage<Bindings>, query: Algebra.RootNode, context: ExecutionContext, customFunctions?: CustomFunctions): PipelineStage<Bindings> {
     if ('group' in query) {
       // first, group bindings using the GROUP BY clause
       let iterator = this._executeGroupBy(source, query.group || [], context, customFunctions)
@@ -69,7 +69,7 @@ export default class AggregateExecutor extends Executor {
    * @param  options - Execution options
    * @return An iterator which evaluate a GROUP BY clause
    */
-  _executeGroupBy (source: Observable<Bindings>, groupby: Algebra.Aggregation[], context: ExecutionContext, customFunctions?: CustomFunctions): Observable<Bindings> {
+  _executeGroupBy (source: PipelineStage<Bindings>, groupby: Algebra.Aggregation[], context: ExecutionContext, customFunctions?: CustomFunctions): PipelineStage<Bindings> {
     let iterator = source
     // extract GROUP By variables & rewrite SPARQL expressions into BIND clauses
     const variables: string[] = []
@@ -91,11 +91,11 @@ export default class AggregateExecutor extends Executor {
    * @param  options - Execution options
    * @return An iterator which evaluate a HAVING clause
    */
-  _executeHaving (source: Observable<Bindings>, having: Algebra.Expression[], context: ExecutionContext, customFunctions?: CustomFunctions): Observable<Bindings> {
+  _executeHaving (source: PipelineStage<Bindings>, having: Algebra.Expression[], context: ExecutionContext, customFunctions?: CustomFunctions): PipelineStage<Bindings> {
     // thanks to the flexibility of SPARQL expressions,
     // we can rewrite a HAVING clause in a set of FILTER clauses!
     return having.reduce((iter, expression) => {
-      return iter.pipe(filter(expression, customFunctions))
+      return filter(iter, expression, customFunctions)
     }, source)
   }
 }

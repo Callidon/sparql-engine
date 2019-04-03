@@ -24,7 +24,8 @@ SOFTWARE.
 
 'use strict'
 
-import { distinct } from 'rxjs/operators'
+import { Pipeline } from '../engine/pipeline/pipeline'
+import { PipelineStage } from '../engine/pipeline/pipeline-engine'
 import { Bindings } from '../rdf/bindings'
 
 /**
@@ -44,6 +45,6 @@ function _hash (bindings: Bindings): string {
  * @see {@link https://www.w3.org/TR/2013/REC-sparql11-query-20130321/#modDuplicates}
  * @author Thomas Minier
  */
-export default function sparqlDistinct () {
-  return distinct((bindings: Bindings) => _hash(bindings))
+export default function sparqlDistinct (source: PipelineStage<Bindings>) {
+  return Pipeline.getInstance().distinct(source, (bindings: Bindings) => _hash(bindings))
 }
