@@ -140,9 +140,10 @@ export abstract class PipelineEngine {
   /**
    * Returns a PipelineStage that emits all items emitted by the source PipelineStage that are distinct by comparison from previous items.
    * @param  input - Input PipelineStage
+   * @param  selector - Optional function to select which value you want to check as distinct.
    * @return A PipelineStage that emits items from the source PipelineStage with distinct values.
    */
-  abstract distinct<T>(input: PipelineStage<T>): PipelineStage<T>;
+  abstract distinct<T, K>(input: PipelineStage<T>, selector?: (value: T) => K): PipelineStage<T>;
 
   /**
    * Apply a callback on every item emitted by the source PipelineStage

@@ -24,7 +24,7 @@ SOFTWARE.
 
 'use strict'
 
-import { Observable, ObservableInput, empty, from, of, merge } from 'rxjs'
+import { Observable, ObservableInput, empty, from, of, concat } from 'rxjs'
 import {
   bufferCount,
   defaultIfEmpty,
@@ -62,7 +62,7 @@ export default class RxjsPipeline extends PipelineEngine {
   }
 
   merge<T>(...inputs: Observable<T>[]): Observable<T> {
-    return merge(...inputs)
+    return concat(...inputs)
   }
 
   map<F,T>(input: Observable<F>, mapper: (value: F) => T): Observable<T> {
@@ -93,8 +93,8 @@ export default class RxjsPipeline extends PipelineEngine {
     return input.pipe(skip(toSkip))
   }
 
-  distinct<T>(input: Observable<T>): Observable<T> {
-    return input.pipe(distinct())
+  distinct<T, K>(input: Observable<T>, selector?: (value: T) => K): Observable<T> {
+    return input.pipe(distinct(selector))
   }
 
   defaultValues<T>(input: Observable<T>, ...values: T[]): Observable<T> {
