@@ -49,7 +49,7 @@ import { PipelineEngine } from './pipeline-engine'
  */
 export default class RxjsPipeline extends PipelineEngine {
 
-  empty(): Observable<void> {
+  empty<T>(): Observable<T> {
     return empty()
   }
 

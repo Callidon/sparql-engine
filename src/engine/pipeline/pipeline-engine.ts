@@ -58,7 +58,7 @@ export abstract class PipelineEngine {
    * Creates a PipelineStage that emits no items
    * @return A PipelineStage that emits no items
    */
-  abstract empty(): PipelineStage<void>;
+  abstract empty<T>(): PipelineStage<T>;
 
   /**
    * Converts the arguments to a PipelineStage
