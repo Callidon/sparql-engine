@@ -81,7 +81,7 @@ export default class RxjsPipeline extends PipelineEngine {
     return input.pipe(filter(predicate))
   }
 
-  reduce<T>(input: Observable<T>, reducer: (acc: T, value: T) => T, initial?: T): Observable<T> {
+  reduce<F,T>(input: Observable<F>, reducer: (acc: T, value: F) => T, initial?: T): Observable<T> {
     return input.pipe(reduce(reducer, initial))
   }
 
@@ -97,8 +97,27 @@ export default class RxjsPipeline extends PipelineEngine {
     return input.pipe(distinct())
   }
 
-  defaultIfEmpty<T>(input: Observable<T>, defaultValue: T): Observable<T> {
-    return input.pipe(defaultIfEmpty(defaultValue))
+  defaultValues<T>(input: Observable<T>, ...values: T[]): Observable<T> {
+    if (values.length === 0) {
+      return input
+    } else if (values.length === 1) {
+      return input.pipe(defaultIfEmpty(values[0]))
+    } else {
+      return new Observable<T>(subscriber => {
+        let isEmpty: boolean = true
+        return input.subscribe((x: T) => {
+          isEmpty = false
+          subscriber.next(x)
+        },
+        err => subscriber.error(err),
+        () => {
+          if (isEmpty) {
+            values.forEach((v: T) => subscriber.next(v))
+          }
+          subscriber.complete()
+        })
+      })
+    }
   }
 
   bufferCount<T>(input: Observable<T>, count: number): Observable<T[]> {

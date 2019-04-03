@@ -119,7 +119,7 @@ export abstract class PipelineEngine {
    * @param  reducer - Accumulator function
    * @return A PipelineStage that emits a single value that is the result of accumulating the values emitted by the source PipelineStage.
    */
-  abstract reduce<T>(input: PipelineStage<T>, reducer: (acc: T, value: T) => T, initial?: T): PipelineStage<T>;
+  abstract reduce<F,T>(input: PipelineStage<F>, reducer: (acc: T, value: F) => T, initial?: T): PipelineStage<T>;
 
   /**
    * Emits only the first `count` values emitted by the source PipelineStage.
@@ -152,12 +152,12 @@ export abstract class PipelineEngine {
   abstract forEach<T>(input: PipelineStage<T>, cb: (value: T) => void): void;
 
   /**
-   * Emits a given value if the source PipelineStage completes without emitting any next value, otherwise mirrors the source PipelineStage.
+   * Emits given values if the source PipelineStage completes without emitting any next value, otherwise mirrors the source PipelineStage.
    * @param  input        - Input PipelineStage
-   * @param  defaultValue - The default value used if the source Observable is empty.
-   * @return A PipelineStage that emits either the specified defaultValue if the source PipelineStage emits no items, or the values emitted by the source PipelineStage.
+   * @param  defaultValue - The default values used if the source Observable is empty.
+   * @return A PipelineStage that emits either the specified default values if the source PipelineStage emits no items, or the values emitted by the source PipelineStage.
    */
-  abstract defaultIfEmpty<T>(input: PipelineStage<T>, defaultValue: T): PipelineStage<T>;
+  abstract defaultValues<T>(input: PipelineStage<T>, ...values: T[]): PipelineStage<T>;
 
   /**
    * Buffers the source PipelineStage values until the size hits the maximum bufferSize given.
