@@ -34,6 +34,26 @@ describe('SPARQL queries with OPTIONAL', () => {
     engine = new TestEngine(g)
   })
 
+  it('should not get an extra result when an OPTIONAL value exists', done => {
+    const query = `
+      SELECT * 
+      WHERE {
+        OPTIONAL {
+          VALUES (?s ?p ?o) { ("s" "p" "o") }
+        }
+      }
+    `
+    const results = []
+    const iterator = engine.execute(query)
+    iterator.subscribe(b => {
+      b = b.toObject()
+      results.push(b)
+    }, done, () => {
+      expect(results.length).to.equal(1)
+      done()
+    })
+  })
+
   it('should evaluate OPTIONAL clauses that yield nothing', done => {
     const query = `
     PREFIX dblp-rdf: <https://dblp.uni-trier.de/rdf/schema-2017-04-18#>
