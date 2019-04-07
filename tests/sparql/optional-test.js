@@ -35,13 +35,19 @@ describe('SPARQL queries with OPTIONAL', () => {
   })
 
   it('should not get an extra result when an OPTIONAL value exists', done => {
+    const graph = getGraph("./tests/data/SPARQL-Query-1.1-6.2.ttl")
+    engine = new TestEngine(graph)
     const query = `
-      SELECT * 
-      WHERE {
-        OPTIONAL {
-          VALUES (?s ?p ?o) { ("s" "p" "o") }
-        }
+    # this is a modified example is from section 6.2 of the SPARQL Spec. It should only product 2 results
+    PREFIX  dc:  <http://purl.org/dc/elements/1.1/>
+    PREFIX  ns:  <http://example.org/ns#>
+    SELECT  ?title ?price
+    WHERE   { 
+      ?x dc:title ?title .
+      OPTIONAL { 
+        ?x ns:price ?price 
       }
+    }
     `
     const results = []
     const iterator = engine.execute(query)
@@ -49,7 +55,8 @@ describe('SPARQL queries with OPTIONAL', () => {
       b = b.toObject()
       results.push(b)
     }, done, () => {
-      expect(results.length).to.equal(1)
+      console.log(results)
+      expect(results.length).to.equal(2)
       done()
     })
   })
