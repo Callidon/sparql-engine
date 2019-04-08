@@ -163,8 +163,8 @@ export function applyBindings (triple: Algebra.TripleObject, bindings: Bindings)
 
 /**
  * Recursively apply bindings to every triple in a SPARQL group pattern
- * @param  {Object} group - SPARQL group pattern to process
- * @param  {Bindings} bindings - Set of bindings to use
+ * @param  group - SPARQL group pattern to process
+ * @param  bindings - Set of bindings to use
  * @return A new SPARQL group pattern with triples bounded
  */
 export function deepApplyBindings (group: Algebra.PlanNode, bindings: Bindings): Algebra.PlanNode {
@@ -197,9 +197,9 @@ export function deepApplyBindings (group: Algebra.PlanNode, bindings: Bindings):
 
 /**
  * Extends all set of bindings produced by an iterator with another set of bindings
- * @param  source - Source terator
+ * @param  source - Source {@link PipelineStage}
  * @param  bindings - Bindings added to each set of bindings procuded by the iterator
- * @return An iterator that extends bindins produced by the source iterator
+ * @return A {@link PipelineStage} that extends bindins produced by the source iterator
  */
 export function extendByBindings (source: PipelineStage<Bindings>, bindings: Bindings): PipelineStage<Bindings> {
   return Pipeline.getInstance().map(source, (b: Bindings) => bindings.union(b))

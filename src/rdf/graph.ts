@@ -47,8 +47,8 @@ export interface PatternMetadata {
  * Comparator function for sorting triple pattern
  * by ascending cardinality and descending number of variables
  * @private
- * @param  {Object} a - Metadata about left triple
- * @param  {Object} b - Metadata about right triple
+ * @param  a - Metadata about left triple
+ * @param  b - Metadata about right triple
  * @return Comparaison result (-1, 1, 0)
  */
 function sortPatterns (a: PatternMetadata, b: PatternMetadata): number {
@@ -126,7 +126,7 @@ export default abstract class Graph {
   /**
    * Returns an iterator that finds RDF triples matching a triple pattern in the graph.
    * @param  triple - Triple pattern to find
-   * @return An iterator which finds RDF triples matching a triple pattern
+   * @return A {@link PipelineStage} which finds RDF triples matching a triple pattern
    */
   abstract find (triple: Algebra.TripleObject, context: ExecutionContext): ObservableInput<Algebra.TripleObject>
 
@@ -146,20 +146,20 @@ export default abstract class Graph {
   }
 
   /**
-   * Evaluates an union of Basic Graph patterns on the Graph using an iterator.
+   * Evaluates an union of Basic Graph patterns on the Graph using a {@link PipelineStage}.
    * @param  patterns - The set of BGPs to evaluate
    * @param  options - Execution options
-   * @return An iterator which evaluates the Basic Graph pattern on the Graph
+   * @return A {@link PipelineStage} which evaluates the Basic Graph pattern on the Graph
    */
   evalUnion (patterns: Algebra.TripleObject[][], context: ExecutionContext): ObservableInput<Bindings> {
     throw new SyntaxError('Error: this graph is not capable of evaluating UNION queries')
   }
 
   /**
-   * Evaluates a Basic Graph pattern, i.e., a set of triple patterns, on the Graph using an iterator.
+   * Evaluates a Basic Graph pattern, i.e., a set of triple patterns, on the Graph using a {@link PipelineStage}.
    * @param  bgp - The set of triple patterns to evaluate
    * @param  options - Execution options
-   * @return An iterator which evaluates the Basic Graph pattern on the Graph
+   * @return A {@link PipelineStage} which evaluates the Basic Graph pattern on the Graph
    */
   evalBGP (bgp: Algebra.TripleObject[], context: ExecutionContext): PipelineStage<Bindings> {
     const engine = Pipeline.getInstance()
