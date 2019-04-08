@@ -32,6 +32,7 @@ let _currentEngine: PipelineEngine = new RxjsPipeline()
 
 /**
  * Singleton class used to access the current pipeline engine
+ * @author Thomas Minier
  */
 export class Pipeline {
   /**

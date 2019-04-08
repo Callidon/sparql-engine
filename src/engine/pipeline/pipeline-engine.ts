@@ -47,8 +47,8 @@ export interface PipelineStage<T> {
 }
 
 /**
- * Abstract representation of a pipeline of iterators.
- * Concrete subclasses are used by the fremwork to build the query execution pipeline.
+ * Abstract representation used to apply transformations on a pipeline of iterators.
+ * Concrete subclasses are used by the framework to build the query execution pipeline.
  * @abstract
  * @author Thomas Minier
  */
