@@ -29,10 +29,12 @@ const { getGraph, TestEngine } = require('../utils.js')
 
 describe('SPARQL queries with OPTIONAL', () => {
   let engine = null
-  before(() => {
+  beforeEach(() => {
     const g = getGraph('./tests/data/dblp_opt.nt')
     engine = new TestEngine(g)
   })
+
+
 
   it('should evaluate OPTIONAL clauses that yield nothing', done => {
     const query = `
@@ -144,4 +146,149 @@ describe('SPARQL queries with OPTIONAL', () => {
       done()
     })
   })
+
+  it('should not get an extra result when an OPTIONAL value exists', done => {
+    const graph = getGraph("./tests/data/SPARQL-Query-1.1-6.2.ttl")
+    engine = new TestEngine(graph)
+    const query = `
+    # this is a modified example is from section 6.2 of the SPARQL Spec. It should only product 2 results
+    PREFIX  dc:  <http://purl.org/dc/elements/1.1/>
+    PREFIX  ns:  <http://example.org/ns#>
+    SELECT  ?title ?price
+    WHERE   { 
+      ?x dc:title ?title .
+      OPTIONAL { 
+        ?x ns:price ?price .
+      }
+    }
+    `
+    const results = []
+    const iterator = engine.execute(query)
+    iterator.subscribe(b => {
+      b = b.toObject()
+      results.push(b)
+    }, done, () => {
+      expect(results.length).to.equal(2)
+      results.map(b => {
+        expect(b['?title']).to.be.oneOf(['"SPARQL Tutorial"', '"The Semantic Web"'])
+        expect(b['?price']).to.be.oneOf([
+          '"42"^^http://www.w3.org/2001/XMLSchema#integer',
+          '"23"^^http://www.w3.org/2001/XMLSchema#integer'
+        ])
+
+      })
+
+      done()
+    })
+  })
+
+  it('should not get an extra result when an OPTIONAL value exists and multiple OPTIONAL clauses are used', done => {
+    const graph = getGraph("./tests/data/SPARQL-Query-1.1-6.2.ttl")
+    engine = new TestEngine(graph)
+    const query = `
+    # this is a modified example is from section 6.2 of the SPARQL Spec. It should only produce 2 results
+    PREFIX  dc:  <http://purl.org/dc/elements/1.1/>
+    PREFIX  ns:  <http://example.org/ns#>
+    SELECT  ?title ?price
+    WHERE   { 
+      OPTIONAL {
+        ?x dc:title ?title .
+      }
+      OPTIONAL { 
+        ?x ns:price ?price .
+      }
+    }
+    `
+    const results = []
+    const iterator = engine.execute(query)
+    iterator.subscribe(b => {
+      b = b.toObject()
+      results.push(b)
+    }, done, () => {
+      expect(results.length).to.equal(2)
+      results.map(b => {
+        expect(b['?title']).to.be.oneOf(['"SPARQL Tutorial"', '"The Semantic Web"'])
+        expect(b['?price']).to.be.oneOf([
+          '"42"^^http://www.w3.org/2001/XMLSchema#integer',
+          '"23"^^http://www.w3.org/2001/XMLSchema#integer'
+        ])
+
+      })
+
+      done()
+    })
+  })
+
+  it('should get the correct number of results when an OPTIONAL results in an UNBOUND', done => {
+    const graph = getGraph("./tests/data/SPARQL-Query-1.1-6.2.ttl")
+    engine = new TestEngine(graph)
+    const query = `
+    # this is a modified example is from section 6.2 of the SPARQL Spec. It should only produce 2 results
+    PREFIX  dc:  <http://purl.org/dc/elements/1.1/>
+    PREFIX  ns:  <http://example.org/ns#>
+    SELECT  ?title ?price
+    WHERE   { 
+      ?x dc:title ?title .
+      OPTIONAL { 
+        ?x ns:price ?price . FILTER(?price > 30)
+      }
+    }
+    `
+    const results = []
+    const iterator = engine.execute(query)
+    iterator.subscribe(b => {
+      b = b.toObject()
+      results.push(b)
+    }, done, () => {
+      expect(results.length).to.equal(2)
+      results.map(b => {
+        expect(b['?title']).to.be.oneOf(['"SPARQL Tutorial"', '"The Semantic Web"'])
+        expect(b['?price']).to.be.oneOf([
+          '"42"^^http://www.w3.org/2001/XMLSchema#integer',
+          'UNBOUND'
+        ])
+
+      })
+
+      done()
+    })
+  })
+
+  it('should get the correct number of results when an OPTIONAL results in an UNBOUND value with multiple OPTIONAL clauses', done => {
+    const graph = getGraph("./tests/data/SPARQL-Query-1.1-6.2.ttl")
+    engine = new TestEngine(graph)
+    const query = `
+    # this is a modified example is from section 6.2 of the SPARQL Spec. It should only produce 2 results
+    PREFIX  dc:  <http://purl.org/dc/elements/1.1/>
+    PREFIX  ns:  <http://example.org/ns#>
+    SELECT  ?title ?price
+    WHERE   { 
+      OPTIONAL {
+        ?x dc:title ?title .
+      }
+      OPTIONAL { 
+        ?x ns:price ?price . FILTER(?price > 30)
+      }
+    }
+    `
+    const results = []
+    const iterator = engine.execute(query)
+    iterator.subscribe(b => {
+      b = b.toObject()
+      results.push(b)
+    }, done, () => {
+      expect(results.length).to.equal(2)
+      results.map(b => {
+        expect(b['?title']).to.be.oneOf(['"SPARQL Tutorial"', '"The Semantic Web"'])
+        expect(b['?price']).to.be.oneOf([
+          '"42"^^http://www.w3.org/2001/XMLSchema#integer',
+          'UNBOUND'
+        ])
+
+      })
+
+      done()
+    })
+  })
+
 })
