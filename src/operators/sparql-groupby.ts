@@ -41,6 +41,13 @@ function buildNewGroup (variables: string[]): Object {
   }, {})
 }
 
+/**
+ * Hash functions for set of bindings
+ * @private
+ * @param  variables - SPARQL variables to hash
+ * @param  bindings  - Set of bindings to hash
+ * @return Hashed set of bindings
+ */
 function _hashBindings (variables: string[], bindings: Bindings): string {
   return variables.map(v => {
     if (bindings.has(v)) {
@@ -52,8 +59,11 @@ function _hashBindings (variables: string[], bindings: Bindings): string {
 
 /**
  * Apply a SPARQL GROUP BY clause
- * @see https://www.w3.org/TR/sparql11-query/#groupby
+ * @see {@link https://www.w3.org/TR/sparql11-query/#groupby}
  * @author Thomas Minier
+ * @param source - Input {@link PipelineStage}
+ * @param variables - GROUP BY variables
+ * @return A {@link PipelineStage} which evaluate the GROUP BY operation
  */
 export default function sparqlGroupBy (source: PipelineStage<Bindings>, variables: string[]) {
   const groups: Map<string, any> = new Map()

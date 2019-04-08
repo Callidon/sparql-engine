@@ -37,13 +37,14 @@ interface ConditionalBindings {
 
 /**
  * Evaluates a SPARQL FILTER (NOT) EXISTS clause
- * @param source - Source observable
+ * TODO this function could be simplified using a filterMap like operator, we should check if Rxjs offers that filterMap
+ * @author Thomas Minier
+ * @param source    - Source {@link PipelineStage}
  * @param groups    - Content of the FILTER clause
  * @param builder   - Plan builder used to evaluate subqueries
  * @param notexists - True if the filter is NOT EXISTS, False otherwise
- * @param options   - Execution options
- * @author Thomas Minier
- * TODO this function could be simplified using a filterMap like operator, we should check if Rxjs offers that filterMap
+ * @param context   - Execution context
+ * @return A {@link PipelineStage} which evaluate the FILTER (NOT) EXISTS operation
  */
 export default function exists (source: PipelineStage<Bindings>, groups: any[], builder: PlanBuilder, notexists: boolean, context: ExecutionContext) {
   const defaultValue: Bindings = new BindingBase()

@@ -30,10 +30,10 @@ import { Bindings } from '../../rdf/bindings'
 /**
  * Utility function used to perform one half of a symmetric hash join
  * @param  joinKey - SPARQL variable used as join attribute
- * @param  source  - Source of bindings
+ * @param  source  - Source of bindings (a {@link PipelineStage})
  * @param  innerTable - Hash table in which bindings are inserted
  * @param  outerTable - Hash table in which bindings are probed
- * @return An Observable that performs one half of a symmetric hash join
+ * @return A {@link PipelineStage} that performs one half of a symmetric hash join
  */
 function halfHashJoin (joinKey: string, source: PipelineStage<Bindings>, innerTable: HashJoinTable, outerTable: HashJoinTable): PipelineStage<Bindings> {
   const engine = Pipeline.getInstance()
@@ -54,9 +54,9 @@ function halfHashJoin (joinKey: string, source: PipelineStage<Bindings>, innerTa
 /**
  * Perform a Symmetric Hash Join between two sources
  * @param  joinKey - SPARQL variable used as join attribute
- * @param  left - Left source
- * @param  right - Right source
- * @return An Observable that performs a symmetric hash join between the sources
+ * @param  left - Left source (a {@link PipelineStage})
+ * @param  right - Right source (a {@link PipelineStage})
+ * @return A {@link PipelineStage} that performs a symmetric hash join between the sources
  */
 export default function symHashJoin (joinKey: string, left: PipelineStage<Bindings>, right: PipelineStage<Bindings>) {
   const leftTable = new HashJoinTable()

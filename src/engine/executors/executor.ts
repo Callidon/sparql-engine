@@ -27,7 +27,7 @@ SOFTWARE.
 import PlanBuilder from '../plan-builder'
 
 /**
- * An Executor encaspulate a strategy for executing SPARQL operations
+ * An Executor encapsulate a strategy for executing SPARQL operations
  * @abstract
  * @author Thomas Minier
  */

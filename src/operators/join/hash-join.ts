@@ -29,10 +29,10 @@ import { Bindings } from '../../rdf/bindings'
 
 /**
  * Perform a traditional Hash join between two sources, i.e., materialize the right source in a hash table and then read from the left source while probing into the hash table.
- * @param  left - Left source
- * @param  right - Right source
+ * @param  left - Left source (a {@link PipelineStage})
+ * @param  right - Right source (a {@link PipelineStage})
  * @param  joinKey - SPARQL variable used as join attribute
- * @return An Observable which performs a Hash join
+ * @return A {@link PipelineStage} which performs a Hash join
  */
 export default function hashJoin (left: PipelineStage<Bindings>, right: PipelineStage<Bindings>, joinKey: string) {
   const joinTable = new HashJoinTable()

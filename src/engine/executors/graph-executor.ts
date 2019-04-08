@@ -50,11 +50,11 @@ export default class GraphExecutor extends Executor {
   }
 
   /**
-   * Build an iterator to evaluate a GRAPH clause
-   * @param  source  - Source iterator
+   * Build a {@link PipelineStage} to evaluate a GRAPH clause
+   * @param  source  - Input {@link PipelineStage}
    * @param  node    - Graph clause
    * @param  options - Execution options
-   * @return An iterator used to evaluate a GRAPH clause
+   * @return A {@link PipelineStage} used to evaluate a GRAPH clause
    */
   buildIterator (source: PipelineStage<Bindings>, node: Algebra.GraphNode, context: ExecutionContext): PipelineStage<Bindings> {
     let subquery: Algebra.RootNode
@@ -87,12 +87,12 @@ export default class GraphExecutor extends Executor {
   }
 
   /**
-   * Returns an iterator used to evaluate a GRAPH clause
-   * @param  source    - Source iterator
+   * Returns a {@link PipelineStage} used to evaluate a GRAPH clause
+   * @param  source    - Input {@link PipelineStage}
    * @param  iri       - IRI of the GRAPH clause
    * @param  subquery  - Subquery to be evaluated
    * @param  options   - Execution options
-   * @return An iterator used to evaluate a GRAPH clause
+   * @return A {@link PipelineStage} used to evaluate a GRAPH clause
    */
   _execute (source: PipelineStage<Bindings>, iri: string, subquery: Algebra.RootNode, context: ExecutionContext): PipelineStage<Bindings> {
     const opts = context.clone()

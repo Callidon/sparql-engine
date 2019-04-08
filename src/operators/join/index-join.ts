@@ -38,9 +38,11 @@ import ExecutionContext from '../../engine/context/execution-context'
  * and a triple pattern (right relation) using the Index Nested Loop Join algorithm.
  * This algorithm is more efficient if the cardinality of the left relation is smaller
  * than the cardinality of the right one.
+ * @param source - Left input (a {@link PipelineStage})
  * @param pattern - Triple pattern to join with (right relation)
  * @param graph   - RDF Graph on which the join is performed
- * @param options - Execution options
+ * @param context - Execution context
+ * @return A {@link PipelineStage} which evaluate the join
  * @author Thomas Minier
  */
 export default function indexJoin (source: PipelineStage<Bindings>, pattern: Algebra.TripleObject, graph: Graph, context: ExecutionContext) {

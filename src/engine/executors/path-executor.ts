@@ -90,10 +90,11 @@ export default abstract class PathExecutor extends Executor {
   }
 
   /**
-   * Get an observable for evaluating a succession of property paths, connected by joins.
+   * Get a {@link PipelineStage} for evaluating a succession of property paths, connected by joins.
+   * @param source - Input {@link PipelineStage}
    * @param  triples - Triple patterns
    * @param  context - Execution context
-   * @return An Observable which yield set of bindings from the pipeline of joins
+   * @return A {@link PipelineStage} which yield set of bindings from the pipeline of joins
    */
   executeManyPaths (source: PipelineStage<Bindings>, triples: Algebra.PathTripleObject[], context: ExecutionContext): PipelineStage<Bindings> {
     // create a join pipeline between all property paths using an index join
@@ -107,12 +108,12 @@ export default abstract class PathExecutor extends Executor {
   }
 
   /**
-   * Get an observable for evaluating the property path.
+   * Get a {@link PipelineStage} for evaluating the property path.
    * @param  subject - Path subject
    * @param  path  - Property path
    * @param  obj   - Path object
    * @param  context - Execution context
-   * @return An Observable which yield set of bindings
+   * @return A {@link PipelineStage} which yield set of bindings
    */
   buildIterator(subject: string, path: Algebra.PropertyPath, obj: string, context: ExecutionContext): PipelineStage<Bindings> {
     const graph = (context.defaultGraphs.length > 0) ? this._getGraph(context.defaultGraphs) : this._dataset.getDefaultGraph()
@@ -136,7 +137,7 @@ export default abstract class PathExecutor extends Executor {
    * @param  obj   - Path object
    * @param  graph - RDF graph
    * @param  context - Execution context
-   * @return An Observable which yield RDF triples matching the property path
+   * @return A {@link PipelineStage} which yield RDF triples matching the property path
    */
   abstract _execute(subject: string, path: Algebra.PropertyPath, obj: string, graph: Graph, context: ExecutionContext): PipelineStage<Algebra.TripleObject>
 }

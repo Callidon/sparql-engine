@@ -70,7 +70,7 @@ export abstract class Consumer extends Writable implements Consumable {
 
   /**
    * Constructor
-   * @param source - Source iterator
+   * @param source - Input {@link PipelineStage}
    * @param options - Execution options
    */
   constructor (source: PipelineStage<Algebra.TripleObject>, options: Object) {

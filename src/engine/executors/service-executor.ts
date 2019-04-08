@@ -38,11 +38,11 @@ import ExecutionContext from '../context/execution-context'
  */
 export default abstract class ServiceExecutor extends Executor {
   /**
-   * Build an iterator to evaluate a SERVICE clause
-   * @param  source  - Source iterator
+   * Build a {@link PipelineStage} to evaluate a SERVICE clause
+   * @param  source  - Input {@link PipelineStage}
    * @param  node    - Service clause
    * @param  options - Execution options
-   * @return An iterator used to evaluate a SERVICE clause
+   * @return A {@link PipelineStage} used to evaluate a SERVICE clause
    */
   buildIterator (source: PipelineStage<Bindings>, node: Algebra.ServiceNode, context: ExecutionContext): PipelineStage<Bindings> {
     let subquery: Algebra.RootNode
@@ -61,13 +61,13 @@ export default abstract class ServiceExecutor extends Executor {
   }
 
   /**
-   * Returns an iterator used to evaluate a SERVICE clause
+   * Returns a {@link PipelineStage} used to evaluate a SERVICE clause
    * @abstract
-   * @param source    - Source iterator
+   * @param source    - Input {@link PipelineStage}
    * @param iri       - Iri of the SERVICE clause
    * @param subquery  - Subquery to be evaluated
    * @param options   - Execution options
-   * @return An iterator used to evaluate a SERVICE clause
+   * @return A {@link PipelineStage} used to evaluate a SERVICE clause
    */
   abstract _execute (source: PipelineStage<Bindings>, iri: string, subquery: Algebra.RootNode, context: ExecutionContext): PipelineStage<Bindings>
 }

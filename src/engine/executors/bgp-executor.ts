@@ -39,7 +39,7 @@ import ExecutionContext from '../context/execution-context'
 // import boundJoin from '../../operators/join/bound-join'
 
 /**
- * Basic iterator used to evaluate Basic graph patterns using the "evalBGP" method
+ * Basic {@link PipelineStage} used to evaluate Basic graph patterns using the "evalBGP" method
  * available
  * @private
  */
@@ -92,11 +92,11 @@ export default class BGPExecutor extends Executor {
   }
 
   /**
-   * Build an iterator to evaluate a BGP
-   * @param  source    - Source iterator
+   * Build a {@link PipelineStage} to evaluate a BGP
+   * @param  source    - Input {@link PipelineStage}
    * @param  patterns  - Set of triple patterns
    * @param  options   - Execution options
-   * @return An iterator used to evaluate a Basic Graph pattern
+   * @return A {@link PipelineStage} used to evaluate a Basic Graph pattern
    */
   buildIterator (source: PipelineStage<Bindings>, patterns: Algebra.TripleObject[], context: ExecutionContext): PipelineStage<Bindings> {
     // select the graph to use for BGP evaluation
@@ -141,13 +141,13 @@ export default class BGPExecutor extends Executor {
   }
 
   /**
-   * Returns an iterator used to evaluate a Basic Graph pattern
-   * @param  source         - Source iterator
+   * Returns a {@link PipelineStage} used to evaluate a Basic Graph pattern
+   * @param  source         - Input {@link PipelineStage}
    * @param  graph          - The graph on which the BGP should be executed
    * @param  patterns       - Set of triple patterns
    * @param  options        - Execution options
    * @param  isJoinIdentity - True if the source iterator is the starting iterator of the pipeline
-   * @return An iterator used to evaluate a Basic Graph pattern
+   * @return A {@link PipelineStage} used to evaluate a Basic Graph pattern
    */
   _execute (source: PipelineStage<Bindings>, graph: Graph, patterns: Algebra.TripleObject[], context: ExecutionContext): PipelineStage<Bindings> {
     // if (graph._isCapable(GRAPH_CAPABILITY.UNION)) {

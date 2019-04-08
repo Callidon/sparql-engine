@@ -39,7 +39,7 @@ export default class InsertConsumer extends Consumer {
 
   /**
    * Constructor
-   * @param source - Source iterator
+   * @param source - Input {@link PipelineStage}
    * @param graph - Input RDF Graph
    * @param options - Execution options
    */

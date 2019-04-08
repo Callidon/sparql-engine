@@ -61,9 +61,11 @@ function _compileComparators (comparators: Algebra.OrderComparator[]) {
 /**
  * A OrderByOperator implements a ORDER BY clause, i.e.,
  * it sorts solution mappings produced by another operator
- * @extends MaterializeOperator
- * @author Thomas Minier
  * @see {@link https://www.w3.org/TR/2013/REC-sparql11-query-20130321/#modOrderBy}
+ * @author Thomas Minier
+ * @param source - Input {@link PipelineStage}
+ * @param comparators - Set of ORDER BY comparators
+ * @return A {@link PipelineStage} which evaluate the ORDER BY operation
  */
 export default function orderby (source: PipelineStage<Bindings>, comparators: Algebra.OrderComparator[]) {
   const comparator = _compileComparators(comparators.map((c: Algebra.OrderComparator) => {

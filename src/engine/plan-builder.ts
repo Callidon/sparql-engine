@@ -185,10 +185,10 @@ export default class PlanBuilder {
 
   /**
    * Build the physical query execution of a SPARQL 1.1 query
-   * and returns an iterator that can be consumed to evaluate the query.
+   * and returns a {@link PipelineStage} or a {@link Consumable} that can be consumed to evaluate the query.
    * @param  query        - SPARQL query to evaluated
    * @param  options  - Execution options
-   * @return An iterator that can be consumed to evaluate the query.
+   * @return A {@link PipelineStage} or a {@link Consumable} that can be consumed to evaluate the query.
    */
   build (query: any, context?: ExecutionContext): PipelineStage<QueryOutput> | Consumable {
     // If needed, parse the string query into a logical query execution plan
@@ -210,10 +210,10 @@ export default class PlanBuilder {
 
   /**
    * Build the physical query execution of a SPARQL query
-   * @param  query         - Parsed SPARQL query
+   * @param  query    - Parsed SPARQL query
    * @param  options  - Execution options
-   * @param  source - Source iterator
-   * @return An iterator that can be consumed to evaluate the query.
+   * @param  source   - Input {@link PipelineStage}
+   * @return A {@link PipelineStage} that can be consumed to evaluate the query.
    */
   _buildQueryPlan (query: Algebra.RootNode, context: ExecutionContext, source?: PipelineStage<Bindings>): PipelineStage<Bindings> {
     const engine = Pipeline.getInstance()
@@ -308,10 +308,10 @@ export default class PlanBuilder {
 
   /**
    * Optimize a WHERE clause and build the corresponding physical plan
-   * @param  source  - Source iterator
+   * @param  source  - Input {@link PipelineStage}
    * @param  groups   - WHERE clause to process
    * @param  options  - Execution options
-   * @return An iterator used to evaluate the WHERE clause
+   * @return A {@link PipelineStage} used to evaluate the WHERE clause
    */
   _buildWhere (source: PipelineStage<Bindings>, groups: Algebra.PlanNode[], context: ExecutionContext): PipelineStage<Bindings> {
     groups = sortBy(groups, g => {
@@ -354,10 +354,10 @@ export default class PlanBuilder {
 
   /**
    * Build a physical plan for a SPARQL group clause
-   * @param  source  - Source iterator
+   * @param  source  - Input {@link PipelineStage}
    * @param  group   - SPARQL Group
    * @param  options - Execution options
-   * @return An iterator used to evaluate the SPARQL Group
+   * @return A {@link PipelineStage} used to evaluate the SPARQL Group
    */
   _buildGroup (source: PipelineStage<Bindings>, group: Algebra.PlanNode, context: ExecutionContext): PipelineStage<Bindings> {
     const engine = Pipeline.getInstance()
@@ -433,13 +433,13 @@ export default class PlanBuilder {
   }
 
   /**
-   * Build an iterator which evaluates a SPARQL query with VALUES clause(s).
+   * Build a {@link PipelineStage} which evaluates a SPARQL query with VALUES clause(s).
    * It rely on a query rewritiing approach:
    * ?s ?p ?o . VALUES ?s { :1 :2 } becomes {:1 ?p ?o BIND(:1 AS ?s)} UNION {:2 ?p ?o BIND(:2 AS ?s)}
-   * @param source  - Source iterator
+   * @param source  - Input {@link PipelineStage}
    * @param groups  - Query body, i.e., WHERE clause
    * @param options - Execution options
-   * @return An iterator which evaluates a SPARQL query with VALUES clause(s)
+   * @return A {@link PipelineStage} which evaluates a SPARQL query with VALUES clause(s)
    */
   _buildValues (source: PipelineStage<Bindings>, groups: Algebra.PlanNode[], context: ExecutionContext): PipelineStage<Bindings> {
     let [ values, others ] = partition(groups, g => g.type === 'values')

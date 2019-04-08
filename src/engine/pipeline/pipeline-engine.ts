@@ -97,20 +97,22 @@ export abstract class PipelineEngine {
   abstract map<F,T>(input: PipelineStage<F>, mapper: (value: F) => T): PipelineStage<T>;
 
   /**
-   * Maps each source value to an array of values which is merged in the output PipelineStage.
-   * @param  input  - Input PipelineStage
-   * @param  mapper - Transformation function
-   * @return Output PipelineStage
-   */
-  abstract flatMap<F,T>(input: PipelineStage<F>, mapper: (value: F) => T[]): PipelineStage<T>;
-
-  /**
    * Projects each source value to a PipelineStage which is merged in the output PipelineStage.
    * @param  input  - Input PipelineStage
    * @param  mapper - Transformation function
    * @return Output PipelineStage
    */
   abstract mergeMap<F,T>(input: PipelineStage<F>, mapper: (value: F) => PipelineStage<T>): PipelineStage<T>;
+
+  /**
+   * Maps each source value to an array of values which is merged in the output PipelineStage.
+   * @param  input  - Input PipelineStage
+   * @param  mapper - Transformation function
+   * @return Output PipelineStage
+   */
+  flatMap<F,T>(input: PipelineStage<F>, mapper: (value: F) => T[]): PipelineStage<T> {
+    return this.mergeMap(input, (value: F) => this.of(...mapper(value)))
+  }
 
   /**
    * Filter items emitted by the source PipelineStage by only emitting those that satisfy a specified predicate.
@@ -176,9 +178,9 @@ export abstract class PipelineEngine {
   abstract bufferCount<T>(input: PipelineStage<T>, count: number): PipelineStage<T[]>;
 
   /**
-   * Collect all items from the source PipelineStage into an array.
+   * Creates a PipelineStage which collect all items from the source PipelineStage into an array, and then emits this array.
    * @param  input - Input PipelineStage
-   * @return All values emitted by the source PipelineStage as an array
+   * @return A PipelineStage which emits all values emitted by the source PipelineStage as an array
    */
   abstract collect<T>(input: PipelineStage<T>): PipelineStage<T[]>;
 
@@ -195,7 +197,7 @@ export abstract class PipelineEngine {
    * Returns a PipelineStage that emits the items you specify as arguments after it finishes emitting items emitted by the source PipelineStage.
    * @param  input  - Input PipelineStage
    * @param  values - Values to append
-   * @return A PipelineStage that emits the items emitted by the source PipelineStage and then emits the items in the specified PipelineStage.
+   * @return A PipelineStage that emits the items emitted by the source PipelineStage and then emits the additional values.
    */
   endWith<T>(input: PipelineStage<T>, values: T[]): PipelineStage<T> {
     return this.merge(input, this.from(values))

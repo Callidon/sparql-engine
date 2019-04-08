@@ -43,11 +43,11 @@ import ExecutionContext from '../context/execution-context'
  */
 export default class AggregateExecutor extends Executor {
   /**
-   * Build an iterator for the evaluation of SPARQL aggregations
-   * @param source  - Source iterator
+   * Build a {@link PipelineStage} for the evaluation of SPARQL aggregations
+   * @param source  - Input {@link PipelineStage}
    * @param query   - Parsed SPARQL query (logical execution plan)
    * @param options - Execution options
-   * @return An iterator which evaluate SPARQL aggregations
+   * @return A {@link PipelineStage} which evaluate SPARQL aggregations
    */
   buildIterator (source: PipelineStage<Bindings>, query: Algebra.RootNode, context: ExecutionContext, customFunctions?: CustomFunctions): PipelineStage<Bindings> {
     if ('group' in query) {
@@ -63,11 +63,11 @@ export default class AggregateExecutor extends Executor {
   }
 
   /**
-   * Build an iterator for the evaluation of a GROUP BY clause
-   * @param source  - Source iterator
+   * Build a {@link PipelineStage} for the evaluation of a GROUP BY clause
+   * @param source  - Input {@link PipelineStage}
    * @param  groupby - GROUP BY clause
    * @param  options - Execution options
-   * @return An iterator which evaluate a GROUP BY clause
+   * @return A {@link PipelineStage} which evaluate a GROUP BY clause
    */
   _executeGroupBy (source: PipelineStage<Bindings>, groupby: Algebra.Aggregation[], context: ExecutionContext, customFunctions?: CustomFunctions): PipelineStage<Bindings> {
     let iterator = source
@@ -85,11 +85,11 @@ export default class AggregateExecutor extends Executor {
   }
 
   /**
-   * Build an iterator for the evaluation of a HAVING clause
-   * @param  source  - Source iterator
+   * Build a {@link PipelineStage} for the evaluation of a HAVING clause
+   * @param  source  - Input {@link PipelineStage}
    * @param  having  - HAVING clause
    * @param  options - Execution options
-   * @return An iterator which evaluate a HAVING clause
+   * @return A {@link PipelineStage} which evaluate a HAVING clause
    */
   _executeHaving (source: PipelineStage<Bindings>, having: Algebra.Expression[], context: ExecutionContext, customFunctions?: CustomFunctions): PipelineStage<Bindings> {
     // thanks to the flexibility of SPARQL expressions,

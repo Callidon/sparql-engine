@@ -33,7 +33,8 @@ import { Bindings, BindingBase } from '../../rdf/bindings'
  * results are outputed following the SPARQL XML results format
  * @see {@link https://www.w3.org/TR/2013/REC-sparql11-query-20130321/#ask}
  * @author Thomas Minier
- * @param source - Source observable
+ * @param source - Source {@link PipelineStage}
+ * @return A {@link PipelineStage} that evaluate the ASK modifier
  */
 export default function ask (source: PipelineStage<Bindings>) {
   const defaultValue: Bindings = new BindingBase()

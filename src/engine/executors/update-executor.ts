@@ -154,7 +154,7 @@ export default class UpdateExecutor extends Executor {
   /**
    * Build a consumer to evaluate a SPARQL INSERT clause
    * @private
-   * @param source - Source iterator
+   * @param source - Input {@link PipelineStage}
    * @param group - parsed SPARQL INSERT clause
    * @param graph - RDF Graph used to insert data
    * @return A consumer used to evaluate a SPARQL INSERT clause
@@ -170,7 +170,7 @@ export default class UpdateExecutor extends Executor {
   /**
    * Build a consumer to evaluate a SPARQL DELETE clause
    * @private
-   * @param  source - Source iterator
+   * @param  source - Input {@link PipelineStage}
    * @param  group - parsed SPARQL DELETE clause
    * @param  graph - RDF Graph used to delete data
    * @return A consumer used to evaluate a SPARQL DELETE clause

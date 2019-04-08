@@ -35,8 +35,10 @@ import { CustomFunctions } from "../engine/plan-builder"
  * Evaluate SPARQL Filter clauses
  * @see {@link https://www.w3.org/TR/sparql11-query/#expressions}
  * @author Thomas Minier
+ * @param source - Input {@link PipelineStage}
  * @param expression - FILTER expression
- * @return A Filter operator
+ * @param customFunctions - User-defined SPARQL functions (optional)
+ * @return A {@link PipelineStage} which evaluate the FILTER operation
  */
 export default function sparqlFilter (source: PipelineStage<Bindings>, expression: Algebra.Expression, customFunctions?: CustomFunctions) {
   const expr = new SPARQLExpression(expression, customFunctions)
