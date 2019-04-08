@@ -24,7 +24,10 @@ SOFTWARE.
 
 'use strict'
 
-import { ObservableInput } from 'rxjs'
+/**
+ * The input of a {@link PipelineStage}, either another {@link PipelineStage}, an array, an iterable or a promise.
+ */
+export type PipelineInput<T> = PipelineStage<T> | Iterable<T> | PromiseLike<T> | ArrayLike<T>;
 
 /**
  * A step in a pipeline. Data can be consumed in a pull-based or push-bashed fashion.
@@ -72,7 +75,7 @@ export abstract class PipelineEngine {
    * @param  value - Source object
    * @return A PipelineStage that emits the values contains in the object
    */
-  abstract from<T>(value: ObservableInput<T>): PipelineStage<T>;
+  abstract from<T>(value: PipelineInput<T>): PipelineStage<T>;
 
   /**
    * Clone a PipelineStage
@@ -86,7 +89,7 @@ export abstract class PipelineEngine {
    * @param  inputs - Inputs PipelineStage
    * @return Output PipelineStage
    */
-  abstract merge<T>(...inputs: PipelineStage<T>[]): PipelineStage<T>;
+  abstract merge<T>(...inputs: Array<PipelineStage<T> | PipelineInput<T>>): PipelineStage<T>;
 
   /**
    * Applies a given `mapper` function to each value emitted by the source PipelineStage, and emits the resulting values as a PipelineStage.

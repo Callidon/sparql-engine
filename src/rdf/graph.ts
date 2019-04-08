@@ -25,8 +25,7 @@ SOFTWARE.
 'use strict'
 
 import { Pipeline } from '../engine/pipeline/pipeline'
-import { PipelineStage } from '../engine/pipeline/pipeline-engine'
-import { ObservableInput } from 'rxjs'
+import { PipelineInput, PipelineStage } from '../engine/pipeline/pipeline-engine'
 import { Algebra } from 'sparqljs'
 import indexJoin from '../operators/join/index-join'
 import { rdf } from '../utils'
@@ -124,11 +123,11 @@ export default abstract class Graph {
   abstract delete (triple: Algebra.TripleObject): Promise<void>
 
   /**
-   * Returns an iterator that finds RDF triples matching a triple pattern in the graph.
+   * Get a {@link PipelineInput} which finds RDF triples matching a triple pattern in the graph.
    * @param  triple - Triple pattern to find
-   * @return A {@link PipelineStage} which finds RDF triples matching a triple pattern
+   * @return A {@link PipelineInput} which finds RDF triples matching a triple pattern
    */
-  abstract find (triple: Algebra.TripleObject, context: ExecutionContext): ObservableInput<Algebra.TripleObject>
+  abstract find (triple: Algebra.TripleObject, context: ExecutionContext): PipelineInput<Algebra.TripleObject>
 
   /**
    * Remove all RDF triples in the Graph
@@ -151,7 +150,7 @@ export default abstract class Graph {
    * @param  options - Execution options
    * @return A {@link PipelineStage} which evaluates the Basic Graph pattern on the Graph
    */
-  evalUnion (patterns: Algebra.TripleObject[][], context: ExecutionContext): ObservableInput<Bindings> {
+  evalUnion (patterns: Algebra.TripleObject[][], context: ExecutionContext): PipelineStage<Bindings> {
     throw new SyntaxError('Error: this graph is not capable of evaluating UNION queries')
   }
 

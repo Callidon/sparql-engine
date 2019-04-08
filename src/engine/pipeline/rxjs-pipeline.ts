@@ -42,7 +42,7 @@ import {
   shareReplay,
   reduce
 } from 'rxjs/operators'
-import { PipelineEngine } from './pipeline-engine'
+import { PipelineInput, PipelineEngine } from './pipeline-engine'
 
 /**
  * A pipeline implemented using Rx.js
@@ -58,7 +58,7 @@ export default class RxjsPipeline extends PipelineEngine {
     return of(...values)
   }
 
-  from<T>(x: ObservableInput<T>): Observable<T> {
+  from<T>(x: any): Observable<T> {
     return from(x)
   }
 
@@ -66,7 +66,7 @@ export default class RxjsPipeline extends PipelineEngine {
     return stage.pipe(shareReplay(5))
   }
 
-  merge<T>(...inputs: Observable<T>[]): Observable<T> {
+  merge<T>(...inputs: Array<Observable<T>>): Observable<T> {
     return concat(...inputs)
   }
 
