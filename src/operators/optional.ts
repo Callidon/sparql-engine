@@ -52,7 +52,7 @@ export default function optional (source: PipelineStage<Bindings>, patterns: Alg
     const index = seenBefore.findIndex((b: Bindings) => {
       return b.isSubset(bindings)
     })
-    if (index > 0) {
+    if (index >= 0) {
       seenBefore.splice(index, 1)
     }
   })
