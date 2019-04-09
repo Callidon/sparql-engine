@@ -510,6 +510,72 @@ function testPipelineEngine (pipeline) {
       })
     })
   })
+
+  // first method
+  describe('#first', () => {
+    it('should emit the first item of the PipelineStage', done => {
+      const out = pipeline.first(pipeline.of(1, 2))
+      let cpt = 0
+      out.subscribe(x => {
+        expect(x).to.be.oneOf([1, 2])
+        cpt++
+      }, done, () => {
+        expect(cpt).to.equal(1)
+        done()
+      })
+    })
+  })
+
+  // endWith method
+  describe('#endsWith', () => {
+    it('should append items at the end of the PipelineStage', done => {
+      const out = pipeline.endWith(pipeline.empty(), [1, 2, 3, 4])
+      const expected = [1, 2, 3, 4]
+      let cpt = 0
+      out.subscribe(x => {
+        expect(x).to.be.oneOf(expected)
+        expected.splice(expected.indexOf(x), 1)
+        cpt++
+      }, done, () => {
+        expect(cpt).to.equal(4)
+        expect(expected.length).to.equal(0)
+        done()
+      })
+    })
+  })
+
+  // tap method
+  describe('#tap', () => {
+    it('should invoke a function on each item in a PipelineStage, then forward the item', done => {
+      let nbTaps = 0
+      const out = pipeline.tap(pipeline.of(1, 2, 3, 4), () => nbTaps++)
+      const expected = [1, 2, 3, 4]
+      let cpt = 0
+      out.subscribe(x => {
+        expect(x).to.be.oneOf(expected)
+        expected.splice(expected.indexOf(x), 1)
+        cpt++
+      }, done, () => {
+        expect(cpt).to.equal(4)
+        expect(nbTaps).to.equal(4)
+        expect(expected.length).to.equal(0)
+        done()
+      })
+    })
+
+    it('should not invoke the function when applied to an empty PipelineStage', done => {
+      let nbTaps = 0
+      const out = pipeline.tap(pipeline.empty(), () => nbTaps++)
+      let cpt = 0
+      out.subscribe(() => {
+        cpt++
+      }, done, () => {
+        expect(cpt).to.equal(0)
+        expect(nbTaps).to.equal(0)
+        done()
+      })
+    })
+  })
 }
 
 module.exports = testPipelineEngine
