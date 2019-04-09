@@ -73,8 +73,6 @@ function literalToJS (value: string, type: string): any {
 
 /**
  * Utilities used to manipulate RDF terms
- * @param  iri [description]
- * @return     [description]
  */
 export namespace terms {
   /**
