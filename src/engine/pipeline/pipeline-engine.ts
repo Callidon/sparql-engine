@@ -131,7 +131,7 @@ export abstract class PipelineEngine {
    * @param  reducer - Accumulator function
    * @return A PipelineStage that emits a single value that is the result of accumulating the values emitted by the source PipelineStage.
    */
-  abstract reduce<F,T>(input: PipelineStage<F>, reducer: (acc: T, value: F) => T, initial?: T): PipelineStage<T>;
+  abstract reduce<F,T>(input: PipelineStage<F>, reducer: (acc: T, value: F) => T, initial: T): PipelineStage<T>;
 
   /**
    * Emits only the first `count` values emitted by the source PipelineStage.
