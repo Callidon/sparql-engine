@@ -29,6 +29,8 @@ An open-source framework for building SPARQL query engines in Javascript.
 * [Custom Functions](#custom-functions)
 * [Federated SPARQL Queries](#federated-sparql-queries)
 * [Advanced Usage](#advanced-usage)
+  * [Customize the pipeline implementation](#customize-the-pipeline-implementation)
+  * [Customize query execution](#customize-query-execution)
 * [Documentation](#documentation)
 * [References](#references)
 
@@ -287,7 +289,36 @@ Once your custom ServiceExecutor is ready, you need to *install* it on a `PlanBu
 
 # Advanced usage
 
-## Building the Physical Query Execution Plan yourself
+## Customize the pipeline implementation
+
+The class `PipelineEngine` (and its subclasses) is the main component used by `sparql-engine` to evaluate all SPARQL operations. It defines basic operations (`map`, `filter`, etc) that can be used
+to manipulate intermediate results and evaluate SPARQL queries.
+
+By default, the framework uses an implementation of `PipelineEngine` based on [`rxjs`](https://rxjs-dev.firebaseapp.com/), to implements a SPARQL query execution plan as a pipeline of iterators.
+However, **you are able to switch to others implementations** of `PipelineEngine`, using `Pipeline.setInstance`.
+
+```javascript
+const { Pipeline, PipelineEngine } = require('sparql-engine')
+
+class CustomEngine extends PipelineEngine {
+  // ...
+}
+
+// add this before creating a new plan builder
+Pipeline.setInstance(new CustomEngine())
+// ...
+```
+
+Two implementations of `PipelineEngine` are provided by default.
+* `RxjsPipeline`, based on [`rxjs`](https://rxjs-dev.firebaseapp.com/), which provides a pure pipeline approach. This approach is **selected by default** when loading the framework.
+* `VectorPipeline`, which materializes all intermediate results at each pipeline computation step. This approach is more efficient CPU-wise, but also consumes a lot more memory.
+
+These implementations can be imported as follows:
+```javascript
+const { RxjsPipeline, VectorPipeline } = require('sparql-engine')
+```
+
+## Customize query execution
 
 As introduced before, a `PlanBuilder` rely on **Executors** to build the *physical query execution plan*
 of a SPARQL query. If you wish to configure how this plan is built, then you just have to extends the various executors

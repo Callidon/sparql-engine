@@ -29,6 +29,11 @@ export { BindingBase } from './rdf/bindings'
 export { default as HashMapDataset } from './rdf/hashmap-dataset'
 export { default as Graph } from './rdf/graph'
 export { default as PlanBuilder } from './engine/plan-builder'
+// pipeline
+export { Pipeline } from './engine/pipeline/pipeline'
+export { PipelineEngine } from './engine/pipeline/pipeline-engine'
+export { default as RxjsPipeline } from './engine/pipeline/rxjs-pipeline'
+export { default as VectorPipeline } from './engine/pipeline/vector-pipeline'
 // executors
 export { default as AggregateExecutor } from './engine/executors/aggregate-executor'
 export { default as BGPExecutor } from './engine/executors/bgp-executor'
@@ -36,6 +41,6 @@ export { default as GraphExecutor } from './engine/executors/graph-executor'
 export { default as ServiceExecutor } from './engine/executors/service-executor'
 export { default as UpdateExecutor } from './engine/executors/update-executor'
 // RDF terms Utilities
-export { terms } from './rdf-terms' 
+export { terms } from './rdf-terms'
 // formatters
 // export { default as XMLFormatter } from './formatters/xml-formatter'
