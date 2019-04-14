@@ -1,7 +1,7 @@
-/* file : ask.ts
+/* file : pipeline.ts
 MIT License
 
-Copyright (c) 2018 Thomas Minier
+Copyright (c) 2019 Thomas Minier
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -24,22 +24,30 @@ SOFTWARE.
 
 'use strict'
 
-import { Pipeline } from '../../engine/pipeline/pipeline'
-import { PipelineStage } from '../../engine/pipeline/pipeline-engine'
-import { Bindings, BindingBase } from '../../rdf/bindings'
+import { PipelineEngine } from './pipeline-engine'
+import RxjsPipeline from './rxjs-pipeline'
+
+// current pipeline engine used for processing bindings
+let _currentEngine: PipelineEngine = new RxjsPipeline()
 
 /**
- * A AskOperator output True if a source iterator has solutions, false otherwise.
- * results are outputed following the SPARQL XML results format
- * @see {@link https://www.w3.org/TR/2013/REC-sparql11-query-20130321/#ask}
+ * Singleton class used to access the current pipeline engine
  * @author Thomas Minier
- * @param source - Source {@link PipelineStage}
- * @return A {@link PipelineStage} that evaluate the ASK modifier
  */
-export default function ask (source: PipelineStage<Bindings>) {
-  const defaultValue: Bindings = new BindingBase()
-  const engine = Pipeline.getInstance()
-  let op = engine.defaultValues(source, defaultValue)
-  op = engine.first(op)
-  return engine.map(op, b => b.size > 0)
+export class Pipeline {
+  /**
+   * Get the instance of the current pipeline engine
+   * @return The instance of the current pipeline engine
+   */
+  static getInstance(): PipelineEngine {
+    return _currentEngine
+  }
+
+  /**
+   * Set the instance of the current pipeline engine
+   * @param instance  - New pipeline engine to use as the current one
+   */
+  static setInstance(instance: PipelineEngine): void {
+    _currentEngine = instance
+  }
 }

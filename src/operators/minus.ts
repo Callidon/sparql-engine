@@ -24,34 +24,35 @@ SOFTWARE.
 
 'use strict'
 
-import { Observable } from 'rxjs'
-import { mergeMap, filter , reduce} from'rxjs/operators'
+import { Pipeline } from '../engine/pipeline/pipeline'
+import { PipelineStage } from '../engine/pipeline/pipeline-engine'
 import { concat, intersection } from 'lodash'
 import { Bindings } from '../rdf/bindings'
 
 /**
  * Evaluates a SPARQL MINUS clause
  * @see {@link https://www.w3.org/TR/sparql11-query/#neg-minus}
- * @extends TransformIterator
  * @author Thomas Minier
+ * @param leftSource - Left input {@link PipelineStage}
+ * @param rightSource - Right input {@link PipelineStage}
+ * @return A {@link PipelineStage} which evaluate the MINUS operation
  */
-export default function minus (source: Observable<Bindings>, rightSource: Observable<Bindings>) {
+export default function minus (leftSource: PipelineStage<Bindings>, rightSource: PipelineStage<Bindings>) {
   // first materialize the right source in a buffer, then apply difference on the left source
-  return rightSource
-    .pipe(reduce((acc: Bindings[], b: Bindings) => concat(acc, b), []))
-    .pipe(mergeMap((buffer: Bindings[]) => {
-      return source
-        .pipe(filter((bindings: Bindings) => {
-          const leftKeys = Array.from(bindings.variables())
-          // mu_a is compatible with mu_b if,
-          // for all v in intersection(dom(mu_a), dom(mu_b)), mu_a[v] = mu_b[v]
-          const isCompatible = buffer.some((b: Bindings) => {
-            const rightKeys = Array.from(b.variables())
-            const commonKeys = intersection(leftKeys, rightKeys)
-            return commonKeys.every((k: string) => b.get(k) === bindings.get(k))
-          })
-          // only output non-compatible bindings
-        return !isCompatible
-        }))
-    }))
+  const engine = Pipeline.getInstance()
+  let op = engine.reduce(rightSource, (acc: Bindings[], b: Bindings) => concat(acc, b), [])
+  return engine.mergeMap(op, (buffer: Bindings[]) => {
+    return engine.filter(leftSource, (bindings: Bindings) => {
+      const leftKeys = Array.from(bindings.variables())
+      // mu_a is compatible with mu_b if,
+      // for all v in intersection(dom(mu_a), dom(mu_b)), mu_a[v] = mu_b[v]
+      const isCompatible = buffer.some((b: Bindings) => {
+        const rightKeys = Array.from(b.variables())
+        const commonKeys = intersection(leftKeys, rightKeys)
+        return commonKeys.every((k: string) => b.get(k) === bindings.get(k))
+      })
+      // only output non-compatible bindings
+    return !isCompatible
+    })
+  })
 }

@@ -24,8 +24,9 @@ SOFTWARE.
 
 'use strict'
 
-import { ObservableInput, merge } from 'rxjs'
 import Graph from './graph'
+import { PipelineInput } from '../engine/pipeline/pipeline-engine'
+import { Pipeline } from '../engine/pipeline/pipeline'
 import { Algebra } from 'sparqljs'
 import ExecutionContext from '../engine/context/execution-context'
 
@@ -58,8 +59,8 @@ export default class UnionGraph extends Graph {
     return this._graphs.reduce((prev, g) => prev.then(() => g.delete(triple)), Promise.resolve())
   }
 
-  find (triple: Algebra.TripleObject, context: ExecutionContext): ObservableInput<Algebra.TripleObject> {
-    return merge(...this._graphs.map(g => g.find(triple, context)))
+  find (triple: Algebra.TripleObject, context: ExecutionContext): PipelineInput<Algebra.TripleObject> {
+    return Pipeline.getInstance().merge(...this._graphs.map(g => g.find(triple, context)))
   }
 
   clear (): Promise<void> {

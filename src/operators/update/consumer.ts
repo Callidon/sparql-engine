@@ -24,7 +24,7 @@ SOFTWARE.
 
 'use strict'
 
-import { Observable } from 'rxjs'
+import { PipelineStage } from '../../engine/pipeline/pipeline-engine'
 import { Writable } from 'stream'
 import { Algebra } from 'sparqljs'
 
@@ -65,15 +65,15 @@ export class ErrorConsumable implements Consumable {
  * @author Thomas Minier
  */
 export abstract class Consumer extends Writable implements Consumable {
-  private readonly _source: Observable<Algebra.TripleObject>
+  private readonly _source: PipelineStage<Algebra.TripleObject>
   private readonly _options: Object
 
   /**
    * Constructor
-   * @param source - Source iterator
+   * @param source - Input {@link PipelineStage}
    * @param options - Execution options
    */
-  constructor (source: Observable<Algebra.TripleObject>, options: Object) {
+  constructor (source: PipelineStage<Algebra.TripleObject>, options: Object) {
     super({ objectMode: true })
     this._source = source
     this._options = options

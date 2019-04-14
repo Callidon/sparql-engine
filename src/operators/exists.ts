@@ -24,8 +24,8 @@ SOFTWARE.
 
 'use strict'
 
-import { Observable, of } from 'rxjs'
-import { first, map, mergeMap, defaultIfEmpty, filter } from 'rxjs/operators'
+import { Pipeline } from '../engine/pipeline/pipeline'
+import { PipelineStage } from '../engine/pipeline/pipeline-engine'
 import { Bindings, BindingBase } from '../rdf/bindings'
 import PlanBuilder from '../engine/plan-builder'
 import ExecutionContext from '../engine/context/execution-context'
@@ -37,32 +37,33 @@ interface ConditionalBindings {
 
 /**
  * Evaluates a SPARQL FILTER (NOT) EXISTS clause
- * @param source - Source observable
+ * TODO this function could be simplified using a filterMap like operator, we should check if Rxjs offers that filterMap
+ * @author Thomas Minier
+ * @param source    - Source {@link PipelineStage}
  * @param groups    - Content of the FILTER clause
  * @param builder   - Plan builder used to evaluate subqueries
  * @param notexists - True if the filter is NOT EXISTS, False otherwise
- * @param options   - Execution options
- * @author Thomas Minier
- * TODO this function could be simplified using a filterMap like operator, we should check if Rxjs offers that filterMap
+ * @param context   - Execution context
+ * @return A {@link PipelineStage} which evaluate the FILTER (NOT) EXISTS operation
  */
-export default function exists (source: Observable<Bindings>, groups: any[], builder: PlanBuilder, notexists: boolean, context: ExecutionContext) {
+export default function exists (source: PipelineStage<Bindings>, groups: any[], builder: PlanBuilder, notexists: boolean, context: ExecutionContext) {
   const defaultValue: Bindings = new BindingBase()
   defaultValue.setProperty('exists', false)
-  return source
-    .pipe(mergeMap((bindings: Bindings) => {
-      return builder._buildWhere(of(bindings), groups, context)
-        .pipe(defaultIfEmpty(defaultValue))
-        .pipe(first())
-        .pipe(map((b: Bindings) => {
-          const exists: boolean = (!b.hasProperty('exists')) || b.getProperty('exists')
-          return {
-            bindings,
-            output: (exists && (!notexists)) || ((!exists) && notexists)
-          }
-        }))
-    }))
-    .pipe(filter((b: ConditionalBindings) => {
-      return b.output
-    }))
-    .pipe(map((b: ConditionalBindings) => b.bindings))
+  const engine = Pipeline.getInstance()
+  let evaluator = engine.mergeMap(source, (bindings: Bindings) => {
+    let op = builder._buildWhere(engine.of(bindings), groups, context)
+    op = engine.defaultValues(op, defaultValue)
+    op = engine.first(op)
+    return engine.map(op, (b: Bindings) => {
+      const exists: boolean = (!b.hasProperty('exists')) || b.getProperty('exists')
+      return {
+        bindings,
+        output: (exists && (!notexists)) || ((!exists) && notexists)
+      }
+    })
+  })
+  evaluator = engine.filter(evaluator, (b: ConditionalBindings) => {
+    return b.output
+  })
+  return engine.map(evaluator, (b: ConditionalBindings) => b.bindings)
 }

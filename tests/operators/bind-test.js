@@ -41,7 +41,7 @@ describe('Bind operator', () => {
       operator: '+',
       args: ['?x', '?y']
     }
-    const op = source.pipe(bind('?z', expr))
+    const op = bind(source, '?z', expr)
     op.subscribe(value => {
       expect(value.toObject()).to.have.all.keys('?x', '?y', '?z')
       if (value.get('?x').startsWith('"1"')) {

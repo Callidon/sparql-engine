@@ -24,8 +24,8 @@ SOFTWARE.
 
 'use strict'
 
-import { Observable } from 'rxjs'
-import { map } from 'rxjs/operators'
+import { Pipeline } from '../../engine/pipeline/pipeline'
+import { PipelineStage } from '../../engine/pipeline/pipeline-engine'
 import { Algebra } from 'sparqljs'
 import { rdf } from '../../utils'
 import { Bindings } from '../../rdf/bindings'
@@ -33,14 +33,16 @@ import { Bindings } from '../../rdf/bindings'
 /**
  * Evaluates a SPARQL SELECT operation, i.e., perform a selection over sets of solutions bindings
  * @see {@link https://www.w3.org/TR/2013/REC-sparql11-query-20130321/#select}
- * @param query - SELECT query
  * @author Thomas Minier
  * @author Corentin Marionneau
+ * @param source - Input {@link PipelineStage}
+ * @param query - SELECT query
+ * @return A {@link PipelineStage} which evaluate the SELECT modifier
  */
-export default function select (source: Observable<Bindings>, query: Algebra.RootNode) {
+export default function select (source: PipelineStage<Bindings>, query: Algebra.RootNode) {
   const variables = <string[]> query.variables
   const selectAll = variables.length === 1 && variables[0] === '*'
-  return source.pipe(map((bindings: Bindings) => {
+  return Pipeline.getInstance().map(source, (bindings: Bindings) => {
     if (!selectAll) {
       bindings = variables.reduce((obj, v) => {
         if (bindings.has(v)) {
@@ -52,5 +54,5 @@ export default function select (source: Observable<Bindings>, query: Algebra.Roo
       }, bindings.empty())
     }
     return bindings.mapValues((k, v) => rdf.isVariable(k) && typeof v === 'string' ? v : null)
-  }))
+  })
 }

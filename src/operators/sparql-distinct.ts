@@ -24,11 +24,13 @@ SOFTWARE.
 
 'use strict'
 
-import { distinct } from 'rxjs/operators'
+import { Pipeline } from '../engine/pipeline/pipeline'
+import { PipelineStage } from '../engine/pipeline/pipeline-engine'
 import { Bindings } from '../rdf/bindings'
 
 /**
  * Hash an set of mappings and produce an unique value
+ * @private
  * @param item - The item to hash
  * @return An unique hash which identify the item
  */
@@ -43,7 +45,9 @@ function _hash (bindings: Bindings): string {
  * Applies a DISTINCT modifier on the output of another operator.
  * @see {@link https://www.w3.org/TR/2013/REC-sparql11-query-20130321/#modDuplicates}
  * @author Thomas Minier
+ * @param source - Input {@link PipelineStage}
+ * @return A {@link PipelineStage} which evaluate the DISTINCT operation
  */
-export default function sparqlDistinct () {
-  return distinct((bindings: Bindings) => _hash(bindings))
+export default function sparqlDistinct (source: PipelineStage<Bindings>) {
+  return Pipeline.getInstance().distinct(source, (bindings: Bindings) => _hash(bindings))
 }

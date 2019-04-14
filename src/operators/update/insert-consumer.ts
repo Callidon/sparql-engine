@@ -26,7 +26,7 @@ SOFTWARE.
 
 import { Consumer } from './consumer'
 import Graph from '../../rdf/graph'
-import { Observable } from 'rxjs'
+import { PipelineStage } from '../../engine/pipeline/pipeline-engine'
 import { Algebra } from 'sparqljs'
 
 /**
@@ -39,11 +39,11 @@ export default class InsertConsumer extends Consumer {
 
   /**
    * Constructor
-   * @param source - Source iterator
+   * @param source - Input {@link PipelineStage}
    * @param graph - Input RDF Graph
    * @param options - Execution options
    */
-  constructor (source: Observable<Algebra.TripleObject>, graph: Graph, options: Object) {
+  constructor (source: PipelineStage<Algebra.TripleObject>, graph: Graph, options: Object) {
     super(source, options)
     this._graph = graph
   }

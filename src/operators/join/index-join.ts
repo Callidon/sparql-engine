@@ -24,8 +24,8 @@ SOFTWARE.
 
 'use strict'
 
-import { from } from 'rxjs'
-import { mergeMap, map } from 'rxjs/operators'
+import { Pipeline } from '../../engine/pipeline/pipeline'
+import { PipelineStage } from '../../engine/pipeline/pipeline-engine'
 import Graph from '../../rdf/graph'
 import { Bindings, BindingBase } from '../../rdf/bindings'
 import { Algebra } from 'sparqljs'
@@ -38,25 +38,27 @@ import ExecutionContext from '../../engine/context/execution-context'
  * and a triple pattern (right relation) using the Index Nested Loop Join algorithm.
  * This algorithm is more efficient if the cardinality of the left relation is smaller
  * than the cardinality of the right one.
+ * @param source - Left input (a {@link PipelineStage})
  * @param pattern - Triple pattern to join with (right relation)
  * @param graph   - RDF Graph on which the join is performed
- * @param options - Execution options
+ * @param context - Execution context
+ * @return A {@link PipelineStage} which evaluate the join
  * @author Thomas Minier
  */
-export default function indexJoin (pattern: Algebra.TripleObject, graph: Graph, context: ExecutionContext) {
-  return mergeMap((bindings: Bindings) => {
+export default function indexJoin (source: PipelineStage<Bindings>, pattern: Algebra.TripleObject, graph: Graph, context: ExecutionContext) {
+  const engine = Pipeline.getInstance()
+  return engine.mergeMap(source, (bindings: Bindings) => {
     const boundedPattern = bindings.bound(pattern)
     // const hasVars = some(boundedPattern, (v: any) => v.startsWith('?'))
-    return from(graph.find(boundedPattern, context))
-      .pipe(map((item: Algebra.TripleObject) => {
-        let temp = pickBy(item, (v, k) => {
-          return rdf.isVariable(boundedPattern[k])
-        })
-        temp = mapKeys(temp, (v, k) => {
-          return boundedPattern[k]
-        })
-        // if (size(temp) === 0 && hasVars) return null
-        return BindingBase.fromObject(temp).union(bindings)
-      }))
+    return engine.map(engine.from(graph.find(boundedPattern, context)), (item: Algebra.TripleObject) => {
+      let temp = pickBy(item, (v, k) => {
+        return rdf.isVariable(boundedPattern[k])
+      })
+      temp = mapKeys(temp, (v, k) => {
+        return boundedPattern[k]
+      })
+      // if (size(temp) === 0 && hasVars) return null
+      return BindingBase.fromObject(temp).union(bindings)
+    })
   })
 }

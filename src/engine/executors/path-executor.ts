@@ -23,8 +23,8 @@ SOFTWARE.
 */
 
 import Executor from './executor'
-import { Observable } from 'rxjs'
-import { map, mergeMap } from 'rxjs/operators'
+import { Pipeline } from '../pipeline/pipeline'
+import { PipelineStage } from '../pipeline/pipeline-engine'
 import { Algebra } from 'sparqljs'
 import { Bindings, BindingBase } from '../../rdf/bindings'
 import Dataset from '../../rdf/dataset'
@@ -90,34 +90,35 @@ export default abstract class PathExecutor extends Executor {
   }
 
   /**
-   * Get an observable for evaluating a succession of property paths, connected by joins.
+   * Get a {@link PipelineStage} for evaluating a succession of property paths, connected by joins.
+   * @param source - Input {@link PipelineStage}
    * @param  triples - Triple patterns
    * @param  context - Execution context
-   * @return An Observable which yield set of bindings from the pipeline of joins
+   * @return A {@link PipelineStage} which yield set of bindings from the pipeline of joins
    */
-  executeManyPaths (source: Observable<Bindings>, triples: Algebra.PathTripleObject[], context: ExecutionContext): Observable<Bindings> {
+  executeManyPaths (source: PipelineStage<Bindings>, triples: Algebra.PathTripleObject[], context: ExecutionContext): PipelineStage<Bindings> {
     // create a join pipeline between all property paths using an index join
-    return triples.reduce((iter: Observable<Bindings>, triple: Algebra.PathTripleObject) => {
-      return iter.pipe(mergeMap(bindings => {
+    const engine = Pipeline.getInstance()
+    return triples.reduce((iter: PipelineStage<Bindings>, triple: Algebra.PathTripleObject) => {
+      return engine.mergeMap(iter, bindings => {
         const {subject, predicate, object} = boundPathTriple(triple, bindings)
-        return this.buildIterator(subject, predicate, object, context)
-          .pipe(map(b => bindings.union(b)))
-      }))
+        return engine.map(this.buildIterator(subject, predicate, object, context), (b: Bindings) => bindings.union(b))
+      })
     }, source)
   }
 
   /**
-   * Get an observable for evaluating the property path.
+   * Get a {@link PipelineStage} for evaluating the property path.
    * @param  subject - Path subject
    * @param  path  - Property path
    * @param  obj   - Path object
    * @param  context - Execution context
-   * @return An Observable which yield set of bindings
+   * @return A {@link PipelineStage} which yield set of bindings
    */
-  buildIterator(subject: string, path: Algebra.PropertyPath, obj: string, context: ExecutionContext): Observable<Bindings> {
+  buildIterator(subject: string, path: Algebra.PropertyPath, obj: string, context: ExecutionContext): PipelineStage<Bindings> {
     const graph = (context.defaultGraphs.length > 0) ? this._getGraph(context.defaultGraphs) : this._dataset.getDefaultGraph()
     const evaluator = this._execute(subject, path, obj, graph, context)
-    return evaluator.pipe(map((triple: Algebra.TripleObject) => {
+    return Pipeline.getInstance().map(evaluator, (triple: Algebra.TripleObject) => {
       const temp = {}
       if (rdf.isVariable(subject)) {
         temp[subject] = triple.subject
@@ -126,7 +127,7 @@ export default abstract class PathExecutor extends Executor {
         temp[obj] = triple.object
       }
       return BindingBase.fromObject(temp)
-    }))
+    })
   }
 
   /**
@@ -136,7 +137,7 @@ export default abstract class PathExecutor extends Executor {
    * @param  obj   - Path object
    * @param  graph - RDF graph
    * @param  context - Execution context
-   * @return An Observable which yield RDF triples matching the property path
+   * @return A {@link PipelineStage} which yield RDF triples matching the property path
    */
-  abstract _execute(subject: string, path: Algebra.PropertyPath, obj: string, graph: Graph, context: ExecutionContext): Observable<Algebra.TripleObject>
+  abstract _execute(subject: string, path: Algebra.PropertyPath, obj: string, graph: Graph, context: ExecutionContext): PipelineStage<Algebra.TripleObject>
 }

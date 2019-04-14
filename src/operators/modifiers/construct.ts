@@ -24,8 +24,8 @@ SOFTWARE.
 
 'use strict'
 
-import { Observable } from 'rxjs'
-import { flatMap, endWith } from 'rxjs/operators'
+import { Pipeline } from '../../engine/pipeline/pipeline'
+import { PipelineStage } from '../../engine/pipeline/pipeline-engine'
 import { Algebra } from 'sparqljs'
 import { compact } from 'lodash'
 import { rdf } from '../../utils'
@@ -34,11 +34,12 @@ import { Bindings } from '../../rdf/bindings'
 /**
  * A ConstructOperator transform solution mappings into RDF triples, according to a template
  * @see {@link https://www.w3.org/TR/2013/REC-sparql11-query-20130321/#construct}
- * @param source  - Source observable
+ * @param source  - Source {@link PipelineStage}
  * @param templates - Set of triples patterns in the CONSTRUCT clause
+ * @return A {@link PipelineStage} which evaluate the CONSTRUCT modifier
  * @author Thomas Minier
  */
-export default function construct (source: Observable<Bindings>, query: any) {
+export default function construct (source: PipelineStage<Bindings>, query: any) {
   const rawTriples: Algebra.TripleObject[] = []
   const templates: Algebra.TripleObject[] = query.template!.filter((t: any) => {
     if (rdf.isVariable(t.subject) || rdf.isVariable(t.predicate) || rdf.isVariable(t.object)) {
@@ -47,9 +48,8 @@ export default function construct (source: Observable<Bindings>, query: any) {
     rawTriples.push(t)
     return false
   })
-  return source
-    .pipe(flatMap((bindings: Bindings) => {
-      return compact(templates.map(t => bindings.bound(t)))
-    }))
-    .pipe(endWith(...rawTriples))
+  const engine = Pipeline.getInstance()
+  return engine.endWith(engine.flatMap(source, (bindings: Bindings) => {
+    return compact(templates.map(t => bindings.bound(t)))
+  }), rawTriples)
 }

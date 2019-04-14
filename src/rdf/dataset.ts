@@ -49,20 +49,20 @@ export default abstract class Dataset {
   /**
    * Add a Named Graph to the Dataset
    * @param iri - IRI of the Named Graph
-   * @param g    - RDF Graph
+   * @param g   - RDF Graph
    */
   abstract addNamedGraph (iri: string, g: Graph): void
 
   /**
    * Get a Named Graph using its IRI
-   * @param  {string} iri - IRI of the Named Graph to retrieve
+   * @param  iri - IRI of the Named Graph to retrieve
    * @return The corresponding Named Graph
    */
   abstract getNamedGraph (iri: string): Graph
 
   /**
    * Return True if the Dataset contains a Named graph with the provided IRI
-   * @param  {string} iri - IRI of the Named Graph
+   * @param  iri - IRI of the Named Graph
    * @return True if the Dataset contains a Named graph with the provided IRI
    */
   abstract hasNamedGraph (iri: string): boolean
@@ -70,8 +70,8 @@ export default abstract class Dataset {
   /**
    * Get an UnionGraph, i.e., the dynamic union of several graphs,
    * from the RDF Graphs in the Dataset.
-   * @param  {string[]} iris                  - Iris of the named graphs to include in the union
-   * @param  {Boolean} [includeDefault=false] - True if the default graph should be included
+   * @param  iris           - Iris of the named graphs to include in the union
+   * @param  includeDefault - True if the default graph should be included
    * @return The dynamic union of several graphs in the Dataset
    */
   getUnionGraph (iris: string[], includeDefault: boolean = false): UnionGraph {
@@ -85,7 +85,7 @@ export default abstract class Dataset {
 
   /**
    * Returns all Graphs in the Dataset, including the Default one
-   * @param  {Boolean} [includeDefault=false] - True if the default graph should be included
+   * @param  includeDefault - True if the default graph should be included
    * @return The list of all graphs in the Dataset
    */
   getAllGraphs (includeDefault: boolean = true): Graph[] {
