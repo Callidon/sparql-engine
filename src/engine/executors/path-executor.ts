@@ -126,6 +126,11 @@ export default abstract class PathExecutor extends Executor {
       if (rdf.isVariable(obj)) {
         temp[obj] = triple.object
       }
+      // TODO: change the function's behavior for ask queries when subject and object are given
+      if (!rdf.isVariable(subject) && !rdf.isVariable(obj)) {
+        temp['?ask_s'] = triple.subject;
+        temp['?ask_v'] = triple.object;
+      }
       return BindingBase.fromObject(temp)
     })
   }

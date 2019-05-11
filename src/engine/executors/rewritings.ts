@@ -185,7 +185,8 @@ export function extractPropertyPaths (bgp: Algebra.BGPNode): [Algebra.TripleObje
   let pathTriples: Algebra.PathTripleObject[] = parts[1] as Algebra.PathTripleObject[]
   let variables: string[] = []
 
-  if (pathTriples.length > 0) {
+  //TODO: change bgp evaluation's behavior for ask queries when subject and object are given
+  /*if (pathTriples.length > 0) {
     // review property paths and rewrite those equivalent to a regular BGP
     const paths: Algebra.PathTripleObject[] = []
     // first rewriting phase
@@ -217,6 +218,6 @@ export function extractPropertyPaths (bgp: Algebra.BGPNode): [Algebra.TripleObje
       }
     })
     pathTriples = paths
-  }
+  }*/
   return [classicTriples, pathTriples, variables]
 }

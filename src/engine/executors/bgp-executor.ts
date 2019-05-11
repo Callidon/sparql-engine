@@ -99,6 +99,8 @@ export default class BGPExecutor extends Executor {
    * @return A {@link PipelineStage} used to evaluate a Basic Graph pattern
    */
   buildIterator (source: PipelineStage<Bindings>, patterns: Algebra.TripleObject[], context: ExecutionContext): PipelineStage<Bindings> {
+    // avoids sending a request with an empty array
+    if(patterns.length == 0) return source
     // select the graph to use for BGP evaluation
     const graph = (context.defaultGraphs.length > 0) ? this._getGraph(context.defaultGraphs) : this._dataset.getDefaultGraph()
     // extract eventual query hints from the BGP & merge them into the context

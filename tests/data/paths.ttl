@@ -1,12 +1,36 @@
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>.
+@prefix rdfs: <http://www.w3.org/TR/rdf-schema/>.
 @prefix foaf: <http://xmlns.com/foaf/0.1/>.
 @prefix : <http://example.org/>.
 
 :Alice foaf:knows :Bob;
-    rdf:type :Human .
+    rdf:type :Woman ;
+    foaf:knows :Didier ;
+    foaf:name "Alice" ;
+    foaf:mbox <mailto:alice@example> ;
+    foaf:phone <tel:0604651478> ;
+    foaf:skypeID "skypeAlice" ;
+    :love :Didier .
 
 :Bob foaf:knows :Carol ;
-    rdf:type :Human .
+    rdf:type :Man ;
+    foaf:name "Bob" ;
+    foaf:mbox <mailto:bob@example> ;
+    foaf:skypeID "skypeBob" ;
+    :love :Carol .
 
 :Carol foaf:knows :Didier ;
-    rdf:type :Human .
+    foaf:knows :Bob ;
+    rdf:type :Woman ;
+    foaf:name "Carol" ;
+    foaf:phone <tel:0645123549> ;
+    :love :Didier .
+
+:Eve :hate :Bob .
+
+:Mallory foaf:knows :Eve .
+
+:Woman rdfs:subClassOf :Person .
+:Man rdfs:subClassOf :Person .
+
+:Person rdfs:subClassOf :Human .

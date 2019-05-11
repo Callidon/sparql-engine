@@ -58,7 +58,7 @@ export default class RxjsPipeline extends PipelineEngine {
     return of(...values)
   }
 
-  from<T>(x: any): Observable<T> {
+  from(x: any): Observable<any> {
     return from(x)
   }
 
@@ -86,7 +86,7 @@ export default class RxjsPipeline extends PipelineEngine {
     return input.pipe(filter(predicate))
   }
 
-  reduce<F,T>(input: Observable<F>, reducer: (acc: T, value: F) => T, initial?: T): Observable<T> {
+  reduce<F,T>(input: Observable<F>, reducer: (acc: T, value: F) => T, initial: T): Observable<T> {
     return input.pipe(reduce(reducer, initial))
   }
 
