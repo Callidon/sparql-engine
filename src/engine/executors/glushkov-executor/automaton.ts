@@ -28,7 +28,7 @@ export class State<T> {
 
     /**
      * Get the flag that indicates whether the state is an initial state
-     * @return True if the State if an initial State, False otherwise
+     * @return True if the State is an initial State, False otherwise
      */
     get isInitial(): boolean {
         return this._isInitial;
@@ -36,7 +36,7 @@ export class State<T> {
 
     /**
      * Get the flag that indicates whether the state is a final state
-     * @return True if the State if a final State, False otherwise
+     * @return True if the State is a final State, False otherwise
      */
     get isFinal(): boolean {
         return this._isFinal;
@@ -237,9 +237,9 @@ export class Automaton<T, P> {
     }
 
     /**
-     * Return the Transitions which arrive to the given State
+     * Return the Transitions which arrives to the given State
      * @param to - State to which the Transitions we are looking for must arrive
-     * @return Transitions which arrive to the given State
+     * @return Transitions which arrives to the given State
      */
     getTransitionsTo(to: T): Array<Transition<T, P>> {
         return this.transitions.filter(function(transition: Transition<T, P>) {
@@ -248,8 +248,8 @@ export class Automaton<T, P> {
     }
 
     /**
-     * Return the Transitions which arrive to a final State
-     * @return Transitions which arrive to a final State
+     * Return the Transitions which arrives to a final State
+     * @return Transitions which arrives to a final State
      */
     getTransitionsToFinalStates(): Array<Transition<T, P>> {
         let transitions: Array<Transition<T, P>> = [];
