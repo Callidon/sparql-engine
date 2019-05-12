@@ -174,7 +174,7 @@ export default class GlushkovExecutor extends PathExecutor {
             return engine.mergeMap(engine.from(graph.evalBGP(bgp, context)), (binding: Bindings) => {
                 let p = binding.get('?p')
                 let o = binding.get('?o') as string
-                if(p != null ? !transition.predicates.includes(p) : true) {
+                if(p != null ? !transition.hasPredicate(p) : true) {
                     let newStep
                     if(forward) {
                         newStep = new Step(o, transition.to.name)
@@ -260,7 +260,7 @@ export default class GlushkovExecutor extends PathExecutor {
                 let s = (isVariable(subject) ? binding.get(subject) : subject) as string
                 let p = binding.get('?p')
                 let o = binding.get('?o') as string
-                if(p != null ? !transition.predicates.includes(p) : true) {
+                if(p != null ? !transition.hasPredicate(p) : true) {
                     let path = new ResultPath()
                     if(forward) {
                         path.add(new Step(s, transition.from.name))

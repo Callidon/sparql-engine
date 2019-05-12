@@ -142,6 +142,10 @@ export class Transition<T, P> {
         return this._negation;
     }
 
+    hasPredicate(predicate: P){
+        return this.predicates.indexOf(predicate) > -1
+    }
+
     /**
      * Test if a Transition is equal to this Transition
      * i.e. All the fields of the Transition are equal to those of this Transition

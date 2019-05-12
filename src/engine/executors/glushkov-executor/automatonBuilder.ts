@@ -207,7 +207,7 @@ export class GlushkovBuilder implements AutomatonBuilder<number, string>  {
 
         if(negForward.length > 0) {
             let id = node.id + 1
-            this.nullable.set(id + 1, false)
+            this.nullable.set(id, false)
             this.first.set(id, new Set().add(id))
             this.last.set(id, new Set().add(id))
             this.follow.set(id, new Set())
