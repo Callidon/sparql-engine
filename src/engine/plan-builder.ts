@@ -53,6 +53,7 @@ import PathExecutor from './executors/path-executor'
 import GraphExecutor from './executors/graph-executor'
 import UpdateExecutor from './executors/update-executor'
 import ServiceExecutor from './executors/service-executor'
+import GlushkovExecutor from './executors/glushkov-executor/glushkov-executor'
 // Utilities
 import {
   partition,
@@ -116,7 +117,7 @@ export default class PlanBuilder {
     this._updateExecutor.builder = this
     this._customFunctions = customFunctions
     this._serviceExecutor = null
-    this._pathExecutor = null
+    this._pathExecutor = new GlushkovExecutor(this._dataset)
   }
 
   /**
