@@ -1,13 +1,14 @@
 # sparql-engine
 [![Build Status](https://travis-ci.org/Callidon/sparql-engine.svg?branch=master)](https://travis-ci.org/Callidon/sparql-engine)  [![codecov](https://codecov.io/gh/Callidon/sparql-engine/branch/master/graph/badge.svg)](https://codecov.io/gh/Callidon/sparql-engine) [![npm version](https://badge.fury.io/js/sparql-engine.svg)](https://badge.fury.io/js/sparql-engine) [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
 
-An open-source framework for building SPARQL query engines in Javascript.
+An open-source framework for building SPARQL query engines in Javascript/Typescript.
 
 [Online documentation](https://callidon.github.io/sparql-engine/)
 
 **Main features**:
 * Build a [SPARQL](https://www.w3.org/TR/2013/REC-sparql11-overview-20130321/) query engine on top of any data storage system.
 * Supports [the full features of the SPARQL syntax](https://www.w3.org/TR/sparql11-query/) by *implementing a single class!*
+* Support for all [SPARQL property Paths](https://www.w3.org/TR/sparql11-query/#propertypaths).
 * Implements advanced *SPARQL query rewriting techniques* for transparently optimizing SPARQL query processing.
 * Supports [Custom SPARQL functions](#custom-functions).
 * Supports the [SPARQL UPDATE protocol](https://www.w3.org/TR/2013/REC-sparql11-update-20130321/).
@@ -15,7 +16,6 @@ An open-source framework for building SPARQL query engines in Javascript.
 * Customize every step of SPARQL query processing, thanks to a component-based architecture.
 
 :warning: **In Development** :warning:
-* Support for all SPARQL property Paths.
 * Support for SPARQL Graph Management protocol
 
 # Table of contents
