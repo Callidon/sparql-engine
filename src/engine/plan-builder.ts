@@ -48,7 +48,7 @@ import orderby from '../operators/orderby'
 import ask from '../operators/modifiers/ask'
 import construct from '../operators/modifiers/construct'
 import select from '../operators/modifiers/select'
-// Executors
+// Stage builders
 import AggregateExecutor from './executors/aggregate-executor'
 import BGPExecutor from './executors/bgp-executor'
 import PathExecutor from './executors/path-executor'
@@ -89,6 +89,8 @@ export type CustomFunctions = { [key:string]: (...args: (terms.RDFTerm | terms.R
 /**
  * A PlanBuilder builds a physical query execution plan of a SPARQL query,
  * i.e., an iterator that can be consumed to get query results.
+ * Internally, it implements a Builder design patterns, where various {@link StageBuilder} are used
+ * for building each part of the query execution plan.
  * @author Thomas Minier
  * @author Corentin Marionneau
  */
@@ -96,12 +98,12 @@ export default class PlanBuilder {
   private readonly _dataset: Dataset
   private readonly _parser: Parser
   private _optimizer: Optimizer
-  private _bgpExecutor: BGPExecutor
-  private _pathExecutor: PathExecutor | null
-  private _aggExecutor: AggregateExecutor
-  private _graphExecutor: GraphExecutor
-  private _updateExecutor: UpdateExecutor
-  private _serviceExecutor: ServiceExecutor | null
+  private _bgpStageBuilder: BGPExecutor
+  private _pathStageBuilder: PathExecutor | null
+  private _aggStageBuilder: AggregateExecutor
+  private _graphStageBuilder: GraphExecutor
+  private _updateStageBuilder: UpdateExecutor
+  private _serviceStageBuilder: ServiceExecutor | null
   private _customFunctions?: CustomFunctions
 
   /**
@@ -113,15 +115,15 @@ export default class PlanBuilder {
     this._dataset = dataset
     this._parser = new Parser(prefixes)
     this._optimizer = Optimizer.getDefault()
-    this._bgpExecutor = new BGPExecutor(this._dataset)
-    this._aggExecutor = new AggregateExecutor()
-    this._graphExecutor = new GraphExecutor(this._dataset)
-    this._graphExecutor.builder = this
-    this._updateExecutor = new UpdateExecutor(this._dataset)
-    this._updateExecutor.builder = this
+    this._bgpStageBuilder = new BGPExecutor(this._dataset)
+    this._aggStageBuilder = new AggregateExecutor()
+    this._graphStageBuilder = new GraphExecutor(this._dataset)
+    this._graphStageBuilder.builder = this
+    this._updateStageBuilder = new UpdateExecutor(this._dataset)
+    this._updateStageBuilder.builder = this
     this._customFunctions = customFunctions
-    this._serviceExecutor = null
-    this._pathExecutor = new GlushkovExecutor(this._dataset)
+    this._serviceStageBuilder = null
+    this._pathStageBuilder = new GlushkovExecutor(this._dataset)
   }
 
   /**
@@ -137,9 +139,9 @@ export default class PlanBuilder {
    * @param executor - Executor used to evaluate Basic Graph patterns
    */
   set bgpExecutor (executor: BGPExecutor) {
-    this._bgpExecutor.builder = null
-    this._bgpExecutor = executor
-    this._bgpExecutor.builder = this
+    this._bgpStageBuilder.builder = null
+    this._bgpStageBuilder = executor
+    this._bgpStageBuilder.builder = this
   }
 
   /**
@@ -147,11 +149,11 @@ export default class PlanBuilder {
    * @param executor - Executor used to evaluate Basic Graph patterns
    */
   set pathExecutor (executor: PathExecutor) {
-    if (this._pathExecutor !== null) {
-      this._pathExecutor.builder = null
+    if (this._pathStageBuilder !== null) {
+      this._pathStageBuilder.builder = null
     }
-    this._pathExecutor = executor
-    this._pathExecutor.builder = this
+    this._pathStageBuilder = executor
+    this._pathStageBuilder.builder = this
   }
 
   /**
@@ -159,9 +161,9 @@ export default class PlanBuilder {
    * @param executor - Executor used to evaluate SPARQL Aggregates
    */
   set aggregateExecutor (executor: AggregateExecutor) {
-    this._aggExecutor.builder = null
-    this._aggExecutor = executor
-    this._aggExecutor.builder = this
+    this._aggStageBuilder.builder = null
+    this._aggStageBuilder = executor
+    this._aggStageBuilder.builder = this
   }
 
   /**
@@ -169,9 +171,9 @@ export default class PlanBuilder {
    * @param executor - Executor used to evaluate SPARQL GRAPH clauses
    */
   set graphExecutor (executor: GraphExecutor) {
-    this._graphExecutor.builder = null
-    this._graphExecutor = executor
-    this._graphExecutor.builder = this
+    this._graphStageBuilder.builder = null
+    this._graphStageBuilder = executor
+    this._graphStageBuilder.builder = this
   }
 
   /**
@@ -179,9 +181,9 @@ export default class PlanBuilder {
    * @param executor - Executor used to evaluate SPARQL UPDATE queries
    */
   set updateExecutor (executor: UpdateExecutor) {
-    this._updateExecutor.builder = null
-    this._updateExecutor = executor
-    this._updateExecutor.builder = this
+    this._updateStageBuilder.builder = null
+    this._updateStageBuilder = executor
+    this._updateStageBuilder.builder = this
   }
 
   /**
@@ -189,11 +191,11 @@ export default class PlanBuilder {
    * @param executor - Executor used to evaluate SERVICE clauses
    */
   set serviceExecutor (executor: ServiceExecutor) {
-    if (this._serviceExecutor !== null) {
-      this._serviceExecutor.builder = null
+    if (this._serviceStageBuilder !== null) {
+      this._serviceStageBuilder.builder = null
     }
-    this._serviceExecutor = executor
-    this._serviceExecutor.builder = this
+    this._serviceStageBuilder = executor
+    this._serviceStageBuilder.builder = this
   }
 
   /**
@@ -218,7 +220,7 @@ export default class PlanBuilder {
       case 'query':
         return this._buildQueryPlan(query, context)
       case 'update':
-        return this._updateExecutor.execute(query.updates, context)
+        return this._updateStageBuilder.execute(query.updates, context)
       default:
         throw new SyntaxError(`Unsupported SPARQL query type: ${query.type}`)
     }
@@ -287,7 +289,7 @@ export default class PlanBuilder {
     }
 
     // Handles Aggregates
-    graphIterator = this._aggExecutor.buildIterator(graphIterator, query, context, this._customFunctions)
+    graphIterator = this._aggStageBuilder.buildIterator(graphIterator, query, context, this._customFunctions)
 
     // Handles transformers
     if (aggregates.length > 0) {
@@ -382,20 +384,20 @@ export default class PlanBuilder {
 
     switch (group.type) {
       case 'bgp':
-        if (isNull(this._bgpExecutor)) {
+        if (isNull(this._bgpStageBuilder)) {
           throw new Error('A PlanBuilder cannot evaluate a Basic Graph Pattern without a BGPExecutor')
         }
         // find possible Property paths
         let [classicTriples, pathTriples, tempVariables] = extractPropertyPaths(group as Algebra.BGPNode)
         if (pathTriples.length > 0) {
-          if (isNull(this._pathExecutor)) {
+          if (isNull(this._pathStageBuilder)) {
             throw new Error('A PlanBuilder cannot evaluate property paths without a PathExecutor')
           }
-          source = this._pathExecutor.executeManyPaths(source, pathTriples, context)
+          source = this._pathStageBuilder.executeManyPaths(source, pathTriples, context)
         }
 
         // delegate remaining BGP evaluation to the dedicated executor
-        let iter = this._bgpExecutor.buildIterator(source, classicTriples as Algebra.TripleObject[], childContext)
+        let iter = this._bgpStageBuilder.buildIterator(source, classicTriples as Algebra.TripleObject[], childContext)
 
         // filter out variables added by the rewriting of property paths
         if (tempVariables.length > 0) {
@@ -407,17 +409,17 @@ export default class PlanBuilder {
       case 'query':
         return this._buildQueryPlan(group as Algebra.RootNode, childContext, source)
       case 'graph':
-        if (isNull(this._graphExecutor)) {
+        if (isNull(this._graphStageBuilder)) {
           throw new Error('A PlanBuilder cannot evaluate a GRAPH clause without a GraphExecutor')
         }
         // delegate GRAPH evaluation to an executor
-        return this._graphExecutor.buildIterator(source, group as Algebra.GraphNode, childContext)
+        return this._graphStageBuilder.buildIterator(source, group as Algebra.GraphNode, childContext)
       case 'service':
-        if (isNull(this._serviceExecutor)) {
+        if (isNull(this._serviceStageBuilder)) {
           throw new Error('A PlanBuilder cannot evaluate a SERVICE clause without a ServiceExecutor')
         }
         // delegate SERVICE evaluation to an executor
-        return this._serviceExecutor.buildIterator(source, group as Algebra.ServiceNode, childContext)
+        return this._serviceStageBuilder.buildIterator(source, group as Algebra.ServiceNode, childContext)
       case 'group':
         return this._buildWhere(source, (group as Algebra.GroupNode).patterns, childContext)
       case 'optional':

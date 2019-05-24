@@ -1,12 +1,61 @@
-import { Automaton, State, Transition } from "./automaton"
-import { union } from "./utils"
+/* file : automatonBuilder.ts
+MIT License
 
+Copyright (c) 2019 Thomas Minier
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+*/
+
+import { Automaton, State, Transition } from "./automaton"
+
+/**
+ * Interface of something that builds an automaton
+ * @author Arthur Trottier
+ * @author Charlotte Cogan
+ * @author Julien Aimonier-Davat
+ */
 interface AutomatonBuilder<T, P> {
     build():Automaton<T, P>
 }
 
 /**
- * A GlushkovBuilder is responsible for build the automaton used to evaluate a SPARQL property path
+ * Perform the union of two sets
+ * @author Arthur Trottier
+ * @author Charlotte Cogan
+ * @author Julien Aimonier-Davat
+ * @param setA - first set
+ * @param setB - second set
+ * @return The union of the two sets
+ */
+export function union(setA: Set<number>, setB: Set<number>): Set<number> {
+    let union: Set<number> = new Set(setA);
+    setB.forEach(function(value) {
+        union.add(value);
+    });
+    return union;
+}
+
+/**
+ * A GlushkovBuilder is responsible for build the automaton used to evaluate a SPARQL property path.
+ * @author Arthur Trottier
+ * @author Charlotte Cogan
+ * @author Julien Aimonier-Davat
  */
 export class GlushkovBuilder implements AutomatonBuilder<number, string>  {
     private syntaxTree: any;
@@ -52,7 +101,7 @@ export class GlushkovBuilder implements AutomatonBuilder<number, string>  {
             }
         }
         node.id = num++
-        if(node.pathType == "!") { 
+        if(node.pathType == "!") {
             num += 2 // to create the two nodes in the negation processing step
         }
         return num
@@ -77,7 +126,7 @@ export class GlushkovBuilder implements AutomatonBuilder<number, string>  {
             nullable_node = nullable_node && nullable_child
         }
         this.nullable.set(node.id, nullable_node)
-        
+
         let first_node = new Set()
         index = -1
         do  {
@@ -139,14 +188,14 @@ export class GlushkovBuilder implements AutomatonBuilder<number, string>  {
         this.last.set(node.id, last_node)
     }
 
-    oneOrMoreProcessing(node: any) {      
+    oneOrMoreProcessing(node: any) {
         let nullable_child = this.nullable.get(node.items[0].id) as boolean
         this.nullable.set(node.id, nullable_child)
         let first_child = this.first.get(node.items[0].id) as Set<number>
         this.first.set(node.id, first_child)
         let last_child = this.last.get(node.items[0].id) as Set<number>
         this.last.set(node.id, last_child)
-            
+
         let self = this
         last_child.forEach(function(value: number) {
             let follow_lastChild = self.follow.get(value) as Set<number>
@@ -154,7 +203,7 @@ export class GlushkovBuilder implements AutomatonBuilder<number, string>  {
         })
     }
 
-    zeroOrOneProcessing(node: any) {  
+    zeroOrOneProcessing(node: any) {
         this.nullable.set(node.id, true)
         let first_child = this.first.get(node.items[0].id) as Set<number>
         this.first.set(node.id, first_child)
@@ -168,7 +217,7 @@ export class GlushkovBuilder implements AutomatonBuilder<number, string>  {
         this.first.set(node.id, first_child)
         let last_child = this.last.get(node.items[0].id) as Set<number>
         this.last.set(node.id, last_child)
-            
+
         let self = this
         last_child.forEach(function(value: number) {
             let follow_lastChild = self.follow.get(value) as Set<number>
@@ -242,10 +291,10 @@ export class GlushkovBuilder implements AutomatonBuilder<number, string>  {
         this.last.set(node.id, first_child)
         let last_child = this.last.get(node.items[0].id) as Set<number>
         this.first.set(node.id, last_child)
-        
+
         let child_inverse = this.searchChild(node)
 
-        let follow_temp = new Map<number, Set<number>>() 
+        let follow_temp = new Map<number, Set<number>>()
         child_inverse.forEach((nodeToReverse: number) => {
             follow_temp.set(nodeToReverse, new Set<number>())
         })
@@ -264,7 +313,7 @@ export class GlushkovBuilder implements AutomatonBuilder<number, string>  {
 
         child_inverse.forEach((child) =>  {
             this.follow.set(child, union(
-                this.follow.get(child) as Set<number>, 
+                this.follow.get(child) as Set<number>,
                 follow_temp.get(child) as Set<number>
             ))
         })

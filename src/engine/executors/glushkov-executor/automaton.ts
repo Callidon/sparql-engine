@@ -1,8 +1,35 @@
+/* file : automaton.ts
+MIT License
+
+Copyright (c) 2019 Thomas Minier
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+*/
+
 /**
  * A state of the automaton
+ * @author Arthur Trottier
+ * @author Charlotte Cogan
+ * @author Julien Aimonier-Davat
  */
 export class State<T> {
-    private _name: T; // The State's name. Must be unique. 
+    private _name: T; // The State's name. Must be unique.
     private _isInitial: boolean; // True if the State is an initial State, False otherwise
     private _isFinal: boolean; // True if the State if a final State, False otherwise
 
@@ -58,8 +85,8 @@ export class State<T> {
      * @return True if the States are equal, False otherwise
      */
     equals(state: State<T>): boolean {
-        return this.name === state.name 
-            && this._isInitial == state._isInitial 
+        return this.name === state.name
+            && this._isInitial == state._isInitial
             && this._isFinal == state.isFinal;
     }
 
@@ -81,18 +108,18 @@ export class Transition<T, P> {
                                // only if there exists an incoming edge (v', v) such that the label
                                // of (v', v) is in the predicates array
     private _negation: boolean; // if True the edge's label musn't be in the predicates array
-                                // if False the edge's label must be in the predicates array 
+                                // if False the edge's label must be in the predicates array
     private _predicates: Array<P>;
 
     /**
      * Constructor
-     * @param from - State from which the transition starts 
+     * @param from - State from which the transition starts
      * @param to - State to which the transition arrives
      * @param reverse - True if to go throught this transiton, we have to look for an incoming edge in the RDF graph,
      *                  False if to go throught this transition, we have to look for an outgoing edge in the RDF graph
      * @param negation - True if to go throught this transition, we have to look for an edge for which the label must be in the predicates array,
      *                   False if to go throught this transition, we have to look for an edge for which the label musn't be in the predicates array
-     * @param predicates 
+     * @param predicates
      */
     constructor(from: State<T>, to: State<T>, reverse: boolean, negation: boolean, predicates: Array<P>) {
         this._from = from;
@@ -153,8 +180,8 @@ export class Transition<T, P> {
      * @return True if the Transitions are equal, False otherwise
      */
     equals(transition: Transition<T, P>): boolean {
-        return this.from == transition.from 
-            && this.to == transition.to 
+        return this.from == transition.from
+            && this.to == transition.to
             && this.reverse == transition.reverse
             && this.negation == transition.negation
             && this.predicates == transition.predicates
@@ -184,7 +211,7 @@ export class Transition<T, P> {
 
 /**
  * An Automaton is used to evaluate a SPARQL Property Path. SPARQL Property Paths are transformed into an
- * equivalent Automaton which are used as a guide to navigate throught the Graph. When we reach a final state 
+ * equivalent Automaton which are used as a guide to navigate throught the Graph. When we reach a final state
  * then we have found a Path in the Graph that matches the Property Path.
  */
 export class Automaton<T, P> {
@@ -297,11 +324,11 @@ export class Automaton<T, P> {
         let result: string = "\n============ Automate ============\n"
         result += "\nETATS:\n\n"
         this.states.forEach(function(state) {
-            result += `$ {state.toString()}\n` 
+            result += `$ {state.toString()}\n`
         })
         result += "\nTRANSITIONS:\n\n"
         this.transitions.forEach(function(transition) {
-            result += `$ {transition.toString()}\n` 
+            result += `$ {transition.toString()}\n`
         })
         result += "\n============ Automate ============\n"
         return result
