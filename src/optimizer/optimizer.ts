@@ -26,6 +26,7 @@ SOFTWARE.
 
 import { Algebra } from 'sparqljs'
 import PlanVisitor from './plan-visitor'
+import UnionMerge from './visitors/union-merge'
 
 /**
  * An Optimizer applies a set of optimization rules, implemented using subclasses of {@link PlanVisitor}.
@@ -36,6 +37,16 @@ export default class Optimizer {
 
   constructor() {
     this._visitors = []
+  }
+
+  /**
+   * Get an optimizer configured with the default optimization rules
+   * @return A new Optimizer pre-configured with default rules
+   */
+  static getDefault(): Optimizer {
+    const opt = new Optimizer()
+    opt.addVisitor(new UnionMerge())
+    return opt
   }
 
   /**

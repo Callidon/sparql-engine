@@ -34,6 +34,8 @@ import { PipelineStage } from '../engine/pipeline/pipeline-engine'
 import { terms } from '../rdf-terms'
 import { Bindings, BindingBase } from '../rdf/bindings'
 import Dataset from '../rdf/dataset'
+// Optimization
+import Optimizer from '../optimizer/optimizer'
 // SPARQL query operators
 import bind from '../operators/bind'
 import sparqlDistinct from '../operators/sparql-distinct'
@@ -93,6 +95,7 @@ export type CustomFunctions = { [key:string]: (...args: (terms.RDFTerm | terms.R
 export default class PlanBuilder {
   private readonly _dataset: Dataset
   private readonly _parser: Parser
+  private _optimizer: Optimizer
   private _bgpExecutor: BGPExecutor
   private _pathExecutor: PathExecutor | null
   private _aggExecutor: AggregateExecutor
@@ -109,6 +112,7 @@ export default class PlanBuilder {
   constructor (dataset: Dataset, prefixes: any = {}, customFunctions?: CustomFunctions) {
     this._dataset = dataset
     this._parser = new Parser(prefixes)
+    this._optimizer = Optimizer.getDefault()
     this._bgpExecutor = new BGPExecutor(this._dataset)
     this._aggExecutor = new AggregateExecutor()
     this._graphExecutor = new GraphExecutor(this._dataset)
@@ -118,6 +122,14 @@ export default class PlanBuilder {
     this._customFunctions = customFunctions
     this._serviceExecutor = null
     this._pathExecutor = new GlushkovExecutor(this._dataset)
+  }
+
+  /**
+   * Set a new {@link Optimizer} uszed to optimize logical SPARQL query execution plans
+   * @param  opt - New optimizer to use
+   */
+  set optimizer (opt: Optimizer) {
+    this._optimizer = opt
   }
 
   /**
@@ -199,6 +211,9 @@ export default class PlanBuilder {
     if (isNull(context) || isUndefined(context)) {
       context = new ExecutionContext()
     }
+    // Optimize the logical query execution plan
+    query = this._optimizer.optimize(query)
+    // build physical query execution plan, depending on the query type
     switch (query.type) {
       case 'query':
         return this._buildQueryPlan(query, context)
