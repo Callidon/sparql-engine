@@ -34,27 +34,27 @@ import { PipelineStage } from '../engine/pipeline/pipeline-engine'
 import { terms } from '../rdf-terms'
 import { Bindings, BindingBase } from '../rdf/bindings'
 import Dataset from '../rdf/dataset'
-// SPARQL query operators
-import bind from '../operators/bind'
-import sparqlDistinct from '../operators/sparql-distinct'
-import exists from '../operators/exists'
-import sparqlFilter from '../operators/sparql-filter'
-import minus from '../operators/minus'
-import optional from '../operators/optional'
-import orderby from '../operators/orderby'
+// Optimization
+import Optimizer from '../optimizer/optimizer'
 // Solution modifiers
 import ask from '../operators/modifiers/ask'
 import construct from '../operators/modifiers/construct'
 import select from '../operators/modifiers/select'
-// Executors
-import AggregateExecutor from './executors/aggregate-executor'
-import BGPExecutor from './executors/bgp-executor'
-import PathExecutor from './executors/path-executor'
-import GraphExecutor from './executors/graph-executor'
-import UpdateExecutor from './executors/update-executor'
-import ServiceExecutor from './executors/service-executor'
-import GlushkovExecutor from './executors/glushkov-executor/glushkov-executor'
-// Utilities
+// Stage builders
+import StageBuilder from './stages/stage-builder'
+import AggregateStageBuilder from './stages/aggregate-stage-builder'
+import BGPStageBuilder from './stages/bgp-stage-builder'
+import BindStageBuilder from './stages/bind-stage-builder'
+import DistinctStageBuilder from './stages/distinct-stage-builder'
+import FilterStageBuilder from './stages/filter-stage-builder'
+import GlushkovStageBuilder from './stages/glushkov-executor/glushkov-stage-builder'
+import GraphStageBuilder from './stages/graph-stage-builder'
+import MinusStageBuilder from './stages/minus-stage-builder'
+import OptionalStageBuilder from './stages/optional-stage-builder'
+import OrderByStageBuilder from './stages/orderby-stage-builder'
+import UnionStageBuilder from './stages/union-stage-builder'
+import UpdateStageBuilder from './stages/update-stage-builder'
+// utilities
 import {
   partition,
   isNull,
@@ -65,7 +65,7 @@ import {
 } from 'lodash'
 
 import ExecutionContext from './context/execution-context'
-import { extractPropertyPaths } from './executors/rewritings'
+import { extractPropertyPaths } from './stages/rewritings'
 import { extendByBindings, deepApplyBindings, rdf } from '../utils'
 
 const QUERY_MODIFIERS = {
@@ -84,22 +84,39 @@ export type QueryOutput = Bindings | Algebra.TripleObject | boolean
  */
 export type CustomFunctions = { [key:string]: (...args: (terms.RDFTerm | terms.RDFTerm[] | null)[]) => terms.RDFTerm }
 
+/*
+ * Class of SPARQL operations that are evaluated by a Stage Builder
+ */
+export enum SPARQL_OPERATION {
+  AGGREGATE,
+  BGP,
+  BIND,
+  DISTINCT,
+  FILTER,
+  GRAPH,
+  MINUS,
+  OPTIONAL,
+  ORDER_BY,
+  PROPERTY_PATH,
+  SERVICE,
+  UPDATE,
+  UNION,
+}
+
 /**
  * A PlanBuilder builds a physical query execution plan of a SPARQL query,
  * i.e., an iterator that can be consumed to get query results.
+ * Internally, it implements a Builder design pattern, where various {@link StageBuilder} are used
+ * for building each part of the query execution plan.
  * @author Thomas Minier
  * @author Corentin Marionneau
  */
 export default class PlanBuilder {
   private readonly _dataset: Dataset
   private readonly _parser: Parser
-  private _bgpExecutor: BGPExecutor
-  private _pathExecutor: PathExecutor | null
-  private _aggExecutor: AggregateExecutor
-  private _graphExecutor: GraphExecutor
-  private _updateExecutor: UpdateExecutor
-  private _serviceExecutor: ServiceExecutor | null
-  private _customFunctions?: CustomFunctions
+  private _optimizer: Optimizer
+  private _stageBuilders: Map<SPARQL_OPERATION, StageBuilder>
+  private _customFunctions: CustomFunctions | undefined
 
   /**
    * Constructor
@@ -109,85 +126,49 @@ export default class PlanBuilder {
   constructor (dataset: Dataset, prefixes: any = {}, customFunctions?: CustomFunctions) {
     this._dataset = dataset
     this._parser = new Parser(prefixes)
-    this._bgpExecutor = new BGPExecutor(this._dataset)
-    this._aggExecutor = new AggregateExecutor()
-    this._graphExecutor = new GraphExecutor(this._dataset)
-    this._graphExecutor.builder = this
-    this._updateExecutor = new UpdateExecutor(this._dataset)
-    this._updateExecutor.builder = this
+    this._optimizer = Optimizer.getDefault()
     this._customFunctions = customFunctions
-    this._serviceExecutor = null
-    this._pathExecutor = new GlushkovExecutor(this._dataset)
+    this._stageBuilders = new Map()
+
+    // add default stage builders
+    this.use(SPARQL_OPERATION.AGGREGATE, new AggregateStageBuilder(this._dataset))
+    this.use(SPARQL_OPERATION.BGP, new BGPStageBuilder(this._dataset))
+    this.use(SPARQL_OPERATION.BIND, new BindStageBuilder(this._dataset))
+    this.use(SPARQL_OPERATION.DISTINCT, new DistinctStageBuilder(this._dataset))
+    this.use(SPARQL_OPERATION.FILTER, new FilterStageBuilder(this._dataset))
+    this.use(SPARQL_OPERATION.GRAPH, new GraphStageBuilder(this._dataset))
+    this.use(SPARQL_OPERATION.MINUS, new MinusStageBuilder(this._dataset))
+    this.use(SPARQL_OPERATION.OPTIONAL, new OptionalStageBuilder(this._dataset))
+    this.use(SPARQL_OPERATION.ORDER_BY, new OrderByStageBuilder(this._dataset))
+    this.use(SPARQL_OPERATION.PROPERTY_PATH, new GlushkovStageBuilder(this._dataset))
+    this.use(SPARQL_OPERATION.UNION, new UnionStageBuilder(this._dataset))
+    this.use(SPARQL_OPERATION.UPDATE, new UpdateStageBuilder(this._dataset))
   }
 
   /**
-   * Set the BGP executor used to evaluate Basic Graph patterns
-   * @param executor - Executor used to evaluate Basic Graph patterns
+   * Set a new {@link Optimizer} uszed to optimize logical SPARQL query execution plans
+   * @param  opt - New optimizer to use
    */
-  set bgpExecutor (executor: BGPExecutor) {
-    this._bgpExecutor.builder = null
-    this._bgpExecutor = executor
-    this._bgpExecutor.builder = this
+  set optimizer (opt: Optimizer) {
+    this._optimizer = opt
   }
 
   /**
-   * Set the BGP executor used to evaluate Basic Graph patterns
-   * @param executor - Executor used to evaluate Basic Graph patterns
+   * Register a Stage Builder to evaluate a class of SPARQL operations
+   * @param  kind         - Class of SPARQL operations handled by the Stage Builder
+   * @param  stageBuilder - New Stage Builder
    */
-  set pathExecutor (executor: PathExecutor) {
-    if (this._pathExecutor !== null) {
-      this._pathExecutor.builder = null
-    }
-    this._pathExecutor = executor
-    this._pathExecutor.builder = this
-  }
-
-  /**
-   * Set the BGP executor used to evaluate SPARQL Aggregates
-   * @param executor - Executor used to evaluate SPARQL Aggregates
-   */
-  set aggregateExecutor (executor: AggregateExecutor) {
-    this._aggExecutor.builder = null
-    this._aggExecutor = executor
-    this._aggExecutor.builder = this
-  }
-
-  /**
-   * Set the BGP executor used to evaluate SPARQL GRAPH clauses
-   * @param executor - Executor used to evaluate SPARQL GRAPH clauses
-   */
-  set graphExecutor (executor: GraphExecutor) {
-    this._graphExecutor.builder = null
-    this._graphExecutor = executor
-    this._graphExecutor.builder = this
-  }
-
-  /**
-   * Set the BGP executor used to evaluate SPARQL UPDATE queries
-   * @param executor - Executor used to evaluate SPARQL UPDATE queries
-   */
-  set updateExecutor (executor: UpdateExecutor) {
-    this._updateExecutor.builder = null
-    this._updateExecutor = executor
-    this._updateExecutor.builder = this
-  }
-
-  /**
-   * Set the executor used to evaluate SERVICE clauses
-   * @param executor - Executor used to evaluate SERVICE clauses
-   */
-  set serviceExecutor (executor: ServiceExecutor) {
-    if (this._serviceExecutor !== null) {
-      this._serviceExecutor.builder = null
-    }
-    this._serviceExecutor = executor
-    this._serviceExecutor.builder = this
+  use (kind: SPARQL_OPERATION, stageBuilder: StageBuilder) {
+    // complete handshake
+    stageBuilder.builder = null
+    stageBuilder.builder = this
+    this._stageBuilders.set(kind, stageBuilder)
   }
 
   /**
    * Build the physical query execution of a SPARQL 1.1 query
    * and returns a {@link PipelineStage} or a {@link Consumable} that can be consumed to evaluate the query.
-   * @param  query        - SPARQL query to evaluated
+   * @param  query    - SPARQL query to evaluated
    * @param  options  - Execution options
    * @return A {@link PipelineStage} or a {@link Consumable} that can be consumed to evaluate the query.
    */
@@ -199,11 +180,17 @@ export default class PlanBuilder {
     if (isNull(context) || isUndefined(context)) {
       context = new ExecutionContext()
     }
+    // Optimize the logical query execution plan
+    query = this._optimizer.optimize(query)
+    // build physical query execution plan, depending on the query type
     switch (query.type) {
       case 'query':
         return this._buildQueryPlan(query, context)
       case 'update':
-        return this._updateExecutor.execute(query.updates, context)
+        if (!this._stageBuilders.has(SPARQL_OPERATION.UPDATE)) {
+          throw new Error('A PlanBuilder cannot evaluate SPARQL UPDATE queries without a StageBuilder for it')
+        }
+        return this._stageBuilders.get(SPARQL_OPERATION.UPDATE)!.execute(query.updates, context)
       default:
         throw new SyntaxError(`Unsupported SPARQL query type: ${query.type}`)
     }
@@ -272,18 +259,22 @@ export default class PlanBuilder {
     }
 
     // Handles Aggregates
-    graphIterator = this._aggExecutor.buildIterator(graphIterator, query, context, this._customFunctions)
+    graphIterator = <PipelineStage<Bindings>> this._stageBuilders.get(SPARQL_OPERATION.AGGREGATE)!.execute(graphIterator, query, context, this._customFunctions)
 
     // Handles transformers
     if (aggregates.length > 0) {
-      graphIterator = aggregates.reduce((obs: PipelineStage<Bindings>, agg: Algebra.Aggregation) => {
-        return bind(obs, agg.variable, agg.expression, this._customFunctions)
+      graphIterator = aggregates.reduce((prev: PipelineStage<Bindings>, agg: Algebra.Aggregation) => {
+        const op = this._stageBuilders.get(SPARQL_OPERATION.BIND)!.execute(prev, agg, this._customFunctions, context)
+        return <PipelineStage<Bindings>> op
       }, graphIterator)
     }
 
     // Handles ORDER BY
     if ('order' in query) {
-      graphIterator = orderby(graphIterator, query.order!)
+      if (!this._stageBuilders.has(SPARQL_OPERATION.ORDER_BY)) {
+        new Error('A PlanBuilder cannot evaluate SPARQL ORDER BY clauses without a StageBuilder for it')
+      }
+      graphIterator = <PipelineStage<Bindings>> this._stageBuilders.get(SPARQL_OPERATION.ORDER_BY)!.execute(graphIterator, query.order!)
     }
 
     if (!(query.queryType in QUERY_MODIFIERS)) {
@@ -293,7 +284,10 @@ export default class PlanBuilder {
 
     // Create iterators for modifiers
     if (query.distinct) {
-      graphIterator = sparqlDistinct(graphIterator)
+      if (!this._stageBuilders.has(SPARQL_OPERATION.DISTINCT)) {
+        new Error('A PlanBuilder cannot evaluate a DISTINCT clause without a StageBuilder for it')
+      }
+      graphIterator = <PipelineStage<Bindings>> this._stageBuilders.get(SPARQL_OPERATION.DISTINCT)!.execute(graphIterator, context)
     }
 
     // Add offsets and limits if requested
@@ -367,20 +361,20 @@ export default class PlanBuilder {
 
     switch (group.type) {
       case 'bgp':
-        if (isNull(this._bgpExecutor)) {
-          throw new Error('A PlanBuilder cannot evaluate a Basic Graph Pattern without a BGPExecutor')
+        if (!this._stageBuilders.has(SPARQL_OPERATION.BGP)) {
+          throw new Error('A PlanBuilder cannot evaluate a Basic Graph Pattern without a Stage Builder for it')
         }
         // find possible Property paths
         let [classicTriples, pathTriples, tempVariables] = extractPropertyPaths(group as Algebra.BGPNode)
         if (pathTriples.length > 0) {
-          if (isNull(this._pathExecutor)) {
-            throw new Error('A PlanBuilder cannot evaluate property paths without a PathExecutor')
+          if (!this._stageBuilders.has(SPARQL_OPERATION.PROPERTY_PATH)) {
+            throw new Error('A PlanBuilder cannot evaluate property paths without a Stage Builder for it')
           }
-          source = this._pathExecutor.executeManyPaths(source, pathTriples, context)
+          source = <PipelineStage<Bindings>> this._stageBuilders.get(SPARQL_OPERATION.PROPERTY_PATH)!.execute(source, pathTriples, context)
         }
 
         // delegate remaining BGP evaluation to the dedicated executor
-        let iter = this._bgpExecutor.buildIterator(source, classicTriples as Algebra.TripleObject[], childContext)
+        let iter = <PipelineStage<Bindings>> this._stageBuilders.get(SPARQL_OPERATION.BGP)!.execute(source, classicTriples as Algebra.TripleObject[], childContext)
 
         // filter out variables added by the rewriting of property paths
         if (tempVariables.length > 0) {
@@ -392,42 +386,43 @@ export default class PlanBuilder {
       case 'query':
         return this._buildQueryPlan(group as Algebra.RootNode, childContext, source)
       case 'graph':
-        if (isNull(this._graphExecutor)) {
-          throw new Error('A PlanBuilder cannot evaluate a GRAPH clause without a GraphExecutor')
+        if (!this._stageBuilders.has(SPARQL_OPERATION.GRAPH)) {
+          throw new Error('A PlanBuilder cannot evaluate a GRAPH clause without a Stage Builder for it')
         }
         // delegate GRAPH evaluation to an executor
-        return this._graphExecutor.buildIterator(source, group as Algebra.GraphNode, childContext)
+        return <PipelineStage<Bindings>> this._stageBuilders.get(SPARQL_OPERATION.GRAPH)!.execute(source, group as Algebra.GraphNode, childContext)
       case 'service':
-        if (isNull(this._serviceExecutor)) {
-          throw new Error('A PlanBuilder cannot evaluate a SERVICE clause without a ServiceExecutor')
+        if (!this._stageBuilders.has(SPARQL_OPERATION.SERVICE)) {
+          throw new Error('A PlanBuilder cannot evaluate a SERVICE clause without a Stage Builder for it')
         }
-        // delegate SERVICE evaluation to an executor
-        return this._serviceExecutor.buildIterator(source, group as Algebra.ServiceNode, childContext)
+        return <PipelineStage<Bindings>> this._stageBuilders.get(SPARQL_OPERATION.SERVICE)!.execute(source, group as Algebra.ServiceNode, childContext)
       case 'group':
         return this._buildWhere(source, (group as Algebra.GroupNode).patterns, childContext)
       case 'optional':
-        return optional(source, (group as Algebra.GroupNode).patterns, this, childContext)
-      case 'union':
-        return engine.merge(...(group as Algebra.GroupNode).patterns.map(patternToken => {
-          return this._buildGroup(source, patternToken, childContext)
-        }))
-      case 'minus':
-        const rightSource = this._buildWhere(engine.of(new BindingBase()), (group as Algebra.GroupNode).patterns, childContext)
-        return minus(source, rightSource)
-      case 'filter':
-        const filter = group as Algebra.FilterNode
-        // FILTERs (NOT) EXISTS are handled using dedicated operators
-        switch (filter.expression.operator) {
-          case 'exists':
-            return exists(source, filter.expression.args, this, false, childContext)
-          case 'notexists':
-            return exists(source, filter.expression.args, this, true, childContext)
-          default:
-            return sparqlFilter(source, filter.expression, this._customFunctions)
+        if (!this._stageBuilders.has(SPARQL_OPERATION.OPTIONAL)) {
+          throw new Error('A PlanBuilder cannot evaluate an OPTIONAL clause without a Stage Builder for it')
         }
+        return <PipelineStage<Bindings>> this._stageBuilders.get(SPARQL_OPERATION.OPTIONAL)!.execute(source, group, childContext)
+      case 'union':
+        if (!this._stageBuilders.has(SPARQL_OPERATION.UNION)) {
+          throw new Error('A PlanBuilder cannot evaluate an UNION clause without a Stage Builder for it')
+        }
+        return <PipelineStage<Bindings>> this._stageBuilders.get(SPARQL_OPERATION.UNION)!.execute(source, group, childContext)
+      case 'minus':
+        if (!this._stageBuilders.has(SPARQL_OPERATION.MINUS)) {
+          throw new Error('A PlanBuilder cannot evaluate a MINUS clause without a Stage Builder for it')
+        }
+        return <PipelineStage<Bindings>> this._stageBuilders.get(SPARQL_OPERATION.MINUS)!.execute(source, group, childContext)
+      case 'filter':
+        if (!this._stageBuilders.has(SPARQL_OPERATION.FILTER)) {
+          throw new Error('A PlanBuilder cannot evaluate a FILTER clause without a Stage Builder for it')
+        }
+        return <PipelineStage<Bindings>> this._stageBuilders.get(SPARQL_OPERATION.FILTER)!.execute(source, group, this._customFunctions, childContext)
       case 'bind':
-        const bindNode = group as Algebra.BindNode
-        return bind(source, bindNode.variable, bindNode.expression, this._customFunctions)
+        if (!this._stageBuilders.has(SPARQL_OPERATION.BIND)) {
+          throw new Error('A PlanBuilder cannot evaluate a BIND clause without a Stage Builder for it')
+        }
+        return <PipelineStage<Bindings>> this._stageBuilders.get(SPARQL_OPERATION.BIND)!.execute(source, (group as Algebra.BindNode), this._customFunctions, childContext)
       default:
         throw new Error(`Unsupported SPARQL group pattern found in query: ${group.type}`)
     }

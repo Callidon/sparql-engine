@@ -1,4 +1,4 @@
-/* file : executor.ts
+/* file : sateg-builder.ts
 MIT License
 
 Copyright (c) 2018 Thomas Minier
@@ -25,16 +25,22 @@ SOFTWARE.
 'use strict'
 
 import PlanBuilder from '../plan-builder'
+import { PipelineStage } from '../pipeline/pipeline-engine'
+import { Consumable } from '../../operators/update/consumer'
+import Dataset from '../../rdf/dataset'
+import { Bindings } from '../../rdf/bindings'
 
 /**
- * An Executor encapsulate a strategy for executing SPARQL operations
+ * A StageBuilder encapsulate a strategy for executing a class of SPARQL operations
  * @abstract
  * @author Thomas Minier
  */
-export default abstract class Executor {
+export default abstract class StageBuilder {
+  protected _dataset: Dataset
   protected _builder: PlanBuilder | null
 
-  constructor () {
+  constructor (dataset: Dataset) {
+    this._dataset = dataset
     this._builder = null
   }
 
@@ -45,4 +51,14 @@ export default abstract class Executor {
   set builder (builder: PlanBuilder| null) {
     this._builder = builder
   }
+
+  get dataset (): Dataset {
+    return this._dataset
+  }
+
+  set dataset (dataset: Dataset) {
+    this._dataset = dataset
+  }
+
+  abstract execute(...args: any[]): PipelineStage<Bindings> | Consumable
 }

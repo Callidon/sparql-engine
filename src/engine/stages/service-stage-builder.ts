@@ -1,4 +1,4 @@
-/* file : service-executor.ts
+/* file : service-stage-builder.ts
 MIT License
 
 Copyright (c) 2018 Thomas Minier
@@ -24,19 +24,19 @@ SOFTWARE.
 
 'use strict'
 
-import Executor from './executor'
+import StageBuilder from './stage-builder'
 import { Algebra } from 'sparqljs'
 import { PipelineStage } from '../pipeline/pipeline-engine'
 import { Bindings } from '../../rdf/bindings'
 import ExecutionContext from '../context/execution-context'
 
 /**
- * A ServiceExecutor is responsible for evaluation a SERVICE clause in a SPARQL query.
+ * A ServiceStageBuilder is responsible for evaluation a SERVICE clause in a SPARQL query.
  * @abstract
  * @author Thomas Minier
  * @author Corentin Marionneau
  */
-export default abstract class ServiceExecutor extends Executor {
+export default abstract class ServiceStageBuilder extends StageBuilder {
   /**
    * Build a {@link PipelineStage} to evaluate a SERVICE clause
    * @param  source  - Input {@link PipelineStage}
@@ -44,7 +44,7 @@ export default abstract class ServiceExecutor extends Executor {
    * @param  options - Execution options
    * @return A {@link PipelineStage} used to evaluate a SERVICE clause
    */
-  buildIterator (source: PipelineStage<Bindings>, node: Algebra.ServiceNode, context: ExecutionContext): PipelineStage<Bindings> {
+  execute (source: PipelineStage<Bindings>, node: Algebra.ServiceNode, context: ExecutionContext): PipelineStage<Bindings> {
     let subquery: Algebra.RootNode
     if (node.patterns[0].type === 'query') {
       subquery = (<Algebra.RootNode> node.patterns[0])
@@ -57,7 +57,7 @@ export default abstract class ServiceExecutor extends Executor {
         where: node.patterns
       }
     }
-    return this._execute(source, node.name, subquery, context)
+    return this._buildIterator(source, node.name, subquery, context)
   }
 
   /**
@@ -69,5 +69,5 @@ export default abstract class ServiceExecutor extends Executor {
    * @param options   - Execution options
    * @return A {@link PipelineStage} used to evaluate a SERVICE clause
    */
-  abstract _execute (source: PipelineStage<Bindings>, iri: string, subquery: Algebra.RootNode, context: ExecutionContext): PipelineStage<Bindings>
+  abstract _buildIterator (source: PipelineStage<Bindings>, iri: string, subquery: Algebra.RootNode, context: ExecutionContext): PipelineStage<Bindings>
 }

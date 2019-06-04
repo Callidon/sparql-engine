@@ -1,4 +1,4 @@
-/* file : bgp-executor.ts
+/* file : bgp-stage-builder.ts
 MIT License
 
 Copyright (c) 2018 Thomas Minier
@@ -24,13 +24,12 @@ SOFTWARE.
 
 'use strict'
 
-import Executor from './executor'
+import StageBuilder from './stage-builder'
 import { Pipeline } from '../pipeline/pipeline'
 import { PipelineStage } from '../pipeline/pipeline-engine'
 // import { some } from 'lodash'
 import { Algebra } from 'sparqljs'
 import Graph from '../../rdf/graph'
-import Dataset from '../../rdf/dataset'
 import { Bindings } from '../../rdf/bindings'
 // import { GRAPH_CAPABILITY } from '../../rdf/graph_capability'
 import { parseHints } from '../context/query-hints'
@@ -57,23 +56,12 @@ import ExecutionContext from '../context/execution-context'
  }
 
 /**
- * A BGPExecutor is responsible for evaluation BGP in a SPARQL query.
- * Users can extend this class and overrides the "_execute" method to customize BGP evaluation.
+ * A BGPStageBuilder evaluates Basic Graph Patterns in a SPARQL query.
+ * Users can extend this class and overrides the "_buildIterator" method to customize BGP evaluation.
  * @author Thomas Minier
  * @author Corentin Marionneau
  */
-export default class BGPExecutor extends Executor {
-  readonly _dataset: Dataset
-
-  /**
-   * Constructor
-   * @param dataset - RDF Dataset used during query execution
-   */
-  constructor (dataset: Dataset) {
-    super()
-    this._dataset = dataset
-  }
-
+export default class BGPStageBuilder extends StageBuilder {
   /**
    * Return the RDF Graph to be used for BGP evaluation.
    * * If `iris` is empty, returns the default graph
@@ -84,11 +72,11 @@ export default class BGPExecutor extends Executor {
    */
   _getGraph (iris: string[]): Graph {
     if (iris.length === 0) {
-      return this._dataset.getDefaultGraph()
+      return this.dataset.getDefaultGraph()
     } else if (iris.length === 1) {
-      return this._dataset.getNamedGraph(iris[0])
+      return this.dataset.getNamedGraph(iris[0])
     }
-    return this._dataset.getUnionGraph(iris)
+    return this.dataset.getUnionGraph(iris)
   }
 
   /**
@@ -98,17 +86,17 @@ export default class BGPExecutor extends Executor {
    * @param  options   - Execution options
    * @return A {@link PipelineStage} used to evaluate a Basic Graph pattern
    */
-  buildIterator (source: PipelineStage<Bindings>, patterns: Algebra.TripleObject[], context: ExecutionContext): PipelineStage<Bindings> {
+  execute (source: PipelineStage<Bindings>, patterns: Algebra.TripleObject[], context: ExecutionContext): PipelineStage<Bindings> {
     // avoids sending a request with an empty array
     if(patterns.length == 0) return source
     // select the graph to use for BGP evaluation
-    const graph = (context.defaultGraphs.length > 0) ? this._getGraph(context.defaultGraphs) : this._dataset.getDefaultGraph()
+    const graph = (context.defaultGraphs.length > 0) ? this._getGraph(context.defaultGraphs) : this.dataset.getDefaultGraph()
     // extract eventual query hints from the BGP & merge them into the context
     let extraction = parseHints(patterns, context.hints)
     context.hints = extraction[1]
     // rewrite a BGP to remove blank node addedd by the Turtle notation
     const [bgp, artificals] = this._replaceBlankNodes(extraction[0])
-    let iterator = this._execute(source, graph, bgp, context)
+    let iterator = this._buildIterator(source, graph, bgp, context)
     if (artificals.length > 0) {
       iterator = Pipeline.getInstance().map(iterator, (b: Bindings) => b.filter(variable => artificals.indexOf(variable) < 0))
     }
@@ -151,7 +139,7 @@ export default class BGPExecutor extends Executor {
    * @param  isJoinIdentity - True if the source iterator is the starting iterator of the pipeline
    * @return A {@link PipelineStage} used to evaluate a Basic Graph pattern
    */
-  _execute (source: PipelineStage<Bindings>, graph: Graph, patterns: Algebra.TripleObject[], context: ExecutionContext): PipelineStage<Bindings> {
+  _buildIterator (source: PipelineStage<Bindings>, graph: Graph, patterns: Algebra.TripleObject[], context: ExecutionContext): PipelineStage<Bindings> {
     // if (graph._isCapable(GRAPH_CAPABILITY.UNION)) {
     //   return boundJoin(source, patterns, graph, context)
     // }

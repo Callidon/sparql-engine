@@ -1,7 +1,7 @@
-/* file : api.ts
+/* file : union-merge-test.js
 MIT License
 
-Copyright (c) 2018 Thomas Minier
+Copyright (c) 2019 Thomas Minier
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -24,17 +24,15 @@ SOFTWARE.
 
 'use strict'
 
-export { default as Dataset } from './rdf/dataset'
-export { BindingBase } from './rdf/bindings'
-export { default as HashMapDataset } from './rdf/hashmap-dataset'
-export { default as Graph } from './rdf/graph'
-export { default as PlanBuilder } from './engine/plan-builder'
-// pipeline
-export { Pipeline } from './engine/pipeline/pipeline'
-export { PipelineEngine } from './engine/pipeline/pipeline-engine'
-export { default as RxjsPipeline } from './engine/pipeline/rxjs-pipeline'
-export { default as VectorPipeline } from './engine/pipeline/vector-pipeline'
-// RDF terms Utilities
-export { terms } from './rdf-terms'
-// formatters
-// export { default as XMLFormatter } from './formatters/xml-formatter'
+const expect = require('chai').expect
+const UnionMerge = require('../../dist/optimizer/visitors/union-merge.js').default
+const { query, union, placeholder } = require('./utils.js')
+
+describe('Union merge optimization', () => {
+  it('should merge several unions into a single top-level union', () => {
+    const rule = new UnionMerge()
+    const plan = query(union(union(placeholder('?s1')), union(placeholder('?s2'))))
+    const res = rule.visit(plan)
+    expect(res).to.deep.equal(query(union(placeholder('?s1'), placeholder('?s2'))))
+  })
+})

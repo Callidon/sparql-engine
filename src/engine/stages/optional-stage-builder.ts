@@ -1,7 +1,7 @@
-/* file : api.ts
+/* file : optional-stage-builder.ts
 MIT License
 
-Copyright (c) 2018 Thomas Minier
+Copyright (c) 2019 Thomas Minier
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -22,19 +22,22 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+
 'use strict'
 
-export { default as Dataset } from './rdf/dataset'
-export { BindingBase } from './rdf/bindings'
-export { default as HashMapDataset } from './rdf/hashmap-dataset'
-export { default as Graph } from './rdf/graph'
-export { default as PlanBuilder } from './engine/plan-builder'
-// pipeline
-export { Pipeline } from './engine/pipeline/pipeline'
-export { PipelineEngine } from './engine/pipeline/pipeline-engine'
-export { default as RxjsPipeline } from './engine/pipeline/rxjs-pipeline'
-export { default as VectorPipeline } from './engine/pipeline/vector-pipeline'
-// RDF terms Utilities
-export { terms } from './rdf-terms'
-// formatters
-// export { default as XMLFormatter } from './formatters/xml-formatter'
+import StageBuilder from './stage-builder'
+import { Algebra } from 'sparqljs'
+import { PipelineStage } from '../pipeline/pipeline-engine'
+import { Bindings } from '../../rdf/bindings'
+import ExecutionContext from '../context/execution-context'
+import optional from '../../operators/optional'
+
+/**
+ * A OptionalStageBuilder evaluates OPTIONAL clauses
+ * @author Thomas Minier
+ */
+export default class OptionalStageBuilder extends StageBuilder {
+  execute(source: PipelineStage<Bindings>, node: Algebra.GroupNode, context: ExecutionContext): PipelineStage<Bindings> {
+    return optional(source, node.patterns, this.builder!, context)
+  }
+}

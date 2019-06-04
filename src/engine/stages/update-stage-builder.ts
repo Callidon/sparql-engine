@@ -1,4 +1,4 @@
-/* file : update-executor.ts
+/* file : update-stage-builder.ts
 MIT License
 
 Copyright (c) 2018 Thomas Minier
@@ -24,7 +24,7 @@ SOFTWARE.
 
 'use strict'
 
-import Executor from './executor'
+import StageBuilder from './stage-builder'
 import { Pipeline } from '../pipeline/pipeline'
 import { PipelineStage } from '../pipeline/pipeline-engine'
 import { Consumable, ErrorConsumable } from '../../operators/update/consumer'
@@ -35,28 +35,16 @@ import ManyConsumers from '../../operators/update/many-consumers'
 import construct from '../../operators/modifiers/construct'
 import * as rewritings from './rewritings.js'
 import Graph from '../../rdf/graph'
-import Dataset from '../../rdf/dataset'
 import { Algebra } from 'sparqljs'
 import { Bindings, BindingBase } from '../../rdf/bindings'
 import ExecutionContext from '../context/execution-context'
 
 /**
- * An UpdateExecutor is an executor responsible for evaluating SPARQL UPDATE queries.
+ * An UpdateStageBuilder evaluates SPARQL UPDATE queries.
  * @see https://www.w3.org/TR/2013/REC-sparql11-update-20130321
  * @author Thomas Minier
  */
-export default class UpdateExecutor extends Executor {
-  private readonly _dataset: Dataset
-
-  /**
-   * Constructor
-   * @param dataset - RDF Dataset used during query execution
-   */
-  constructor (dataset: Dataset) {
-    super()
-    this._dataset = dataset
-  }
-
+export default class UpdateStageBuilder extends StageBuilder {
   /**
    * Create a {@link Consumable} used to evaluate a SPARQL 1.1 Update query
    * @param updates - Set of Update queries to execute

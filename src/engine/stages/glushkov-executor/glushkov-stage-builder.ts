@@ -1,4 +1,28 @@
-import PathExecutor from "../path-executor"
+/* file : glushkov-stage-builder.ts
+MIT License
+
+Copyright (c) 2019 Thomas Minier
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+*/
+
+import PathStageBuilder from "../path-stage-builder"
 import { Algebra } from "sparqljs"
 import Graph from "../../../rdf/graph"
 import ExecutionContext from "../../context/execution-context"
@@ -6,17 +30,23 @@ import Dataset from "../../../rdf/dataset"
 import { Automaton, Transition } from "./automaton"
 import { GlushkovBuilder } from "./automatonBuilder"
 import { Bindings } from "../../../rdf/bindings"
-import { isVariable } from "./utils"
+import { rdf } from "../../../utils"
 import { Pipeline } from '../../../engine/pipeline/pipeline'
 import { PipelineStage } from '../../../engine/pipeline/pipeline-engine'
 
+/**
+ * A Step in the evaluation of a property path
+ * @author Arthur Trottier
+ * @author Charlotte Cogan
+ * @author Julien Aimonier-Davat
+ */
 class Step {
     private _node: string
     private _state: number
 
     /**
      * Constructor
-     * @param node - The label of a node in the RDF Graph 
+     * @param node - The label of a node in the RDF Graph
      * @param state - The ID of a State in the Automaton
      */
     constructor(node: string, state: number) {
@@ -33,7 +63,7 @@ class Step {
     }
 
     /**
-     * Get the RDF Graph's node associated with this Step of the ResultPath 
+     * Get the RDF Graph's node associated with this Step of the ResultPath
      * @return The RDF Graph's node associated with this Step
      */
     get node(): string {
@@ -59,6 +89,12 @@ class Step {
     }
 }
 
+/**
+ * A solution path, found during the evaluation of a property path
+ * @author Arthur Trottier
+ * @author Charlotte Cogan
+ * @author Julien Aimonier-Davat
+ */
 class ResultPath {
     private _steps: Array<Step>
 
@@ -118,9 +154,12 @@ class ResultPath {
 }
 
 /**
- * A GlushkovExecutor is responsible for evaluation a SPARQL property path query
+ * A GlushkovStageBuilder is responsible for evaluation a SPARQL property path query using a Glushkov state automata.
+ * @author Arthur Trottier
+ * @author Charlotte Cogan
+ * @author Julien Aimonier-Davat
  */
-export default class GlushkovExecutor extends PathExecutor {
+export default class GlushkovStageBuilder extends PathStageBuilder {
 
     /**
      * Constructor
@@ -146,7 +185,7 @@ export default class GlushkovExecutor extends PathExecutor {
         let lastStep: Step = rPath.lastStep()
         let result: PipelineStage<Algebra.TripleObject> = engine.empty()
         if(forward) {
-            if(automaton.isFinal(lastStep.state) && (isVariable(obj) ? true : lastStep.node === obj)) {
+            if(automaton.isFinal(lastStep.state) && (rdf.isVariable(obj) ? true : lastStep.node === obj)) {
                 let subject: string = rPath.firstStep().node
                 let object: string = rPath.lastStep().node
                 result = engine.of({subject: subject, predicate: "", object: object})
@@ -167,7 +206,7 @@ export default class GlushkovExecutor extends PathExecutor {
         let obs: PipelineStage<Algebra.TripleObject>[] = transitions.map(function(transition) {
             let reverse = (forward && transition.reverse) || (!forward && !transition.reverse)
             let bgp: Array<Algebra.TripleObject> = [ {
-                subject: reverse ? '?o' : lastStep.node, 
+                subject: reverse ? '?o' : lastStep.node,
                 predicate: transition.negation ? '?p' : transition.predicates[0],
                 object: reverse ? lastStep.node : '?o'
             }]
@@ -185,7 +224,7 @@ export default class GlushkovExecutor extends PathExecutor {
                         let newPath = rPath.clone()
                         newPath.add(newStep)
                         return self.evaluatePropertyPath(newPath, obj, graph, context, automaton, forward)
-                    } 
+                    }
                 }
                 return engine.empty()
             })
@@ -203,13 +242,13 @@ export default class GlushkovExecutor extends PathExecutor {
      */
     reflexiveClosure(subject: string, obj: string, graph: Graph, context: ExecutionContext): PipelineStage<Algebra.TripleObject> {
         const engine = Pipeline.getInstance()
-        if(isVariable(subject) && !isVariable(obj)) {   
+        if(rdf.isVariable(subject) && !rdf.isVariable(obj)) {
             let result: Algebra.TripleObject = {subject: obj, predicate: "", object: obj}
             return engine.of(result)
-        } else if(!isVariable(subject) && isVariable(obj)) {
+        } else if(!rdf.isVariable(subject) && rdf.isVariable(obj)) {
             let result: Algebra.TripleObject = {subject: subject, predicate: "", object: subject}
             return engine.of(result)
-        } else if(isVariable(subject) && isVariable(obj)) {
+        } else if(rdf.isVariable(subject) && rdf.isVariable(obj)) {
             let bgp: Array<Algebra.TripleObject> = [ {subject: '?s', predicate: '?p', object: '?o'}]
             return engine.distinct(
                 engine.mergeMap(engine.from(graph.evalBGP(bgp, context)), (binding: Bindings) => {
@@ -252,12 +291,12 @@ export default class GlushkovExecutor extends PathExecutor {
         let obs: PipelineStage<Algebra.TripleObject>[] = transitions.map(function(transition) {
             let reverse = (forward && transition.reverse) || (!forward && !transition.reverse)
             let bgp: Array<Algebra.TripleObject> = [ {
-                subject: reverse ? '?o' : subject, 
+                subject: reverse ? '?o' : subject,
                 predicate: transition.negation ? '?p' : transition.predicates[0],
                 object: reverse ? subject : '?o'
             }]
             return engine.mergeMap(engine.from(graph.evalBGP(bgp, context)), (binding: Bindings) => {
-                let s = (isVariable(subject) ? binding.get(subject) : subject) as string
+                let s = (rdf.isVariable(subject) ? binding.get(subject) : subject) as string
                 let p = binding.get('?p')
                 let o = binding.get('?o') as string
                 if(p != null ? !transition.hasPredicate(p) : true) {
@@ -270,7 +309,7 @@ export default class GlushkovExecutor extends PathExecutor {
                         path.add(new Step(o, transition.from.name))
                     }
                     return self.evaluatePropertyPath(path, obj, graph, context, automaton, forward)
-                } 
+                }
                 return engine.empty()
             })
         })
@@ -286,12 +325,12 @@ export default class GlushkovExecutor extends PathExecutor {
      * @param  context - Execution context
      * @return An Observable which yield RDF triples matching the property path
      */
-    _execute(subject: string, path: Algebra.PropertyPath, obj: string, graph: Graph, context: ExecutionContext): PipelineStage<Algebra.TripleObject> {
+    _executePropertyPath(subject: string, path: Algebra.PropertyPath, obj: string, graph: Graph, context: ExecutionContext): PipelineStage<Algebra.TripleObject> {
         let automaton: Automaton<number, string> = new GlushkovBuilder(path).build()
-        if(isVariable(subject) && !isVariable(obj)) {
+        if(rdf.isVariable(subject) && !rdf.isVariable(obj)) {
             return this.startPropertyPathEvaluation(obj, subject, graph, context, automaton, false)
         } else {
             return this.startPropertyPathEvaluation(subject, obj, graph, context, automaton, true)
         }
-    }   
+    }
 }

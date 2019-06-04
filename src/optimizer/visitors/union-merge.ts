@@ -1,7 +1,7 @@
-/* file : api.ts
+/* file : union-merge.ts
 MIT License
 
-Copyright (c) 2018 Thomas Minier
+Copyright (c) 2019 Thomas Minier
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -24,17 +24,21 @@ SOFTWARE.
 
 'use strict'
 
-export { default as Dataset } from './rdf/dataset'
-export { BindingBase } from './rdf/bindings'
-export { default as HashMapDataset } from './rdf/hashmap-dataset'
-export { default as Graph } from './rdf/graph'
-export { default as PlanBuilder } from './engine/plan-builder'
-// pipeline
-export { Pipeline } from './engine/pipeline/pipeline'
-export { PipelineEngine } from './engine/pipeline/pipeline-engine'
-export { default as RxjsPipeline } from './engine/pipeline/rxjs-pipeline'
-export { default as VectorPipeline } from './engine/pipeline/vector-pipeline'
-// RDF terms Utilities
-export { terms } from './rdf-terms'
-// formatters
-// export { default as XMLFormatter } from './formatters/xml-formatter'
+import PlanVisitor from '../plan-visitor'
+import { Algebra } from 'sparqljs'
+import { cloneDeep, partition } from 'lodash'
+
+/**
+ * Implements the UNION Merge rule: all SPARQL UNION clauses in the same group pattern
+ * should be merged as one single UNION clause.
+ * @author Thomas Minier
+ */
+export default class UnionMerge extends PlanVisitor {
+  visitUnion(node: Algebra.GroupNode): Algebra.PlanNode {
+    const newNode = cloneDeep(node)
+    const parts = partition(newNode.patterns, group => group.type === 'union')
+    const singleUnion = (parts[0] as Algebra.GroupNode[]).reduce((acc: Algebra.PlanNode[], c) => acc.concat(c.patterns), [])
+    newNode.patterns = parts[1].concat(singleUnion)
+    return newNode
+  }
+}

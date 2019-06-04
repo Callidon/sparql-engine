@@ -24,31 +24,19 @@ SOFTWARE.
 
 'use strict'
 
-import Executor from './executor'
+import StageBuilder from './stage-builder'
 import { Pipeline } from '../pipeline/pipeline'
 import { PipelineStage } from '../pipeline/pipeline-engine'
 import { rdf } from '../../utils'
 import { Algebra } from 'sparqljs'
-import Dataset from '../../rdf/dataset'
 import { Bindings } from '../../rdf/bindings'
 import ExecutionContext from '../context/execution-context'
 
 /**
- * A GraphExecutor is responsible for evaluation a GRAPH clause in a SPARQL query.
+ * A GraphStageBuilder evaluates GRAPH clauses in a SPARQL query.
  * @author Thomas Minier
  */
-export default class GraphExecutor extends Executor {
-  private readonly _dataset: Dataset
-
-  /**
-   * Constructor
-   * @param dataset - RDF Dataset used during query execution
-   */
-  constructor (dataset: Dataset) {
-    super()
-    this._dataset = dataset
-  }
-
+export default class GraphStageBuilder extends StageBuilder {
   /**
    * Build a {@link PipelineStage} to evaluate a GRAPH clause
    * @param  source  - Input {@link PipelineStage}
@@ -56,7 +44,7 @@ export default class GraphExecutor extends Executor {
    * @param  options - Execution options
    * @return A {@link PipelineStage} used to evaluate a GRAPH clause
    */
-  buildIterator (source: PipelineStage<Bindings>, node: Algebra.GraphNode, context: ExecutionContext): PipelineStage<Bindings> {
+  execute (source: PipelineStage<Bindings>, node: Algebra.GraphNode, context: ExecutionContext): PipelineStage<Bindings> {
     let subquery: Algebra.RootNode
     if (node.patterns[0].type === 'query') {
       subquery = (<Algebra.RootNode> node.patterns[0])
@@ -76,14 +64,14 @@ export default class GraphExecutor extends Executor {
       source = engine.clone(source)
       // execute the subquery using each graph, and bound the graph var to the graph iri
       const iterators = context.namedGraphs.map((iri: string) => {
-        return engine.map(this._execute(source, iri, subquery, context), (b: Bindings) => {
+        return engine.map(this._buildIterator(source, iri, subquery, context), (b: Bindings) => {
           return b.extendMany([[node.name, iri]])
         })
       })
       return engine.merge(...iterators)
     }
     // otherwise, execute the subquery using the Graph
-    return this._execute(source, node.name, subquery, context)
+    return this._buildIterator(source, node.name, subquery, context)
   }
 
   /**
@@ -94,7 +82,7 @@ export default class GraphExecutor extends Executor {
    * @param  options   - Execution options
    * @return A {@link PipelineStage} used to evaluate a GRAPH clause
    */
-  _execute (source: PipelineStage<Bindings>, iri: string, subquery: Algebra.RootNode, context: ExecutionContext): PipelineStage<Bindings> {
+  _buildIterator (source: PipelineStage<Bindings>, iri: string, subquery: Algebra.RootNode, context: ExecutionContext): PipelineStage<Bindings> {
     const opts = context.clone()
     opts.defaultGraphs = [ iri ]
     return this._builder!._buildQueryPlan(subquery, opts, source)
