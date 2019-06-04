@@ -1,4 +1,4 @@
-/* file : glushkov-executor.ts
+/* file : glushkov-stage-builder.ts
 MIT License
 
 Copyright (c) 2019 Thomas Minier
@@ -22,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-import PathExecutor from "../path-executor"
+import PathStageBuilder from "../path-stage-builder"
 import { Algebra } from "sparqljs"
 import Graph from "../../../rdf/graph"
 import ExecutionContext from "../../context/execution-context"
@@ -154,12 +154,12 @@ class ResultPath {
 }
 
 /**
- * A GlushkovExecutor is responsible for evaluation a SPARQL property path query using a Glushkov state automata.
+ * A GlushkovStageBuilder is responsible for evaluation a SPARQL property path query using a Glushkov state automata.
  * @author Arthur Trottier
  * @author Charlotte Cogan
  * @author Julien Aimonier-Davat
  */
-export default class GlushkovExecutor extends PathExecutor {
+export default class GlushkovStageBuilder extends PathStageBuilder {
 
     /**
      * Constructor
@@ -325,7 +325,7 @@ export default class GlushkovExecutor extends PathExecutor {
      * @param  context - Execution context
      * @return An Observable which yield RDF triples matching the property path
      */
-    _execute(subject: string, path: Algebra.PropertyPath, obj: string, graph: Graph, context: ExecutionContext): PipelineStage<Algebra.TripleObject> {
+    _executePropertyPath(subject: string, path: Algebra.PropertyPath, obj: string, graph: Graph, context: ExecutionContext): PipelineStage<Algebra.TripleObject> {
         let automaton: Automaton<number, string> = new GlushkovBuilder(path).build()
         if(rdf.isVariable(subject) && !rdf.isVariable(obj)) {
             return this.startPropertyPathEvaluation(obj, subject, graph, context, automaton, false)

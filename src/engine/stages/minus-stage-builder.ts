@@ -1,7 +1,7 @@
-/* file : api.ts
+/* file : minus-stage-builder.ts
 MIT License
 
-Copyright (c) 2018 Thomas Minier
+Copyright (c) 2019 Thomas Minier
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -22,19 +22,25 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+
 'use strict'
 
-export { default as Dataset } from './rdf/dataset'
-export { BindingBase } from './rdf/bindings'
-export { default as HashMapDataset } from './rdf/hashmap-dataset'
-export { default as Graph } from './rdf/graph'
-export { default as PlanBuilder } from './engine/plan-builder'
-// pipeline
-export { Pipeline } from './engine/pipeline/pipeline'
-export { PipelineEngine } from './engine/pipeline/pipeline-engine'
-export { default as RxjsPipeline } from './engine/pipeline/rxjs-pipeline'
-export { default as VectorPipeline } from './engine/pipeline/vector-pipeline'
-// RDF terms Utilities
-export { terms } from './rdf-terms'
-// formatters
-// export { default as XMLFormatter } from './formatters/xml-formatter'
+import StageBuilder from './stage-builder'
+import { Algebra } from 'sparqljs'
+import { Pipeline } from '../../engine/pipeline/pipeline'
+import { PipelineStage } from '../pipeline/pipeline-engine'
+import { Bindings, BindingBase } from '../../rdf/bindings'
+import ExecutionContext from '../context/execution-context'
+import minus from '../../operators/minus'
+
+/**
+ * A MinusStageBuilder evaluates MINUS clauses
+ * @author Thomas Minier
+ */
+export default class MinusStageBuilder extends StageBuilder {
+  execute(source: PipelineStage<Bindings>, node: Algebra.GroupNode, context: ExecutionContext): PipelineStage<Bindings> {
+    const engine = Pipeline.getInstance()
+    const rightSource = this.builder!._buildWhere(engine.of(new BindingBase()), node.patterns, context)
+    return minus(source, rightSource)
+  }
+}

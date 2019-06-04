@@ -1,4 +1,4 @@
-/* file : aggregate-executor.ts
+/* file : aggregate-stage-builder.ts
 MIT License
 
 Copyright (c) 2018 Thomas Minier
@@ -25,7 +25,7 @@ SOFTWARE.
 'use strict'
 
 import { PipelineStage } from '../pipeline/pipeline-engine'
-import Executor from './executor'
+import StageBuilder from './stage-builder'
 import { CustomFunctions } from '../../engine/plan-builder'
 import bind from '../../operators/bind'
 import filter from '../../operators/sparql-filter'
@@ -36,12 +36,12 @@ import { Bindings } from '../../rdf/bindings'
 import ExecutionContext from '../context/execution-context'
 
 /**
- * An AggregateExecutor handles the evaluation of Aggregations operations,
+ * An AggregateStageBuilder handles the evaluation of Aggregations operations,
  * GROUP BY and HAVING clauses in SPARQL queries.
  * @see https://www.w3.org/TR/sparql11-query/#aggregates
  * @author Thomas Minier
  */
-export default class AggregateExecutor extends Executor {
+export default class AggregateStageBuilder extends StageBuilder {
   /**
    * Build a {@link PipelineStage} for the evaluation of SPARQL aggregations
    * @param source  - Input {@link PipelineStage}
@@ -49,7 +49,7 @@ export default class AggregateExecutor extends Executor {
    * @param options - Execution options
    * @return A {@link PipelineStage} which evaluate SPARQL aggregations
    */
-  buildIterator (source: PipelineStage<Bindings>, query: Algebra.RootNode, context: ExecutionContext, customFunctions?: CustomFunctions): PipelineStage<Bindings> {
+  execute (source: PipelineStage<Bindings>, query: Algebra.RootNode, context: ExecutionContext, customFunctions?: CustomFunctions): PipelineStage<Bindings> {
     if ('group' in query) {
       // first, group bindings using the GROUP BY clause
       let iterator = this._executeGroupBy(source, query.group || [], context, customFunctions)

@@ -1,4 +1,4 @@
-/* file : path-executor.ts
+/* file : path-stage-builder.ts
 MIT License
 
 Copyright (c) 2018 Thomas Minier
@@ -22,12 +22,11 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-import Executor from './executor'
+import StageBuilder from './stage-builder'
 import { Pipeline } from '../pipeline/pipeline'
 import { PipelineStage } from '../pipeline/pipeline-engine'
 import { Algebra } from 'sparqljs'
 import { Bindings, BindingBase } from '../../rdf/bindings'
-import Dataset from '../../rdf/dataset'
 import Graph from '../../rdf/graph'
 import ExecutionContext from '../context/execution-context'
 import { rdf } from '../../utils'
@@ -55,23 +54,12 @@ function boundPathTriple (triple: Algebra.PathTripleObject, bindings: Bindings):
 }
 
 /**
- * The base class to implements in order to evaluate Property Paths.
- * A subclass of this class only has to implement the `_execute` method to provide an execution logic for property paths.
+ * The base class to implements to evaluate Property Paths.
+ * A subclass of this class only has to implement the `_executePropertyPath` method to provide an execution logic for property paths.
  * @abstract
  * @author Thomas Minier
  */
-export default abstract class PathExecutor extends Executor {
-  readonly _dataset: Dataset
-
-  /**
-   * Constructor
-   * @param dataset - RDF Dataset used during query execution
-   */
-  constructor (dataset: Dataset) {
-    super()
-    this._dataset = dataset
-  }
-
+export default abstract class PathStageBuilder extends StageBuilder {
   /**
    * Return the RDF Graph to be used for BGP evaluation.
    * * If `iris` is empty, returns the default graph
@@ -96,13 +84,13 @@ export default abstract class PathExecutor extends Executor {
    * @param  context - Execution context
    * @return A {@link PipelineStage} which yield set of bindings from the pipeline of joins
    */
-  executeManyPaths (source: PipelineStage<Bindings>, triples: Algebra.PathTripleObject[], context: ExecutionContext): PipelineStage<Bindings> {
+  execute (source: PipelineStage<Bindings>, triples: Algebra.PathTripleObject[], context: ExecutionContext): PipelineStage<Bindings> {
     // create a join pipeline between all property paths using an index join
     const engine = Pipeline.getInstance()
     return triples.reduce((iter: PipelineStage<Bindings>, triple: Algebra.PathTripleObject) => {
       return engine.mergeMap(iter, bindings => {
         const {subject, predicate, object} = boundPathTriple(triple, bindings)
-        return engine.map(this.buildIterator(subject, predicate, object, context), (b: Bindings) => bindings.union(b))
+        return engine.map(this._buildIterator(subject, predicate, object, context), (b: Bindings) => bindings.union(b))
       })
     }, source)
   }
@@ -115,9 +103,9 @@ export default abstract class PathExecutor extends Executor {
    * @param  context - Execution context
    * @return A {@link PipelineStage} which yield set of bindings
    */
-  buildIterator(subject: string, path: Algebra.PropertyPath, obj: string, context: ExecutionContext): PipelineStage<Bindings> {
+  _buildIterator(subject: string, path: Algebra.PropertyPath, obj: string, context: ExecutionContext): PipelineStage<Bindings> {
     const graph = (context.defaultGraphs.length > 0) ? this._getGraph(context.defaultGraphs) : this._dataset.getDefaultGraph()
-    const evaluator = this._execute(subject, path, obj, graph, context)
+    const evaluator = this._executePropertyPath(subject, path, obj, graph, context)
     return Pipeline.getInstance().map(evaluator, (triple: Algebra.TripleObject) => {
       const temp = {}
       if (rdf.isVariable(subject)) {
@@ -144,5 +132,5 @@ export default abstract class PathExecutor extends Executor {
    * @param  context - Execution context
    * @return A {@link PipelineStage} which yield RDF triples matching the property path
    */
-  abstract _execute(subject: string, path: Algebra.PropertyPath, obj: string, graph: Graph, context: ExecutionContext): PipelineStage<Algebra.TripleObject>
+  abstract _executePropertyPath(subject: string, path: Algebra.PropertyPath, obj: string, graph: Graph, context: ExecutionContext): PipelineStage<Algebra.TripleObject>
 }
