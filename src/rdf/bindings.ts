@@ -26,6 +26,7 @@ SOFTWARE.
 
 import { Algebra } from 'sparqljs'
 import { isNull, isUndefined } from 'lodash'
+import { rdf } from '../utils'
 
 /**
  * A set of mappings from a variable to a RDF Term.
@@ -197,13 +198,13 @@ export abstract class Bindings {
    */
   bound (triple: Algebra.TripleObject): Algebra.TripleObject {
     const newTriple = Object.assign({}, triple)
-    if (triple.subject.startsWith('?') && this.has(triple.subject)) {
+    if (rdf.isVariable(triple.subject) && this.has(triple.subject)) {
       newTriple.subject = this.get(triple.subject)!
     }
-    if (triple.predicate.startsWith('?') && this.has(triple.predicate)) {
+    if (rdf.isVariable(triple.predicate) && this.has(triple.predicate)) {
       newTriple.predicate = this.get(triple.predicate)!
     }
-    if (triple.object.startsWith('?') && this.has(triple.object)) {
+    if (rdf.isVariable(triple.object) && this.has(triple.object)) {
       newTriple.object = this.get(triple.object)!
     }
     return newTriple

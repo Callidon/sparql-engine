@@ -62,4 +62,31 @@ describe('SPARQL VALUES', () => {
       done()
     })
   })
+
+  it('should evaluates VALUES clauses mixed with Property Paths', done => {
+    const query = `
+    PREFIX dblp-rdf: <https://dblp.uni-trier.de/rdf/schema-2017-04-18#>
+    PREFIX esws: <https://dblp.org/rec/conf/esws/>
+    PREFIX owl: <http://www.w3.org/2002/07/owl#>
+    SELECT ?author ?article WHERE {
+      ?author owl:sameAs/dblp-rdf:authorOf ?article .
+      VALUES ?article { esws:MinierSMV18a esws:MinierMSM17 }
+    }`
+    const results = []
+
+    const iterator = engine.execute(query)
+    iterator.subscribe(b => {
+      b = b.toObject()
+      expect(b).to.have.all.keys('?author', '?article')
+      expect(b['?author']).to.equal('https://dblp.uni-trier.de/pers/m/Minier:Thomas')
+      expect(b['?article']).to.be.oneOf([
+        'https://dblp.org/rec/conf/esws/MinierMSM17',
+        'https://dblp.org/rec/conf/esws/MinierSMV18a'
+      ])
+      results.push(b)
+    }, done, () => {
+      expect(results.length).to.equal(2)
+      done()
+    })
+  })
 })
