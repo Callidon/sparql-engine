@@ -13,7 +13,7 @@ An open-source framework for building SPARQL query engines in Javascript/Typescr
 * Supports [Custom SPARQL functions](#custom-functions).
 * Supports the [SPARQL UPDATE protocol](https://www.w3.org/TR/2013/REC-sparql11-update-20130321/).
 * Supports Basic [Federated SPARQL queries](https://www.w3.org/TR/2013/REC-sparql11-federated-query-20130321/) using **SERVICE clauses**.
-* Customize every step of SPARQL query processing, thanks to a component-based architecture.
+* Customize every step of SPARQL query processing, thanks to *a modular architecture*.
 
 :warning: **In Development** :warning:
 * Support for SPARQL Graph Management protocol
@@ -306,33 +306,51 @@ const { RxjsPipeline, VectorPipeline } = require('sparql-engine')
 
 ## Customize query execution
 
-As introduced before, a `PlanBuilder` rely on **Executors** to build the *physical query execution plan*
-of a SPARQL query. If you wish to configure how this plan is built, then you just have to extends the various executors
-available. The following table gives you all informations needed about the available executors.
+A `PlanBuilder` implements a [Builder pattern](https://en.wikipedia.org/wiki/Builder_pattern) in order to create a physical query execution plan for a given SPARQL query.
+Internally, it defines [*stages builders*](https://callidon.github.io/sparql-engine/classes/stagebuilder) to generates operators for executing all types of SPARQL operations.
+For example, the [`OrderByStageBuilder`](https://callidon.github.io/sparql-engine/classes/orderbystagebuilder.html) is invoked when the `PlanBuilder` needs to evaluate an `ORDER BY` modifier.
+
+If you want to customize how query execution plans are built, you have to implement your own stage builders, by extending existing ones.
+Then, you need to configure your plan builder to use them, with the [`use` function](https://callidon.github.io/sparql-engine/classes/planbuilder.html#use).
+
+```javascript
+  const { PlanBuilder, stages } = require('sparql-engine')
+
+  class MyOrderByStageBuilder extends stages.OrderByStageBuilder {
+    /* Define your custom execution logic for ORDER BY */
+  }
+
+  const dataset = /* a RDF dataset */
+
+  // Creates a plan builder for the RDF dataset
+  const builder = new PlanBuilder(dataset)
+
+  // Plug-in your custom stage builder
+  builder.use(stages.SPARQL_OPERATIONS.ORDER_BY, MyOrderByStageBuilder(dataset))
+
+  // Now, execute SPARQL queries as before with your PlanBuilder
+```
+
+You will find below a reference table of all stage builders used by `sparql-engine` to evaluate SPARQL queries. Please see [the API documentation](https://callidon.github.io/sparql-engine/classes/stagebuilder) for more details.
 
 **Executors**
 
-| Base class | Used to handle | PlanBuilder setter |
-|------------|----------------|--------------------|
-| [BGPExecutor](https://github.com/Callidon/sparql-engine/blob/master/src/engine/executors/bgp-executor.js) | [Basic Graph Patterns](https://www.w3.org/TR/2013/REC-sparql11-query-20130321/#BasicGraphPatterns) | `builder.bgpExecutor = ...` |
-| [GraphExecutor](https://github.com/Callidon/sparql-engine/blob/master/src/engine/executors/graph-executor.js) | [SPARQL GRAPH](https://www.w3.org/TR/sparql11-query/#queryDataset) | `builder.graphExecutor = ...` |
-| [ServiceExecutor](https://github.com/Callidon/sparql-engine/blob/master/src/engine/executors/service-executor.js) | [SPARQL Service](https://www.w3.org/TR/2013/REC-sparql11-federated-query-20130321/) | `builder.serviceExecutor = ...` |
-| [AggregateExecutor](https://github.com/Callidon/sparql-engine/blob/master/src/engine/executors/aggregate-executor.js) | [SPARQL Aggregates](https://www.w3.org/TR/sparql11-query/#aggregates) | `builder.aggregateExecutor = ...` |
-| [UpdateExecutor](https://github.com/Callidon/sparql-engine/blob/master/src/engine/executors/update-executor.js) | [SPARQL UPDATE protocol](https://www.w3.org/TR/2013/REC-sparql11-update-20130321/) | `builder.updateExecutor = ...` |
+| SPARQL Operation | Default Stage Builder | Symbol |
+|------------------|-----------------------|--------|
+| [Aggregates](https://www.w3.org/TR/sparql11-query/#aggregates) | [AggregateStageBuilder](https://callidon.github.io/sparql-engine/classes/aggregatestagebuilder.html) | `SPARQL_OPERATIONS.AGGREGATE` |
+| [Basic Graph Patterns](https://www.w3.org/TR/sparql11-query/#BasicGraphPatterns) | [BGPStageBuilder](https://callidon.github.io/sparql-engine/classes/bgpstagebuilder.html) | `SPARQL_OPERATIONS.BGP` |
+| [BIND](https://www.w3.org/TR/sparql11-query/#bind) | [BindStageBuilder](https://callidon.github.io/sparql-engine/classes/bindstagebuilder.html) | `SPARQL_OPERATIONS.BIND` |
+| [DISTINCT](https://www.w3.org/TR/sparql11-query/#neg-minus) | [DistinctStageBuilder](https://callidon.github.io/sparql-engine/classes/distinctstagebuilder.html) | `SPARQL_OPERATIONS.DISTINCT` |
+| [FILTER](https://www.w3.org/TR/sparql11-query/#expressions) | [FilterStageBuilder](https://callidon.github.io/sparql-engine/classes/filterstagebuilder.html) | `SPARQL_OPERATIONS.FILTER` |
+| [Property Paths](https://www.w3.org/TR/sparql11-query/#propertypaths) | [PathStageBuilder](https://callidon.github.io/sparql-engine/classes/pathstagebuilder.html) | `SPARQL_OPERATIONS.PROPERTY_PATH` |
+| [GRAPH](https://www.w3.org/TR/sparql11-query/#rdfDataset) | [GraphStageBuilder](https://callidon.github.io/sparql-engine/classes/graphstagebuilder.html) | `SPARQL_OPERATIONS.GRAPH` |
+| [MINUS](https://www.w3.org/TR/sparql11-query/#neg-minus) | [MinusStageBuilder](https://callidon.github.io/sparql-engine/classes/minusstagebuilder.html) | `SPARQL_OPERATIONS.MINUS` |
+| [OPTIONAL](https://www.w3.org/TR/sparql11-query/#optionals) | [OptionalStageBuilder](https://callidon.github.io/sparql-engine/classes/optionalstagebuilder.html) | `SPARQL_OPERATIONS.OPTIONAL` |
+| [ORDER_BY](https://www.w3.org/TR/sparql11-query/#modOrderBy) | [OrderByStageBuilder](https://callidon.github.io/sparql-engine/classes/orderbystagebuilder.html) | `SPARQL_OPERATIONS.ORDER_BY` |
+| [SERVICE](https://www.w3.org/TR/sparql11-query/#basic-federated-query) | [ServiceStageBuilder](https://callidon.github.io/sparql-engine/classes/servicestagebuilder.html) | `SPARQL_OPERATIONS.SERVICE` |
+| [UNION](https://www.w3.org/TR/sparql11-query/#alternatives) | [UnionStageBuilder](https://callidon.github.io/sparql-engine/classes/unionstagebuilder.html) | `SPARQL_OPERATIONS.UNION` |
+| [UPDATE](https://www.w3.org/TR/2013/REC-sparql11-update-20130321/) | [UpdateStageBuilder](https://callidon.github.io/sparql-engine/classes/updatestagebuilder.html) | `SPARQL_OPERATIONS.UPDATE` |
 
-The following example show you how to install your custom executors on a `PlanBuilder` instance.
-```javascript
-  const { BGPExecutor } = require('sparql-engine')
-  // Suppose a custom BGPExecutor
-  class CustomBGPExecutor extends BGPExecutor { /* ... */ }
-
-  const builder = new PlanBuilder()
-  builder.bgpExecutor = new CustomBGPExecutor()
-
-  // Then, use the builder as usual to evaluate SPARQL queries
-  const iterator = builder.build(/* ... */)
-  // ...
-```
 
 # Documentation
 
