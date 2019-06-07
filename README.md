@@ -26,8 +26,8 @@ An open-source framework for building SPARQL query engines in Javascript/Typescr
   * [RDF Graphs](#rdf-graphs)
   * [RDF Datasets](#rdf-datasets)
   * [Running a SPARQL query](#running-a-sparql-query)
-* [Custom Functions](#custom-functions)
 * [Federated SPARQL Queries](#federated-sparql-queries)
+* [Custom Functions](#custom-functions)
 * [Advanced Usage](#advanced-usage)
   * [Customize the pipeline implementation](#customize-the-pipeline-implementation)
   * [Customize query execution](#customize-query-execution)
@@ -61,6 +61,7 @@ As a starting point, we provide you with two examples of integration:
 
 This framework represents RDF triples using Javascript Object.
 You will find below, in Java-like syntax, the "shape" of such object.
+
 ```typescript
 interface TripleObject {
   subject: string; // The Triple's subject
@@ -133,7 +134,7 @@ Once you have your subclass of `Graph` ready, you need to build a collection of 
 
 ```javascript
  const { HashMapDataset } = require('sparql-engine')
- const CustomGraph = // import your Graph subclass
+ const CustomGraph = require(/* import your Graph subclass */)
 
  const GRAPH_A_IRI = 'http://example.org#graph-a'
  const GRAPH_B_IRI = 'http://example.org#graph-b'
@@ -177,6 +178,34 @@ Finally, to run a SPARQL query on your RDF dataset, you need to use the `PlanBui
     () => console.log('Query evaluation complete!')
   )
 ```
+
+# Federated SPARQL Queries
+
+The `sparql-engine` framework provides automatic support for evaluating [federated SPARQL queries](https://www.w3.org/TR/2013/REC-sparql11-federated-query-20130321/), using the [`SERVICE` keyword](https://www.w3.org/TR/sparql11-query/#basic-federated-query).
+
+To enable them, you need to set **a Graph Factory** for the RDF dataset used to evaluate SPARQL queries.
+This Graph factory is used by the dataset to create new RDF Graph on-demand.
+To set it, you need to use the [`Dataset.setGraphFactory`](https://callidon.github.io/sparql-engine/classes/dataset.html#setgraphfactory) method, as detailed below.
+It takes *a callback* as parameter, which will be invoked to create a new graph from an IRI.
+It's your responsibility to define the graph creation logic, depending on your application.
+
+```typescript
+const { HashMapDataset } = require('sparql-engine')
+const CustomGraph = require(/* import your Graph subclass */)
+
+const my_graph = new CustomGraph(/* ... */)
+
+const dataset = new HashMapDataset('http://example.org#graph-a', my_graph)
+
+// set the Graph factory of the dataset
+dataset.setGraphFactory(iri => {
+  // return a new graph for the provided iri
+  return new CustomGraph(/* .. */)
+})
+```
+
+Once the Graph factory is set, you have nothing more to do!
+Juste execute your federated SPARQL queries as regular queries, like before!
 
 # Custom Functions
 
@@ -242,49 +271,6 @@ WHERE {
 }
 GROUP BY ?length
 HAVING (example:IS_EVEN(?length))
-```
-
-# Federated SPARQL Queries
-
-The `sparql-engine` framework provides support for evaluating [federated SPARQL queries](https://www.w3.org/TR/2013/REC-sparql11-federated-query-20130321/), using the **SERVICE keyword**.
-As with a `Graph`, you simply need to provides an implementation of a [`ServiceExecutor`](https://github.com/Callidon/sparql-engine/blob/master/src/engine/executors/service-executor.js), a class used as a building block by the engine to evaluates SERVICE clauses.
-The only method that needs to be implemented is the `ServiceExecutor._execute` method,
-as detailed below.
-
-```typescript
-const { ServiceExecutor } = require('sparql-engine')
-
-class MyServiceExecutor extends ServiceExecutor {
-  /**
-   * Constructor
-   * @param builder - PlanBuilder instance
-   */
-  constructor (builder: PlanBuilder) {}
-
-  /**
-   * Returns an iterator used to evaluate a SERVICE clause
-   * @param  source    - Source observable
-   * @param  iri       - Iri of the SERVICE clause
-   * @param  subquery  - Subquery to be evaluated
-   * @param  options   - Execution options
-   * @return An observable used to evaluate a SERVICE clause
-   */
-  _execute (source: Observable<Bindings>, iri: string, subquery: Object, options: Object): Observable<Bindings> { /* ... */}
-}
-```
-
-Once your custom ServiceExecutor is ready, you need to *install* it on a `PlanBuilder` instance.
-```javascript
-  const { ServiceExecutor } = require('sparql-engine')
-  // Suppose a custom ServiceExecutor
-  class CustomServiceExecutor extends ServiceExecutor { /* ... */ }
-
-  const builder = new PlanBuilder()
-  builder.serviceExecutor = new CustomServiceExecutor(builder)
-
-  // Then, use the builder as usual to evaluate Federated SPARQL queries
-  const iterator = builder.build(/* ... */)
-  // ...
 ```
 
 # Advanced usage
