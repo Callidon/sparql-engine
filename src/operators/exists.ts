@@ -27,7 +27,7 @@ SOFTWARE.
 import { Pipeline } from '../engine/pipeline/pipeline'
 import { PipelineStage } from '../engine/pipeline/pipeline-engine'
 import { Bindings, BindingBase } from '../rdf/bindings'
-import PlanBuilder from '../engine/plan-builder'
+import { PlanBuilder } from '../engine/plan-builder'
 import ExecutionContext from '../engine/context/execution-context'
 
 interface ConditionalBindings {

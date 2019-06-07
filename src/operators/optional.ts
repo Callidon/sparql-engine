@@ -27,7 +27,7 @@ SOFTWARE.
 import { Pipeline } from '../engine/pipeline/pipeline'
 import { PipelineStage } from '../engine/pipeline/pipeline-engine'
 import { Algebra } from 'sparqljs'
-import PlanBuilder from '../engine/plan-builder'
+import { PlanBuilder } from '../engine/plan-builder'
 import { Bindings } from '../rdf/bindings'
 import ExecutionContext from '../engine/context/execution-context'
 

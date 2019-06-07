@@ -112,7 +112,7 @@ export enum SPARQL_OPERATION {
  * @author Thomas Minier
  * @author Corentin Marionneau
  */
-export default class PlanBuilder {
+export class PlanBuilder {
   private readonly _dataset: Dataset
   private readonly _parser: Parser
   private _optimizer: Optimizer

@@ -24,7 +24,7 @@ SOFTWARE.
 
 'use strict'
 
-import PlanBuilder from '../plan-builder'
+import { PlanBuilder } from '../plan-builder'
 import { PipelineStage } from '../pipeline/pipeline-engine'
 import { Consumable } from '../../operators/update/consumer'
 import Dataset from '../../rdf/dataset'
