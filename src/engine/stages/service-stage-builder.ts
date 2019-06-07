@@ -32,11 +32,10 @@ import ExecutionContext from '../context/execution-context'
 
 /**
  * A ServiceStageBuilder is responsible for evaluation a SERVICE clause in a SPARQL query.
- * @abstract
  * @author Thomas Minier
  * @author Corentin Marionneau
  */
-export default abstract class ServiceStageBuilder extends StageBuilder {
+export default class ServiceStageBuilder extends StageBuilder {
   /**
    * Build a {@link PipelineStage} to evaluate a SERVICE clause
    * @param  source  - Input {@link PipelineStage}
@@ -57,6 +56,11 @@ export default abstract class ServiceStageBuilder extends StageBuilder {
         where: node.patterns
       }
     }
+    // auto-add the graph used to evaluate the SERVICE close if it is missing from the dataset
+    if ((this.dataset.getDefaultGraph().iri !== node.name) && (!this.dataset.hasNamedGraph(node.name))) {
+      const graph = this.dataset.createGraph(node.name)
+      this.dataset.addNamedGraph(node.name, graph)
+    }
     return this._buildIterator(source, node.name, subquery, context)
   }
 
@@ -69,5 +73,9 @@ export default abstract class ServiceStageBuilder extends StageBuilder {
    * @param options   - Execution options
    * @return A {@link PipelineStage} used to evaluate a SERVICE clause
    */
-  abstract _buildIterator (source: PipelineStage<Bindings>, iri: string, subquery: Algebra.RootNode, context: ExecutionContext): PipelineStage<Bindings>
+  _buildIterator (source: PipelineStage<Bindings>, iri: string, subquery: Algebra.RootNode, context: ExecutionContext): PipelineStage<Bindings> {
+    const opts = context.clone()
+    opts.defaultGraphs = [ iri ]
+    return this._builder!._buildQueryPlan(subquery, opts, source)
+  }
 }

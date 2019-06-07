@@ -50,6 +50,7 @@ import FilterStageBuilder from './stages/filter-stage-builder'
 import GlushkovStageBuilder from './stages/glushkov-executor/glushkov-stage-builder'
 import GraphStageBuilder from './stages/graph-stage-builder'
 import MinusStageBuilder from './stages/minus-stage-builder'
+import ServiceStageBuilder from './stages/service-stage-builder'
 import OptionalStageBuilder from './stages/optional-stage-builder'
 import OrderByStageBuilder from './stages/orderby-stage-builder'
 import UnionStageBuilder from './stages/union-stage-builder'
@@ -138,6 +139,7 @@ export default class PlanBuilder {
     this.use(SPARQL_OPERATION.FILTER, new FilterStageBuilder(this._dataset))
     this.use(SPARQL_OPERATION.GRAPH, new GraphStageBuilder(this._dataset))
     this.use(SPARQL_OPERATION.MINUS, new MinusStageBuilder(this._dataset))
+    this.use(SPARQL_OPERATION.SERVICE, new ServiceStageBuilder(this._dataset))
     this.use(SPARQL_OPERATION.OPTIONAL, new OptionalStageBuilder(this._dataset))
     this.use(SPARQL_OPERATION.ORDER_BY, new OrderByStageBuilder(this._dataset))
     this.use(SPARQL_OPERATION.PROPERTY_PATH, new GlushkovStageBuilder(this._dataset))
