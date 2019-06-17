@@ -85,6 +85,16 @@ export abstract class PipelineEngine {
   abstract clone<T>(stage: PipelineStage<T>): PipelineStage<T>;
 
   /**
+   * Handle errors raised in the pipeline as follows:
+   * 1) Default: raise the error
+   * 2) Use a handler function to returns a new PipelineStage in case of error
+   * @param   input - Source PipelineStage
+   * @param   handler - Function called in case of error to generate a new PipelineStage
+   * @return Output PipelineStage
+   */
+  abstract catch<T,O>(input: PipelineStage<T>, handler?: (err: Error) => PipelineStage<O>): PipelineStage<T | O>;
+
+  /**
    * Creates an output PipelineStage which concurrently emits all values from every given input PipelineStage.
    * @param  inputs - Inputs PipelineStage
    * @return Output PipelineStage

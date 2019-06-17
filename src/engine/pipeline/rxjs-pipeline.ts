@@ -27,6 +27,7 @@ SOFTWARE.
 import { Observable, ObservableInput, empty, from, of, concat } from 'rxjs'
 import {
   bufferCount,
+  catchError,
   defaultIfEmpty,
   distinct,
   endWith,
@@ -64,6 +65,16 @@ export default class RxjsPipeline extends PipelineEngine {
 
   clone<T>(stage: Observable<T>): Observable<T> {
     return stage.pipe(shareReplay(5))
+  }
+
+  catch<T,O>(input: Observable<T>, handler?: (err: Error) => Observable<O>): Observable<T | O> {
+    return input.pipe(catchError(err => {
+      if (handler === undefined) {
+        throw err
+      } else {
+          return handler(err)
+      }
+    }))
   }
 
   merge<T>(...inputs: Array<Observable<T>>): Observable<T> {

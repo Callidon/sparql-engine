@@ -100,6 +100,21 @@ export default class VectorPipeline extends PipelineEngine {
     return new VectorStage<T>(stage.getContent().then(c => c.slice(0)))
   }
 
+  catch<T,O>(input: VectorStage<T>, handler?: (err: Error) => VectorStage<O>): VectorStage<T | O> {
+    return new VectorStage<T | O>(new Promise((resolve, reject) => {
+      input.getContent()
+        .then(c => resolve(c.slice(0)))
+        .catch(err => {
+          if (handler === undefined) {
+            reject(err)
+          } else {
+            handler(err).getContent()
+              .then(c => resolve(c.slice(0)))
+          }
+        })
+    }))
+  }
+
   merge<T>(...inputs: Array<VectorStage<T>>): VectorStage<T> {
     return new VectorStage<T>(Promise.all(inputs.map(i => i.getContent())).then((contents: T[][]) => {
       return flatten(contents)

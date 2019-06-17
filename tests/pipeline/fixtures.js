@@ -137,6 +137,25 @@ function testPipelineEngine (pipeline) {
     })
   })
 
+  describe('#catch', () => {
+    it('should catch errors raised inside the pipeline', done => {
+      const source = pipeline.map(pipeline.of(1, 2, 3), () => {
+        throw new Error()
+      })
+      const out = pipeline.catch(source, err => {
+        return pipeline.of(5)
+      })
+      let cpt = 0
+      out.subscribe(x => {
+        expect(x).to.equal(5)
+        cpt++
+      }, done, () => {
+        expect(cpt).to.equal(1)
+        done()
+      })
+    })
+  })
+
   // merge method
   describe('#merge', () => {
     it('should merge two PipelineStage into a single one', done => {
