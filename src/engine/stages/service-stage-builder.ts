@@ -26,6 +26,7 @@ SOFTWARE.
 
 import StageBuilder from './stage-builder'
 import { Algebra } from 'sparqljs'
+import { Pipeline } from '../pipeline/pipeline'
 import { PipelineStage } from '../pipeline/pipeline-engine'
 import { Bindings } from '../../rdf/bindings'
 import ExecutionContext from '../context/execution-context'
@@ -61,7 +62,13 @@ export default class ServiceStageBuilder extends StageBuilder {
       const graph = this.dataset.createGraph(node.name)
       this.dataset.addNamedGraph(node.name, graph)
     }
-    return this._buildIterator(source, node.name, subquery, context)
+    let handler = undefined
+    if (node.silent) {
+      handler = () => {
+        return <PipelineStage<Bindings>> Pipeline.getInstance().empty()
+      }
+    }
+    return Pipeline.getInstance().catch(this._buildIterator(source, node.name, subquery, context), handler)
   }
 
   /**
