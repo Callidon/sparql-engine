@@ -25,8 +25,8 @@ SOFTWARE.
 'use strict'
 
 import Executor from './executor'
-import { Observable, merge } from 'rxjs'
-import { map, shareReplay } from 'rxjs/operators'
+import { Observable, merge, from } from 'rxjs'
+import { map, shareReplay, mergeMap } from 'rxjs/operators'
 import { rdf } from '../../utils'
 import { Algebra } from 'sparqljs'
 import Dataset from '../../rdf/dataset'
@@ -57,6 +57,7 @@ export default class GraphExecutor extends Executor {
    * @return An iterator used to evaluate a GRAPH clause
    */
   buildIterator (source: Observable<Bindings>, node: Algebra.GraphNode, context: ExecutionContext): Observable<Bindings> {
+
     let subquery: Algebra.RootNode
     if (node.patterns[0].type === 'query') {
       subquery = (<Algebra.RootNode> node.patterns[0])
@@ -69,21 +70,37 @@ export default class GraphExecutor extends Executor {
         where: node.patterns
       }
     }
-    // handle the case where the GRAPh IRI is a SPARQL variable
-    if (rdf.isVariable(node.name) && context.namedGraphs.length > 0) {
+
+    //if the node is a variable, check to see if it's either a bound variable or a named graph
+    if(rdf.isVariable(node.name)){
       // clone the source first
       source = source.pipe(shareReplay(5))
-      // execute the subquery using each graph, and bound the graph var to the graph iri
-      const iterators = context.namedGraphs.map((iri: string) => {
-        return this._execute(source, iri, subquery, context).pipe(map(b => {
-          return b.extendMany([[node.name, iri]])
-        }))
-      })
-      return merge(...iterators)
+      return source.pipe(mergeMap(bindings => {
+        //check for bound variable
+        const eachBinding = from([bindings])
+        const variableIRI = bindings.get(node.name)
+        if(variableIRI){
+          return this._execute(eachBinding, variableIRI, subquery, context)
+        }else if (context.namedGraphs.length > 0) {
+
+          //if there are named graphs, execute them on each 
+          const iterators = context.namedGraphs.map((iri: string) => {
+            return this._execute(eachBinding, iri, subquery, context).pipe(map(b => {
+              return b.extendMany([[node.name, iri]])
+            }))
+          })
+          return merge(...iterators)
+        }
+        return eachBinding
+      }))
+
     }
+  
     // otherwise, execute the subquery using the Graph
     return this._execute(source, node.name, subquery, context)
   }
+
+
 
   /**
    * Returns an iterator used to evaluate a GRAPH clause
