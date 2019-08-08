@@ -1,0 +1,15 @@
+version:  0.2
+
+phases: 
+
+  build: 
+    commands: 
+      - npm install
+      - npm run build
+      - npm run test
+
+cache:
+  paths:
+    - '$HOME/.cache/**/*'
+    - '$HOME/.spago/**/*'
+    - '/var/cache/apt/archives/**/*'
