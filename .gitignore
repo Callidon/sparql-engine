@@ -6,7 +6,6 @@ yarn-debug.log*
 yarn-error.log*
 *.lcov
 
-dist/
 docs/
 
 # W3C test suite

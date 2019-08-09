@@ -1,0 +1,11 @@
+export { default as Dataset } from './rdf/dataset';
+export { BindingBase } from './rdf/bindings';
+export { default as HashMapDataset } from './rdf/hashmap-dataset';
+export { default as Graph } from './rdf/graph';
+export { default as PlanBuilder } from './engine/plan-builder';
+export { default as AggregateExecutor } from './engine/executors/aggregate-executor';
+export { default as BGPExecutor } from './engine/executors/bgp-executor';
+export { default as GraphExecutor } from './engine/executors/graph-executor';
+export { default as ServiceExecutor } from './engine/executors/service-executor';
+export { default as UpdateExecutor } from './engine/executors/update-executor';
+export { terms } from './rdf-terms';
