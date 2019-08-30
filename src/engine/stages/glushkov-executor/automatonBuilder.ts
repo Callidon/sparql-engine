@@ -44,7 +44,7 @@ interface AutomatonBuilder<T, P> {
  * @return The union of the two sets
  */
 export function union(setA: Set<number>, setB: Set<number>): Set<number> {
-    let union: Set<number> = new Set(setA);
+    let union: Set<number> = new Set(setA)
     setB.forEach(function(value) {
         union.add(value);
     });
@@ -109,9 +109,9 @@ export class GlushkovBuilder implements AutomatonBuilder<number, string>  {
 
     symbolProcessing(node: any) {
         this.nullable.set(node.id, false)
-        this.first.set(node.id, new Set().add(node.id))
-        this.last.set(node.id, new Set().add(node.id))
-        this.follow.set(node.id, new Set())
+        this.first.set(node.id, new Set<number>().add(node.id))
+        this.last.set(node.id, new Set<number>().add(node.id))
+        this.follow.set(node.id, new Set<number>())
         this.predicates.set(node.id, [node.item])
         this.reverse.set(node.id, false)
         this.negation.set(node.id, false)
