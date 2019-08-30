@@ -70,20 +70,26 @@ interface TripleObject {
 }
 ```
 
-### Observable
+### PipelineStage
 
-The `sparql-engine` framework uses a pipeline of iterators to execute SPARQL queries. Thus, many methods encountered in this framework needs to return `Observable<T>`, *i.e.*, objects that generates items of type `T` in a push-based fashion.
-An `Observable<T>` can be one of the following:
+The `sparql-engine` framework uses a pipeline of iterators to execute SPARQL queries. Thus, many methods encountered in this framework needs to return `PipelineStage<T>`, *i.e.*, objects that generates items of type `T` in a pull-based fashion.
+
+An `PipelineStage<T>` can be easily created from one of the following:
 * An **array** of elements of type `T`
 * A [**Javascript Iterator**](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols), which yields elements of type `T`.
 * An [**EventEmitter**](https://nodejs.org/api/events.html#events_class_eventemitter) which emits elements of type `T` on a `data` event.
 * A [**Readable stream**](https://nodejs.org/api/stream.html#stream_readable_streams) which produces elements of type `T`.
 
-```typescript
-type Observable<T> = Array<T> | Iterator<T> | EventEmitter<T> | Readable<T>;
+To create a new `PipelineStage<T>` from one of these objects, you can use the following code:
+```javascript
+const { Pipeline } = require('sparql-engine')
+
+const sourceObject = // the object to convert into a PipelineStage
+
+const stage = Pipeline.getInstance().from(sourceObject)
 ```
 
-Internally, we use the [`rxjs`](https://rxjs-dev.firebaseapp.com) package for handling pipeline of iterators.
+Fore more information on how to create and manipulate the pipeline, please refers to the documentation of [`Pipeline`](https://callidon.github.io/sparql-engine/classes/pipelinee.html) and [`PipelineEngine`](https://callidon.github.io/sparql-engine/classes/pipelineengine.html).
 
 ## RDF Graphs
 
@@ -91,14 +97,14 @@ The first thing to do is to implement a subclass of the `Graph` abstract class. 
 
 The main method to implement is `Graph.find(triple)`, which is used by the framework to find RDF triples matching
 a [triple pattern](https://www.w3.org/TR/sparql11-query/#basicpatterns) in the RDF Graph.
-This method must return an `Observable<TripleObject>`, which will be consumed to find matching RDF triples. You can find an **example** of such implementation in the [N3 example](https://github.com/Callidon/sparql-engine/tree/master/examples/n3.js).
+This method must return an `PipelineStage<TripleObject>`, which will be consumed to find matching RDF triples. You can find an **example** of such implementation in the [N3 example](https://github.com/Callidon/sparql-engine/tree/master/examples/n3.js).
 
 Similarly, to support the [SPARQL UPDATE protocol](https://www.w3.org/TR/2013/REC-sparql11-update-20130321/), you have to provides a graph that implements the `Graph.insert(triple)` and `Graph.delete(triple)` methods, which insert and delete RDF triple from the graph, respectively. These methods must returns [Promises](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise), which are fulfilled when the insertion/deletion operation is completed.
 
 Finally, the `sparql-engine` framework also let your customize how [Basic graph patterns](https://www.w3.org/TR/2013/REC-sparql11-query-20130321/#BasicGraphPatterns) (BGPs) are evaluated against
 the RDF graph. The engine provides a **default implementation** based on the `Graph.find` method and the
 *Index Nested Loop Join algorithm*. However, if you wish to supply your own implementation for BGP evaluation, you just have to implement a `Graph` with an `evalBGP(triples)` method.
-This method must return a `Observable<Bindings>`. You can find an example of such implementation in the [LevelGraph example](https://github.com/Callidon/sparql-engine/tree/master/examples/levelgraph.js).
+This method must return a `PipelineStage<Bindings>`. You can find an example of such implementation in the [LevelGraph example](https://github.com/Callidon/sparql-engine/tree/master/examples/levelgraph.js).
 
 You will find below, in Java-like syntax, an example subclass of a `Graph`.
 ```typescript
@@ -108,9 +114,9 @@ You will find below, in Java-like syntax, an example subclass of a `Graph`.
     /**
      * Returns an iterator that finds RDF triples matching a triple pattern in the graph.
      * @param  triple - Triple pattern to find
-     * @return An observable which finds RDF triples matching a triple pattern
+     * @return An PipelineStage which produces RDF triples matching a triple pattern
      */
-    find (triple: TripleObject, options: Object): Observable<TripleObject> { /* ... */ }
+    find (triple: TripleObject, options: Object): PipelineStage<TripleObject> { /* ... */ }
 
     /**
      * Insert a RDF triple into the RDF Graph
