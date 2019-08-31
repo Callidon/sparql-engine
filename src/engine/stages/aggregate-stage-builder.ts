@@ -50,16 +50,15 @@ export default class AggregateStageBuilder extends StageBuilder {
    * @return A {@link PipelineStage} which evaluate SPARQL aggregations
    */
   execute (source: PipelineStage<Bindings>, query: Algebra.RootNode, context: ExecutionContext, customFunctions?: CustomFunctions): PipelineStage<Bindings> {
-    if ('group' in query) {
-      // first, group bindings using the GROUP BY clause
-      let iterator = this._executeGroupBy(source, query.group || [], context, customFunctions)
-      // next, apply the optional HAVING clause to filter groups
-      if ('having' in query) {
-        iterator = this._executeHaving(iterator, query.having || [], context, customFunctions)
-      }
-      return iterator
+    let iterator = source
+    // group bindings using the GROUP BY clause
+    // WARNING: an empty GROUP BY clause will create a single group with all bindings
+    iterator = this._executeGroupBy(source, query.group || [], context, customFunctions)
+    // next, apply the optional HAVING clause to filter groups
+    if ('having' in query) {
+      iterator = this._executeHaving(iterator, query.having || [], context, customFunctions)
     }
-    return source
+    return iterator
   }
 
   /**

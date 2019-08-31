@@ -49,6 +49,11 @@ function buildNewGroup (variables: string[]): Object {
  * @return Hashed set of bindings
  */
 function _hashBindings (variables: string[], bindings: Bindings): string {
+  // if no GROUP BY variables are used (in the case of an empty GROUP BY)
+  // then we use a default grouping key
+  if (variables.length === 0) {
+    return 'http://callidon.github.io/sparql-engine#DefaultGroupKey'
+  }
   return variables.map(v => {
     if (bindings.has(v)) {
       return bindings.get(v)

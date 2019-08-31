@@ -260,11 +260,15 @@ export class PlanBuilder {
       query.variables = parts[0].concat(aggregates.map(agg => (agg as Algebra.Aggregation).variable))
     }
 
-    // Handles Aggregates
-    graphIterator = <PipelineStage<Bindings>> this._stageBuilders.get(SPARQL_OPERATION.AGGREGATE)!.execute(graphIterator, query, context, this._customFunctions)
 
-    // Handles transformers
+    // Handles SPARQL aggregations
+    if ('group' in query || aggregates.length > 0) {
+      // Handles GROUP BY
+      graphIterator = <PipelineStage<Bindings>> this._stageBuilders.get(SPARQL_OPERATION.AGGREGATE)!.execute(graphIterator, query, context, this._customFunctions)
+    }
+
     if (aggregates.length > 0) {
+      // Handles SPARQL aggregation functions
       graphIterator = aggregates.reduce((prev: PipelineStage<Bindings>, agg: Algebra.Aggregation) => {
         const op = this._stageBuilders.get(SPARQL_OPERATION.BIND)!.execute(prev, agg, this._customFunctions, context)
         return <PipelineStage<Bindings>> op

@@ -106,6 +106,25 @@ describe('SPARQL aggregates', () => {
     })
   })
 
+  it('should allow aggregate queries without a GROUP BY clause', done => {
+    const query = `
+    SELECT (COUNT(?p) AS ?nbPreds) WHERE {
+      <https://dblp.org/pers/m/Minier:Thomas> ?p ?o .
+    }`
+    let nbResults = 0
+
+    const iterator = engine.execute(query)
+    iterator.subscribe(b => {
+      b = b.toObject()
+      expect(b).to.have.keys('?nbPreds')
+      expect(b['?nbPreds']).to.equal(`"11"^^${XSD('integer')}`)
+      nbResults++
+    }, done, () => {
+      expect(nbResults).to.equal(1)
+      done()
+    })
+  })
+
   it('should evaluate queries that mix aggregations and numeric operations', done => {
     const query = `
     SELECT ?p (COUNT(?p) * 2 AS ?nbPreds) WHERE {
