@@ -42,11 +42,12 @@ export { default as Dataset } from './rdf/dataset'
 export { BindingBase } from './rdf/bindings'
 export { default as HashMapDataset } from './rdf/hashmap-dataset'
 export { default as Graph } from './rdf/graph'
+export { default as ExecutionContext } from './engine/context/execution-context'
 export { PlanBuilder } from './engine/plan-builder'
 import { SPARQL_OPERATION } from './engine/plan-builder'
 // pipeline
 export { Pipeline } from './engine/pipeline/pipeline'
-export { PipelineEngine } from './engine/pipeline/pipeline-engine'
+export { PipelineEngine, PipelineInput } from './engine/pipeline/pipeline-engine'
 export { default as RxjsPipeline } from './engine/pipeline/rxjs-pipeline'
 export { default as VectorPipeline } from './engine/pipeline/vector-pipeline'
 // RDF terms Utilities
