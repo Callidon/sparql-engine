@@ -127,7 +127,7 @@ export class GlushkovBuilder implements AutomatonBuilder<number, string>  {
         }
         this.nullable.set(node.id, nullable_node)
 
-        let first_node = new Set()
+        let first_node = new Set<number>()
         index = -1
         do  {
             index++
@@ -251,15 +251,15 @@ export class GlushkovBuilder implements AutomatonBuilder<number, string>  {
             }
         })
 
-        let first_node = new Set()
-        let last_node = new Set()
+        let first_node = new Set<number>()
+        let last_node = new Set<number>()
 
         if(negForward.length > 0) {
             let id = node.id + 1
             this.nullable.set(id, false)
-            this.first.set(id, new Set().add(id))
-            this.last.set(id, new Set().add(id))
-            this.follow.set(id, new Set())
+            this.first.set(id, new Set<number>().add(id))
+            this.last.set(id, new Set<number>().add(id))
+            this.follow.set(id, new Set<number>())
             this.predicates.set(id, negForward)
             this.reverse.set(id, false)
             this.negation.set(id, true)
@@ -269,9 +269,9 @@ export class GlushkovBuilder implements AutomatonBuilder<number, string>  {
         if(negBackward.length > 0) {
             let id = node.id + 2
             this.nullable.set(id, false)
-            this.first.set(id, new Set().add(id))
-            this.last.set(id, new Set().add(id))
-            this.follow.set(id, new Set())
+            this.first.set(id, new Set<number>().add(id))
+            this.last.set(id, new Set<number>().add(id))
+            this.follow.set(id, new Set<number>())
             this.predicates.set(id, negBackward)
             this.reverse.set(id, true)
             this.negation.set(id, true)
