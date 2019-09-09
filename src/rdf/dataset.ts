@@ -33,7 +33,7 @@ import UnionGraph from './union-graph'
  * @author Thomas Minier
  */
 export default abstract class Dataset {
-  private _graphFactory: (iri: string) => Graph | null;
+  private _graphFactory: (iri: string) => Graph | null
 
   /**
    * Constructor
@@ -41,7 +41,6 @@ export default abstract class Dataset {
   constructor () {
     this._graphFactory = () => null
   }
-
 
   abstract get iris (): string[]
   /**

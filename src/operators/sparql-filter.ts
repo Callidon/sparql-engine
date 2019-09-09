@@ -29,7 +29,7 @@ import { PipelineStage } from '../engine/pipeline/pipeline-engine'
 import SPARQLExpression from './expressions/sparql-expression'
 import { Algebra } from 'sparqljs'
 import { Bindings } from '../rdf/bindings'
-import { CustomFunctions } from "../engine/plan-builder"
+import { CustomFunctions } from '../engine/plan-builder'
 
 /**
  * Evaluate SPARQL Filter clauses
