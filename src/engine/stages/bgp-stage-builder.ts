@@ -26,7 +26,7 @@ SOFTWARE.
 
 import StageBuilder from './stage-builder'
 import { Pipeline } from '../pipeline/pipeline'
-import { PipelineStage } from '../pipeline/pipeline-engine'
+import { PipelineStage, PipelineEngine } from '../pipeline/pipeline-engine'
 // import { some } from 'lodash'
 import { Algebra } from 'sparqljs'
 import Graph from '../../rdf/graph'
@@ -34,6 +34,7 @@ import { Bindings } from '../../rdf/bindings'
 // import { GRAPH_CAPABILITY } from '../../rdf/graph_capability'
 import { parseHints } from '../context/query-hints'
 import ExecutionContext from '../context/execution-context'
+import { rdf } from '../../utils'
 
 // import boundJoin from '../../operators/join/bound-join'
 
@@ -89,13 +90,35 @@ export default class BGPStageBuilder extends StageBuilder {
   execute (source: PipelineStage<Bindings>, patterns: Algebra.TripleObject[], context: ExecutionContext): PipelineStage<Bindings> {
     // avoids sending a request with an empty array
     if(patterns.length == 0) return source
-    // select the graph to use for BGP evaluation
-    const graph = (context.defaultGraphs.length > 0) ? this._getGraph(context.defaultGraphs) : this.dataset.getDefaultGraph()
+
     // extract eventual query hints from the BGP & merge them into the context
     let extraction = parseHints(patterns, context.hints)
     context.hints = extraction[1]
     // rewrite a BGP to remove blank node addedd by the Turtle notation
     const [bgp, artificals] = this._replaceBlankNodes(extraction[0])
+
+    // if the graph is a variable, go through each binding and look for its value
+    if(context.defaultGraphs.length > 0 && rdf.isVariable(context.defaultGraphs[0])) {
+      const engine = Pipeline.getInstance()
+      return engine.mergeMap(source, (value: Bindings) => {
+        const iri = value.get(context.defaultGraphs[0])
+
+        //if the graph doesn't exist in the dataset, then create one with the createGraph factrory
+        const graphs = this.dataset.getAllGraphs().filter(g => g.iri === iri)
+        const graph = (graphs.length > 0) ? graphs[0] : (iri !== null) ? this.dataset.createGraph(iri) : null
+        if(graph){
+          let iterator = this._buildIterator(engine.from([value]), graph, bgp, context)
+          if (artificals.length > 0) {
+            iterator = engine.map(iterator, (b: Bindings) => b.filter(variable => artificals.indexOf(variable) < 0))
+          }
+          return iterator
+        }
+        throw `Cant' find or create the graph ${iri}`
+      })
+    }
+
+    // select the graph to use for BGP evaluation
+    const graph = (context.defaultGraphs.length > 0) ? this._getGraph(context.defaultGraphs) : this.dataset.getDefaultGraph()
     let iterator = this._buildIterator(source, graph, bgp, context)
     if (artificals.length > 0) {
       iterator = Pipeline.getInstance().map(iterator, (b: Bindings) => b.filter(variable => artificals.indexOf(variable) < 0))
