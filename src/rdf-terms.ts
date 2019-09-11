@@ -249,9 +249,9 @@ export namespace terms {
   export function replaceLiteralValue (term: RDFTerm, newValue: string): RDFTerm {
     switch (term.type) {
       case 'literal+type':
-        return createTypedLiteral(newValue, (<TypedLiteral> term).datatype)
+        return createTypedLiteral(newValue, (term as TypedLiteral).datatype)
       case 'literal+lang':
-        return createLangLiteral(newValue, (<LangLiteral> term).lang)
+        return createLangLiteral(newValue, (term as LangLiteral).lang)
       default:
         return createLiteral(newValue)
     }
@@ -273,9 +273,9 @@ export namespace terms {
       case 'literal':
         return createBoolean(left.value === right.value)
       case 'literal+type':
-        return createBoolean(left.value === right.value && (<TypedLiteral> left).datatype === (<TypedLiteral> right).datatype)
+        return createBoolean(left.value === right.value && (left as TypedLiteral).datatype === (right as TypedLiteral).datatype)
       case 'literal+lang':
-        return createBoolean(left.value === right.value && (<LangLiteral> left).lang === (<LangLiteral> right).lang)
+        return createBoolean(left.value === right.value && (left as LangLiteral).lang === (right as LangLiteral).lang)
       default:
         return createBoolean(false)
     }
@@ -323,7 +323,7 @@ export namespace terms {
    * @return True if the term is a Date literal, False otherwise
    */
   export function isDate (literal: RDFTerm): boolean {
-      return literal.type === 'literal+type' && (<TypedLiteral> literal).datatype === rdf.XSD('dateTime')
+    return literal.type === 'literal+type' && (literal as TypedLiteral).datatype === rdf.XSD('dateTime')
   }
 
   /**
@@ -332,11 +332,11 @@ export namespace terms {
    * @return True if the term is a Number literal, False otherwise
    */
   export function isNumber (term: RDFTerm): boolean {
-      if (term.type !== 'literal+type') {
-        return false;
+    if (term.type !== 'literal+type') {
+        return false
       }
-      const literal: TypedLiteral = term as TypedLiteral
-      switch (literal.type) {
+    const literal: TypedLiteral = term as TypedLiteral
+    switch (literal.type) {
         case rdf.XSD('integer'):
         case rdf.XSD('byte'):
         case rdf.XSD('short'):
@@ -354,9 +354,9 @@ export namespace terms {
         case rdf.XSD('nonPositiveInteger'):
         case rdf.XSD('negativeInteger'):
         case rdf.XSD('nonNegativeInteger'):
-          return true;
+          return true
         default:
-          return false;
+          return false
       }
   }
 }

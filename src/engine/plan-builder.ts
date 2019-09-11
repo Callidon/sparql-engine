@@ -83,7 +83,7 @@ export type QueryOutput = Bindings | Algebra.TripleObject | boolean
 /**
  * Type alias to describe the shape of custom functions. It's basically a JSON object from an IRI (in string form) to a function of 0 to many RDFTerms that produces an RDFTerm.
  */
-export type CustomFunctions = { [key:string]: (...args: (terms.RDFTerm | terms.RDFTerm[] | null)[]) => terms.RDFTerm }
+export type CustomFunctions = { [key: string]: (...args: (terms.RDFTerm | terms.RDFTerm[] | null)[]) => terms.RDFTerm }
 
 /*
  * Class of SPARQL operations that are evaluated by a Stage Builder
@@ -101,7 +101,7 @@ export enum SPARQL_OPERATION {
   PROPERTY_PATH,
   SERVICE,
   UPDATE,
-  UNION,
+  UNION
 }
 
 /**
@@ -260,18 +260,17 @@ export class PlanBuilder {
       query.variables = parts[0].concat(aggregates.map(agg => (agg as Algebra.Aggregation).variable))
     }
 
-
     // Handles SPARQL aggregations
     if ('group' in query || aggregates.length > 0) {
       // Handles GROUP BY
-      graphIterator = <PipelineStage<Bindings>> this._stageBuilders.get(SPARQL_OPERATION.AGGREGATE)!.execute(graphIterator, query, context, this._customFunctions)
+      graphIterator = this._stageBuilders.get(SPARQL_OPERATION.AGGREGATE)!.execute(graphIterator, query, context, this._customFunctions) as PipelineStage<Bindings>
     }
 
     if (aggregates.length > 0) {
       // Handles SPARQL aggregation functions
       graphIterator = aggregates.reduce((prev: PipelineStage<Bindings>, agg: Algebra.Aggregation) => {
         const op = this._stageBuilders.get(SPARQL_OPERATION.BIND)!.execute(prev, agg, this._customFunctions, context)
-        return <PipelineStage<Bindings>> op
+        return op as PipelineStage<Bindings>
       }, graphIterator)
     }
 
@@ -280,7 +279,7 @@ export class PlanBuilder {
       if (!this._stageBuilders.has(SPARQL_OPERATION.ORDER_BY)) {
         new Error('A PlanBuilder cannot evaluate SPARQL ORDER BY clauses without a StageBuilder for it')
       }
-      graphIterator = <PipelineStage<Bindings>> this._stageBuilders.get(SPARQL_OPERATION.ORDER_BY)!.execute(graphIterator, query.order!)
+      graphIterator = this._stageBuilders.get(SPARQL_OPERATION.ORDER_BY)!.execute(graphIterator, query.order!) as PipelineStage<Bindings>
     }
 
     if (!(query.queryType in QUERY_MODIFIERS)) {
@@ -293,7 +292,7 @@ export class PlanBuilder {
       if (!this._stageBuilders.has(SPARQL_OPERATION.DISTINCT)) {
         new Error('A PlanBuilder cannot evaluate a DISTINCT clause without a StageBuilder for it')
       }
-      graphIterator = <PipelineStage<Bindings>> this._stageBuilders.get(SPARQL_OPERATION.DISTINCT)!.execute(graphIterator, context)
+      graphIterator = this._stageBuilders.get(SPARQL_OPERATION.DISTINCT)!.execute(graphIterator, context) as PipelineStage<Bindings>
     }
 
     // Add offsets and limits if requested
@@ -376,11 +375,11 @@ export class PlanBuilder {
           if (!this._stageBuilders.has(SPARQL_OPERATION.PROPERTY_PATH)) {
             throw new Error('A PlanBuilder cannot evaluate property paths without a Stage Builder for it')
           }
-          source = <PipelineStage<Bindings>> this._stageBuilders.get(SPARQL_OPERATION.PROPERTY_PATH)!.execute(source, pathTriples, context)
+          source = this._stageBuilders.get(SPARQL_OPERATION.PROPERTY_PATH)!.execute(source, pathTriples, context) as PipelineStage<Bindings>
         }
 
         // delegate remaining BGP evaluation to the dedicated executor
-        let iter = <PipelineStage<Bindings>> this._stageBuilders.get(SPARQL_OPERATION.BGP)!.execute(source, classicTriples as Algebra.TripleObject[], childContext)
+        let iter = this._stageBuilders.get(SPARQL_OPERATION.BGP)!.execute(source, classicTriples as Algebra.TripleObject[], childContext) as PipelineStage<Bindings>
 
         // filter out variables added by the rewriting of property paths
         if (tempVariables.length > 0) {
@@ -396,39 +395,39 @@ export class PlanBuilder {
           throw new Error('A PlanBuilder cannot evaluate a GRAPH clause without a Stage Builder for it')
         }
         // delegate GRAPH evaluation to an executor
-        return <PipelineStage<Bindings>> this._stageBuilders.get(SPARQL_OPERATION.GRAPH)!.execute(source, group as Algebra.GraphNode, childContext)
+        return this._stageBuilders.get(SPARQL_OPERATION.GRAPH)!.execute(source, group as Algebra.GraphNode, childContext) as PipelineStage<Bindings>
       case 'service':
         if (!this._stageBuilders.has(SPARQL_OPERATION.SERVICE)) {
           throw new Error('A PlanBuilder cannot evaluate a SERVICE clause without a Stage Builder for it')
         }
-        return <PipelineStage<Bindings>> this._stageBuilders.get(SPARQL_OPERATION.SERVICE)!.execute(source, group as Algebra.ServiceNode, childContext)
+        return this._stageBuilders.get(SPARQL_OPERATION.SERVICE)!.execute(source, group as Algebra.ServiceNode, childContext) as PipelineStage<Bindings>
       case 'group':
         return this._buildWhere(source, (group as Algebra.GroupNode).patterns, childContext)
       case 'optional':
         if (!this._stageBuilders.has(SPARQL_OPERATION.OPTIONAL)) {
           throw new Error('A PlanBuilder cannot evaluate an OPTIONAL clause without a Stage Builder for it')
         }
-        return <PipelineStage<Bindings>> this._stageBuilders.get(SPARQL_OPERATION.OPTIONAL)!.execute(source, group, childContext)
+        return this._stageBuilders.get(SPARQL_OPERATION.OPTIONAL)!.execute(source, group, childContext) as PipelineStage<Bindings>
       case 'union':
         if (!this._stageBuilders.has(SPARQL_OPERATION.UNION)) {
           throw new Error('A PlanBuilder cannot evaluate an UNION clause without a Stage Builder for it')
         }
-        return <PipelineStage<Bindings>> this._stageBuilders.get(SPARQL_OPERATION.UNION)!.execute(source, group, childContext)
+        return this._stageBuilders.get(SPARQL_OPERATION.UNION)!.execute(source, group, childContext) as PipelineStage<Bindings>
       case 'minus':
         if (!this._stageBuilders.has(SPARQL_OPERATION.MINUS)) {
           throw new Error('A PlanBuilder cannot evaluate a MINUS clause without a Stage Builder for it')
         }
-        return <PipelineStage<Bindings>> this._stageBuilders.get(SPARQL_OPERATION.MINUS)!.execute(source, group, childContext)
+        return this._stageBuilders.get(SPARQL_OPERATION.MINUS)!.execute(source, group, childContext) as PipelineStage<Bindings>
       case 'filter':
         if (!this._stageBuilders.has(SPARQL_OPERATION.FILTER)) {
           throw new Error('A PlanBuilder cannot evaluate a FILTER clause without a Stage Builder for it')
         }
-        return <PipelineStage<Bindings>> this._stageBuilders.get(SPARQL_OPERATION.FILTER)!.execute(source, group, this._customFunctions, childContext)
+        return this._stageBuilders.get(SPARQL_OPERATION.FILTER)!.execute(source, group, this._customFunctions, childContext) as PipelineStage<Bindings>
       case 'bind':
         if (!this._stageBuilders.has(SPARQL_OPERATION.BIND)) {
           throw new Error('A PlanBuilder cannot evaluate a BIND clause without a Stage Builder for it')
         }
-        return <PipelineStage<Bindings>> this._stageBuilders.get(SPARQL_OPERATION.BIND)!.execute(source, (group as Algebra.BindNode), this._customFunctions, childContext)
+        return this._stageBuilders.get(SPARQL_OPERATION.BIND)!.execute(source, (group as Algebra.BindNode), this._customFunctions, childContext) as PipelineStage<Bindings>
       default:
         throw new Error(`Unsupported SPARQL group pattern found in query: ${group.type}`)
     }

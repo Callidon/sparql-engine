@@ -52,7 +52,7 @@ export default function minus (leftSource: PipelineStage<Bindings>, rightSource:
         return commonKeys.every((k: string) => b.get(k) === bindings.get(k))
       })
       // only output non-compatible bindings
-    return !isCompatible
+      return !isCompatible
     })
   })
 }

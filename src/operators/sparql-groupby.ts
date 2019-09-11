@@ -77,26 +77,26 @@ export default function sparqlGroupBy (source: PipelineStage<Bindings>, variable
   let op = engine.map(source, (bindings: Bindings) => {
     const key = _hashBindings(variables, bindings)
       // create a new group is needed
-      if (!groups.has(key)) {
+    if (!groups.has(key)) {
         keys.set(key, bindings.filter(variable => variables.indexOf(variable) > -1))
         groups.set(key, buildNewGroup(Array.from(bindings.variables())))
       }
       // parse each binding in the intermediate format used by SPARQL expressions
       // and insert it into the corresponding group
-      bindings.forEach((variable, value) => {
+    bindings.forEach((variable, value) => {
         groups.get(key)[variable].push(rdf.parseTerm(value))
       })
-      return null
+    return null
   })
   return engine.mergeMap(engine.collect(op), () => {
     const aggregates: any[] = []
       // transform each group in a set of bindings
-      groups.forEach((group, key) => {
+    groups.forEach((group, key) => {
         // also add the GROUP BY keys to the set of bindings
         const b = keys.get(key)!.clone()
         b.setProperty('__aggregate', group)
         aggregates.push(b)
       })
-      return engine.from(aggregates)
+    return engine.from(aggregates)
   })
 }
