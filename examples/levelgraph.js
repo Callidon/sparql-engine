@@ -1,24 +1,9 @@
 'use strict'
 
-const { BindingBase, HashMapDataset, Graph, PlanBuilder } = require('sparql-engine')
-const level = require('level')
+const { BindingBase, HashMapDataset, Graph, PlanBuilder, Pipeline } = require('../dist/api')
+const level = require('level-browserify')
 const levelgraph = require('levelgraph')
 const { Transform } = require('stream')
-
-// An utility class used to convert LevelGraph bindings
-// into a format undestood by sparql-engine
-class FormatterStream extends Transform {
-  constructor () {
-    super({objectMode: true})
-  }
-
-  _transform (item, encoding, callback) {
-    // Transform LevelGraph objects into set of mappings
-    // using BindingBase.fromObject
-    this.push(BindingBase.fromObject(item))
-    callback()
-  }
-}
 
 class LevelRDFGraph extends Graph {
   constructor (db) {
@@ -27,21 +12,31 @@ class LevelRDFGraph extends Graph {
   }
 
   evalBGP (bgp) {
-    // rewrite variables using levelgraph API
-    bgp = bgp.map(t => {
-      if (t.subject.startsWith('?')) {
-        t.subject = this._db.v(t.subject.substring(1))
-      }
-      if (t.predicate.startsWith('?')) {
-        t.predicate = this._db.v(t.predicate.substring(1))
-      }
-      if (t.object.startsWith('?')) {
-        t.object = this._db.v(t.object.substring(1))
-      }
-      return t
-    })
-    // Transform the Stream returned by LevelGraph into an Stream of Bindings
-    return new FormatterStream(this._db.searchStream(bgp))
+    let pipeline = Pipeline.getInstance().from(new Promise((resolve, reject) => {
+      // rewrite variables using levelgraph API
+      bgp = bgp.map(t => {
+        if (t.subject.startsWith('?')) {
+          t.subject = this._db.v(t.subject.substring(1))
+        }
+        if (t.predicate.startsWith('?')) {
+          t.predicate = this._db.v(t.predicate.substring(1))
+        }
+        if (t.object.startsWith('?')) {
+          t.object = this._db.v(t.object.substring(1))
+        }
+        return t
+      })
+      this._db.search(bgp, (err, results) => {
+        if (err) {
+          reject(err)
+        } else {
+          resolve(results.map(r => BindingBase.fromObject(r)))
+        }
+      })
+    }))
+    // flatten the list of Bindings returned by the first stage of the pipeline
+    pipeline = Pipeline.getInstance().flatMap(pipeline, v => v)
+    return pipeline
   }
 }
 

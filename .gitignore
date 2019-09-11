@@ -8,6 +8,7 @@ yarn-error.log*
 
 dist/
 docs/
+examples/testing_db/
 
 # W3C test suite
 sparql11-test-suite

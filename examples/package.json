@@ -1,0 +1,16 @@
+{
+  "name": "sparql-engine-examples",
+  "version": "1.0.0",
+  "description": "Examples for the sparql-engine framework",
+  "main": "n3.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Thomas Minier",
+  "license": "MIT",
+  "dependencies": {
+    "level-browserify": "^2.0.0",
+    "levelgraph": "^2.1.1",
+    "n3": "^0.11.3"
+  }
+}
