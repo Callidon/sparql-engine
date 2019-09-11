@@ -188,5 +188,5 @@ export default abstract class Graph {
 }
 
 // disable optional methods
-Object.defineProperty(Graph.prototype, 'estimateCardinality', {value: null})
-Object.defineProperty(Graph.prototype, 'evalUnion', {value: null})
+Object.defineProperty(Graph.prototype, 'estimateCardinality', { value: null })
+Object.defineProperty(Graph.prototype, 'evalUnion', { value: null })

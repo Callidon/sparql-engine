@@ -35,7 +35,7 @@ import UnionMerge from './visitors/union-merge'
 export default class Optimizer {
   private _visitors: PlanVisitor[]
 
-  constructor() {
+  constructor () {
     this._visitors = []
   }
 
@@ -43,7 +43,7 @@ export default class Optimizer {
    * Get an optimizer configured with the default optimization rules
    * @return A new Optimizer pre-configured with default rules
    */
-  static getDefault(): Optimizer {
+  static getDefault (): Optimizer {
     const opt = new Optimizer()
     opt.addVisitor(new UnionMerge())
     return opt
@@ -53,7 +53,7 @@ export default class Optimizer {
    * Register a new visitor, which implements an optimization rule.
    * @param visitor - Visitor
    */
-  addVisitor(visitor: PlanVisitor): void {
+  addVisitor (visitor: PlanVisitor): void {
     this._visitors.push(visitor)
   }
 
@@ -62,7 +62,7 @@ export default class Optimizer {
    * @param  plan - SPARQL query expression tree to iptimize
    * @return Optimized SPARQL query expression tree
    */
-  optimize(plan: Algebra.PlanNode): Algebra.PlanNode {
+  optimize (plan: Algebra.PlanNode): Algebra.PlanNode {
     return this._visitors.reduce((current, v) => v.visit(current), plan)
   }
 }
