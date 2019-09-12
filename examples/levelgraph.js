@@ -1,9 +1,8 @@
 'use strict'
 
-const { BindingBase, HashMapDataset, Graph, PlanBuilder, Pipeline } = require('../dist/api')
-const level = require('level-browserify')
+const { BindingBase, HashMapDataset, Graph, PlanBuilder, Pipeline } = require('sparql-engine')
+const level = require('level')
 const levelgraph = require('levelgraph')
-const { Transform } = require('stream')
 
 class LevelRDFGraph extends Graph {
   constructor (db) {
@@ -37,6 +36,31 @@ class LevelRDFGraph extends Graph {
     // flatten the list of Bindings returned by the first stage of the pipeline
     pipeline = Pipeline.getInstance().flatMap(pipeline, v => v)
     return pipeline
+  }
+
+
+  insert (triple) {
+    return new Promise(function(resolve, reject) {
+      this._db.put(triple, err => {
+        if (err) {
+          reject(err)
+        } else {
+          resolve()
+        }
+      })
+    })
+  }
+
+  delete (triple) {
+    return new Promise(function(resolve, reject) {
+      this._db.del(triple, err => {
+        if (err) {
+          reject(err)
+        } else {
+          resolve()
+        }
+      })
+    })
   }
 }
 

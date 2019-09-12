@@ -1,7 +1,7 @@
 'use strict'
 
 const { Parser, Store } = require('n3')
-const { HashMapDataset, Graph, PlanBuilder } = require('../dist/api')
+const { HashMapDataset, Graph, PlanBuilder } = require('sparql-engine')
 
 // Format a triple pattern according to N3 API:
 // SPARQL variables must be replaced by `null` values
