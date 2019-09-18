@@ -30,7 +30,9 @@
   },
   "contributors": [
     "Corentin Marionneau <corentin.marionneau@gmail.com> (https://github.com/Slaanaroth)",
-    "Merlin Barzilai (https://github.com/Rintarou)"
+    "Merlin Barzilai (https://github.com/Rintarou)",
+    "Dustin Whitney (https://github.com/dwhitney)",
+    "Julien Aimonier-Davat (https://github.com/Lastshot97)"
   ],
   "homepage": "https://github.com/Callidon/sparql-engine#readme",
   "devDependencies": {
