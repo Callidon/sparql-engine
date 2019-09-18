@@ -136,7 +136,7 @@ You will find below, in Java-like syntax, an example subclass of a `Graph`.
 
 ## RDF Datasets
 
-Once you have your subclass of `Graph` ready, you need to build a collection of RDF Graphs, called a [RDF Dataset](https://www.w3.org/TR/rdf11-concepts/#section-dataset). A default implementation, `HashMapDataset`, is made available by the framework, but you can build your own by subclassing [`Dataset`](https://github.com/Callidon/sparql-engine/blob/master/src/rdf/dataset.js).
+Once you have your subclass of `Graph` ready, you need to build a collection of RDF Graphs, called a [RDF Dataset](https://www.w3.org/TR/rdf11-concepts/#section-dataset). A default implementation, `HashMapDataset`, is made available by the framework, but you can build your own by subclassing [`Dataset`](https://callidon.github.io/sparql-engine/classes/dataset.html).
 
 ```javascript
  const { HashMapDataset } = require('sparql-engine')
