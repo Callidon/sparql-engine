@@ -28,10 +28,11 @@ import { Pipeline } from '../engine/pipeline/pipeline'
 import { PipelineInput, PipelineStage } from '../engine/pipeline/pipeline-engine'
 import { Algebra } from 'sparqljs'
 import indexJoin from '../operators/join/index-join'
-import { rdf } from '../utils'
+import { rdf, sparql } from '../utils'
 import { Bindings, BindingBase } from './bindings'
 import { GRAPH_CAPABILITY } from './graph_capability'
 import ExecutionContext from '../engine/context/execution-context'
+import { sortBy } from 'lodash'
 
 /**
  * Metadata used for query optimization
@@ -169,17 +170,17 @@ export default abstract class Graph {
         })
       })))
       return engine.mergeMap(op, (results: PatternMetadata[]) => {
-        results.sort(sortPatterns)
+        const sortedPatterns = sparql.leftLinearJoinOrdering(sortBy(results, 'cardinality').map(t => t.triple))
         const start = engine.of(new BindingBase())
-        return results.reduce((iter: PipelineStage<Bindings>, v: PatternMetadata) => {
-          return indexJoin(iter, v.triple, this, context)
+        return sortedPatterns.reduce((iter: PipelineStage<Bindings>, t: Algebra.TripleObject) => {
+          return indexJoin(iter, t, this, context)
         }, start)
       })
     } else {
       // FIX ME: this trick is required, otherwise ADD, COPY and MOVE queries are not evaluated correctly. We need to find why...
       return engine.mergeMap(engine.from(Promise.resolve(null)), () => {
         const start = engine.of(new BindingBase())
-        return bgp.reduce((iter: PipelineStage<Bindings>, t: Algebra.TripleObject) => {
+        return sparql.leftLinearJoinOrdering(bgp).reduce((iter: PipelineStage<Bindings>, t: Algebra.TripleObject) => {
           return indexJoin(iter, t, this, context)
         }, start)
       })
