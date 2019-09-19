@@ -24,7 +24,7 @@ SOFTWARE.
 
 'use strict'
 
-import { Observable, ObservableInput, empty, from, of, concat } from 'rxjs'
+import { Observable, Subscriber, empty, from, of, concat } from 'rxjs'
 import {
   bufferCount,
   catchError,
@@ -43,7 +43,31 @@ import {
   shareReplay,
   reduce
 } from 'rxjs/operators'
-import { PipelineInput, PipelineEngine } from './pipeline-engine'
+import { StreamPipelineInput, PipelineEngine } from './pipeline-engine'
+
+/**
+ * A StreamPipelineInput implemented using Rxjs' subscribers.
+ * @author Thomas Minier
+ */
+export class RxjsStreamInput<T> implements StreamPipelineInput<T> {
+  private readonly _subscriber: Subscriber<T>
+
+  constructor(subscriber: Subscriber<T>) {
+    this._subscriber = subscriber
+  }
+
+  next(value: T): void {
+    this._subscriber.next(value)
+  }
+
+  complete(): void {
+    this._subscriber.complete()
+  }
+
+  error(err: any): void {
+    this._subscriber.error(err)
+  }
+}
 
 /**
  * A pipeline implemented using Rx.js
@@ -61,6 +85,10 @@ export default class RxjsPipeline extends PipelineEngine {
 
   from(x: any): Observable<any> {
     return from(x)
+  }
+
+  fromAsync<T>(cb :(input : StreamPipelineInput<T>) => void): Observable<T> {
+    return new Observable<T>(subscriber => cb(new RxjsStreamInput(subscriber)))
   }
 
   clone<T>(stage: Observable<T>): Observable<T> {

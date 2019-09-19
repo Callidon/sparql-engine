@@ -24,7 +24,7 @@ SOFTWARE.
 
 'use strict'
 
-import { PipelineInput, PipelineStage, PipelineEngine } from './pipeline-engine'
+import { PipelineInput, StreamPipelineInput, PipelineStage, PipelineEngine } from './pipeline-engine'
 import { chunk, flatMap, flatten, isUndefined, slice, uniq, uniqBy } from 'lodash'
 
 /**
@@ -66,6 +66,30 @@ export class VectorStage<T> implements PipelineStage<T> {
   }
 }
 
+export class VectorStreamInput<T> implements StreamPipelineInput<T> {
+  private readonly _resolve: (value: T[]) => void
+  private readonly _reject: (err: any) => void
+  private _content: Array<T>
+
+  constructor(resolve: any, reject: any) {
+    this._resolve = resolve
+    this._reject = reject
+    this._content = []
+  }
+
+  next(value: T): void {
+    this._content.push(value)
+  }
+
+  error(err: any): void {
+    this._reject(err)
+  }
+
+  complete(): void {
+    this._resolve(this._content)
+  }
+}
+
 /**
  * A pipeline implemented using {@link VectorStage}, *i.e.*, all intermediate results are materialized in main memory. This approach is often called **vectorized approach**.
  * This pipeline is more efficient CPU-wise than {@link RxjsPipeline}, but it also consumes much more memory, as it materializes evey stage of the pipeline before moving to the next.
@@ -94,6 +118,12 @@ export default class VectorPipeline extends PipelineEngine {
       return new VectorStage<T>(Promise.resolve(Array.from(x as Iterable<T>)))
     }
     throw new Error('Invalid argument for VectorPipeline.from: ' + x)
+  }
+
+  fromAsync<T>(cb :(input : StreamPipelineInput<T>) => void): VectorStage<T> {
+    return new VectorStage<T>(new Promise<T[]>((resolve, reject) => {
+      cb(new VectorStreamInput<T>(resolve, reject))
+    }))
   }
 
   clone<T>(stage: VectorStage<T>): VectorStage<T> {

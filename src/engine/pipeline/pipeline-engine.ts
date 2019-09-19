@@ -27,7 +27,31 @@ SOFTWARE.
 /**
  * The input of a {@link PipelineStage}, either another {@link PipelineStage}, an array, an iterable or a promise.
  */
-export type PipelineInput<T> = PipelineStage<T> | Iterable<T> | PromiseLike<T> | ArrayLike<T>;
+export type PipelineInput<T> = PipelineStage<T> | StreamPipelineInput<T> | Iterable<T> | PromiseLike<T> | ArrayLike<T>;
+
+/**
+ * An input of a {@link PipelineStage} which produces items in stream/async way.
+ * Usefull for connecting a Node.JS stream into a pipeline of iterators.
+ * @author Thomas Minier
+ */
+export interface StreamPipelineInput<T> {
+  /**
+   * Produces a new value and inject it into the pipeline
+   * @param value - New value produced
+   */
+  next(value: T): void;
+
+  /**
+   * Close the pipeline input
+   */
+  complete(): void;
+
+  /**
+   * Report an error that occurs during execution
+   * @param err - The error to report
+   */
+  error(err: any): void;
+}
 
 /**
  * A step in a pipeline. Data can be consumed in a pull-based or push-bashed fashion.
@@ -76,6 +100,13 @@ export abstract class PipelineEngine {
    * @return A PipelineStage that emits the values contains in the object
    */
   abstract from<T>(value: PipelineInput<T>): PipelineStage<T>;
+
+  /**
+   * Creates a PipelineStage from a something that emits values asynchronously, using a {@link StreamPipelineInput} to feed values/errors into the pipeline.
+   * @param  cb - Callback invoked with a {@link StreamPipelineInput} used to feed values inot the pipeline.
+   * @return A PipelineStage that emits the values produces asynchronously
+   */
+  abstract fromAsync<T>(cb :(input : StreamPipelineInput<T>) => void): PipelineStage<T>;
 
   /**
    * Clone a PipelineStage

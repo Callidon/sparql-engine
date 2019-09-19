@@ -117,6 +117,54 @@ function testPipelineEngine (pipeline) {
     })
   })
 
+  describe('#fromAsync', () => {
+    it('should create a PipelineStage from an async source of values', done => {
+      const expected = [1, 2, 3]
+      const out = pipeline.fromAsync(input => {
+        setTimeout(() => {
+          input.next(1)
+          input.next(2)
+          setTimeout(() => {
+            input.next(3)
+            input.complete()
+          }, 5)
+        }, 5)
+      })
+      let cpt = 0
+      out.subscribe(x => {
+        expect(x).to.be.oneOf(expected)
+        // pull out element
+        expected.splice(expected.indexOf(x), 1)
+        cpt++
+      }, done, () => {
+        expect(cpt).to.equal(3)
+        expect(expected.length).to.equal(0)
+        done()
+      })
+    })
+
+    it('should catch errors when generating values asynchronously', done => {
+      const out = pipeline.fromAsync(input => {
+        setTimeout(() => {
+          input.error()
+        }, 5)
+      })
+      let cpt = 0
+      out.subscribe(x => {
+        expect(x).to.be.oneOf(expected)
+        // pull out element
+        expected.splice(expected.indexOf(x), 1)
+        cpt++
+      }, () => {
+        expect(cpt).to.equal(0)
+        done()
+      }, () => {
+        expect().fail('The pipeline should not complete when an error is thrown')
+        done()
+      })
+    })
+  })
+
   // clone method
   describe('#clone', () => {
     it('should clone an existing PipelineStage', done => {
