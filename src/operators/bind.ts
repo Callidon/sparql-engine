@@ -50,7 +50,9 @@ export default function bind (source: PipelineStage<Bindings>, variable: string,
       if (value !== null) {
         res.set(variable, value.asRDF)
       }
-    } catch (e) {}
+    } catch (e) {
+      // silence errors
+    }
     return res
   })
 }

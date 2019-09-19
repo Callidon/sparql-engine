@@ -333,30 +333,30 @@ export namespace terms {
    */
   export function isNumber (term: RDFTerm): boolean {
     if (term.type !== 'literal+type') {
-        return false
-      }
+      return false
+    }
     const literal: TypedLiteral = term as TypedLiteral
     switch (literal.type) {
-        case rdf.XSD('integer'):
-        case rdf.XSD('byte'):
-        case rdf.XSD('short'):
-        case rdf.XSD('int'):
-        case rdf.XSD('unsignedByte'):
-        case rdf.XSD('unsignedShort'):
-        case rdf.XSD('unsignedInt'):
-        case rdf.XSD('number'):
-        case rdf.XSD('float'):
-        case rdf.XSD('decimal'):
-        case rdf.XSD('double'):
-        case rdf.XSD('long'):
-        case rdf.XSD('unsignedLong'):
-        case rdf.XSD('positiveInteger'):
-        case rdf.XSD('nonPositiveInteger'):
-        case rdf.XSD('negativeInteger'):
-        case rdf.XSD('nonNegativeInteger'):
-          return true
-        default:
-          return false
-      }
+      case rdf.XSD('integer'):
+      case rdf.XSD('byte'):
+      case rdf.XSD('short'):
+      case rdf.XSD('int'):
+      case rdf.XSD('unsignedByte'):
+      case rdf.XSD('unsignedShort'):
+      case rdf.XSD('unsignedInt'):
+      case rdf.XSD('number'):
+      case rdf.XSD('float'):
+      case rdf.XSD('decimal'):
+      case rdf.XSD('double'):
+      case rdf.XSD('long'):
+      case rdf.XSD('unsignedLong'):
+      case rdf.XSD('positiveInteger'):
+      case rdf.XSD('nonPositiveInteger'):
+      case rdf.XSD('negativeInteger'):
+      case rdf.XSD('nonNegativeInteger'):
+        return true
+      default:
+        return false
+    }
   }
 }

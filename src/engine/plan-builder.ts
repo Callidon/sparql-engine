@@ -277,7 +277,7 @@ export class PlanBuilder {
     // Handles ORDER BY
     if ('order' in query) {
       if (!this._stageBuilders.has(SPARQL_OPERATION.ORDER_BY)) {
-        new Error('A PlanBuilder cannot evaluate SPARQL ORDER BY clauses without a StageBuilder for it')
+        throw new Error('A PlanBuilder cannot evaluate SPARQL ORDER BY clauses without a StageBuilder for it')
       }
       graphIterator = this._stageBuilders.get(SPARQL_OPERATION.ORDER_BY)!.execute(graphIterator, query.order!) as PipelineStage<Bindings>
     }
@@ -290,7 +290,7 @@ export class PlanBuilder {
     // Create iterators for modifiers
     if (query.distinct) {
       if (!this._stageBuilders.has(SPARQL_OPERATION.DISTINCT)) {
-        new Error('A PlanBuilder cannot evaluate a DISTINCT clause without a StageBuilder for it')
+        throw new Error('A PlanBuilder cannot evaluate a DISTINCT clause without a StageBuilder for it')
       }
       graphIterator = this._stageBuilders.get(SPARQL_OPERATION.DISTINCT)!.execute(graphIterator, context) as PipelineStage<Bindings>
     }
@@ -384,7 +384,7 @@ export class PlanBuilder {
         // filter out variables added by the rewriting of property paths
         if (tempVariables.length > 0) {
           iter = engine.map(iter, bindings => {
-            return bindings.filter(v => tempVariables.indexOf(v) == -1)
+            return bindings.filter(v => tempVariables.indexOf(v) === -1)
           })
         }
         return iter

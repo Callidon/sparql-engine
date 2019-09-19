@@ -252,10 +252,10 @@ export abstract class Bindings {
   }
 
   /**
-  * Performs a set difference with another set of mappings, i.e., A.difference(B) returns all mappings that are in A and not in B.
-  * @param  other - Set of mappings
-  * @return The results of the set difference
-  */
+   * Performs a set difference with another set of mappings, i.e., A.difference(B) returns all mappings that are in A and not in B.
+   * @param  other - Set of mappings
+   * @return The results of the set difference
+   */
   difference (other: Bindings): Bindings {
     return this.filter((variable: string, value: string) => {
       return (!other.has(variable)) || (value !== other.get(variable))
