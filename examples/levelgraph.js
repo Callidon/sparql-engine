@@ -11,7 +11,9 @@ class LevelRDFGraph extends Graph {
   }
 
   evalBGP (bgp) {
-    let pipeline = Pipeline.getInstance().from(new Promise((resolve, reject) => {
+    // Connect the Node.js Readable stream
+    // into the SPARQL query engine using the fromAsync method
+    return Pipeline.getInstance().fromAsync(input => {
       // rewrite variables using levelgraph API
       bgp = bgp.map(t => {
         if (t.subject.startsWith('?')) {
@@ -25,17 +27,15 @@ class LevelRDFGraph extends Graph {
         }
         return t
       })
-      this._db.search(bgp, (err, results) => {
-        if (err) {
-          reject(err)
-        } else {
-          resolve(results.map(r => BindingBase.fromObject(r)))
-        }
-      })
-    }))
-    // flatten the list of Bindings returned by the first stage of the pipeline
-    pipeline = Pipeline.getInstance().flatMap(pipeline, v => v)
-    return pipeline
+      // Evaluates the BGP using Levelgraph stream API
+      const stream = this._db.searchStream(bgp)
+
+      // pipe results & errors into the query engine
+      stream.on('error', err => input.error(err))
+      stream.on('end', () => input.complete())
+      // convert Levelgraph solutions into Bindings objects (the format used by sparql-engine)
+      stream.on('data', results => input.next(BindingBase.fromObject(results)))
+    })
   }
 
 
