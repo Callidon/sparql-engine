@@ -1,0 +1,880 @@
+<!doctype html>
+<html class="default no-js">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>sparql-engine</title>
+	<meta name="description" content="">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="assets/css/main.css">
+</head>
+<body>
+<header>
+	<div class="tsd-page-toolbar">
+		<div class="container">
+			<div class="table-wrap">
+				<div class="table-cell" id="tsd-search" data-index="assets/js/search.js" data-base=".">
+					<div class="field">
+						<label for="tsd-search-field" class="tsd-widget search no-caption">Search</label>
+						<input id="tsd-search-field" type="text" />
+					</div>
+					<ul class="results">
+						<li class="state loading">Preparing search index...</li>
+						<li class="state failure">The search index is not available</li>
+					</ul>
+					<a href="index.html" class="title">sparql-engine</a>
+				</div>
+				<div class="table-cell" id="tsd-widgets">
+					<div id="tsd-filter">
+						<a href="#" class="tsd-widget options no-caption" data-toggle="options">Options</a>
+						<div class="tsd-filter-group">
+							<div class="tsd-select" id="tsd-filter-visibility">
+								<span class="tsd-select-label">All</span>
+								<ul class="tsd-select-list">
+									<li data-value="public">Public</li>
+									<li data-value="protected">Public/Protected</li>
+									<li data-value="private" class="selected">All</li>
+								</ul>
+							</div>
+							<input type="checkbox" id="tsd-filter-inherited" checked />
+							<label class="tsd-widget" for="tsd-filter-inherited">Inherited</label>
+							<input type="checkbox" id="tsd-filter-externals" checked />
+							<label class="tsd-widget" for="tsd-filter-externals">Externals</label>
+							<input type="checkbox" id="tsd-filter-only-exported" />
+							<label class="tsd-widget" for="tsd-filter-only-exported">Only exported</label>
+						</div>
+					</div>
+					<a href="#" class="tsd-widget menu no-caption" data-toggle="menu">Menu</a>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="tsd-page-title">
+		<div class="container">
+			<ul class="tsd-breadcrumb">
+				<li>
+					<a href="globals.html">Globals</a>
+				</li>
+			</ul>
+			<h1> sparql-engine</h1>
+		</div>
+	</div>
+</header>
+<div class="container container-main">
+	<div class="row">
+		<div class="col-8 col-content">
+			<div class="tsd-panel tsd-typography">
+				<a href="#sparql-engine" id="sparql-engine" style="color: inherit; text-decoration: none;">
+					<h1>sparql-engine</h1>
+				</a>
+				<p><a href="https://travis-ci.org/Callidon/sparql-engine"><img src="https://travis-ci.org/Callidon/sparql-engine.svg?branch=master" alt="Build Status"></a>  <a href="https://codecov.io/gh/Callidon/sparql-engine"><img src="https://codecov.io/gh/Callidon/sparql-engine/branch/master/graph/badge.svg" alt="codecov"></a> <a href="https://badge.fury.io/js/sparql-engine"><img src="https://badge.fury.io/js/sparql-engine.svg" alt="npm version"></a> <a href="https://standardjs.com"><img src="https://img.shields.io/badge/code_style-standard-brightgreen.svg" alt="JavaScript Style Guide"></a></p>
+				<p>An open-source framework for building SPARQL query engines in Javascript/Typescript.</p>
+				<p><a href="https://callidon.github.io/sparql-engine/">Online documentation</a></p>
+				<p><strong>Main features</strong>:</p>
+				<ul>
+					<li>Build a <a href="https://www.w3.org/TR/2013/REC-sparql11-overview-20130321/">SPARQL</a> query engine on top of any data storage system.</li>
+					<li>Supports <a href="https://www.w3.org/TR/sparql11-query/">the full features of the SPARQL syntax</a> by <em>implementing a single class!</em></li>
+					<li>Support for all <a href="https://www.w3.org/TR/sparql11-query/#propertypaths">SPARQL property Paths</a>.</li>
+					<li>Implements advanced <em>SPARQL query rewriting techniques</em> for transparently optimizing SPARQL query processing.</li>
+					<li>Supports <a href="#custom-functions">Custom SPARQL functions</a>.</li>
+					<li>Supports the <a href="https://www.w3.org/TR/2013/REC-sparql11-update-20130321/">SPARQL UPDATE protocol</a>.</li>
+					<li>Supports Basic <a href="https://www.w3.org/TR/2013/REC-sparql11-federated-query-20130321/">Federated SPARQL queries</a> using <strong>SERVICE clauses</strong>.</li>
+					<li>Customize every step of SPARQL query processing, thanks to <em>a modular architecture</em>.</li>
+				</ul>
+				<p>:warning: <strong>In Development</strong> :warning:</p>
+				<ul>
+					<li>Support for SPARQL Graph Management protocol</li>
+				</ul>
+				<a href="#table-of-contents" id="table-of-contents" style="color: inherit; text-decoration: none;">
+					<h1>Table of contents</h1>
+				</a>
+				<ul>
+					<li><a href="#installation">Installation</a></li>
+					<li><a href="#getting-started">Getting started</a><ul>
+							<li><a href="#examples">Examples</a></li>
+							<li><a href="#preliminaries">Preliminaries</a></li>
+							<li><a href="#rdf-graphs">RDF Graphs</a></li>
+							<li><a href="#rdf-datasets">RDF Datasets</a></li>
+							<li><a href="#running-a-sparql-query">Running a SPARQL query</a></li>
+						</ul>
+					</li>
+					<li><a href="#federated-sparql-queries">Federated SPARQL Queries</a></li>
+					<li><a href="#custom-functions">Custom Functions</a></li>
+					<li><a href="#advanced-usage">Advanced Usage</a><ul>
+							<li><a href="#customize-the-pipeline-implementation">Customize the pipeline implementation</a></li>
+							<li><a href="#customize-query-execution">Customize query execution</a></li>
+						</ul>
+					</li>
+					<li><a href="#documentation">Documentation</a></li>
+					<li><a href="#references">References</a></li>
+				</ul>
+				<a href="#installation" id="installation" style="color: inherit; text-decoration: none;">
+					<h1>Installation</h1>
+				</a>
+				<pre><code class="language-bash">npm install --save sparql-engine</code></pre>
+				<a href="#getting-started" id="getting-started" style="color: inherit; text-decoration: none;">
+					<h1>Getting started</h1>
+				</a>
+				<p>The <code>sparql-engine</code> framework allow you to build a custom SPARQL query engine on top of any data storage system.</p>
+				<p>In short, to support SPARQL queries on top of your data storage system, you need to:</p>
+				<ul>
+					<li><a href="#rdf-graphs">Implements a subclass of <code>Graph</code></a>, which provides access to the data storage system.</li>
+					<li>Gather all your Graphs as a <code>Dataset</code> (using your own implementation or <a href="#rdf-datasets">the default one</a>).</li>
+					<li><a href="#running-a-sparql-query">Instantiate a <code>PlanBuilder</code></a> and use it to execute SPARQL queries.</li>
+				</ul>
+				<a href="#examples" id="examples" style="color: inherit; text-decoration: none;">
+					<h2>Examples</h2>
+				</a>
+				<p>As a starting point, we provide you with two examples of integration:</p>
+				<ul>
+					<li>With <a href="https://github.com/rdfjs/N3.js">N3.js</a>, available <a href="https://github.com/Callidon/sparql-engine/tree/master/examples/n3.js">here</a>.</li>
+					<li>With <a href="https://github.com/levelgraph/levelgraph">LevelGraph</a>, available <a href="https://github.com/Callidon/sparql-engine/tree/master/examples/levelgraph.js">here</a>.</li>
+				</ul>
+				<a href="#preliminaries" id="preliminaries" style="color: inherit; text-decoration: none;">
+					<h2>Preliminaries</h2>
+				</a>
+				<a href="#rdf-triples-representation" id="rdf-triples-representation" style="color: inherit; text-decoration: none;">
+					<h3>RDF triples representation</h3>
+				</a>
+				<p>This framework represents RDF triples using Javascript Object.
+				You will find below, in Java-like syntax, the &quot;shape&quot; of such object.</p>
+				<pre><code class="language-typescript"><span class="hljs-keyword">interface</span> TripleObject {
+  subject: <span class="hljs-built_in">string</span>; <span class="hljs-comment">// The Triple's subject</span>
+  predicate: <span class="hljs-built_in">string</span>; <span class="hljs-comment">// The Triple's predicate</span>
+  object: <span class="hljs-built_in">string</span>; <span class="hljs-comment">// The Triple's object</span>
+}</code></pre>
+				<a href="#pipelinestage" id="pipelinestage" style="color: inherit; text-decoration: none;">
+					<h3>PipelineStage</h3>
+				</a>
+				<p>The <code>sparql-engine</code> framework uses a pipeline of iterators to execute SPARQL queries. Thus, many methods encountered in this framework needs to return <code>PipelineStage&lt;T&gt;</code>, <em>i.e.</em>, objects that generates items of type <code>T</code> in a pull-based fashion.</p>
+				<p>An <code>PipelineStage&lt;T&gt;</code> can be easily created from one of the following:</p>
+				<ul>
+					<li>An <strong>array</strong> of elements of type <code>T</code></li>
+					<li>A <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols"><strong>Javascript Iterator</strong></a>, which yields elements of type <code>T</code>.</li>
+					<li>An <a href="https://nodejs.org/api/events.html#events_class_eventemitter"><strong>EventEmitter</strong></a> which emits elements of type <code>T</code> on a <code>data</code> event.</li>
+					<li>A <a href="https://nodejs.org/api/stream.html#stream_readable_streams"><strong>Readable stream</strong></a> which produces elements of type <code>T</code>.</li>
+				</ul>
+				<p>To create a new <code>PipelineStage&lt;T&gt;</code> from one of these objects, you can use the following code:</p>
+				<pre><code class="language-javascript"><span class="hljs-keyword">const</span> { Pipeline } = <span class="hljs-built_in">require</span>(<span class="hljs-string">'sparql-engine'</span>)
+
+<span class="hljs-keyword">const</span> sourceObject = <span class="hljs-comment">// the object to convert into a PipelineStage</span>
+
+<span class="hljs-keyword">const</span> stage = Pipeline.getInstance().from(sourceObject)</code></pre>
+				<p>Fore more information on how to create and manipulate the pipeline, please refers to the documentation of <a href="https://callidon.github.io/sparql-engine/classes/pipelinee.html"><code>Pipeline</code></a> and <a href="https://callidon.github.io/sparql-engine/classes/pipelineengine.html"><code>PipelineEngine</code></a>.</p>
+				<a href="#rdf-graphs" id="rdf-graphs" style="color: inherit; text-decoration: none;">
+					<h2>RDF Graphs</h2>
+				</a>
+				<p>The first thing to do is to implement a subclass of the <code>Graph</code> abstract class. A <code>Graph</code> represents an <a href="https://www.w3.org/TR/rdf11-concepts/#section-rdf-graph">RDF Graph</a> and is responsible for inserting, deleting and searching for RDF triples in the database.</p>
+				<p>The main method to implement is <code>Graph.find(triple)</code>, which is used by the framework to find RDF triples matching
+					a <a href="https://www.w3.org/TR/sparql11-query/#basicpatterns">triple pattern</a> in the RDF Graph.
+				This method must return an <code>PipelineStage&lt;TripleObject&gt;</code>, which will be consumed to find matching RDF triples. You can find an <strong>example</strong> of such implementation in the <a href="https://github.com/Callidon/sparql-engine/tree/master/examples/n3.js">N3 example</a>.</p>
+				<p>Similarly, to support the <a href="https://www.w3.org/TR/2013/REC-sparql11-update-20130321/">SPARQL UPDATE protocol</a>, you have to provides a graph that implements the <code>Graph.insert(triple)</code> and <code>Graph.delete(triple)</code> methods, which insert and delete RDF triple from the graph, respectively. These methods must returns <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promises</a>, which are fulfilled when the insertion/deletion operation is completed.</p>
+				<p>Finally, the <code>sparql-engine</code> framework also let your customize how <a href="https://www.w3.org/TR/2013/REC-sparql11-query-20130321/#BasicGraphPatterns">Basic graph patterns</a> (BGPs) are evaluated against
+					the RDF graph. The engine provides a <strong>default implementation</strong> based on the <code>Graph.find</code> method and the
+					<em>Index Nested Loop Join algorithm</em>. However, if you wish to supply your own implementation for BGP evaluation, you just have to implement a <code>Graph</code> with an <code>evalBGP(triples)</code> method.
+				This method must return a <code>PipelineStage&lt;Bindings&gt;</code>. You can find an example of such implementation in the <a href="https://github.com/Callidon/sparql-engine/tree/master/examples/levelgraph.js">LevelGraph example</a>.</p>
+				<p>You will find below, in Java-like syntax, an example subclass of a <code>Graph</code>.</p>
+				<pre><code class="language-typescript">  <span class="hljs-keyword">const</span> { Graph } = <span class="hljs-built_in">require</span>(<span class="hljs-string">'sparql-engine'</span>)
+
+  <span class="hljs-keyword">class</span> CustomGraph <span class="hljs-keyword">extends</span> Graph {
+    <span class="hljs-comment">/**
+     * Returns an iterator that finds RDF triples matching a triple pattern in the graph.
+     * @param  triple - Triple pattern to find
+     * @return An PipelineStage which produces RDF triples matching a triple pattern
+     */</span>
+    find (triple: TripleObject, options: <span class="hljs-built_in">Object</span>): PipelineStage&lt;TripleObject&gt; { <span class="hljs-comment">/* ... */</span> }
+
+    <span class="hljs-comment">/**
+     * Insert a RDF triple into the RDF Graph
+     * @param  triple - RDF Triple to insert
+     * @return A Promise fulfilled when the insertion has been completed
+     */</span>
+    insert (triple: TripleObject): <span class="hljs-built_in">Promise</span> { <span class="hljs-comment">/* ... */</span> }
+
+    <span class="hljs-comment">/**
+     * Delete a RDF triple from the RDF Graph
+     * @param  triple - RDF Triple to delete
+     * @return A Promise fulfilled when the deletion has been completed
+     */</span>
+    <span class="hljs-keyword">delete</span> (triple: : TripleObject): <span class="hljs-built_in">Promise</span> { <span class="hljs-comment">/* ... */</span> }
+  }</code></pre>
+				<a href="#rdf-datasets" id="rdf-datasets" style="color: inherit; text-decoration: none;">
+					<h2>RDF Datasets</h2>
+				</a>
+				<p>Once you have your subclass of <code>Graph</code> ready, you need to build a collection of RDF Graphs, called a <a href="https://www.w3.org/TR/rdf11-concepts/#section-dataset">RDF Dataset</a>. A default implementation, <code>HashMapDataset</code>, is made available by the framework, but you can build your own by subclassing <a href="https://callidon.github.io/sparql-engine/classes/dataset.html"><code>Dataset</code></a>.</p>
+				<pre><code class="language-javascript"> <span class="hljs-keyword">const</span> { HashMapDataset } = <span class="hljs-built_in">require</span>(<span class="hljs-string">'sparql-engine'</span>)
+ <span class="hljs-keyword">const</span> CustomGraph = <span class="hljs-built_in">require</span>(<span class="hljs-comment">/* import your Graph subclass */</span>)
+
+ <span class="hljs-keyword">const</span> GRAPH_A_IRI = <span class="hljs-string">'http://example.org#graph-a'</span>
+ <span class="hljs-keyword">const</span> GRAPH_B_IRI = <span class="hljs-string">'http://example.org#graph-b'</span>
+ <span class="hljs-keyword">const</span> graph_a = <span class="hljs-keyword">new</span> CustomGraph(<span class="hljs-comment">/* ... */</span>)
+ <span class="hljs-keyword">const</span> graph_b = <span class="hljs-keyword">new</span> CustomGraph(<span class="hljs-comment">/* ... */</span>)
+
+ <span class="hljs-comment">// we set graph_a as the Default RDF dataset</span>
+ <span class="hljs-keyword">const</span> dataset = <span class="hljs-keyword">new</span> HashMapDataset(GRAPH_A_IRI, graph_a)
+
+ <span class="hljs-comment">// insert graph_b as a Named Graph</span>
+ dataset.addNamedGraph(GRAPH_B_IRI, graph_b)</code></pre>
+				<a href="#running-a-sparql-query" id="running-a-sparql-query" style="color: inherit; text-decoration: none;">
+					<h2>Running a SPARQL query</h2>
+				</a>
+				<p>Finally, to run a SPARQL query on your RDF dataset, you need to use the <code>PlanBuilder</code> class. It is responsible for parsing SPARQL queries and building a pipeline of iterators to evaluate them.</p>
+				<pre><code class="language-javascript">  <span class="hljs-keyword">const</span> { PlanBuilder } = <span class="hljs-built_in">require</span>(<span class="hljs-string">'sparql-engine'</span>)
+
+  <span class="hljs-comment">// Get the name of all people in the Default Graph</span>
+  <span class="hljs-keyword">const</span> query = <span class="hljs-string">`
+    PREFIX rdfs: &lt;http://www.w3.org/2000/01/rdf-schema#&gt;
+    PREFIX foaf: &lt;http://xmlns.com/foaf/0.1/&gt;
+    SELECT ?name
+    WHERE {
+      ?s a foaf:Person .
+      ?s rdfs:label ?label .
+    }`</span>
+
+  <span class="hljs-comment">// Creates a plan builder for the RDF dataset</span>
+  <span class="hljs-keyword">const</span> builder = <span class="hljs-keyword">new</span> PlanBuilder(dataset)
+
+  <span class="hljs-comment">// Get an iterator to evaluate the query</span>
+  <span class="hljs-keyword">const</span> iterator = builder.build(query)
+
+  <span class="hljs-comment">// Read results</span>
+  iterator.subscribe(
+    <span class="hljs-function"><span class="hljs-params">bindings</span> =&gt;</span> <span class="hljs-built_in">console</span>.log(bindings),
+    err =&gt; <span class="hljs-built_in">console</span>.error(err),
+    () =&gt; <span class="hljs-built_in">console</span>.log(<span class="hljs-string">'Query evaluation complete!'</span>)
+  )</code></pre>
+				<a href="#federated-sparql-queries" id="federated-sparql-queries" style="color: inherit; text-decoration: none;">
+					<h1>Federated SPARQL Queries</h1>
+				</a>
+				<p>The <code>sparql-engine</code> framework provides automatic support for evaluating <a href="https://www.w3.org/TR/2013/REC-sparql11-federated-query-20130321/">federated SPARQL queries</a>, using the <a href="https://www.w3.org/TR/sparql11-query/#basic-federated-query"><code>SERVICE</code> keyword</a>.</p>
+				<p>To enable them, you need to set <strong>a Graph Factory</strong> for the RDF dataset used to evaluate SPARQL queries.
+					This Graph factory is used by the dataset to create new RDF Graph on-demand.
+					To set it, you need to use the <a href="https://callidon.github.io/sparql-engine/classes/dataset.html#setgraphfactory"><code>Dataset.setGraphFactory</code></a> method, as detailed below.
+					It takes <em>a callback</em> as parameter, which will be invoked to create a new graph from an IRI.
+				It&#39;s your responsibility to define the graph creation logic, depending on your application.</p>
+				<pre><code class="language-typescript"><span class="hljs-keyword">const</span> { HashMapDataset } = <span class="hljs-built_in">require</span>(<span class="hljs-string">'sparql-engine'</span>)
+<span class="hljs-keyword">const</span> CustomGraph = <span class="hljs-built_in">require</span>(<span class="hljs-comment">/* import your Graph subclass */</span>)
+
+<span class="hljs-keyword">const</span> my_graph = <span class="hljs-keyword">new</span> CustomGraph(<span class="hljs-comment">/* ... */</span>)
+
+<span class="hljs-keyword">const</span> dataset = <span class="hljs-keyword">new</span> HashMapDataset(<span class="hljs-string">'http://example.org#graph-a'</span>, my_graph)
+
+<span class="hljs-comment">// set the Graph factory of the dataset</span>
+dataset.setGraphFactory(<span class="hljs-function"><span class="hljs-params">iri</span> =&gt;</span> {
+  <span class="hljs-comment">// return a new graph for the provided iri</span>
+  <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> CustomGraph(<span class="hljs-comment">/* .. */</span>)
+})</code></pre>
+				<p>Once the Graph factory is set, you have nothing more to do!
+				Juste execute your federated SPARQL queries as regular queries, like before!</p>
+				<a href="#custom-functions" id="custom-functions" style="color: inherit; text-decoration: none;">
+					<h1>Custom Functions</h1>
+				</a>
+				<p>SPARQL allows custom functions in expressions so that queries can be used on domain-specific data.
+				The <code>sparql-engine</code> framework provides a supports for declaring such custom functions.</p>
+				<p>A SPARQL value function is an extension point of the SPARQL query language that allows URI to name a function in the query processor.
+					It is defined by an <code>IRI</code> in a <code>FILTER</code>, <code>BIND</code> or <code>HAVING BY</code> expression.
+					To register custom functions, you must create a JSON object that maps each <code>IRI</code> to a Javascript function that takes a variable number of <a href="https://callidon.github.io/sparql-engine/interfaces/terms.rdfterm.html">RDFTerms</a> arguments and returns an <code>RDFTerm</code>.
+				See <a href="https://callidon.github.io/sparql-engine/modules/terms.html">the <code>terms</code> package documentation</a> for more details on how to manipulate RDF terms.</p>
+				<p>The following shows a declaration of some simple custom functions.</p>
+				<pre><code class="language-javascript"><span class="hljs-comment">// load the utility functions used to manipulate RDF terms</span>
+<span class="hljs-keyword">const</span> { terms } = <span class="hljs-built_in">require</span>(<span class="hljs-string">'sparql-engine'</span>)
+
+<span class="hljs-comment">// define some custom SPARQL functions</span>
+<span class="hljs-keyword">const</span> customFunctions = {
+  <span class="hljs-comment">// reverse a RDF literal</span>
+  <span class="hljs-string">'http://example.com#REVERSE'</span>: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">rdfTerm</span>) </span>{
+    <span class="hljs-keyword">const</span> reverseValue = rdfTerm.value.split(<span class="hljs-string">""</span>).reverse().join(<span class="hljs-string">""</span>)
+    <span class="hljs-keyword">return</span> terms.replaceLiteralValue(rdfTerm, reverseValue)
+  },
+  <span class="hljs-comment">// Test if a RDF Luteral is a palindrome</span>
+  <span class="hljs-string">'http://example.com#IS_PALINDROME'</span>: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">rdfTerm</span>) </span>{
+    <span class="hljs-keyword">const</span> result = rdfTerm.value.split(<span class="hljs-string">""</span>).reverse().join(<span class="hljs-string">""</span>) === rdfTerm.value
+    <span class="hljs-keyword">return</span> terms.createBoolean(result)
+  },
+  <span class="hljs-comment">// Test if a number is even</span>
+  <span class="hljs-string">'http://example.com#IS_EVEN'</span>: <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">rdfTerm</span>) </span>{
+    <span class="hljs-keyword">if</span> (terms.isNumber(rdfTerm)) {
+      <span class="hljs-keyword">const</span> result = rdfTerm.value % <span class="hljs-number">2</span> === <span class="hljs-number">0</span>
+      <span class="hljs-keyword">return</span> terms.createBoolean(result)
+    }
+    <span class="hljs-keyword">return</span> terms.createBoolean(<span class="hljs-literal">false</span>)
+  }
+}</code></pre>
+				<p>Then, this JSON object is passed into the constructor of your PlanBuilder.</p>
+				<pre><code class="language-javascript"><span class="hljs-keyword">const</span> builder = <span class="hljs-keyword">new</span> PlanBuilder(dataset, {}, customFunctions)</code></pre>
+				<p>Now, you can execute SPARQL queries with your custom functions!
+				For example, here is a query that uses our newly defined custom SPARQL functions.</p>
+				<pre><code>PREFIX foaf: &lt;http://xmlns.com/foaf/<span class="hljs-number">0.1</span>/&gt;
+PREFIX example: &lt;http://example.com#&gt;
+<span class="hljs-keyword">SELECT</span> ?length
+<span class="hljs-keyword">WHERE</span> {
+  ?s foaf:<span class="hljs-type">name</span> ?<span class="hljs-type">name</span> .
+
+  # this bind <span class="hljs-keyword">is</span> <span class="hljs-keyword">not</span> critical, but <span class="hljs-keyword">is</span> here <span class="hljs-keyword">for</span> illustrative purposes
+  BIND(&lt;http://example.com#<span class="hljs-keyword">REVERSE</span>&gt;(?<span class="hljs-type">name</span>) <span class="hljs-keyword">as</span> ?<span class="hljs-keyword">reverse</span>)
+
+  BIND(STRLEN(?<span class="hljs-keyword">reverse</span>) <span class="hljs-keyword">as</span> ?length)
+
+  # <span class="hljs-keyword">only</span> keeps palindromes
+  <span class="hljs-keyword">FILTER</span> (!example:IS_PALINDROME(?<span class="hljs-type">name</span>))
+}
+<span class="hljs-keyword">GROUP</span> <span class="hljs-keyword">BY</span> ?length
+<span class="hljs-keyword">HAVING</span> (example:IS_EVEN(?length))</code></pre>
+				<a href="#advanced-usage" id="advanced-usage" style="color: inherit; text-decoration: none;">
+					<h1>Advanced usage</h1>
+				</a>
+				<a href="#customize-the-pipeline-implementation" id="customize-the-pipeline-implementation" style="color: inherit; text-decoration: none;">
+					<h2>Customize the pipeline implementation</h2>
+				</a>
+				<p>The class <code>PipelineEngine</code> (and its subclasses) is the main component used by <code>sparql-engine</code> to evaluate all SPARQL operations. It defines basic operations (<code>map</code>, <code>filter</code>, etc) that can be used
+				to manipulate intermediate results and evaluate SPARQL queries.</p>
+				<p>By default, the framework uses an implementation of <code>PipelineEngine</code> based on <a href="https://rxjs-dev.firebaseapp.com/"><code>rxjs</code></a>, to implements a SPARQL query execution plan as a pipeline of iterators.
+				However, <strong>you are able to switch to others implementations</strong> of <code>PipelineEngine</code>, using <code>Pipeline.setInstance</code>.</p>
+				<pre><code class="language-javascript"><span class="hljs-keyword">const</span> { Pipeline, PipelineEngine } = <span class="hljs-built_in">require</span>(<span class="hljs-string">'sparql-engine'</span>)
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">CustomEngine</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">PipelineEngine</span> </span>{
+  <span class="hljs-comment">// ...</span>
+}
+
+<span class="hljs-comment">// add this before creating a new plan builder</span>
+Pipeline.setInstance(<span class="hljs-keyword">new</span> CustomEngine())
+<span class="hljs-comment">// ...</span></code></pre>
+				<p>Two implementations of <code>PipelineEngine</code> are provided by default.</p>
+				<ul>
+					<li><code>RxjsPipeline</code>, based on <a href="https://rxjs-dev.firebaseapp.com/"><code>rxjs</code></a>, which provides a pure pipeline approach. This approach is <strong>selected by default</strong> when loading the framework.</li>
+					<li><code>VectorPipeline</code>, which materializes all intermediate results at each pipeline computation step. This approach is more efficient CPU-wise, but also consumes a lot more memory.</li>
+				</ul>
+				<p>These implementations can be imported as follows:</p>
+				<pre><code class="language-javascript"><span class="hljs-keyword">const</span> { RxjsPipeline, VectorPipeline } = <span class="hljs-built_in">require</span>(<span class="hljs-string">'sparql-engine'</span>)</code></pre>
+				<a href="#customize-query-execution" id="customize-query-execution" style="color: inherit; text-decoration: none;">
+					<h2>Customize query execution</h2>
+				</a>
+				<p>A <code>PlanBuilder</code> implements a <a href="https://en.wikipedia.org/wiki/Builder_pattern">Builder pattern</a> in order to create a physical query execution plan for a given SPARQL query.
+					Internally, it defines <a href="https://callidon.github.io/sparql-engine/classes/stagebuilder"><em>stages builders</em></a> to generates operators for executing all types of SPARQL operations.
+				For example, the <a href="https://callidon.github.io/sparql-engine/classes/orderbystagebuilder.html"><code>OrderByStageBuilder</code></a> is invoked when the <code>PlanBuilder</code> needs to evaluate an <code>ORDER BY</code> modifier.</p>
+				<p>If you want to customize how query execution plans are built, you have to implement your own stage builders, by extending existing ones.
+				Then, you need to configure your plan builder to use them, with the <a href="https://callidon.github.io/sparql-engine/classes/planbuilder.html#use"><code>use</code> function</a>.</p>
+				<pre><code class="language-javascript">  <span class="hljs-keyword">const</span> { PlanBuilder, stages } = <span class="hljs-built_in">require</span>(<span class="hljs-string">'sparql-engine'</span>)
+
+  <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">MyOrderByStageBuilder</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">stages</span>.<span class="hljs-title">OrderByStageBuilder</span> </span>{
+    <span class="hljs-comment">/* Define your custom execution logic for ORDER BY */</span>
+  }
+
+  <span class="hljs-keyword">const</span> dataset = <span class="hljs-comment">/* a RDF dataset */</span>
+
+  <span class="hljs-comment">// Creates a plan builder for the RDF dataset</span>
+  <span class="hljs-keyword">const</span> builder = <span class="hljs-keyword">new</span> PlanBuilder(dataset)
+
+  <span class="hljs-comment">// Plug-in your custom stage builder</span>
+  builder.use(stages.SPARQL_OPERATION.ORDER_BY, MyOrderByStageBuilder(dataset))
+
+  <span class="hljs-comment">// Now, execute SPARQL queries as before with your PlanBuilder</span></code></pre>
+				<p>You will find below a reference table of all stage builders used by <code>sparql-engine</code> to evaluate SPARQL queries. Please see <a href="https://callidon.github.io/sparql-engine/classes/stagebuilder">the API documentation</a> for more details.</p>
+				<p><strong>Executors</strong></p>
+				<table>
+					<thead>
+						<tr>
+							<th>SPARQL Operation</th>
+							<th>Default Stage Builder</th>
+							<th>Symbol</th>
+						</tr>
+					</thead>
+					<tbody><tr>
+							<td><a href="https://www.w3.org/TR/sparql11-query/#aggregates">Aggregates</a></td>
+							<td><a href="https://callidon.github.io/sparql-engine/classes/aggregatestagebuilder.html">AggregateStageBuilder</a></td>
+							<td><code>SPARQL_OPERATION.AGGREGATE</code></td>
+						</tr>
+						<tr>
+							<td><a href="https://www.w3.org/TR/sparql11-query/#BasicGraphPatterns">Basic Graph Patterns</a></td>
+							<td><a href="https://callidon.github.io/sparql-engine/classes/bgpstagebuilder.html">BGPStageBuilder</a></td>
+							<td><code>SPARQL_OPERATION.BGP</code></td>
+						</tr>
+						<tr>
+							<td><a href="https://www.w3.org/TR/sparql11-query/#bind">BIND</a></td>
+							<td><a href="https://callidon.github.io/sparql-engine/classes/bindstagebuilder.html">BindStageBuilder</a></td>
+							<td><code>SPARQL_OPERATION.BIND</code></td>
+						</tr>
+						<tr>
+							<td><a href="https://www.w3.org/TR/sparql11-query/#neg-minus">DISTINCT</a></td>
+							<td><a href="https://callidon.github.io/sparql-engine/classes/distinctstagebuilder.html">DistinctStageBuilder</a></td>
+							<td><code>SPARQL_OPERATION.DISTINCT</code></td>
+						</tr>
+						<tr>
+							<td><a href="https://www.w3.org/TR/sparql11-query/#expressions">FILTER</a></td>
+							<td><a href="https://callidon.github.io/sparql-engine/classes/filterstagebuilder.html">FilterStageBuilder</a></td>
+							<td><code>SPARQL_OPERATION.FILTER</code></td>
+						</tr>
+						<tr>
+							<td><a href="https://www.w3.org/TR/sparql11-query/#propertypaths">Property Paths</a></td>
+							<td><a href="https://callidon.github.io/sparql-engine/classes/pathstagebuilder.html">PathStageBuilder</a></td>
+							<td><code>SPARQL_OPERATION.PROPERTY_PATH</code></td>
+						</tr>
+						<tr>
+							<td><a href="https://www.w3.org/TR/sparql11-query/#rdfDataset">GRAPH</a></td>
+							<td><a href="https://callidon.github.io/sparql-engine/classes/graphstagebuilder.html">GraphStageBuilder</a></td>
+							<td><code>SPARQL_OPERATION.GRAPH</code></td>
+						</tr>
+						<tr>
+							<td><a href="https://www.w3.org/TR/sparql11-query/#neg-minus">MINUS</a></td>
+							<td><a href="https://callidon.github.io/sparql-engine/classes/minusstagebuilder.html">MinusStageBuilder</a></td>
+							<td><code>SPARQL_OPERATION.MINUS</code></td>
+						</tr>
+						<tr>
+							<td><a href="https://www.w3.org/TR/sparql11-query/#optionals">OPTIONAL</a></td>
+							<td><a href="https://callidon.github.io/sparql-engine/classes/optionalstagebuilder.html">OptionalStageBuilder</a></td>
+							<td><code>SPARQL_OPERATION.OPTIONAL</code></td>
+						</tr>
+						<tr>
+							<td><a href="https://www.w3.org/TR/sparql11-query/#modOrderBy">ORDER_BY</a></td>
+							<td><a href="https://callidon.github.io/sparql-engine/classes/orderbystagebuilder.html">OrderByStageBuilder</a></td>
+							<td><code>SPARQL_OPERATION.ORDER_BY</code></td>
+						</tr>
+						<tr>
+							<td><a href="https://www.w3.org/TR/sparql11-query/#basic-federated-query">SERVICE</a></td>
+							<td><a href="https://callidon.github.io/sparql-engine/classes/servicestagebuilder.html">ServiceStageBuilder</a></td>
+							<td><code>SPARQL_OPERATION.SERVICE</code></td>
+						</tr>
+						<tr>
+							<td><a href="https://www.w3.org/TR/sparql11-query/#alternatives">UNION</a></td>
+							<td><a href="https://callidon.github.io/sparql-engine/classes/unionstagebuilder.html">UnionStageBuilder</a></td>
+							<td><code>SPARQL_OPERATION.UNION</code></td>
+						</tr>
+						<tr>
+							<td><a href="https://www.w3.org/TR/2013/REC-sparql11-update-20130321/">UPDATE</a></td>
+							<td><a href="https://callidon.github.io/sparql-engine/classes/updatestagebuilder.html">UpdateStageBuilder</a></td>
+							<td><code>SPARQL_OPERATION.UPDATE</code></td>
+						</tr>
+				</tbody></table>
+				<a href="#documentation" id="documentation" style="color: inherit; text-decoration: none;">
+					<h1>Documentation</h1>
+				</a>
+				<p>To generate the documentation in the <code>docs</code> director:</p>
+				<pre><code class="language-bash">git <span class="hljs-built_in">clone</span> https://github.com/Callidon/sparql-engine.git
+<span class="hljs-built_in">cd</span> sparql-engine
+npm install
+npm run doc</code></pre>
+				<a href="#references" id="references" style="color: inherit; text-decoration: none;">
+					<h1>References</h1>
+				</a>
+				<ul>
+					<li><a href="https://www.w3.org/TR/rdf11-concepts">Official W3C RDF specification</a></li>
+					<li><a href="https://www.w3.org/TR/2013/REC-sparql11-query-20130321/">Official W3C SPARQL specification</a></li>
+				</ul>
+			</div>
+		</div>
+		<div class="col-4 col-menu menu-sticky-wrap menu-highlight">
+			<nav class="tsd-navigation primary">
+				<ul>
+					<li class="globals  ">
+						<a href="globals.html"><em>Globals</em></a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/rdf.html">rdf</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/sparql.html">sparql</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/terms.html">terms</a>
+					</li>
+				</ul>
+			</nav>
+			<nav class="tsd-navigation secondary menu-sticky">
+				<ul class="before-current">
+					<li class=" tsd-kind-enum">
+						<a href="enums/graph_capability.html" class="tsd-kind-icon">GRAPH_<wbr>CAPABILITY</a>
+					</li>
+					<li class=" tsd-kind-enum">
+						<a href="enums/query_hint.html" class="tsd-kind-icon">QUERY_<wbr>HINT</a>
+					</li>
+					<li class=" tsd-kind-enum">
+						<a href="enums/query_hint_scope.html" class="tsd-kind-icon">QUERY_<wbr>HINT_<wbr>SCOPE</a>
+					</li>
+					<li class=" tsd-kind-enum">
+						<a href="enums/sparql_operation.html" class="tsd-kind-icon">SPARQL_<wbr>OPERATION</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/aggregatestagebuilder.html" class="tsd-kind-icon">Aggregate<wbr>Stage<wbr>Builder</a>
+					</li>
+					<li class=" tsd-kind-class tsd-has-type-parameter">
+						<a href="classes/automaton.html" class="tsd-kind-icon">Automaton</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/bgpstagebuilder.html" class="tsd-kind-icon">BGPStage<wbr>Builder</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/bindstagebuilder.html" class="tsd-kind-icon">Bind<wbr>Stage<wbr>Builder</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/bindingbase.html" class="tsd-kind-icon">Binding<wbr>Base</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/bindings.html" class="tsd-kind-icon">Bindings</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/clearconsumer.html" class="tsd-kind-icon">Clear<wbr>Consumer</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/consumer.html" class="tsd-kind-icon">Consumer</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/dataset.html" class="tsd-kind-icon">Dataset</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/deleteconsumer.html" class="tsd-kind-icon">Delete<wbr>Consumer</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/distinctstagebuilder.html" class="tsd-kind-icon">Distinct<wbr>Stage<wbr>Builder</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/errorconsumable.html" class="tsd-kind-icon">Error<wbr>Consumable</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/executioncontext.html" class="tsd-kind-icon">Execution<wbr>Context</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/filterstagebuilder.html" class="tsd-kind-icon">Filter<wbr>Stage<wbr>Builder</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/glushkovbuilder.html" class="tsd-kind-icon">Glushkov<wbr>Builder</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/glushkovstagebuilder.html" class="tsd-kind-icon">Glushkov<wbr>Stage<wbr>Builder</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/graph.html" class="tsd-kind-icon">Graph</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/graphstagebuilder.html" class="tsd-kind-icon">Graph<wbr>Stage<wbr>Builder</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/hashjointable.html" class="tsd-kind-icon">Hash<wbr>Join<wbr>Table</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/hashmapdataset.html" class="tsd-kind-icon">Hash<wbr>Map<wbr>Dataset</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/insertconsumer.html" class="tsd-kind-icon">Insert<wbr>Consumer</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/manyconsumers.html" class="tsd-kind-icon">Many<wbr>Consumers</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/minusstagebuilder.html" class="tsd-kind-icon">Minus<wbr>Stage<wbr>Builder</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/optimizer.html" class="tsd-kind-icon">Optimizer</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/optionalstagebuilder.html" class="tsd-kind-icon">Optional<wbr>Stage<wbr>Builder</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/orderbystagebuilder.html" class="tsd-kind-icon">Order<wbr>ByStage<wbr>Builder</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/pathstagebuilder.html" class="tsd-kind-icon">Path<wbr>Stage<wbr>Builder</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/pipeline.html" class="tsd-kind-icon">Pipeline</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/pipelineengine.html" class="tsd-kind-icon">Pipeline<wbr>Engine</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/planbuilder.html" class="tsd-kind-icon">Plan<wbr>Builder</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/planvisitor.html" class="tsd-kind-icon">Plan<wbr>Visitor</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/queryhints.html" class="tsd-kind-icon">Query<wbr>Hints</a>
+					</li>
+					<li class=" tsd-kind-class tsd-is-not-exported">
+						<a href="classes/resultpath.html" class="tsd-kind-icon">Result<wbr>Path</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/rxjspipeline.html" class="tsd-kind-icon">Rxjs<wbr>Pipeline</a>
+					</li>
+					<li class=" tsd-kind-class tsd-has-type-parameter">
+						<a href="classes/rxjsstreaminput.html" class="tsd-kind-icon">Rxjs<wbr>Stream<wbr>Input</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/sparqlexpression.html" class="tsd-kind-icon">SPARQLExpression</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/servicestagebuilder.html" class="tsd-kind-icon">Service<wbr>Stage<wbr>Builder</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/stagebuilder.html" class="tsd-kind-icon">Stage<wbr>Builder</a>
+					</li>
+					<li class=" tsd-kind-class tsd-has-type-parameter">
+						<a href="classes/state.html" class="tsd-kind-icon">State</a>
+					</li>
+					<li class=" tsd-kind-class tsd-is-not-exported">
+						<a href="classes/step.html" class="tsd-kind-icon">Step</a>
+					</li>
+					<li class=" tsd-kind-class tsd-has-type-parameter">
+						<a href="classes/transition.html" class="tsd-kind-icon">Transition</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/uniongraph.html" class="tsd-kind-icon">Union<wbr>Graph</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/unionmerge.html" class="tsd-kind-icon">Union<wbr>Merge</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/unionstagebuilder.html" class="tsd-kind-icon">Union<wbr>Stage<wbr>Builder</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/updatestagebuilder.html" class="tsd-kind-icon">Update<wbr>Stage<wbr>Builder</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/vectorpipeline.html" class="tsd-kind-icon">Vector<wbr>Pipeline</a>
+					</li>
+					<li class=" tsd-kind-class tsd-has-type-parameter">
+						<a href="classes/vectorstage.html" class="tsd-kind-icon">Vector<wbr>Stage</a>
+					</li>
+					<li class=" tsd-kind-class tsd-has-type-parameter">
+						<a href="classes/vectorstreaminput.html" class="tsd-kind-icon">Vector<wbr>Stream<wbr>Input</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-has-type-parameter tsd-is-not-exported">
+						<a href="interfaces/automatonbuilder.html" class="tsd-kind-icon">Automaton<wbr>Builder</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-is-not-exported">
+						<a href="interfaces/conditionalbindings.html" class="tsd-kind-icon">Conditional<wbr>Bindings</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/consumable.html" class="tsd-kind-icon">Consumable</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/patternmetadata.html" class="tsd-kind-icon">Pattern<wbr>Metadata</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-has-type-parameter">
+						<a href="interfaces/pipelinestage.html" class="tsd-kind-icon">Pipeline<wbr>Stage</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-has-type-parameter">
+						<a href="interfaces/streampipelineinput.html" class="tsd-kind-icon">Stream<wbr>Pipeline<wbr>Input</a>
+					</li>
+					<li class=" tsd-kind-type-alias">
+						<a href="globals.html#compiledexpression" class="tsd-kind-icon">Compiled<wbr>Expression</a>
+					</li>
+					<li class=" tsd-kind-type-alias">
+						<a href="globals.html#customfunctions" class="tsd-kind-icon">Custom<wbr>Functions</a>
+					</li>
+					<li class=" tsd-kind-type-alias">
+						<a href="globals.html#inputexpression" class="tsd-kind-icon">Input<wbr>Expression</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-has-type-parameter">
+						<a href="globals.html#pipelineinput" class="tsd-kind-icon">Pipeline<wbr>Input</a>
+					</li>
+					<li class=" tsd-kind-type-alias">
+						<a href="globals.html#queryoutput" class="tsd-kind-icon">Query<wbr>Output</a>
+					</li>
+					<li class=" tsd-kind-variable tsd-is-not-exported">
+						<a href="globals.html#hint_prefix" class="tsd-kind-icon">HINT_<wbr>PREFIX</a>
+					</li>
+					<li class=" tsd-kind-variable tsd-is-not-exported">
+						<a href="globals.html#_currentengine" class="tsd-kind-icon">_current<wbr>Engine</a>
+					</li>
+					<li class=" tsd-kind-function">
+						<a href="globals.html#hint" class="tsd-kind-icon">HINT</a>
+					</li>
+					<li class=" tsd-kind-function tsd-is-private tsd-is-not-exported">
+						<a href="globals.html#_compilecomparators" class="tsd-kind-icon">_compile<wbr>Comparators</a>
+					</li>
+					<li class=" tsd-kind-function tsd-is-private tsd-is-not-exported">
+						<a href="globals.html#_hash" class="tsd-kind-icon">_hash</a>
+					</li>
+					<li class=" tsd-kind-function tsd-is-private tsd-is-not-exported">
+						<a href="globals.html#_hashbindings" class="tsd-kind-icon">_hash<wbr>Bindings</a>
+					</li>
+					<li class=" tsd-kind-function tsd-is-private tsd-is-not-exported">
+						<a href="globals.html#allbgp" class="tsd-kind-icon">allBGP</a>
+					</li>
+					<li class=" tsd-kind-function tsd-is-private tsd-is-not-exported">
+						<a href="globals.html#allpattern" class="tsd-kind-icon">all<wbr>Pattern</a>
+					</li>
+					<li class=" tsd-kind-function">
+						<a href="globals.html#applybindings" class="tsd-kind-icon">apply<wbr>Bindings</a>
+					</li>
+					<li class=" tsd-kind-function tsd-is-not-exported">
+						<a href="globals.html#applyhash" class="tsd-kind-icon">apply<wbr>Hash</a>
+					</li>
+					<li class=" tsd-kind-function">
+						<a href="globals.html#ask" class="tsd-kind-icon">ask</a>
+					</li>
+					<li class=" tsd-kind-function tsd-is-private tsd-is-not-exported">
+						<a href="globals.html#bgpevaluation" class="tsd-kind-icon">bgp<wbr>Evaluation</a>
+					</li>
+					<li class=" tsd-kind-function">
+						<a href="globals.html#bind" class="tsd-kind-icon">bind</a>
+					</li>
+					<li class=" tsd-kind-function tsd-is-not-exported">
+						<a href="globals.html#bindargument" class="tsd-kind-icon">bind<wbr>Argument</a>
+					</li>
+					<li class=" tsd-kind-function tsd-is-private tsd-is-not-exported">
+						<a href="globals.html#boundpathtriple" class="tsd-kind-icon">bound<wbr>Path<wbr>Triple</a>
+					</li>
+					<li class=" tsd-kind-function tsd-is-private tsd-is-not-exported">
+						<a href="globals.html#buildgroupclause" class="tsd-kind-icon">build<wbr>Group<wbr>Clause</a>
+					</li>
+					<li class=" tsd-kind-function tsd-is-not-exported">
+						<a href="globals.html#buildnewgroup" class="tsd-kind-icon">build<wbr>New<wbr>Group</a>
+					</li>
+					<li class=" tsd-kind-function tsd-is-private tsd-is-not-exported">
+						<a href="globals.html#buildwhereclause" class="tsd-kind-icon">build<wbr>Where<wbr>Clause</a>
+					</li>
+					<li class=" tsd-kind-function tsd-is-private tsd-is-not-exported">
+						<a href="globals.html#cleaniri" class="tsd-kind-icon">cleanIRI</a>
+					</li>
+					<li class=" tsd-kind-function">
+						<a href="globals.html#construct" class="tsd-kind-icon">construct</a>
+					</li>
+					<li class=" tsd-kind-function">
+						<a href="globals.html#deepapplybindings" class="tsd-kind-icon">deep<wbr>Apply<wbr>Bindings</a>
+					</li>
+					<li class=" tsd-kind-function">
+						<a href="globals.html#exists" class="tsd-kind-icon">exists</a>
+					</li>
+					<li class=" tsd-kind-function">
+						<a href="globals.html#extendbybindings" class="tsd-kind-icon">extend<wbr>ByBindings</a>
+					</li>
+					<li class=" tsd-kind-function">
+						<a href="globals.html#extractpropertypaths" class="tsd-kind-icon">extract<wbr>Property<wbr>Paths</a>
+					</li>
+					<li class=" tsd-kind-function tsd-is-not-exported">
+						<a href="globals.html#halfhashjoin" class="tsd-kind-icon">half<wbr>Hash<wbr>Join</a>
+					</li>
+					<li class=" tsd-kind-function">
+						<a href="globals.html#hashjoin" class="tsd-kind-icon">hash<wbr>Join</a>
+					</li>
+					<li class=" tsd-kind-function">
+						<a href="globals.html#indexjoin" class="tsd-kind-icon">index<wbr>Join</a>
+					</li>
+					<li class=" tsd-kind-function tsd-is-not-exported">
+						<a href="globals.html#literaltojs" class="tsd-kind-icon">literal<wbr>ToJS</a>
+					</li>
+					<li class=" tsd-kind-function">
+						<a href="globals.html#minus" class="tsd-kind-icon">minus</a>
+					</li>
+					<li class=" tsd-kind-function">
+						<a href="globals.html#optional" class="tsd-kind-icon">optional</a>
+					</li>
+					<li class=" tsd-kind-function">
+						<a href="globals.html#orderby" class="tsd-kind-icon">orderby</a>
+					</li>
+					<li class=" tsd-kind-function tsd-is-not-exported">
+						<a href="globals.html#parsecapabilities" class="tsd-kind-icon">parse<wbr>Capabilities</a>
+					</li>
+					<li class=" tsd-kind-function">
+						<a href="globals.html#parsehints" class="tsd-kind-icon">parse<wbr>Hints</a>
+					</li>
+					<li class=" tsd-kind-function">
+						<a href="globals.html#rewriteadd" class="tsd-kind-icon">rewrite<wbr>Add</a>
+					</li>
+					<li class=" tsd-kind-function">
+						<a href="globals.html#rewritecopy" class="tsd-kind-icon">rewrite<wbr>Copy</a>
+					</li>
+					<li class=" tsd-kind-function">
+						<a href="globals.html#rewritemove" class="tsd-kind-icon">rewrite<wbr>Move</a>
+					</li>
+					<li class=" tsd-kind-function">
+						<a href="globals.html#select" class="tsd-kind-icon">select</a>
+					</li>
+					<li class=" tsd-kind-function tsd-is-private tsd-is-not-exported">
+						<a href="globals.html#sortpatterns" class="tsd-kind-icon">sort<wbr>Patterns</a>
+					</li>
+					<li class=" tsd-kind-function">
+						<a href="globals.html#sparqldistinct" class="tsd-kind-icon">sparql<wbr>Distinct</a>
+					</li>
+					<li class=" tsd-kind-function">
+						<a href="globals.html#sparqlfilter" class="tsd-kind-icon">sparql<wbr>Filter</a>
+					</li>
+					<li class=" tsd-kind-function">
+						<a href="globals.html#sparqlgroupby" class="tsd-kind-icon">sparql<wbr>Group<wbr>By</a>
+					</li>
+					<li class=" tsd-kind-function">
+						<a href="globals.html#symhashjoin" class="tsd-kind-icon">sym<wbr>Hash<wbr>Join</a>
+					</li>
+					<li class=" tsd-kind-function">
+						<a href="globals.html#union" class="tsd-kind-icon">union</a>
+					</li>
+					<li class=" tsd-kind-object-literal tsd-is-not-exported">
+						<a href="globals.html#query_modifiers" class="tsd-kind-icon">QUERY_<wbr>MODIFIERS</a>
+					</li>
+					<li class=" tsd-kind-object-literal tsd-is-not-exported">
+						<a href="globals.html#stages" class="tsd-kind-icon">stages</a>
+					</li>
+				</ul>
+			</nav>
+		</div>
+	</div>
+</div>
+<footer class="with-border-bottom">
+	<div class="container">
+		<h2>Legend</h2>
+		<div class="tsd-legend-group">
+			<ul class="tsd-legend">
+				<li class="tsd-kind-module"><span class="tsd-kind-icon">Module</span></li>
+				<li class="tsd-kind-object-literal"><span class="tsd-kind-icon">Object literal</span></li>
+				<li class="tsd-kind-variable"><span class="tsd-kind-icon">Variable</span></li>
+				<li class="tsd-kind-function"><span class="tsd-kind-icon">Function</span></li>
+				<li class="tsd-kind-function tsd-has-type-parameter"><span class="tsd-kind-icon">Function with type parameter</span></li>
+				<li class="tsd-kind-index-signature"><span class="tsd-kind-icon">Index signature</span></li>
+				<li class="tsd-kind-type-alias"><span class="tsd-kind-icon">Type alias</span></li>
+				<li class="tsd-kind-type-alias tsd-has-type-parameter"><span class="tsd-kind-icon">Type alias with type parameter</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-enum"><span class="tsd-kind-icon">Enumeration</span></li>
+				<li class="tsd-kind-enum-member"><span class="tsd-kind-icon">Enumeration member</span></li>
+				<li class="tsd-kind-property tsd-parent-kind-enum"><span class="tsd-kind-icon">Property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-enum"><span class="tsd-kind-icon">Method</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-interface"><span class="tsd-kind-icon">Interface</span></li>
+				<li class="tsd-kind-interface tsd-has-type-parameter"><span class="tsd-kind-icon">Interface with type parameter</span></li>
+				<li class="tsd-kind-constructor tsd-parent-kind-interface"><span class="tsd-kind-icon">Constructor</span></li>
+				<li class="tsd-kind-property tsd-parent-kind-interface"><span class="tsd-kind-icon">Property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-interface"><span class="tsd-kind-icon">Method</span></li>
+				<li class="tsd-kind-index-signature tsd-parent-kind-interface"><span class="tsd-kind-icon">Index signature</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-class"><span class="tsd-kind-icon">Class</span></li>
+				<li class="tsd-kind-class tsd-has-type-parameter"><span class="tsd-kind-icon">Class with type parameter</span></li>
+				<li class="tsd-kind-constructor tsd-parent-kind-class"><span class="tsd-kind-icon">Constructor</span></li>
+				<li class="tsd-kind-property tsd-parent-kind-class"><span class="tsd-kind-icon">Property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-class"><span class="tsd-kind-icon">Method</span></li>
+				<li class="tsd-kind-accessor tsd-parent-kind-class"><span class="tsd-kind-icon">Accessor</span></li>
+				<li class="tsd-kind-index-signature tsd-parent-kind-class"><span class="tsd-kind-icon">Index signature</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-constructor tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited constructor</span></li>
+				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited method</span></li>
+				<li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited accessor</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-protected"><span class="tsd-kind-icon">Protected property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-protected"><span class="tsd-kind-icon">Protected method</span></li>
+				<li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-protected"><span class="tsd-kind-icon">Protected accessor</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private method</span></li>
+				<li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private accessor</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-static"><span class="tsd-kind-icon">Static property</span></li>
+				<li class="tsd-kind-call-signature tsd-parent-kind-class tsd-is-static"><span class="tsd-kind-icon">Static method</span></li>
+			</ul>
+		</div>
+	</div>
+</footer>
+<div class="container tsd-generator">
+	<p>Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p>
+</div>
+<div class="overlay"></div>
+<script src="assets/js/main.js"></script>
+<script>if (location.protocol == 'file:') document.write('<script src="assets/js/search.js"><' + '/script>');</script>
+</body>
+</html>
