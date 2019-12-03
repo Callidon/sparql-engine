@@ -172,6 +172,13 @@ export default class VectorPipeline extends PipelineEngine {
     return new VectorStage<T>(input.getContent().then(c => c.filter(predicate)))
   }
 
+  finalize<T> (input: VectorStage<T>, callback: () => void): VectorStage<T> {
+    return new VectorStage<T>(input.getContent().then(c => {
+      callback()
+      return c
+    }))
+  }
+
   reduce<F,T>(input: VectorStage<F>, reducer: (acc: T, value: F) => T, initial: T): VectorStage<T> {
     return new VectorStage<T>(input.getContent().then(c => [c.reduce(reducer, initial)]))
   }

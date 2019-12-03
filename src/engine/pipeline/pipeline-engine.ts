@@ -149,6 +149,14 @@ export abstract class PipelineEngine {
   abstract mergeMap<F,T>(input: PipelineStage<F>, mapper: (value: F) => PipelineStage<T>): PipelineStage<T>;
 
   /**
+   * Do something after the PipelineStage has produced all its results
+   * @param  input    - Input PipelineStage
+   * @param  callback - Function invoked after the PipelineStage has produced all its results
+   * @return Output PipelineStage
+   */
+  abstract finalize<T>(input: PipelineStage<T>, callback: () => void): PipelineStage<T>;
+
+  /**
    * Maps each source value to an array of values which is merged in the output PipelineStage.
    * @param  input  - Input PipelineStage
    * @param  mapper - Transformation function

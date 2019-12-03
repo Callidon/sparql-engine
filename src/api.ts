@@ -24,6 +24,8 @@ SOFTWARE.
 
 'use strict'
 
+// stages builders
+import { SPARQL_OPERATION } from './engine/plan-builder'
 import AggregateStageBuilder from './engine/stages/aggregate-stage-builder'
 import BGPStageBuilder from './engine/stages/bgp-stage-builder'
 import BindStageBuilder from './engine/stages/bind-stage-builder'
@@ -38,21 +40,6 @@ import OrderByStageBuilder from './engine/stages/orderby-stage-builder'
 import UnionStageBuilder from './engine/stages/union-stage-builder'
 import UpdateStageBuilder from './engine/stages/update-stage-builder'
 
-export { default as Dataset } from './rdf/dataset'
-export { BindingBase } from './rdf/bindings'
-export { default as HashMapDataset } from './rdf/hashmap-dataset'
-export { default as Graph } from './rdf/graph'
-export { default as ExecutionContext } from './engine/context/execution-context'
-export { PlanBuilder } from './engine/plan-builder'
-import { SPARQL_OPERATION } from './engine/plan-builder'
-// pipeline
-export { Pipeline } from './engine/pipeline/pipeline'
-export { PipelineEngine, PipelineInput } from './engine/pipeline/pipeline-engine'
-export { default as RxjsPipeline } from './engine/pipeline/rxjs-pipeline'
-export { default as VectorPipeline } from './engine/pipeline/vector-pipeline'
-// RDF terms Utilities
-export { terms } from './rdf-terms'
-// stages builders
 const stages = {
   SPARQL_OPERATION,
   AggregateStageBuilder,
@@ -69,4 +56,20 @@ const stages = {
   UnionStageBuilder,
   UpdateStageBuilder
 }
+
+// base types
+export { default as Dataset } from './rdf/dataset'
+export { Bindings, BindingBase } from './rdf/bindings'
+export { default as HashMapDataset } from './rdf/hashmap-dataset'
+export { default as Graph } from './rdf/graph'
+export { default as ExecutionContext } from './engine/context/execution-context'
+export { PlanBuilder } from './engine/plan-builder'
+// pipeline
+export { Pipeline } from './engine/pipeline/pipeline'
+export { PipelineEngine, PipelineInput, PipelineStage, StreamPipelineInput } from './engine/pipeline/pipeline-engine'
+export { default as RxjsPipeline } from './engine/pipeline/rxjs-pipeline'
+export { default as VectorPipeline } from './engine/pipeline/vector-pipeline'
+// RDF terms Utilities
+export { terms } from './rdf-terms'
+
 export { stages }

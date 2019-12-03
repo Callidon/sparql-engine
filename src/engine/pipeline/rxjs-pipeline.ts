@@ -32,6 +32,7 @@ import {
   distinct,
   endWith,
   filter,
+  finalize,
   first,
   flatMap,
   take,
@@ -123,6 +124,10 @@ export default class RxjsPipeline extends PipelineEngine {
 
   filter<T>(input: Observable<T>, predicate: (value: T) => boolean): Observable<T> {
     return input.pipe(filter(predicate))
+  }
+
+  finalize<T> (input: Observable<T>, callback: () => void): Observable<T> {
+    return input.pipe(finalize(callback))
   }
 
   reduce<F,T>(input: Observable<F>, reducer: (acc: T, value: F) => T, initial: T): Observable<T> {
