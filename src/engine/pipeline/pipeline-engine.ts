@@ -24,10 +24,17 @@ SOFTWARE.
 
 'use strict'
 
+import { identity, isUndefined, uniqBy } from 'lodash'
+
 /**
  * The input of a {@link PipelineStage}, either another {@link PipelineStage}, an array, an iterable or a promise.
  */
 export type PipelineInput<T> = PipelineStage<T> | StreamPipelineInput<T> | Iterable<T> | PromiseLike<T> | ArrayLike<T>;
+
+interface SubGroup<K, R> {
+  key: K,
+  value: R
+}
 
 /**
  * An input of a {@link PipelineStage} which produces items in stream/async way.
@@ -199,14 +206,6 @@ export abstract class PipelineEngine {
   abstract skip<T>(input: PipelineStage<T>, count: number): PipelineStage<T>;
 
   /**
-   * Returns a PipelineStage that emits all items emitted by the source PipelineStage that are distinct by comparison from previous items.
-   * @param  input - Input PipelineStage
-   * @param  selector - Optional function to select which value you want to check as distinct.
-   * @return A PipelineStage that emits items from the source PipelineStage with distinct values.
-   */
-  abstract distinct<T, K>(input: PipelineStage<T>, selector?: (value: T) => K): PipelineStage<T>;
-
-  /**
    * Apply a callback on every item emitted by the source PipelineStage
    * @param  input - Input PipelineStage
    * @param  cb    - Callback
@@ -237,6 +236,19 @@ export abstract class PipelineEngine {
   abstract collect<T>(input: PipelineStage<T>): PipelineStage<T[]>;
 
   /**
+   * Returns a PipelineStage that emits all items emitted by the source PipelineStage that are distinct by comparison from previous items.
+   * @param  input - Input PipelineStage
+   * @param  selector - Optional function to select which value you want to check as distinct.
+   * @return A PipelineStage that emits items from the source PipelineStage with distinct values.
+   */
+  distinct<T, K>(input: PipelineStage<T>, selector?: (value: T) => T | K): PipelineStage<T> {
+    if (isUndefined(selector)) {
+      selector = identity
+    }
+    return this.flatMap(this.collect(input), (values: T[])=> uniqBy(values, selector!))
+  }
+
+  /**
    * Emits only the first value (or the first value that meets some condition) emitted by the source PipelineStage.
    * @param  input - Input PipelineStage
    * @return A PipelineStage of the first item that matches the condition.
@@ -265,6 +277,88 @@ export abstract class PipelineEngine {
     return this.map(input, (value: T) => {
       cb(value)
       return value
+    })
+  }
+
+  /**
+   * Find the smallest value produced by a pipeline of iterators.
+   * It takes a ranking function as input, which is invoked with (x, y)
+   * and must returns True if x < y and False otherwise.
+   * Warning: this function needs to materialize all values of the pipeline.
+   * @param  input - Input PipelineStage
+   * @param  comparator - (optional) Ranking function
+   * @return A pipeline stage that emits the lowest value found
+   */
+  min<T>(input: PipelineStage<T>, ranking?: (x: T, y: T) => boolean): PipelineStage<T> {
+    if (isUndefined(ranking)) {
+      ranking = (x: T, y: T) => x < y
+    }
+    return this.map(this.collect(input), (values: T[]) => {
+      let minValue = values[0]
+      for(let i = 1; i < values.length - 1; i++) {
+        if (ranking!(values[i], minValue)) {
+          minValue = values[i]
+        }
+      }
+      return minValue
+    })
+  }
+
+  /**
+   * Find the smallest value produced by a pipeline of iterators.
+   * It takes a ranking function as input, which is invoked with (x, y)
+   * and must returns True if x > y and False otherwise.
+   * Warning: this function needs to materialize all values of the pipeline.
+   * @param  input - Input PipelineStage
+   * @param  comparator - (optional) Ranking function
+   * @return A pipeline stage that emits the highest value found
+   */
+  max<T>(input: PipelineStage<T>, ranking?: (x: T, y: T) => boolean): PipelineStage<T> {
+    if (isUndefined(ranking)) {
+      ranking = (x: T, y: T) => x > y
+    }
+    return this.map(this.collect(input), (values: T[]) => {
+      let maxValue = values[0]
+      for(let i = 1; i < values.length - 1; i++) {
+        if (ranking!(values[i], maxValue)) {
+          maxValue = values[i]
+        }
+      }
+      return maxValue
+    })
+  }
+
+  /**
+   * Groups the items produced by a pipeline according to a specified criterion,
+   * and emits the resulting groups
+   * @param  input - Input PipelineStage
+   * @param  keySelector - A function that extracts the grouping key for each item
+   * @param  elementSelector - (optional) A function that transforms items before inserting them in a group
+   */
+  groupBy<T, K, R>(input: PipelineStage<T>, keySelector: (value: T) => K, elementSelector?: (value: T) => R): PipelineStage<[K, R[]]> {
+    if (isUndefined(elementSelector)) {
+      elementSelector = identity
+    }
+    const groups: Map<K, R[]> = new Map()
+    let stage: PipelineStage<SubGroup<K, R>> = this.map(input, value => {
+      return {
+        key: keySelector(value),
+        value: elementSelector!(value)
+      }
+    })
+    return this.mergeMap(this.collect(stage), (subgroups: SubGroup<K, R>[]) => {
+      // build groups
+      subgroups.forEach(g => {
+        if (!groups.has(g.key)) {
+          groups.set(g.key, [ g.value ])
+        } else {
+          groups.set(g.key, groups.get(g.key)!.concat([g.value]))
+        }
+      })
+      // inject groups into the pipeline
+      return this.fromAsync(input => {
+        groups.forEach((value, key) => input.next([key, value]))
+      })
     })
   }
 }

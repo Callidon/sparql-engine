@@ -142,7 +142,7 @@ export default class RxjsPipeline extends PipelineEngine {
     return input.pipe(skip(toSkip))
   }
 
-  distinct<T, K>(input: Observable<T>, selector?: (value: T) => K): Observable<T> {
+  distinct<T, K>(input: Observable<T>, selector?: (value: T) => T | K): Observable<T> {
     return input.pipe(distinct(selector))
   }
 

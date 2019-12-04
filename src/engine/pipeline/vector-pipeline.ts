@@ -191,13 +191,6 @@ export default class VectorPipeline extends PipelineEngine {
     return new VectorStage<T>(input.getContent().then(c => slice(c, toSkip)))
   }
 
-  distinct<T, K>(input: VectorStage<T>, selector?: (value: T) => K): VectorStage<T> {
-    if (isUndefined(selector)) {
-      return new VectorStage<T>(input.getContent().then(c => uniq(c)))
-    }
-    return new VectorStage<T>(input.getContent().then(c => uniqBy(c, selector)))
-  }
-
   defaultValues<T>(input: VectorStage<T>, ...values: T[]): VectorStage<T> {
     return new VectorStage<T>(input.getContent().then(content => {
       if (content.length > 0) {
