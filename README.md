@@ -364,7 +364,7 @@ To generate the documentation in the `docs` director:
 ```bash
 git clone https://github.com/Callidon/sparql-engine.git
 cd sparql-engine
-npm install
+yarn install
 npm run doc
 ```
 

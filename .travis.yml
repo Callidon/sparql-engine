@@ -3,12 +3,11 @@ node_js:
   - "8"
 notifications:
   email: false
+cache: yarn
 before_script:
-  - npm run build
-script:
-  - npm run test
+  - yarn build
 after_success:
-  - npm run doc
+  - yarn doc
 deploy:
 - provider: npm
   skip_cleanup: true
