@@ -1,23 +1,36 @@
 language: node_js
-node_js:
-  - "8"
 notifications:
   email: false
 cache: yarn
-before_script:
-  - yarn build
-after_success:
-  - yarn doc
-deploy:
-- provider: npm
-  skip_cleanup: true
-  email: tminier01@gmail.com
-  api_key: $NPM_KEY
-  on:
-    tags: true
-- provider: pages
-  skip_cleanup: true
-  github_token: $GH_TOKEN
-  local_dir: docs
-  on:
-    branch: master
+stages:
+  - test
+  - deploy-pages
+  - deploy-npm
+jobs:
+  include:
+    - stage: Test
+      node_js:
+        - 8
+        - 10
+        - 12
+      script: yarn test
+    - stage: Github pages release
+      script:
+        - yarn build
+        - yarn doc
+      node_js: 12
+      provider: pages
+      skip_cleanup: true
+      github_token: $GH_TOKEN
+      local_dir: docs
+      on:
+        branch: master
+    - stage: npm release
+      script: yarn build
+      node_js: 12
+      provider: npm
+      skip_cleanup: true
+      email: tminier01@gmail.com
+      api_key: $NPM_KEY
+      on:
+        tags: true
