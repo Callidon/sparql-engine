@@ -24,7 +24,7 @@ SOFTWARE.
 
 'use strict'
 
-import { parseZone, Moment } from 'moment'
+import { parseZone, Moment, ISO_8601 } from 'moment'
 import { rdf } from './utils'
 
 /**
@@ -61,7 +61,7 @@ function literalToJS (value: string, type: string): any {
     case rdf.XSD('date'):
     case rdf.XSD('time'):
     case rdf.XSD('duration'):
-      return parseZone(value)
+      return parseZone(value, ISO_8601)
     case rdf.XSD('hexBinary'):
       return Buffer.from(value, 'hex')
     case rdf.XSD('base64Binary'):
