@@ -44,7 +44,18 @@ export default {
     }
     return terms.createNumber(count, rdf.XSD('integer'))
   },
-
+  'count-distinct': function (variable: string, rows: Object[]): terms.RDFTerm {
+    let map: Map<string, string> = new Map()
+    let count: number = 0
+    if (variable in rows) {
+      rows[variable].forEach((row: Object) => {
+        const hash = JSON.stringify(row)
+        map.set(hash, hash)
+      })
+      count = map.size
+    }
+    return terms.createNumber(count, rdf.XSD('integer'))
+  },
   'sum': function (variable: string, rows: Object[]): terms.RDFTerm {
     let sum = 0
     if (variable in rows) {

@@ -101,6 +101,9 @@ export default class SPARQLExpression {
       if (!(aggExpression.aggregation! in SPARQL_AGGREGATES)) {
         throw new Error(`Unsupported SPARQL aggregation: ${aggExpression.aggregation}`)
       }
+      if (aggExpression.distinct) {
+        aggExpression.aggregation += '-distinct'
+      }
       const aggregation = SPARQL_AGGREGATES[aggExpression.aggregation]
       return (bindings: Bindings) => {
         if (bindings.hasProperty('__aggregate')) {

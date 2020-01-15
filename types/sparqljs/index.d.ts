@@ -77,13 +77,13 @@ declare module 'sparqljs' {
     }
 
     /**
-     * A custom function expression (BIND(foo:FOO(?s) as ?foo)) etc. 
+     * A custom function expression (BIND(foo:FOO(?s) as ?foo)) etc.
      */
     export interface FunctionCallExpression extends Expression {
       args: Array<string | string[] | Expression>;
       function: string;
       distinct: boolean;
-      
+
     }
     /**
      * An aggregation pexression (COUNT, SUM, AVG, etc)
@@ -92,6 +92,7 @@ declare module 'sparqljs' {
       aggregation: string;
       expression: string | Expression;
       separator?: string;
+      distinct: boolean;
     }
 
     /**
