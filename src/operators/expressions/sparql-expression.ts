@@ -28,7 +28,7 @@ import SPARQL_AGGREGATES from './sparql-aggregates'
 import SPARQL_OPERATIONS from './sparql-operations'
 import { terms } from '../../rdf-terms'
 import { rdf } from '../../utils'
-import { isArray, isString } from 'lodash'
+import { isArray, isString, uniqBy } from 'lodash'
 import { Algebra } from 'sparqljs'
 import { Bindings } from '../../rdf/bindings'
 import { CustomFunctions } from '../../engine/plan-builder'
@@ -101,13 +101,15 @@ export default class SPARQLExpression {
       if (!(aggExpression.aggregation! in SPARQL_AGGREGATES)) {
         throw new Error(`Unsupported SPARQL aggregation: ${aggExpression.aggregation}`)
       }
-      if (aggExpression.distinct) {
-        aggExpression.aggregation += '-distinct'
-      }
       const aggregation = SPARQL_AGGREGATES[aggExpression.aggregation]
       return (bindings: Bindings) => {
         if (bindings.hasProperty('__aggregate')) {
-          return aggregation(aggExpression.expression, bindings.getProperty('__aggregate'), aggExpression.separator)
+          const aggVariable = aggExpression.expression as string
+          let rows = bindings.getProperty('__aggregate')
+          if (aggExpression.distinct) {
+            rows[aggVariable] = uniqBy(rows[aggVariable], (term: terms.RDFTerm) => term.asRDF)
+          }
+          return aggregation(aggVariable, rows, aggExpression.separator)
         }
         return bindings
       }

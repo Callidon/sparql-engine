@@ -40,19 +40,7 @@ export default {
   'count': function (variable: string, rows: Object[]): terms.RDFTerm {
     let count: number = 0
     if (variable in rows) {
-      count = rows[variable].map((v: string[]) => v !== null).length
-    }
-    return terms.createNumber(count, rdf.XSD('integer'))
-  },
-  'count-distinct': function (variable: string, rows: Object[]): terms.RDFTerm {
-    let map: Map<string, string> = new Map()
-    let count: number = 0
-    if (variable in rows) {
-      rows[variable].forEach((row: Object) => {
-        const hash = JSON.stringify(row)
-        map.set(hash, hash)
-      })
-      count = map.size
+      count = rows[variable].map((v: terms.RDFTerm) => v !== null).length
     }
     return terms.createNumber(count, rdf.XSD('integer'))
   },
