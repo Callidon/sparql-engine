@@ -193,6 +193,19 @@ describe('SPARQL aggregates', () => {
 
   const data = [
     {
+      name: 'COUNT-DISTINCT',
+      query: `
+      SELECT (COUNT(DISTINCT ?p) as ?count) WHERE {
+        ?s ?p ?o
+      }
+      `,
+      keys: ['?count'],
+      nbResults: 1,
+      testFun: function (b) {
+        expect(b['?count']).to.equal(`"10"^^${XSD('integer')}`)
+      }
+    },
+    {
       name: 'SUM',
       query: `
       SELECT ?p (SUM(?x) AS ?sum) WHERE {
