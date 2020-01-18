@@ -26,6 +26,7 @@ An open-source framework for building SPARQL query engines in Javascript/Typescr
   * [RDF Graphs](#rdf-graphs)
   * [RDF Datasets](#rdf-datasets)
   * [Running a SPARQL query](#running-a-sparql-query)
+* [Full text search](#full-test-search)
 * [Federated SPARQL Queries](#federated-sparql-queries)
 * [Custom Functions](#custom-functions)
 * [Advanced Usage](#advanced-usage)
@@ -183,6 +184,22 @@ Finally, to run a SPARQL query on your RDF dataset, you need to use the `PlanBui
     err => console.error(err),
     () => console.log('Query evaluation complete!')
   )
+```
+
+# Full Text Search
+
+```
+PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+PREFIX ses: <https://callidon.github.io/sparql-engine/search#>
+SELECT ?s ?o ?score ?rank
+WHERE {
+  ?s foaf:knows ?o .
+  ?o bds:search “neil gaiman” .
+  ?o bds:minRelevance “0.25” .
+  ?o bds:maxRank “1000” .
+  ?o bds:relevance ?score .
+  ?o bds:rank ?rank .
+}
 ```
 
 # Federated SPARQL Queries
