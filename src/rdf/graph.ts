@@ -34,7 +34,6 @@ import { GRAPH_CAPABILITY } from './graph_capability'
 import ExecutionContext from '../engine/context/execution-context'
 import { levenshteinDistance } from '../nlp'
 import { orderBy, isNull, sortBy } from 'lodash'
-import { SSL_OP_NO_COMPRESSION } from 'constants'
 
 /**
  * Metadata used for query optimization
