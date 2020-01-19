@@ -32,8 +32,7 @@ import { rdf, sparql } from '../utils'
 import { Bindings, BindingBase } from './bindings'
 import { GRAPH_CAPABILITY } from './graph_capability'
 import ExecutionContext from '../engine/context/execution-context'
-import { levenshteinDistance } from '../nlp'
-import { orderBy, isNull, sortBy } from 'lodash'
+import { mean, orderBy, isNull, sortBy } from 'lodash'
 
 /**
  * Metadata used for query optimization
@@ -130,14 +129,15 @@ export default abstract class Graph {
    * Get a {@link PipelineInput} which finds RDF triples matching a triple pattern and a set of keywords in the RDF Graph.
    * The search can be constrained by min and max relevance (a 0 to 1 score signifying how closely the literal matches the search terms).
    *
-   * The {@link Graph} class provides a default implementation that computes relevance
-   * scores using the Levenshtein distance. If the minRank and/or maxRanks parameters are used, then
+   * The {@link Graph} class provides a default implementation that computes the relevance
+   * score as the percentage of words matching the list of input keywords.
+   * If the minRank and/or maxRanks parameters are used, then
    * the graph materializes all matching RDF triples, sort them by descending rank and then
    * selects the appropriates ranks.
    * Otherwise, the rank is not computed and all triples are associated with a rank of -1.
    *
    * Consequently, the default implementation should works fines for basic usages, but more advanced users
-   * should provides their own implenementation, integrated with the graph backend.
+   * should provides their own implementation, integrated with the graph backend.
    * For example, a SQL-based RDF Graph should rely on GIN or GIST indexes for the full text search.
    * @param pattern - Triple pattern to find
    * @param variable - SPARQL variable on which the keyword search is performed
@@ -167,17 +167,28 @@ export default abstract class Graph {
     }
     // find all RDF triples matching the input triple pattern
     const source = Pipeline.getInstance().from(this.find(pattern, context))
-    // compute the score of each matching RDF triple using the Levenshtein distance
+    // compute the score of each matching RDF triple as the average number of words
+    // in the RDF term that matches kewyords
     let iterator = Pipeline.getInstance().map(source, triple => {
-      let value = ''
+      let words: string[] = []
       if (triple.subject === variable) {
-        value = triple.subject
+        words = triple.subject.split(' ')
       } else if (triple.predicate === variable) {
-        value = triple.predicate
+        words = triple.predicate.split(' ')
       } else if (triple.object === variable) {
-        value = triple.object
+        words = triple.object.split(' ')
       }
-      return { triple, rank: -1, score: levenshteinDistance(value, keywords.join(' ')) }
+      // For each keyword, compute % of words matching the keyword
+      const keywordScores = keywords.map(keyword => {
+        return words.reduce((acc, word) => {
+          if (word.includes(keyword)) {
+            acc += 1
+          }
+          return acc
+        }, 0) / words.length
+      })
+      // The relevance score is computed as the average keyword score
+      return { triple, rank: -1, score: mean(keywordScores) }
     })
     // filter by min & max relevance scores
     iterator = Pipeline.getInstance().filter(iterator, v => {
