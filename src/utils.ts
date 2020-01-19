@@ -112,7 +112,7 @@ export namespace rdf {
 
   /**
    * Return True if a string is a SPARQL variable
-   * @param  {string}  str - String to test
+   * @param  str - String to test
    * @return True if the string is a SPARQL variable, False otherwise
    */
   export function isVariable (str: string): boolean {
@@ -120,6 +120,15 @@ export namespace rdf {
       return false
     }
     return str.startsWith('?')
+  }
+
+  /**
+   * Return True if a string is a RDF Literal
+   * @param  str - String to test
+   * @return True if the string is a RDF Literal, False otherwise
+   */
+  export function isLiteral (str: string): boolean {
+    return str.startsWith('"')
   }
 
   /**

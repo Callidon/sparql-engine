@@ -35,6 +35,7 @@ import { Bindings, BindingBase } from '../../rdf/bindings'
 import { parseHints } from '../context/query-hints'
 import ExecutionContext from '../context/execution-context'
 import { rdf } from '../../utils'
+import { isNaN, isNull, isInteger } from 'lodash'
 
 // import boundJoin from '../../operators/join/bound-join'
 
@@ -204,51 +205,84 @@ export default class BGPStageBuilder extends StageBuilder {
       if (triple.subject !== queryVariable) {
         throw new SyntaxError(`Invalid Full Text Search query: the query variable ${queryVariable} is not the subject of the magic triple ${triple}`)
       }
-      // parse the magic triple
-      const objectValue = rdf.getLiteralValue(triple.object)
       switch (triple.predicate) {
         // keywords: ?o ses:search “neil gaiman”
         case rdf.SES('search'): {
-          keywords = objectValue.split(' ')
+          if (!rdf.isLiteral(triple.object)) {
+            throw new SyntaxError(`Invalid Full Text Search query: the object of the magic triple ${triple} must be a RDF Literal.`)
+          }
+          keywords = rdf.getLiteralValue(triple.object).split(' ')
           break
         }
         // min relevance score: ?o ses:minRelevance “0.25”
         case rdf.SES('minRelevance'): {
-          minScore = Number(objectValue)
+          if (!rdf.isLiteral(triple.object)) {
+            throw new SyntaxError(`Invalid Full Text Search query: the object of the magic triple ${triple} must be a RDF Literal.`)
+          }
+          minScore = Number(rdf.getLiteralValue(triple.object))
+          // assert that the magic triple's object is a valid number
+          if (isNaN(minScore)) {
+            throw new SyntaxError(`Invalid Full Text Search query: the object of the magic triple ${triple} must be a valid number.`)
+          }
           break
         }
         // max relevance score: ?o ses:maxRelevance “0.75”
         case rdf.SES('maxRelevance'): {
-          maxScore = Number(objectValue)
+          if (!rdf.isLiteral(triple.object)) {
+            throw new SyntaxError(`Invalid Full Text Search query: the object of the magic triple ${triple} must be a RDF Literal.`)
+          }
+          maxScore = Number(rdf.getLiteralValue(triple.object))
+          // assert that the magic triple's object is a valid number
+          if (isNaN(maxScore)) {
+            throw new SyntaxError(`Invalid Full Text Search query: the object of the magic triple ${triple} must be a valid number.`)
+          }
           break
         }
         // min rank: ?o ses:minRank "5" .
         case rdf.SES('minRank'): {
-          minRank = Number(objectValue)
+          if (!rdf.isLiteral(triple.object)) {
+            throw new SyntaxError(`Invalid Full Text Search query: the object of the magic triple ${triple} must be a RDF Literal.`)
+          }
+          minRank = Number(rdf.getLiteralValue(triple.object))
+          // assert that the magic triple's object is a valid positive integre
+          if (isNaN(minRank) || !isInteger(minRank) || minRank < 0) {
+            throw new SyntaxError(`Invalid Full Text Search query: the object of the magic triple ${triple} must be a valid positive integer.`)
+          }
           break
         }
         // max rank: ?o ses:maxRank “1000” .
         case rdf.SES('maxRank'): {
-          maxRank = Number(objectValue)
+          if (!rdf.isLiteral(triple.object)) {
+            throw new SyntaxError(`Invalid Full Text Search query: the object of the magic triple ${triple} must be a RDF Literal.`)
+          }
+          maxRank = Number(rdf.getLiteralValue(triple.object))
+          // assert that the magic triple's object is a valid positive integer
+          if (isNaN(maxRank) || !isInteger(maxRank) || maxRank < 0) {
+            throw new SyntaxError(`Invalid Full Text Search query: the object of the magic triple ${triple} must be a valid positive integer.`)
+          }
           break
         }
         // include relevance score: ?o ses:relevance ?score .
         case rdf.SES('relevance'): {
-          if (rdf.isVariable(triple.object)) {
-            addScore = true
-            scoreVariable = triple.object
-          } else {
+          if (!rdf.isVariable(triple.object)) {
             throw new SyntaxError(`Invalid Full Text Search query: the object of the magic triple ${triple} must be a SPARQL variable.`)
           }
+          addScore = true
+          scoreVariable = triple.object
           break
         }
         // include rank: ?o ses:rank ?rank .
         case rdf.SES('rank'): {
-          if (rdf.isVariable(triple.object)) {
-            addRank = true
-            rankVariable = triple.object
-          } else {
+          if (!rdf.isVariable(triple.object)) {
             throw new SyntaxError(`Invalid Full Text Search query: the object of the magic triple ${triple} must be a SPARQL variable.`)
+          }
+          addRank = true
+          rankVariable = triple.object
+          // Set minRank to its base value if needed, to force
+          // the default Graph#fullTextSearch implementation to compute relevant ranks.
+          // With no custom implementations, this will not be an issue
+          if (minRank === null) {
+            minRank = 0
           }
           break
         }
@@ -258,6 +292,16 @@ export default class BGPStageBuilder extends StageBuilder {
         }
       }
     })
+
+    // assert that minScore <= maxScore
+    if (!isNull(minScore) && !isNull(maxScore) && minScore > maxScore) {
+      throw new SyntaxError(`Invalid Full Text Search query: the maximum relevance score should be greater than or equal to the minimum relevance score (for query on pattern ${pattern} with min_score=${minScore} and max_score=${maxScore})`)
+    }
+    // assert than minRank <= maxRank
+    if (!isNull(minRank) && !isNull(maxRank) && minRank > maxRank) {
+      throw new SyntaxError(`Invalid Full Text Search query: the maximum rank should be be greater than or equal to the minimum rank (for query on pattern ${pattern} with min_rank=${minRank} and max_rank=${maxRank})`)
+    }
+
     // join the input bindings with the full text search operation
     return Pipeline.getInstance().mergeMap(source, bindings => {
       let boundedPattern = bindings.bound(pattern)
@@ -266,7 +310,7 @@ export default class BGPStageBuilder extends StageBuilder {
       return Pipeline.getInstance().map(iterator, item => {
         // unpack search results
         const [triple, score, rank] = item
-        // build solutions bindings
+        // build solutions bindings from the matching RDF triple
         const mu = new BindingBase()
         if (rdf.isVariable(boundedPattern.subject) && !rdf.isVariable(triple.subject)) {
           mu.set(boundedPattern.subject, triple.subject)
