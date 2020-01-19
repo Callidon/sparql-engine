@@ -87,7 +87,7 @@ export default class BGPStageBuilder extends StageBuilder {
    */
   execute (source: PipelineStage<Bindings>, patterns: Algebra.TripleObject[], context: ExecutionContext): PipelineStage<Bindings> {
     // avoids sending a request with an empty array
-    if(patterns.length == 0) return source
+    if (patterns.length === 0) return source
 
     // extract eventual query hints from the BGP & merge them into the context
     let extraction = parseHints(patterns, context.hints)
@@ -96,22 +96,21 @@ export default class BGPStageBuilder extends StageBuilder {
     const [bgp, artificals] = this._replaceBlankNodes(extraction[0])
 
     // if the graph is a variable, go through each binding and look for its value
-    if(context.defaultGraphs.length > 0 && rdf.isVariable(context.defaultGraphs[0])) {
+    if (context.defaultGraphs.length > 0 && rdf.isVariable(context.defaultGraphs[0])) {
       const engine = Pipeline.getInstance()
       return engine.mergeMap(source, (value: Bindings) => {
         const iri = value.get(context.defaultGraphs[0])
-
-        //if the graph doesn't exist in the dataset, then create one with the createGraph factrory
+        // if the graph doesn't exist in the dataset, then create one with the createGraph factrory
         const graphs = this.dataset.getAllGraphs().filter(g => g.iri === iri)
         const graph = (graphs.length > 0) ? graphs[0] : (iri !== null) ? this.dataset.createGraph(iri) : null
-        if(graph){
+        if (graph) {
           let iterator = this._buildIterator(engine.from([value]), graph, bgp, context)
           if (artificals.length > 0) {
             iterator = engine.map(iterator, (b: Bindings) => b.filter(variable => artificals.indexOf(variable) < 0))
           }
           return iterator
         }
-        throw `Cant' find or create the graph ${iri}`
+        throw new Error(`Cant' find or create the graph ${iri}`)
       })
     }
 
@@ -265,6 +264,7 @@ export default class BGPStageBuilder extends StageBuilder {
       // delegate the actual full text search to the RDF graph
       const iterator = graph.fullTextSearch(boundedPattern, queryVariable, keywords, minScore, maxScore, minRank, maxRank, context)
       return Pipeline.getInstance().map(iterator, item => {
+        // unpack search results
         const [triple, score, rank] = item
         // build solutions bindings
         const mu = new BindingBase()
