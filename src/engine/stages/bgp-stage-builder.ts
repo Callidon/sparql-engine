@@ -26,11 +26,11 @@ SOFTWARE.
 
 import StageBuilder from './stage-builder'
 import { Pipeline } from '../pipeline/pipeline'
-import { PipelineStage, PipelineEngine } from '../pipeline/pipeline-engine'
+import { PipelineStage } from '../pipeline/pipeline-engine'
 // import { some } from 'lodash'
 import { Algebra } from 'sparqljs'
 import Graph from '../../rdf/graph'
-import { Bindings } from '../../rdf/bindings'
+import { Bindings, BindingBase } from '../../rdf/bindings'
 // import { GRAPH_CAPABILITY } from '../../rdf/graph_capability'
 import { parseHints } from '../context/query-hints'
 import ExecutionContext from '../context/execution-context'
@@ -43,18 +43,16 @@ import { rdf } from '../../utils'
  * available
  * @private
  */
- function bgpEvaluation (source: PipelineStage<Bindings>, bgp: Algebra.TripleObject[], graph: Graph, context: ExecutionContext) {
-   const engine = Pipeline.getInstance()
-   return engine.mergeMap(source, (bindings: Bindings) => {
-     let boundedBGP = bgp.map(t => bindings.bound(t))
-     // const hasVars = boundedBGP.map(p => some(p, v => v!.startsWith('?')))
-     //   .reduce((acc, v) => acc && v, true)
-     return engine.map(graph.evalBGP(boundedBGP, context), (item: Bindings) => {
-       // if (item.size === 0 && hasVars) return null
-       return item.union(bindings)
-     })
-   })
- }
+function bgpEvaluation (source: PipelineStage<Bindings>, bgp: Algebra.TripleObject[], graph: Graph, context: ExecutionContext) {
+  const engine = Pipeline.getInstance()
+  return engine.mergeMap(source, (bindings: Bindings) => {
+    let boundedBGP = bgp.map(t => bindings.bound(t))
+    return engine.map(graph.evalBGP(boundedBGP, context), (item: Bindings) => {
+      // if (item.size === 0 && hasVars) return null
+      return item.union(bindings)
+    })
+  })
+}
 
 /**
  * A BGPStageBuilder evaluates Basic Graph Patterns in a SPARQL query.
@@ -158,8 +156,7 @@ export default class BGPStageBuilder extends StageBuilder {
    * @param  source         - Input {@link PipelineStage}
    * @param  graph          - The graph on which the BGP should be executed
    * @param  patterns       - Set of triple patterns
-   * @param  options        - Execution options
-   * @param  isJoinIdentity - True if the source iterator is the starting iterator of the pipeline
+   * @param  context        - Execution options
    * @return A {@link PipelineStage} used to evaluate a Basic Graph pattern
    */
   _buildIterator (source: PipelineStage<Bindings>, graph: Graph, patterns: Algebra.TripleObject[], context: ExecutionContext): PipelineStage<Bindings> {
@@ -167,5 +164,129 @@ export default class BGPStageBuilder extends StageBuilder {
     //   return boundJoin(source, patterns, graph, context)
     // }
     return bgpEvaluation(source, patterns, graph, context)
+  }
+
+  /**
+   * Returns a {@link PipelineStage} used to evaluate a Full Text Search query from a set of magic patterns.
+   * @param  source         - Input {@link PipelineStage}
+   * @param  graph          - The graph on which the full text search should be executed
+   * @param  pattern        - Input triple pattern
+   * @param  magicTriples   - Set of magic triple patterns used to configure the full text search
+   * @param  context        - Execution options
+   * @return A {@link PipelineStage} used to evaluate the Full Text Search query
+   */
+  _buildFullTextSearchIterator (source: PipelineStage<Bindings>, graph: Graph, pattern: Algebra.TripleObject, magicTriples: Algebra.TripleObject[], context: ExecutionContext): PipelineStage<Bindings> {
+    // full text search default parameters
+    let queryVariable: string = ''
+    let keywords: string[] = []
+    let minScore: number | null = null
+    let maxScore: number | null = null
+    let minRank: number | null = null
+    let maxRank: number | null = null
+    // flags & variables used to add the score and/or rank to the solutions
+    let addScore = false
+    let addRank = false
+    let scoreVariable = ''
+    let rankVariable = ''
+    // get the search variable fro the first magic triple
+    const magicTriple = magicTriples[0]
+    if (magicTriple.subject === pattern.subject) {
+      queryVariable = pattern.subject
+    } else if (magicTriple.predicate === pattern.predicate) {
+      queryVariable = pattern.predicate
+    } else if (magicTriple.object === pattern.object) {
+      queryVariable = pattern.object
+    } else {
+      throw new SyntaxError(`Invalid Full Text Search query: no subject/predicate/object of the queried pattern is the subject of the magic triple ${magicTriple}`)
+    }
+    // compute all other parameters from the set of magic triples
+    magicTriples.forEach(triple => {
+      // assert that the magic triple is correct
+      if (triple.subject !== queryVariable) {
+        throw new SyntaxError(`Invalid Full Text Search query: the query variable ${queryVariable} is not the subject of the magic triple ${triple}`)
+      }
+      // parse the magic triple
+      const objectValue = rdf.getLiteralValue(triple.object)
+      switch (triple.predicate) {
+        // keywords: ?o ses:search “neil gaiman”
+        case rdf.SES('search'): {
+          keywords = objectValue.split(' ')
+          break
+        }
+        // min relevance score: ?o ses:minRelevance “0.25”
+        case rdf.SES('minRelevance'): {
+          minScore = Number(objectValue)
+          break
+        }
+        // max relevance score: ?o ses:maxRelevance “0.75”
+        case rdf.SES('maxRelevance'): {
+          maxScore = Number(objectValue)
+          break
+        }
+        // min rank: ?o ses:minRank "5" .
+        case rdf.SES('minRank'): {
+          minRank = Number(objectValue)
+          break
+        }
+        // max rank: ?o ses:maxRank “1000” .
+        case rdf.SES('maxRank'): {
+          maxRank = Number(objectValue)
+          break
+        }
+        // include relevance score: ?o ses:relevance ?score .
+        case rdf.SES('relevance'): {
+          if (rdf.isVariable(triple.object)) {
+            addScore = true
+            scoreVariable = triple.object
+          } else {
+            throw new SyntaxError(`Invalid Full Text Search query: the object of the magic triple ${triple} must be a SPARQL variable.`)
+          }
+          break
+        }
+        // include rank: ?o ses:rank ?rank .
+        case rdf.SES('rank'): {
+          if (rdf.isVariable(triple.object)) {
+            addRank = true
+            rankVariable = triple.object
+          } else {
+            throw new SyntaxError(`Invalid Full Text Search query: the object of the magic triple ${triple} must be a SPARQL variable.`)
+          }
+          break
+        }
+        // do nothing for unknown magic triples
+        default: {
+          break
+        }
+      }
+    })
+    // join the input bindings with the full text search operation
+    return Pipeline.getInstance().mergeMap(source, bindings => {
+      let boundedPattern = bindings.bound(pattern)
+      // delegate the actual full text search to the RDF graph
+      const iterator = graph.fullTextSearch(boundedPattern, queryVariable, keywords, minScore, maxScore, minRank, maxRank, context)
+      return Pipeline.getInstance().map(iterator, item => {
+        const [triple, score, rank] = item
+        // build solutions bindings
+        const mu = new BindingBase()
+        if (rdf.isVariable(boundedPattern.subject) && !rdf.isVariable(triple.subject)) {
+          mu.set(boundedPattern.subject, triple.subject)
+        }
+        if (rdf.isVariable(boundedPattern.predicate) && !rdf.isVariable(triple.predicate)) {
+          mu.set(boundedPattern.predicate, triple.predicate)
+        }
+        if (rdf.isVariable(boundedPattern.object) && !rdf.isVariable(triple.object)) {
+          mu.set(boundedPattern.object, triple.object)
+        }
+        // add score and rank if required
+        if (addScore) {
+          mu.set(scoreVariable, `"${score}"^^${rdf.XSD('float')}`)
+        }
+        if (addRank) {
+          mu.set(rankVariable, `"${rank}"^^${rdf.XSD('integer')}`)
+        }
+        // Merge with input bindings and then return the final results
+        return bindings.union(mu)
+      })
+    })
   }
 }

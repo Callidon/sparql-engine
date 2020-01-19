@@ -194,11 +194,11 @@ PREFIX ses: <https://callidon.github.io/sparql-engine/search#>
 SELECT ?s ?o ?score ?rank
 WHERE {
   ?s foaf:knows ?o .
-  ?o bds:search “neil gaiman” .
-  ?o bds:minRelevance “0.25” .
-  ?o bds:maxRank “1000” .
-  ?o bds:relevance ?score .
-  ?o bds:rank ?rank .
+  ?o ses:search “neil gaiman” .
+  ?o ses:minRelevance “0.25” .
+  ?o ses:maxRank “1000” .
+  ?o ses:relevance ?score .
+  ?o ses:rank ?rank .
 }
 ```
 

@@ -123,7 +123,26 @@ export namespace rdf {
   }
 
   /**
+   * Get the value (excluding datatype & language tags) of a RDF literal
+   * @param literal - RDF Literal
+   * @return The literal's value
+   */
+  export function getLiteralValue (literal: string): string {
+    if (literal.startsWith('"')) {
+      let stopIndex = literal.length - 1
+      if (literal.includes('"^^<') && literal.endsWith('>')) {
+        stopIndex = literal.lastIndexOf('"^^<')
+      } else if (literal.includes('"@') && !literal.endsWith('"')) {
+        stopIndex = literal.lastIndexOf('"@')
+      }
+      return literal.slice(1, stopIndex)
+    }
+    return literal
+  }
+
+  /**
    * Create an IRI under the XSD namespace
+   * (<http://www.w3.org/2001/XMLSchema#>)
    * @param suffix - Suffix appended to the XSD namespace to create an IRI
    * @return An new IRI, under the XSD namespac
    */
@@ -133,11 +152,22 @@ export namespace rdf {
 
   /**
    * Create an IRI under the RDF namespace
+   * (<http://www.w3.org/1999/02/22-rdf-syntax-ns#>)
    * @param suffix - Suffix appended to the RDF namespace to create an IRI
    * @return An new IRI, under the RDF namespac
    */
   export function RDF (suffix: string): string {
     return `http://www.w3.org/1999/02/22-rdf-syntax-ns#${suffix}`
+  }
+
+  /**
+   * Create an IRI under the SES namespace
+   * (<https://callidon.github.io/sparql-engine/search#>)
+   * @param suffix - Suffix appended to the SES namespace to create an IRI
+   * @return An new IRI, under the SES namespac
+   */
+  export function SES (suffix: string): string {
+    return `https://callidon.github.io/sparql-engine/search#${suffix}`
   }
 }
 
