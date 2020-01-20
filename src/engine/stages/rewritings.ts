@@ -24,8 +24,9 @@ SOFTWARE.
 
 'use strict'
 
-import { Algebra } from 'sparqljs'
 import Dataset from '../../rdf/dataset'
+import { rdf } from '../../utils'
+import { Algebra } from 'sparqljs'
 import { partition } from 'lodash'
 
 /**
@@ -135,7 +136,7 @@ export function rewriteCopy (copyQuery: Algebra.UpdateCopyMoveNode, dataset: Dat
   const clear: Algebra.UpdateClearNode = {
     type: 'clear',
     silent: copyQuery.silent,
-    graph: {type: 'graph'}
+    graph: { type: 'graph' }
   }
   if (copyQuery.destination.default) {
     clear.graph.default = true
@@ -157,20 +158,20 @@ export function rewriteCopy (copyQuery: Algebra.UpdateCopyMoveNode, dataset: Dat
  */
 export function rewriteMove (moveQuery: Algebra.UpdateCopyMoveNode, dataset: Dataset): [Algebra.UpdateClearNode, Algebra.UpdateQueryNode, Algebra.UpdateClearNode] {
   // first, build a classic COPY query
-  const [ clear_before, update ] = rewriteCopy(moveQuery, dataset)
+  const [ clearBefore, update ] = rewriteCopy(moveQuery, dataset)
   // then, append a CLEAR query to clear the source graph
-  const clear_after: Algebra.UpdateClearNode = {
+  const clearAfter: Algebra.UpdateClearNode = {
     type: 'clear',
     silent: moveQuery.silent,
-    graph: {type: 'graph'}
+    graph: { type: 'graph' }
   }
   if (moveQuery.source.default) {
-    clear_after.graph.default = true
+    clearAfter.graph.default = true
   } else {
-    clear_after.graph.type = moveQuery.source.type
-    clear_after.graph.name = moveQuery.source.name
+    clearAfter.graph.type = moveQuery.source.type
+    clearAfter.graph.name = moveQuery.source.name
   }
-  return [clear_before, update, clear_after]
+  return [clearBefore, update, clearAfter]
 }
 
 /**
@@ -220,4 +221,75 @@ export function extractPropertyPaths (bgp: Algebra.BGPNode): [Algebra.TripleObje
     pathTriples = paths
   }*/
   return [classicTriples, pathTriples, variables]
+}
+
+/**
+ * Rewriting utilities for Full Text Search queries
+ */
+export namespace fts {
+  /**
+   * A Full Text Search query
+   */
+  export interface FullTextSearchQuery {
+    /** The pattern queried by the full text search */
+    pattern: Algebra.TripleObject,
+    /** The SPARQL varibale on which the full text search is performed */
+    variable: string,
+    /** The magic triples sued to configured the full text search query */
+    magicTriples: Algebra.TripleObject[]
+  }
+
+  /**
+   * The results of extracting full text search queries from a BGP
+   */
+  export interface ExtractionResults {
+    /** The set of full text search queries extracted from the BGP */
+    queries: FullTextSearchQuery[],
+    /** Regular triple patterns, i.e., those who should be evaluated as a regular BGP */
+    classicPatterns: Algebra.TripleObject[]
+  }
+
+  /**
+   * Extract all full text search queries from a BGP, using magic triples to identify them.
+   * A magic triple is an IRI prefixed by 'https://callidon.github.io/sparql-engine/search#' (ses:search, ses:rank, ses:minRank, etc).
+   * @param bgp - BGP to analyze
+   * @return The extraction results
+   */
+  export function extractFullTextSearchQueries (bgp: Algebra.TripleObject[]): ExtractionResults {
+    const queries: FullTextSearchQuery[] = []
+    const classicPatterns: Algebra.TripleObject[] = []
+    // find, validate and group all magic triples per query variable
+    const patterns: Algebra.TripleObject[] = []
+    const magicGroups = new Map<string, Algebra.TripleObject[]>()
+    const prefix = rdf.SES('')
+    bgp.forEach(triple => {
+      // A magic triple is an IRI prefixed by 'https://callidon.github.io/sparql-engine/search#'
+      if (rdf.isIRI(triple.predicate) && triple.predicate.startsWith(prefix)) {
+        // assert that the magic triple's subject is a variable
+        if (!rdf.isVariable(triple.subject)) {
+          throw new SyntaxError(`Invalid Full Text Search query: the subject of the magic triple ${triple} must a valid URI/IRI.`)
+        }
+        if (!magicGroups.has(triple.subject)) {
+          magicGroups.set(triple.subject, [ triple ])
+        } else {
+          magicGroups.get(triple.subject)!.push(triple)
+        }
+      } else {
+        patterns.push(triple)
+      }
+    })
+    // find all triple pattern whose object is the subject of some magic triples
+    patterns.forEach(pattern => {
+      if (magicGroups.has(pattern.subject)) {
+        queries.push({
+          pattern,
+          variable: pattern.subject,
+          magicTriples: magicGroups.get(pattern.subject)!
+        })
+      } else {
+        classicPatterns.push(pattern)
+      }
+    })
+    return { queries, classicPatterns }
+  }
 }

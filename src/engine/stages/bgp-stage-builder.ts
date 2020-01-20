@@ -33,6 +33,7 @@ import Graph from '../../rdf/graph'
 import { Bindings, BindingBase } from '../../rdf/bindings'
 // import { GRAPH_CAPABILITY } from '../../rdf/graph_capability'
 import { parseHints } from '../context/query-hints'
+import { fts } from './rewritings'
 import ExecutionContext from '../context/execution-context'
 import { rdf } from '../../utils'
 import { isNaN, isNull, isInteger } from 'lodash'
@@ -93,8 +94,13 @@ export default class BGPStageBuilder extends StageBuilder {
     // extract eventual query hints from the BGP & merge them into the context
     let extraction = parseHints(patterns, context.hints)
     context.hints = extraction[1]
-    // rewrite a BGP to remove blank node addedd by the Turtle notation
-    const [bgp, artificals] = this._replaceBlankNodes(extraction[0])
+
+    // extract full text search queries from the BGP
+    // they will be executed after the main BGP, to ensure an average best join ordering
+    const extractionResults = fts.extractFullTextSearchQueries(extraction[0])
+
+    // rewrite the BGP to remove blank node addedd by the Turtle notation
+    const [bgp, artificals] = this._replaceBlankNodes(extractionResults.classicPatterns)
 
     // if the graph is a variable, go through each binding and look for its value
     if (context.defaultGraphs.length > 0 && rdf.isVariable(context.defaultGraphs[0])) {
@@ -118,6 +124,15 @@ export default class BGPStageBuilder extends StageBuilder {
     // select the graph to use for BGP evaluation
     const graph = (context.defaultGraphs.length > 0) ? this._getGraph(context.defaultGraphs) : this.dataset.getDefaultGraph()
     let iterator = this._buildIterator(source, graph, bgp, context)
+
+    // evaluate all full text search queries found previously
+    if (extractionResults.queries.length > 0) {
+      iterator = extractionResults.queries.reduce((prev, query) => {
+        return this._buildFullTextSearchIterator(prev, graph, query.pattern, query.variable, query.magicTriples, context)
+      }, iterator)
+    }
+
+    // remove artificials variables from bindings
     if (artificals.length > 0) {
       iterator = Pipeline.getInstance().map(iterator, (b: Bindings) => b.filter(variable => artificals.indexOf(variable) < 0))
     }
@@ -171,13 +186,13 @@ export default class BGPStageBuilder extends StageBuilder {
    * @param  source         - Input {@link PipelineStage}
    * @param  graph          - The graph on which the full text search should be executed
    * @param  pattern        - Input triple pattern
+   * @param  queryVariable  - SPARQL variable on which the full text search is performed
    * @param  magicTriples   - Set of magic triple patterns used to configure the full text search
    * @param  context        - Execution options
    * @return A {@link PipelineStage} used to evaluate the Full Text Search query
    */
-  _buildFullTextSearchIterator (source: PipelineStage<Bindings>, graph: Graph, pattern: Algebra.TripleObject, magicTriples: Algebra.TripleObject[], context: ExecutionContext): PipelineStage<Bindings> {
+  _buildFullTextSearchIterator (source: PipelineStage<Bindings>, graph: Graph, pattern: Algebra.TripleObject, queryVariable: string, magicTriples: Algebra.TripleObject[], context: ExecutionContext): PipelineStage<Bindings> {
     // full text search default parameters
-    let queryVariable: string = ''
     let keywords: string[] = []
     let minScore: number | null = null
     let maxScore: number | null = null
@@ -188,17 +203,6 @@ export default class BGPStageBuilder extends StageBuilder {
     let addRank = false
     let scoreVariable = ''
     let rankVariable = ''
-    // get the search variable fro the first magic triple
-    const magicTriple = magicTriples[0]
-    if (magicTriple.subject === pattern.subject) {
-      queryVariable = pattern.subject
-    } else if (magicTriple.predicate === pattern.predicate) {
-      queryVariable = pattern.predicate
-    } else if (magicTriple.object === pattern.object) {
-      queryVariable = pattern.object
-    } else {
-      throw new SyntaxError(`Invalid Full Text Search query: no subject/predicate/object of the queried pattern is the subject of the magic triple ${magicTriple}`)
-    }
     // compute all other parameters from the set of magic triples
     magicTriples.forEach(triple => {
       // assert that the magic triple is correct

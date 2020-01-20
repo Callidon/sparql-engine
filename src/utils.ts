@@ -132,6 +132,15 @@ export namespace rdf {
   }
 
   /**
+   * Return True if a string is a RDF IRI/URI
+   * @param  str - String to test
+   * @return True if the string is a RDF IRI/URI, False otherwise
+   */
+  export function isIRI (str: string): boolean {
+    return (!isVariable(str)) && (!isLiteral(str))
+  }
+
+  /**
    * Get the value (excluding datatype & language tags) of a RDF literal
    * @param literal - RDF Literal
    * @return The literal's value
