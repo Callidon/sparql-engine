@@ -192,7 +192,7 @@ export default abstract class Graph {
     })
     // filter by min & max relevance scores
     iterator = Pipeline.getInstance().filter(iterator, v => {
-      return minRelevance! < v.score && v.score <= maxRelevance!
+      return v.score > 0 && minRelevance! <= v.score && v.score <= maxRelevance!
     })
     // if needed, rank the matches by descending score
     if (!isNull(minRank) || !isNull(maxRank)) {
@@ -208,14 +208,14 @@ export default abstract class Graph {
       }
       // ranks the matches, and then only keeps the desired ranks
       iterator = Pipeline.getInstance().flatMap(Pipeline.getInstance().collect(iterator), values => {
-        return orderBy(values, [ 'score', 'desc' ])
-          // slice using the minRank and maxRank parameters
-          .slice(minRank!, maxRank!)
+        return orderBy(values, [ 'score' ], [ 'desc' ])
           // add rank
           .map((item, rank) => {
             item.rank = rank
             return item
           })
+          // slice using the minRank and maxRank parameters
+          .slice(minRank!, maxRank! + 1)
       })
     }
     // finally, format results as tuples [RDF triple, triple's score, triple's rank]
