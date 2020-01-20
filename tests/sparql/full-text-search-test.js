@@ -110,7 +110,7 @@ describe('Full Text Search SPARQL queries', () => {
       results: [
         {
           '?o': '"provenance information for RDF data of dblp person \'m/Minier:Thomas\'"',
-          '?score': '"0.1111111111111111"^^http://www.w3.org/2001/XMLSchema#float'
+          '?score': '"0.111"^^http://www.w3.org/2001/XMLSchema#float'
         }
       ]
     },

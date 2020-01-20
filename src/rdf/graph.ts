@@ -32,7 +32,7 @@ import { rdf, sparql } from '../utils'
 import { Bindings, BindingBase } from './bindings'
 import { GRAPH_CAPABILITY } from './graph_capability'
 import ExecutionContext from '../engine/context/execution-context'
-import { mean, orderBy, isNull, sortBy } from 'lodash'
+import { mean, orderBy, isNull, round, sortBy } from 'lodash'
 
 /**
  * Metadata used for query optimization
@@ -188,7 +188,7 @@ export default abstract class Graph {
         }, 0) / words.length
       })
       // The relevance score is computed as the average keyword score
-      return { triple, rank: -1, score: mean(keywordScores) }
+      return { triple, rank: -1, score: round(mean(keywordScores), 3) }
     })
     // filter by min & max relevance scores
     iterator = Pipeline.getInstance().filter(iterator, v => {
