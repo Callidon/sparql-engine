@@ -171,11 +171,11 @@ export default abstract class Graph {
     // in the RDF term that matches kewyords
     let iterator = Pipeline.getInstance().map(source, triple => {
       let words: string[] = []
-      if (triple.subject === variable) {
+      if (pattern.subject === variable) {
         words = triple.subject.split(' ')
-      } else if (triple.predicate === variable) {
+      } else if (pattern.predicate === variable) {
         words = triple.predicate.split(' ')
-      } else if (triple.object === variable) {
+      } else if (pattern.object === variable) {
         words = triple.object.split(' ')
       }
       // For each keyword, compute % of words matching the keyword
@@ -192,7 +192,7 @@ export default abstract class Graph {
     })
     // filter by min & max relevance scores
     iterator = Pipeline.getInstance().filter(iterator, v => {
-      return minRelevance! < v.score && v.score >= maxRelevance!
+      return minRelevance! < v.score && v.score <= maxRelevance!
     })
     // if needed, rank the matches by descending score
     if (!isNull(minRank) || !isNull(maxRank)) {

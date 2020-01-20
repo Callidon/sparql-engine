@@ -286,6 +286,12 @@ export namespace fts {
           variable: pattern.subject,
           magicTriples: magicGroups.get(pattern.subject)!
         })
+      } else if (magicGroups.has(pattern.object)) {
+        queries.push({
+          pattern,
+          variable: pattern.object,
+          magicTriples: magicGroups.get(pattern.object)!
+        })
       } else {
         classicPatterns.push(pattern)
       }

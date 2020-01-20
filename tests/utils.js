@@ -27,12 +27,14 @@ SOFTWARE.
 const { Parser, Store } = require('n3')
 const fs = require('fs')
 const { HashMapDataset, Graph, PlanBuilder } = require('../dist/api.js')
-const { pick } = require('lodash')
+const { pick, isArray } = require('lodash')
 
-function getGraph(filePath = null) {
+function getGraph(filePaths) {
   const graph = new N3Graph()
-  if (filePath !== null) {
-    graph.parse(filePath)
+  if (typeof filePaths === 'string') {
+    graph.parse(filePaths)
+  } else if (isArray(filePaths)) {
+    filePaths.forEach(filePath => graph.parse(filePath))
   }
   return graph
 }
