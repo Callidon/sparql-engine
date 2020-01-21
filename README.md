@@ -206,6 +206,7 @@ Each result is annotated with a *relevance score* (how much it matches the keywo
 
 The full list of magic predicates that you can use in a full text search query is:
 * `ses:search` defines keywords to search as a list of keywords separated by spaces.
+* `ses:matchAllTerms` indicates that only values that contain all of the specified search terms should be considered.
 * `ses:minRelevance`and `ses:maxRelevance` limits the search to matches with a minimum/maximum
 relevance score, respectively. In the default implementation, scores are floating numbers, ranging from 0.0 to 1.0 with a precision of 4 digits.
 * `ses:minRank` and `ses:maxRank` limits the search to matches with a minimum/maximum
@@ -224,6 +225,7 @@ SELECT ?s ?o ?score ?rank WHERE {
   ?o ses:maxRank “1000” .
   ?o ses:relevance ?score .
   ?o ses:rank ?rank .
+  ?o ses:matchAllTerms “true” .
 }
 ```
 

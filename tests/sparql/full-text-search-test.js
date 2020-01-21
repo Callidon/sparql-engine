@@ -54,6 +54,22 @@ describe('Full Text Search SPARQL queries', () => {
       ]
     },
     {
+      description: 'a query with the ses:matchAllTerms parameter',
+      query: `
+      PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+      PREFIX ses: <https://callidon.github.io/sparql-engine/search#>
+      SELECT ?s WHERE {
+        ?s rdfs:label ?label .
+        ?label ses:search "RDF data Minier".
+        ?label ses:matchAllTerms "true".
+      }`,
+      results: [
+        {
+          '?s': 'https://dblp.org/pers/m/Minier:Thomas.nt'
+        }
+      ]
+    },
+    {
       description: 'a query which includes the rank and the relevance score',
       query: `
       PREFIX dblp-rdf: <https://dblp.uni-trier.de/rdf/schema-2017-04-18#>
@@ -78,8 +94,6 @@ describe('Full Text Search SPARQL queries', () => {
     {
       description: 'a query which a minimum relevance score',
       query: `
-      PREFIX dblp-rdf: <https://dblp.uni-trier.de/rdf/schema-2017-04-18#>
-      PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
       PREFIX ses: <https://callidon.github.io/sparql-engine/search#>
       SELECT ?o ?score WHERE {
         ?s ?p ?o .
@@ -97,8 +111,6 @@ describe('Full Text Search SPARQL queries', () => {
     {
       description: 'a query which minimum and maximum relevance scores',
       query: `
-      PREFIX dblp-rdf: <https://dblp.uni-trier.de/rdf/schema-2017-04-18#>
-      PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
       PREFIX ses: <https://callidon.github.io/sparql-engine/search#>
       SELECT ?o ?score WHERE {
         ?s ?p ?o .
@@ -117,8 +129,6 @@ describe('Full Text Search SPARQL queries', () => {
     {
       description: 'a query which a maximum rank',
       query: `
-      PREFIX dblp-rdf: <https://dblp.uni-trier.de/rdf/schema-2017-04-18#>
-      PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
       PREFIX ses: <https://callidon.github.io/sparql-engine/search#>
       SELECT ?o ?score ?rank WHERE {
         ?s ?p ?o .
@@ -148,8 +158,6 @@ describe('Full Text Search SPARQL queries', () => {
     {
       description: 'a query which minimum and maximum ranks',
       query: `
-      PREFIX dblp-rdf: <https://dblp.uni-trier.de/rdf/schema-2017-04-18#>
-      PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
       PREFIX ses: <https://callidon.github.io/sparql-engine/search#>
       SELECT ?o ?score ?rank WHERE {
         ?s ?p ?o .

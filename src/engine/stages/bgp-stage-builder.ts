@@ -194,6 +194,7 @@ export default class BGPStageBuilder extends StageBuilder {
   _buildFullTextSearchIterator (source: PipelineStage<Bindings>, graph: Graph, pattern: Algebra.TripleObject, queryVariable: string, magicTriples: Algebra.TripleObject[], context: ExecutionContext): PipelineStage<Bindings> {
     // full text search default parameters
     let keywords: string[] = []
+    let matchAll = false
     let minScore: number | null = null
     let maxScore: number | null = null
     let minRank: number | null = null
@@ -216,6 +217,12 @@ export default class BGPStageBuilder extends StageBuilder {
             throw new SyntaxError(`Invalid Full Text Search query: the object of the magic triple ${triple} must be a RDF Literal.`)
           }
           keywords = rdf.getLiteralValue(triple.object).split(' ')
+          break
+        }
+        // match all keywords: ?o ses:matchAllTerms "true"
+        case rdf.SES('matchAllTerms'): {
+          const value = rdf.getLiteralValue(triple.object).toLowerCase()
+          matchAll = value === 'true' || value === '1'
           break
         }
         // min relevance score: ?o ses:minRelevance “0.25”
@@ -305,12 +312,11 @@ export default class BGPStageBuilder extends StageBuilder {
     if (!isNull(minRank) && !isNull(maxRank) && minRank > maxRank) {
       throw new SyntaxError(`Invalid Full Text Search query: the maximum rank should be be greater than or equal to the minimum rank (for query on pattern ${pattern} with min_rank=${minRank} and max_rank=${maxRank})`)
     }
-
     // join the input bindings with the full text search operation
     return Pipeline.getInstance().mergeMap(source, bindings => {
       let boundedPattern = bindings.bound(pattern)
       // delegate the actual full text search to the RDF graph
-      const iterator = graph.fullTextSearch(boundedPattern, queryVariable, keywords, minScore, maxScore, minRank, maxRank, context)
+      const iterator = graph.fullTextSearch(boundedPattern, queryVariable, keywords, matchAll, minScore, maxScore, minRank, maxRank, context)
       return Pipeline.getInstance().map(iterator, item => {
         // unpack search results
         const [triple, score, rank] = item

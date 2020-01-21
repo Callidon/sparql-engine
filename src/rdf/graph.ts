@@ -142,6 +142,7 @@ export default abstract class Graph {
    * @param pattern - Triple pattern to find
    * @param variable - SPARQL variable on which the keyword search is performed
    * @param keywords - List of keywords to seach for occurence
+   * @param matchAll - True if only values that contain all of the specified search terms should be considered. 
    * @param minRelevance - Minimum relevance score (set it to null to disable it)
    * @param maxRelevance - Maximum relevance score (set it to null to disable it)
    * @param minRank - Minimum rank of the matches (set it to null to disable it)
@@ -158,7 +159,7 @@ export default abstract class Graph {
    *   console.log(`Matching RDF triple ${item[0]} with score ${item[1]} and rank ${item[2]}`)
    * }, console.error, () => console.log('Search completed!'))
    */
-  fullTextSearch (pattern: Algebra.TripleObject, variable: string, keywords: string[], minRelevance: number | null, maxRelevance: number | null, minRank: number | null, maxRank: number | null, context: ExecutionContext): PipelineStage<[Algebra.TripleObject, number, number]> {
+  fullTextSearch (pattern: Algebra.TripleObject, variable: string, keywords: string[], matchAll: boolean, minRelevance: number | null, maxRelevance: number | null, minRank: number | null, maxRank: number | null, context: ExecutionContext): PipelineStage<[Algebra.TripleObject, number, number]> {
     if (isNull(minRelevance)) {
       minRelevance = 0
     }
@@ -187,6 +188,10 @@ export default abstract class Graph {
           return acc
         }, 0) / words.length
       })
+      // if we should match all keyword, not matching a single keyword gives you a score of 0
+      if (matchAll && keywordScores.some(v => v === 0)) {
+        return { triple, rank: -1, score: 0 }
+      }
       // The relevance score is computed as the average keyword score
       return { triple, rank: -1, score: round(mean(keywordScores), 3) }
     })
