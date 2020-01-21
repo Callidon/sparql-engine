@@ -188,11 +188,36 @@ Finally, to run a SPARQL query on your RDF dataset, you need to use the `PlanBui
 
 # Full Text Search
 
+The `sparql-engine` provides a non-standard full text search functionnality, to
+allow users to execute fuzzy string search into RDF Terms retrieved by SPARQL queries.
+To accomplish this integration, it follows an approach similar to [BlazeGraph](https://wiki.blazegraph.com/wiki/index.php/FullTextSearch) and defines several **magic predicates** that are given special meaning, and when encountered in a SPARQL query, they are interpreted as configuration parameters for a full text search query.
+
+The simplest way to integrate a full text search into a SPARQL query is to use the magic predicate `ses:search` inside of a SPARQL join group. In the following query, this predicate is used to search for the keywords `neil` and `gaiman` in the values binded to the `?o` position of the triple pattern.
 ```
 PREFIX foaf: <http://xmlns.com/foaf/0.1/>
 PREFIX ses: <https://callidon.github.io/sparql-engine/search#>
-SELECT ?s ?o ?score ?rank
-WHERE {
+SELECT * WHERE {
+  ?s foaf:knows ?o .
+  ?o ses:search “neil gaiman” .
+}
+```
+In a way, full text search queries allows users to express more complex SPARQL filters that performs fuzzy string matching over RDF terms.
+Each result is annotated with a *relevance score* (how much it macthes the keywords, higher is better) and a *rank* (they represent the descending order of relevance scores). Note that the meaning of relevance scores is specific to the implementation of the full text search.
+
+The full list of magic predicates that you can use in a full text search query is:
+* `ses:search` defines keywords to search as a list of keywords separated by spaces.
+* `ses:minRelevance`and `ses:maxRelevance` limits the search to matches with a minimum/maximum
+relevance scores, respectively. In the default implementation, scores are floating numbers, ranging from 0.0 to 1.0 with a precision of 4 digits.
+* `ses:minRank` and `ses:maxRank` limits the search to matches with a minimum/maximum
+rank values, respectively. In the default implementation, ranks are positive integers starting at 0.
+* `ses:relevance` binds each term's relevance score to a SPARQL variable.
+* `ses:rank` binds each term's rank to a SPARQL variable.
+
+Below is a more complete example, that use most of these keywords to customize the full text search.
+```
+PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+PREFIX ses: <https://callidon.github.io/sparql-engine/search#>
+SELECT ?s ?o ?score ?rank WHERE {
   ?s foaf:knows ?o .
   ?o ses:search “neil gaiman” .
   ?o ses:minRelevance “0.25” .
@@ -201,6 +226,16 @@ WHERE {
   ?o ses:rank ?rank .
 }
 ```
+
+To provide a custom implementation for the full text search that is more integrated with your backend,
+you simply need to override the `fullTextSearch` method of the `Graph` class.
+You can find the full signature of this method into the [relevant documentation](https://callidon.github.io/sparql-engine/classes/graph.html#fullTextSearch).
+
+The `sparql-engine` framework provides a default implementation of this method, which computes relevance scores as the average ratio of keywords matched by words in the RDF terms.
+Notice that **this default implementation is not suited for production usage**.
+It will performs fine for small RDF datasets, but, 
+when possible, you should always provides a dedicated implementation that leverages your backend.
+For example, for SQL databases, you could use [GIN or GIST indexes](https://www.postgresql.org/docs/12/gin-intro.html).
 
 # Federated SPARQL Queries
 
