@@ -10,6 +10,7 @@ An open-source framework for building SPARQL query engines in Javascript/Typescr
 * Supports [the full features of the SPARQL syntax](https://www.w3.org/TR/sparql11-query/) by *implementing a single class!*
 * Support for all [SPARQL property Paths](https://www.w3.org/TR/sparql11-query/#propertypaths).
 * Implements advanced *SPARQL query rewriting techniques* for transparently optimizing SPARQL query processing.
+* Supports [full text search queries](#full-text-search).
 * Supports [Custom SPARQL functions](#custom-functions).
 * Supports the [SPARQL UPDATE protocol](https://www.w3.org/TR/2013/REC-sparql11-update-20130321/).
 * Supports Basic [Federated SPARQL queries](https://www.w3.org/TR/2013/REC-sparql11-federated-query-20130321/) using **SERVICE clauses**.
