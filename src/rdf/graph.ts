@@ -126,7 +126,7 @@ export default abstract class Graph {
   }
 
   /**
-   * Get a {@link PipelineInput} which finds RDF triples matching a triple pattern and a set of keywords in the RDF Graph.
+   * Get a {@link PipelineStage} which finds RDF triples matching a triple pattern and a set of keywords in the RDF Graph.
    * The search can be constrained by min and max relevance (a 0 to 1 score signifying how closely the literal matches the search terms).
    *
    * The {@link Graph} class provides a default implementation that computes the relevance
@@ -136,13 +136,13 @@ export default abstract class Graph {
    * selects the appropriates ranks.
    * Otherwise, the rank is not computed and all triples are associated with a rank of -1.
    *
-   * Consequently, the default implementation should works fines for basic usages, but more advanced users
-   * should provides their own implementation, integrated with the graph backend.
+   * Consequently, the default implementation should works fines for a basic usage, but more advanced users
+   * should provides their own implementation, integrated with their own backend.
    * For example, a SQL-based RDF Graph should rely on GIN or GIST indexes for the full text search.
    * @param pattern - Triple pattern to find
    * @param variable - SPARQL variable on which the keyword search is performed
    * @param keywords - List of keywords to seach for occurence
-   * @param matchAll - True if only values that contain all of the specified search terms should be considered. 
+   * @param matchAll - True if only values that contain all of the specified search terms should be considered.
    * @param minRelevance - Minimum relevance score (set it to null to disable it)
    * @param maxRelevance - Maximum relevance score (set it to null to disable it)
    * @param minRank - Minimum rank of the matches (set it to null to disable it)
