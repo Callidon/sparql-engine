@@ -15,18 +15,20 @@ jobs:
         - yarn build
         - yarn doc
       node_js: "12"
-      provider: pages
-      skip_cleanup: true
-      github_token: $GH_TOKEN
-      local_dir: docs
-      on:
-        branch: master
+      deploy:
+      - provider: pages
+        skip_cleanup: true
+        github_token: $GH_TOKEN
+        local_dir: docs
+        on:
+          branch: master
     - stage: npm release
       script: yarn build
       node_js: "12"
-      provider: npm
-      skip_cleanup: true
-      email: tminier01@gmail.com
-      api_key: $NPM_KEY
-      on:
-        tags: true
+      deploy:
+      - provider: npm
+        skip_cleanup: true
+        email: tminier01@gmail.com
+        api_key: $NPM_KEY
+        on:
+          tags: true
