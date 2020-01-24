@@ -227,7 +227,7 @@ export default {
   },
 
   'str': function (a: Term): Term {
-    return rdf.termIsLiteral(a) ? a : rdf.createLiteral(a.value)
+    return rdf.createLiteral(rdf.toN3(a))
   },
 
   'lang': function (a: Term): Term {
@@ -246,6 +246,13 @@ export default {
 
   'iri': function (a: Term): Term {
     return rdf.createIRI(a.value)
+  },
+
+  'bnode': function (a?: Term): Term {
+    if (a !== undefined) {
+      return rdf.createBNode(a.value)
+    }
+    return rdf.createBNode(uuid())
   },
 
   'strdt': function (x: Term, datatype: Term): Term {

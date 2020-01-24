@@ -28,10 +28,11 @@ import { Pipeline } from './engine/pipeline/pipeline'
 import { PipelineStage } from './engine/pipeline/pipeline-engine'
 import { Algebra } from 'sparqljs'
 import { Bindings } from './rdf/bindings'
-import { termToString, stringToTerm } from 'rdf-string'
-import { BlankNode, Literal, NamedNode, Term } from 'rdf-js'
 import { includes, union } from 'lodash'
 import { parseZone, Moment, ISO_8601 } from 'moment'
+import * as DataFactory from '@rdfjs/data-model'
+import { BlankNode, Literal, NamedNode, Term } from 'rdf-js'
+import { termToString, stringToTerm } from 'rdf-string'
 
 /**
  * RDF related utilities
@@ -102,44 +103,53 @@ export namespace rdf {
   }
 
   /**
-   * Creates a IRI in RDFJS format
+   * Creates an IRI in RDFJS format
    * @param value - IRI value
    * @return A new IRI in RDFJS format
    */
-  export function createIRI (value: string): Term {
+  export function createIRI (value: string): NamedNode {
     if (value.startsWith('<') && value.endsWith('>')) {
-      return fromN3(value.slice(0, value.length - 1))
+      return DataFactory.namedNode(value.slice(0, value.length - 1))
     }
-    return fromN3(value)
+    return DataFactory.namedNode(value)
   }
 
   /**
-   * Creates a Literal in RDFJS format
+   * Creates a Blank Node in RDFJS format
+   * @param value - Blank node value
+   * @return A new Blank Node in RDFJS format
+   */
+  export function createBNode (value: string): BlankNode {
+    return DataFactory.blankNode(value)
+  }
+
+  /**
+   * Creates a Literal in RDFJS format, without any datatype or language tag
    * @param value - Literal value
    * @return A new literal in RDFJS format
    */
-  export function createLiteral (value: string): Term {
-    return fromN3(`"${value}"`)
+  export function createLiteral (value: string): Literal {
+    return DataFactory.literal(value)
   }
 
   /**
    * Creates an typed Literal in RDFJS format
-   * @param value - Integer
-   * @param type - Literal type (integer, float, etc)
+   * @param value - Literal value
+   * @param type - Literal type (integer, float, dateTime, ...)
    * @return A new typed Literal in RDFJS format
    */
-  export function createTypedLiteral (value: any, type: string): Term {
-    return fromN3(`"${value}"^^${type}`)
+  export function createTypedLiteral (value: any, type: string): Literal {
+    return DataFactory.literal(`${value}`, createIRI(type))
   }
 
   /**
    * Creates a Literal with a language tag in RDFJS format
-   * @param value - Integer
-   * @param lang - Language tag
+   * @param value - Literal value
+   * @param language - Language tag (en, fr, it, ...)
    * @return A new Literal with a language tag in RDFJS format
    */
-  export function createLangLiteral (value: any, lang: string): Term {
-    return fromN3(`"${value}"@${lang}`)
+  export function createLangLiteral (value: string, language: string): Literal {
+    return DataFactory.literal(value, language)
   }
 
   /**
@@ -147,7 +157,7 @@ export namespace rdf {
    * @param value - Integer
    * @return A new integer in RDFJS format
    */
-  export function createInteger (value: number): Term {
+  export function createInteger (value: number): Literal {
     return createTypedLiteral(value, XSD('integer'))
   }
 
@@ -156,7 +166,7 @@ export namespace rdf {
    * @param value - Float
    * @return A new float in RDFJS format
    */
-  export function createFloat (value: number): Term {
+  export function createFloat (value: number): Literal {
     return createTypedLiteral(value, XSD('float'))
   }
 
@@ -165,7 +175,7 @@ export namespace rdf {
    * @param value - Boolean
    * @return A new boolean in RDFJS format
    */
-  export function createBoolean (value: boolean): Term {
+  export function createBoolean (value: boolean): Literal {
     return value ? createTrue() : createFalse()
   }
 
@@ -173,16 +183,16 @@ export namespace rdf {
    * Creates a True boolean, in RDFJS format
    * @return A new boolean in RDFJS format
    */
-  export function createTrue (): Term {
-    return fromN3(`"true"^^${XSD('boolean')}`)
+  export function createTrue (): Literal {
+    return createTypedLiteral('true', XSD('boolean'))
   }
 
   /**
    * Creates a False boolean, in RDFJS format
    * @return A new boolean in RDFJS format
    */
-  export function createFalse (): Term {
-    return fromN3(`"false"^^${XSD('boolean')}`)
+  export function createFalse (): Literal {
+    return createTypedLiteral('false', XSD('boolean'))
   }
 
   /**
@@ -190,8 +200,8 @@ export namespace rdf {
    * @param date - Date, in Moment.js format
    * @return A new date literal in RDFJS format
    */
-  export function createDate (date: Moment): Term {
-    return fromN3(`"${date.toISOString()}"^^${XSD('dateTime')}`)
+  export function createDate (date: Moment): Literal {
+    return createTypedLiteral(date.toISOString(), XSD('dateTime'))
   }
 
   /**
