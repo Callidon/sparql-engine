@@ -249,10 +249,10 @@ export default {
   },
 
   'bnode': function (a?: Term): Term {
-    if (a !== undefined) {
-      return rdf.createBNode(a.value)
+    if (a === undefined) {
+      return rdf.createBNode()
     }
-    return rdf.createBNode(uuid())
+    return rdf.createBNode(a.value)
   },
 
   'strdt': function (x: Term, datatype: Term): Term {

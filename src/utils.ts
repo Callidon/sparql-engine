@@ -119,7 +119,7 @@ export namespace rdf {
    * @param value - Blank node value
    * @return A new Blank Node in RDFJS format
    */
-  export function createBNode (value: string): BlankNode {
+  export function createBNode (value?: string): BlankNode {
     return DataFactory.blankNode(value)
   }
 
