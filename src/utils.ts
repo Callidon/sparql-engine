@@ -24,56 +24,284 @@ SOFTWARE.
 
 'use strict'
 
-import { terms } from './rdf-terms'
-import { Util } from 'n3'
 import { Pipeline } from './engine/pipeline/pipeline'
 import { PipelineStage } from './engine/pipeline/pipeline-engine'
 import { Algebra } from 'sparqljs'
 import { Bindings } from './rdf/bindings'
+import { termToString, stringToTerm } from 'rdf-string'
+import { BlankNode, Literal, NamedNode, Term } from 'rdf-js'
 import { includes, union } from 'lodash'
-
-/**
- * Remove surrounding brackets from an IRI
- * @private
- * @param iri - IRI to cleanup
- * @return Transformed IRI
- */
-function cleanIRI (iri: string): string {
-  if (iri.startsWith('<') && iri.endsWith('>')) {
-    return iri.slice(1, iri.length - 1)
-  }
-  return iri
-}
+import { parseZone, Moment, ISO_8601 } from 'moment'
 
 /**
  * RDF related utilities
  */
 export namespace rdf {
   /**
-   * Parse a RDF term in string format and return a descriptor with its type and value
-   * @param  {string} term - The RDF Term in string format (i.e., URI or Literal)
-   * @return A descriptor for the term
-   * @throws {SyntaxError} Thrown if an unknown RDF Term is encoutered during parsing
+   * Convert an string RDF Term to a RDFJS representation
+   * @see https://rdf.js.org/data-model-spec
+   * @param term - A string-based term representation
+   * @return A RDF.js term
    */
-  export function parseTerm (term: string): terms.RDFTerm {
-    let parsed = null
-    if (Util.isIRI(term)) {
-      parsed = terms.createIRI(term)
-    } else if (Util.isLiteral(term)) {
-      const value = Util.getLiteralValue(term)
-      const lang = Util.getLiteralLanguage(term)
-      const type = cleanIRI(Util.getLiteralType(term))
-      if (lang !== null && lang !== undefined && lang !== '') {
-        parsed = terms.createLangLiteral(value, lang)
-      } else if (term.indexOf('^^') > -1) {
-        parsed = terms.createTypedLiteral(value, type)
-      } else {
-        parsed = terms.createLiteral(value)
-      }
-    } else {
-      throw new SyntaxError(`Unknown RDF Term encoutered during parsing: ${term}`)
+  export function fromN3 (term: string): Term {
+    return stringToTerm(term)
+  }
+
+  /**
+   * Convert an RDFJS term to a string-based representation
+   * @see https://rdf.js.org/data-model-spec
+   * @param term A RDFJS term
+   * @return A string-based term representation
+   */
+  export function toN3 (term: Term): string {
+    return termToString(term)
+  }
+
+  /**
+   * Parse a RDF Literal to its Javascript representation
+   * @see https://www.w3.org/TR/rdf11-concepts/#section-Datatypes
+   * @param value - Literal value
+   * @param type - Literal datatype
+   * @return Javascript representation of the literal
+   */
+  export function asJS (value: string, type: string | null): any {
+    switch (type) {
+      case XSD('integer'):
+      case XSD('byte'):
+      case XSD('short'):
+      case XSD('int'):
+      case XSD('unsignedByte'):
+      case XSD('unsignedShort'):
+      case XSD('unsignedInt'):
+      case XSD('number'):
+      case XSD('float'):
+      case XSD('decimal'):
+      case XSD('double'):
+      case XSD('long'):
+      case XSD('unsignedLong'):
+      case XSD('positiveInteger'):
+      case XSD('nonPositiveInteger'):
+      case XSD('negativeInteger'):
+      case XSD('nonNegativeInteger'):
+        return Number(value)
+      case XSD('boolean'):
+        return value === '"true"' || value === '"1"'
+      case XSD('dateTime'):
+      case XSD('dateTimeStamp'):
+      case XSD('date'):
+      case XSD('time'):
+      case XSD('duration'):
+        return parseZone(value, ISO_8601)
+      case XSD('hexBinary'):
+        return Buffer.from(value, 'hex')
+      case XSD('base64Binary'):
+        return Buffer.from(value, 'base64')
+      default:
+        return value
     }
-    return parsed
+  }
+
+  /**
+   * Creates a IRI in RDFJS format
+   * @param value - IRI value
+   * @return A new IRI in RDFJS format
+   */
+  export function createIRI (value: string): Term {
+    if (value.startsWith('<') && value.endsWith('>')) {
+      return fromN3(value)
+    }
+    return fromN3(`<${value}>`)
+  }
+
+  /**
+   * Creates a Literal in RDFJS format
+   * @param value - Literal value
+   * @return A new literal in RDFJS format
+   */
+  export function createLiteral (value: string): Term {
+    return fromN3(`"${value}"`)
+  }
+
+  /**
+   * Creates an typed Literal in RDFJS format
+   * @param value - Integer
+   * @param type - Literal type (integer, float, etc)
+   * @return A new typed Literal in RDFJS format
+   */
+  export function createTypedLiteral (value: any, type: string): Term {
+    return fromN3(`"${value}"^^<${type}>`)
+  }
+
+  /**
+   * Creates a Literal with a language tag in RDFJS format
+   * @param value - Integer
+   * @param lang - Language tag
+   * @return A new Literal with a language tag in RDFJS format
+   */
+  export function createLangLiteral (value: any, lang: string): Term {
+    return fromN3(`"${value}"@${lang}`)
+  }
+
+  /**
+   * Creates an integer Literal in RDFJS format
+   * @param value - Integer
+   * @return A new integer in RDFJS format
+   */
+  export function createInteger (value: number): Term {
+    return createTypedLiteral(value, XSD('integer'))
+  }
+
+  /**
+   * Creates an float Literal in RDFJS format
+   * @param value - Float
+   * @return A new float in RDFJS format
+   */
+  export function createFloat (value: number): Term {
+    return createTypedLiteral(value, XSD('float'))
+  }
+
+  /**
+   * Creates a Literal from a boolean, in RDFJS format
+   * @param value - Boolean
+   * @return A new boolean in RDFJS format
+   */
+  export function createBoolean (value: boolean): Term {
+    return value ? createTrue() : createFalse()
+  }
+
+  /**
+   * Creates a True boolean, in RDFJS format
+   * @return A new boolean in RDFJS format
+   */
+  export function createTrue (): Term {
+    return fromN3(`"true"^^<${XSD('boolean')}>`)
+  }
+
+  /**
+   * Creates a False boolean, in RDFJS format
+   * @return A new boolean in RDFJS format
+   */
+  export function createFalse (): Term {
+    return fromN3(`"false"^^${XSD('boolean')}`)
+  }
+
+  /**
+   * Creates a Literal from a Moment.js date, in RDFJS format
+   * @param date - Date, in Moment.js format
+   * @return A new date literal in RDFJS format
+   */
+  export function createDate (date: Moment): Term {
+    return fromN3(`"${date.toISOString()}"^^${XSD('dateTime')}`)
+  }
+
+  /**
+   * Clone a literal and replace its value with another one
+   * @param  base     - Literal to clone
+   * @param  newValue - New literal value
+   * @return The literal with its new value
+   */
+  export function shallowCloneTerm (term: Term, newValue: string): Term {
+    if (termIsLiteral(term)) {
+      if (term.language !== '') {
+        return createLangLiteral(newValue, term.language)
+      }
+      return createTypedLiteral(newValue, term.datatype.value)
+    }
+    return createLiteral(newValue)
+  }
+
+  /**
+   * Test if a RDFJS Term is a Literal
+   * @param term - RDFJS Term
+   * @return True of the term is a Literal, False otherwise
+   */
+  export function termIsLiteral (term: Term): term is Literal {
+    return term.termType === 'Literal'
+  }
+
+  /**
+   * Test if a RDFJS Term is an IRI, i.e., a NamedNode
+   * @param term - RDFJS Term
+   * @return True of the term is an IRI, False otherwise
+   */
+  export function termIsIRI (term: Term): term is NamedNode {
+    return term.termType === 'NamedNode'
+  }
+
+  /**
+   * Test if a RDFJS Term is a Blank Node
+   * @param term - RDFJS Term
+   * @return True of the term is a Blank Node, False otherwise
+   */
+  export function termIsBNode (term: Term): term is BlankNode {
+    return term.termType === 'BlankNode'
+  }
+
+  /**
+   * Test if a RDFJS Literal is a number
+   * @param literal - RDFJS Literal
+   * @return True of the Literal is a number, False otherwise
+   */
+  export function literalIsNumeric (literal: Literal): boolean {
+    switch (literal.datatype.value) {
+      case XSD('integer'):
+      case XSD('byte'):
+      case XSD('short'):
+      case XSD('int'):
+      case XSD('unsignedByte'):
+      case XSD('unsignedShort'):
+      case XSD('unsignedInt'):
+      case XSD('number'):
+      case XSD('float'):
+      case XSD('decimal'):
+      case XSD('double'):
+      case XSD('long'):
+      case XSD('unsignedLong'):
+      case XSD('positiveInteger'):
+      case XSD('nonPositiveInteger'):
+      case XSD('negativeInteger'):
+      case XSD('nonNegativeInteger'):
+        return true
+      default:
+        return false
+    }
+  }
+
+  /**
+   * Test if a RDFJS Literal is a date
+   * @param literal - RDFJS Literal
+   * @return True of the Literal is a date, False otherwise
+   */
+  export function literalIsDate (literal: Literal): boolean {
+    return literal.datatype.value === XSD('dateTime')
+  }
+
+  /**
+   * Test if a RDFJS Literal is a boolean
+   * @param term - RDFJS Literal
+   * @return True of the Literal is a boolean, False otherwise
+   */
+  export function literalIsBoolean (literal: Literal): boolean {
+    return literal.datatype.value === XSD('boolean')
+  }
+
+  /**
+   * Test if two RDFJS Terms are equals
+   * @param a - First Term
+   * @param b - Second Term
+   * @return True if the two RDFJS Terms are equals, False
+   */
+  export function termEquals (a: Term, b: Term): boolean {
+    if (termIsLiteral(a) && termIsLiteral(b)) {
+      if (literalIsDate(a) && literalIsDate(b)) {
+        const valueA = asJS(a.value, a.datatype.value)
+        const valueB = asJS(b.value, b.datatype.value)
+        // use Moment.js isSame function to compare two dates
+        return valueA.isSame(valueB)
+      }
+      return a.value === b.value && a.datatype.value === b.datatype.value && a.language === b.language
+    }
+    return a.value === b.value
   }
 
   /**

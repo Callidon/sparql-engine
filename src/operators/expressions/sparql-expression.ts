@@ -26,12 +26,11 @@ SOFTWARE.
 
 import SPARQL_AGGREGATES from './sparql-aggregates'
 import SPARQL_OPERATIONS from './sparql-operations'
-import { terms } from '../../rdf-terms'
 import { rdf } from '../../utils'
 import { isArray, isString, uniqBy } from 'lodash'
 import { Algebra } from 'sparqljs'
 import { Bindings } from '../../rdf/bindings'
-import { CustomFunctions } from '../../engine/plan-builder'
+import { Term } from 'rdf-js'
 
 /**
  * An input SPARQL expression to be compiled
@@ -41,12 +40,17 @@ export type InputExpression = Algebra.Expression | string | string[]
 /**
  * A SPARQL expression compiled as a function
  */
-export type CompiledExpression = (bindings: Bindings) => terms.RDFTerm | terms.RDFTerm[] | null
+export type CompiledExpression = (bindings: Bindings) => Term | Term[] | null
 
-function bindArgument (variable: string): (bindings: Bindings) => terms.RDFTerm | null {
+/**
+ * Type alias to describe the shape of custom functions. It's basically a JSON object from an IRI (in string form) to a function of 0 to many RDFTerms that produces an RDFTerm.
+ */
+export type CustomFunctions = { [key: string]: (...args: (Term | Term[] | null)[]) => Term }
+
+function bindArgument (variable: string): (bindings: Bindings) => Term | null {
   return (bindings: Bindings) => {
     if (bindings.has(variable)) {
-      return rdf.parseTerm(bindings.get(variable)!)
+      return rdf.fromN3(bindings.get(variable)!)
     }
     return null
   }
@@ -78,14 +82,14 @@ export default class SPARQLExpression {
       if (rdf.isVariable(expression)) {
         return bindArgument(expression)
       }
-      const compiledTerm = rdf.parseTerm(expression)
+      const compiledTerm = rdf.fromN3(expression)
       return () => compiledTerm
     } else if (isArray(expression)) {
       // IN and NOT IN expressions accept arrays as argument
-      const compiledTerms = expression.map(rdf.parseTerm)
+      const compiledTerms = expression.map(rdf.fromN3)
       return () => compiledTerms
     } else if (expression.type === 'operation') {
-      const opExpression = <Algebra.SPARQLExpression> expression
+      const opExpression = expression as Algebra.SPARQLExpression
       // operation case: recursively compile each argument, then evaluate the expression
       const args = opExpression.args.map(arg => this._compileExpression(arg, customFunctions))
       if (!(opExpression.operator in SPARQL_OPERATIONS)) {
@@ -96,9 +100,9 @@ export default class SPARQLExpression {
         return operation(...args.map(arg => arg(bindings)))
       }
     } else if (expression.type === 'aggregate') {
-      const aggExpression = <Algebra.AggregateExpression> expression
+      const aggExpression = expression as Algebra.AggregateExpression
       // aggregation case
-      if (!(aggExpression.aggregation! in SPARQL_AGGREGATES)) {
+      if (!(aggExpression.aggregation in SPARQL_AGGREGATES)) {
         throw new Error(`Unsupported SPARQL aggregation: ${aggExpression.aggregation}`)
       }
       const aggregation = SPARQL_AGGREGATES[aggExpression.aggregation]
@@ -107,14 +111,14 @@ export default class SPARQLExpression {
           const aggVariable = aggExpression.expression as string
           let rows = bindings.getProperty('__aggregate')
           if (aggExpression.distinct) {
-            rows[aggVariable] = uniqBy(rows[aggVariable], (term: terms.RDFTerm) => term.asRDF)
+            rows[aggVariable] = uniqBy(rows[aggVariable], rdf.toN3)
           }
           return aggregation(aggVariable, rows, aggExpression.separator)
         }
         return bindings
       }
     } else if (expression.type === 'functionCall') {
-      const functionExpression = <Algebra.FunctionCallExpression> expression
+      const functionExpression = expression as Algebra.FunctionCallExpression
       const customFunction =
         (customFunctions && customFunctions[functionExpression.function])
           ? customFunctions[functionExpression.function]
@@ -124,7 +128,7 @@ export default class SPARQLExpression {
         throw new Error(`Custom function could not be found: ${functionExpression.function}`)
       }
       return (bindings: Bindings) => {
-        try{
+        try {
           const args = functionExpression.args.map(args => this._compileExpression(args, customFunctions))
           return customFunction(...args.map(arg => arg(bindings)))
         } catch (e) {
@@ -144,7 +148,7 @@ export default class SPARQLExpression {
    * @param  bindings - Set of mappings
    * @return Results of the evaluation
    */
-  evaluate (bindings: Bindings): terms.RDFTerm | terms.RDFTerm[] | null {
+  evaluate (bindings: Bindings): Term | Term[] | null {
     return this._expression(bindings)
   }
 }
