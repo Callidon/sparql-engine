@@ -70,6 +70,6 @@ export { PipelineEngine, PipelineInput, PipelineStage, StreamPipelineInput } fro
 export { default as RxjsPipeline } from './engine/pipeline/rxjs-pipeline'
 export { default as VectorPipeline } from './engine/pipeline/vector-pipeline'
 // RDF terms Utilities
-export { terms } from './rdf-terms'
+export { rdf } from './utils'
 
 export { stages }

@@ -25,7 +25,7 @@ SOFTWARE.
 'use strict'
 
 const expect = require('chai').expect
-const { rdf } = require('../../dist/utils.js')
+const { rdf } = require('../../dist/api.js')
 const { getGraph, TestEngine } = require('../utils.js')
 
 describe('SPARQL custom operators', () => {
