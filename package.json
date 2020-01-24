@@ -52,10 +52,10 @@
     "typescript": "^3.6.2"
   },
   "dependencies": {
+    "@rdfjs/data-model": "^1.1.2",
     "lodash": "^4.17.15",
     "moment": "^2.22.2",
     "n3": "^0.11.3",
-    "rdf-js": "^1.0.2",
     "rdf-string": "^1.3.1",
     "rxjs": "^6.3.3",
     "sparqljs": "^2.0.3",

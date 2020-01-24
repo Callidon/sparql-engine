@@ -26,7 +26,7 @@ SOFTWARE.
 
 import { PipelineStage } from '../pipeline/pipeline-engine'
 import StageBuilder from './stage-builder'
-import { CustomFunctions } from '../../engine/plan-builder'
+import { CustomFunctions } from '../../operators/expressions/sparql-expression'
 import bind from '../../operators/bind'
 import filter from '../../operators/sparql-filter'
 import groupBy from '../../operators/sparql-groupby'

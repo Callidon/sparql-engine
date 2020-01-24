@@ -18,7 +18,7 @@
     esutils "^2.0.2"
     js-tokens "^4.0.0"
 
-"@rdfjs/data-model@^1.1.1":
+"@rdfjs/data-model@^1.1.1", "@rdfjs/data-model@^1.1.2":
   version "1.1.2"
   resolved "https://registry.yarnpkg.com/@rdfjs/data-model/-/data-model-1.1.2.tgz#e2f48a422c7e837b8a7d96d240732be3287df713"
   integrity sha512-pk/G/JLYGaXesoBLvEmoC/ic0H3B79fTyS0Ujjh5YQB2DZW+mn05ZowFFv88rjB9jf7c1XE5XSmf8jzn6U0HHA==
@@ -1419,11 +1419,6 @@ pseudomap@^1.0.2:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/pseudomap/-/pseudomap-1.0.2.tgz#f052a28da70e618917ef0a8ac34c1ae5a68286b3"
   integrity sha1-8FKijacOYYkX7wqKw0wa5aaChrM=
-
-rdf-js@^1.0.2:
-  version "1.0.2"
-  resolved "https://registry.yarnpkg.com/rdf-js/-/rdf-js-1.0.2.tgz#68bcc06379a446fc2997176676b79638783d6907"
-  integrity sha512-xnR7jV0oVViKJTDE1RIOHs+b4gGPbhwV/D8SciN8Ib8Li5bqtXxRsQSYs6NfDsPN7SULTh6eh5AQ7kLXo7qQoA==
 
 rdf-string@^1.3.1:
   version "1.3.1"

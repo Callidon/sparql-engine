@@ -39,7 +39,7 @@ function _writeBindings (input: Bindings, results: any) {
   // convert sets of bindings into objects of RDF Terms
   let bindings: any = input.filter(value => !isNull(value[1]) && !isUndefined(value[1]))
     .reduce((obj, value) => {
-      obj[value[0]] = rdf.parseTerm(value[1])
+      obj[value[0]] = rdf.fromN3(value[1])
       return obj
     }, {})
 

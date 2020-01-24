@@ -400,7 +400,8 @@ export default {
   'month': function (a: Term): Term {
     if (rdf.termIsLiteral(a) && rdf.literalIsDate(a)) {
       const value = rdf.asJS(a.value, a.datatype.value)
-      return rdf.createInteger(value.month())
+      // Warning: Months are zero indexed in Moment.js, so January is month 0.
+      return rdf.createInteger(value.month() + 1)
     }
     throw new SyntaxError(`SPARQL expression error: cannot compute the month of the RDF Term ${a}, as it is not a date`)
   },

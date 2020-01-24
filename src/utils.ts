@@ -85,7 +85,7 @@ export namespace rdf {
       case XSD('nonNegativeInteger'):
         return Number(value)
       case XSD('boolean'):
-        return value === '"true"' || value === '"1"'
+        return value === 'true' || value === '1'
       case XSD('dateTime'):
       case XSD('dateTimeStamp'):
       case XSD('date'):
@@ -108,9 +108,9 @@ export namespace rdf {
    */
   export function createIRI (value: string): Term {
     if (value.startsWith('<') && value.endsWith('>')) {
-      return fromN3(value)
+      return fromN3(value.slice(0, value.length - 1))
     }
-    return fromN3(`<${value}>`)
+    return fromN3(value)
   }
 
   /**
@@ -129,7 +129,7 @@ export namespace rdf {
    * @return A new typed Literal in RDFJS format
    */
   export function createTypedLiteral (value: any, type: string): Term {
-    return fromN3(`"${value}"^^<${type}>`)
+    return fromN3(`"${value}"^^${type}`)
   }
 
   /**
@@ -174,7 +174,7 @@ export namespace rdf {
    * @return A new boolean in RDFJS format
    */
   export function createTrue (): Term {
-    return fromN3(`"true"^^<${XSD('boolean')}>`)
+    return fromN3(`"true"^^${XSD('boolean')}`)
   }
 
   /**

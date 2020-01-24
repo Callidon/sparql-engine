@@ -60,7 +60,7 @@ function bindArgument (variable: string): (bindings: Bindings) => Term | null {
  * Compile and evaluate a SPARQL expression (found in FILTER clauses, for example)
  * @author Thomas Minier
  */
-export default class SPARQLExpression {
+export class SPARQLExpression {
   private readonly _expression: CompiledExpression
 
   /**

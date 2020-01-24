@@ -26,10 +26,10 @@ SOFTWARE.
 
 import { Pipeline } from '../engine/pipeline/pipeline'
 import { PipelineStage } from '../engine/pipeline/pipeline-engine'
-import SPARQLExpression from './expressions/sparql-expression'
 import { Algebra } from 'sparqljs'
 import { Bindings } from '../rdf/bindings'
-import { CustomFunctions } from '../engine/plan-builder'
+import { SPARQLExpression, CustomFunctions } from './expressions/sparql-expression'
+import { rdf } from '../utils'
 
 /**
  * Apply a SPARQL BIND clause
@@ -48,7 +48,7 @@ export default function bind (source: PipelineStage<Bindings>, variable: string,
     try {
       const value: any = expr.evaluate(bindings)
       if (value !== null) {
-        res.set(variable, value.asRDF)
+        res.set(variable, rdf.toN3(value))
       }
     } catch (e) {
       // silence errors

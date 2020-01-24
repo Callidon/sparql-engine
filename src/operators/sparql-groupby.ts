@@ -84,7 +84,7 @@ export default function sparqlGroupBy (source: PipelineStage<Bindings>, variable
       // parse each binding in the intermediate format used by SPARQL expressions
       // and insert it into the corresponding group
     bindings.forEach((variable, value) => {
-      groups.get(key)[variable].push(rdf.parseTerm(value))
+      groups.get(key)[variable].push(rdf.fromN3(value))
     })
     return null
   })
