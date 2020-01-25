@@ -205,6 +205,14 @@ export namespace rdf {
   }
 
   /**
+   * Creates an unbounded literal, used when a variable is not bounded in a set of bindings
+   * @return A new literal in RDFJS format
+   */
+  export function createUnbound (): Literal {
+    return createLiteral('UNBOUND')
+  }
+
+  /**
    * Clone a literal and replace its value with another one
    * @param  base     - Literal to clone
    * @param  newValue - New literal value

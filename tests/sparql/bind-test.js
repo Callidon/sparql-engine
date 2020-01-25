@@ -104,4 +104,31 @@ describe('SPARQL BIND', () => {
       done()
     })
   })
+
+  it('should evaluate a BIND clause with the COALESCE function', done => {
+    const query = `
+    PREFIX dblp-pers: <https://dblp.org/pers/m/>
+    PREFIX dblp-rdf: <https://dblp.uni-trier.de/rdf/schema-2017-04-18#>
+    PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+    SELECT * WHERE {
+      ?s rdf:type dblp-rdf:Person .
+      BIND(COALESCE(?s, "toto") AS ?s2)
+      BIND(COALESCE(?x, "Thomas Minier") AS ?name)
+      BIND(COALESCE(?x, ?y) AS ?undefined)
+    }`
+    const results = []
+
+    const iterator = engine.execute(query)
+    iterator.subscribe(b => {
+      b = b.toObject()
+      expect(b).to.have.all.keys('?s', '?s2', '?name', '?undefined')
+      expect(b['?s2']).to.equal(b['?s'])
+      expect(b['?name']).to.equal('"Thomas Minier"')
+      expect(b['?undefined']).to.equal('"UNBOUND"')
+      results.push(b)
+    }, done, () => {
+      expect(results.length).to.equal(1)
+      done()
+    })
+  })
 })

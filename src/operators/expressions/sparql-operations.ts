@@ -56,6 +56,17 @@ function applyHash (hashType: string): (v: Term) => Term {
  */
 export default {
   /*
+    COALESCE function https://www.w3.org/TR/sparql11-query/#func-coalesce
+  */
+  'coalesce': function (baseValue: Term | null, defaultValue: Term | null): Term {
+    if (!isNull(baseValue)) {
+      return baseValue
+    } else if (!isNull(defaultValue)) {
+      return defaultValue
+    }
+    return rdf.createUnbound()
+  },
+  /*
     XQuery & XPath functions https://www.w3.org/TR/sparql11-query/#OperatorMapping
   */
   '+': function (a: Term, b: Term): Term {
