@@ -36,22 +36,89 @@ describe('Non standard SPARQL functions', () => {
 
   const data = [
     {
-      name: 'cosh',
+      name: 'sef:cosh',
       query: `
-      PREFIX dblp-rdf: <https://dblp.uni-trier.de/rdf/schema-2017-04-18#>
-      PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
       PREFIX sef: <https://callidon.github.io/sparql-engine/functions#>
       SELECT ?x WHERE {
-        ?s rdf:type dblp-rdf:Person .
-        BIND(sef:cosh(10) AS ?x)
+        ?s a <https://dblp.uni-trier.de/rdf/schema-2017-04-18#Person> .
+        BIND(sef:cosh(1) AS ?x)
       }`,
       results: [
         {
-          '?x': '"11013.232920103324"^^http://www.w3.org/2001/XMLSchema#float'
+          '?x': '"1.5430806348152437"^^http://www.w3.org/2001/XMLSchema#float'
         }
       ]
     },
-    
+    {
+      name: 'sef:sinh',
+      query: `
+      PREFIX sef: <https://callidon.github.io/sparql-engine/functions#>
+      SELECT ?x WHERE {
+        ?s a <https://dblp.uni-trier.de/rdf/schema-2017-04-18#Person> .
+        BIND(sef:sinh(1) AS ?x)
+      }`,
+      results: [
+        {
+          '?x': '"1.1752011936438014"^^http://www.w3.org/2001/XMLSchema#float'
+        }
+      ]
+    },
+    {
+      name: 'sef:tanh',
+      query: `
+      PREFIX sef: <https://callidon.github.io/sparql-engine/functions#>
+      SELECT ?x WHERE {
+        ?s a <https://dblp.uni-trier.de/rdf/schema-2017-04-18#Person> .
+        BIND(sef:tanh(1) AS ?x)
+      }`,
+      results: [
+        {
+          '?x': '"0.7615941559557649"^^http://www.w3.org/2001/XMLSchema#float'
+        }
+      ]
+    },
+    {
+      name: 'sef:coth',
+      query: `
+      PREFIX sef: <https://callidon.github.io/sparql-engine/functions#>
+      SELECT ?x WHERE {
+        ?s a <https://dblp.uni-trier.de/rdf/schema-2017-04-18#Person> .
+        BIND(sef:coth(1) AS ?x)
+      }`,
+      results: [
+        {
+          '?x': '"1.3130352854993312"^^http://www.w3.org/2001/XMLSchema#float'
+        }
+      ]
+    },
+    {
+      name: 'sef:sech',
+      query: `
+      PREFIX sef: <https://callidon.github.io/sparql-engine/functions#>
+      SELECT ?x WHERE {
+        ?s a <https://dblp.uni-trier.de/rdf/schema-2017-04-18#Person> .
+        BIND(sef:sech(1) AS ?x)
+      }`,
+      results: [
+        {
+          '?x': '"0.6480542736638853"^^http://www.w3.org/2001/XMLSchema#float'
+        }
+      ]
+    },
+    {
+      name: 'sef:csch',
+      query: `
+      PREFIX sef: <https://callidon.github.io/sparql-engine/functions#>
+      SELECT ?x WHERE {
+        ?s a <https://dblp.uni-trier.de/rdf/schema-2017-04-18#Person> .
+        BIND(sef:csch(1) AS ?x)
+      }`,
+      results: [
+        {
+          '?x': '"0.8509181282393214"^^http://www.w3.org/2001/XMLSchema#float'
+        }
+      ]
+    },
   ]
 
   data.forEach(d => {
