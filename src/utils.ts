@@ -425,6 +425,16 @@ export namespace rdf {
   }
 
   /**
+   * Create an IRI under the SEF namespace
+   * (<https://callidon.github.io/sparql-engine/functions#>)
+   * @param suffix - Suffix appended to the SES namespace to create an IRI
+   * @return An new IRI, under the SES namespac
+   */
+  export function SEF (suffix: string): string {
+    return `https://callidon.github.io/sparql-engine/functions#${suffix}`
+  }
+
+  /**
    * Create an IRI under the SES namespace
    * (<https://callidon.github.io/sparql-engine/search#>)
    * @param suffix - Suffix appended to the SES namespace to create an IRI

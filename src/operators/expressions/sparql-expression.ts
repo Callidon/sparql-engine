@@ -26,6 +26,7 @@ SOFTWARE.
 
 import SPARQL_AGGREGATES from './sparql-aggregates'
 import SPARQL_OPERATIONS from './sparql-operations'
+import CUSTOM_OPERATIONS from './custom-operations'
 import { rdf } from '../../utils'
 import { isArray, isString, uniqBy } from 'lodash'
 import { Algebra } from 'sparqljs'
@@ -77,7 +78,7 @@ export class SPARQLExpression {
    * @return Compiled SPARQL expression
    */
   private _compileExpression (expression: InputExpression, customFunctions?: CustomFunctions): CompiledExpression {
-    // simple case: the expression is a SPARQL variable or a RDF term
+    // case 1: the expression is a SPARQL variable to bound or a RDF term
     if (isString(expression)) {
       if (rdf.isVariable(expression)) {
         return bindArgument(expression)
@@ -85,12 +86,14 @@ export class SPARQLExpression {
       const compiledTerm = rdf.fromN3(expression)
       return () => compiledTerm
     } else if (isArray(expression)) {
-      // IN and NOT IN expressions accept arrays as argument
+      // case 2: the expression is a list of RDF terms
+      // because IN and NOT IN expressions accept arrays as argument
       const compiledTerms = expression.map(rdf.fromN3)
       return () => compiledTerms
     } else if (expression.type === 'operation') {
+      // case 3: a SPARQL operation, so we recursively compile each argument
+      // and then evaluate the expression
       const opExpression = expression as Algebra.SPARQLExpression
-      // operation case: recursively compile each argument, then evaluate the expression
       const args = opExpression.args.map(arg => this._compileExpression(arg, customFunctions))
       if (!(opExpression.operator in SPARQL_OPERATIONS)) {
         throw new Error(`Unsupported SPARQL operation: ${opExpression.operator}`)
@@ -100,8 +103,8 @@ export class SPARQLExpression {
         return operation(...args.map(arg => arg(bindings)))
       }
     } else if (expression.type === 'aggregate') {
+      // case 3: a SPARQL aggregation
       const aggExpression = expression as Algebra.AggregateExpression
-      // aggregation case
       if (!(aggExpression.aggregation in SPARQL_AGGREGATES)) {
         throw new Error(`Unsupported SPARQL aggregation: ${aggExpression.aggregation}`)
       }
@@ -118,11 +121,22 @@ export class SPARQLExpression {
         return bindings
       }
     } else if (expression.type === 'functionCall') {
+      // last case: the expression is a custom function
       const functionExpression = expression as Algebra.FunctionCallExpression
-      const customFunction =
-        (customFunctions && customFunctions[functionExpression.function])
+      let customFunction: any
+      // custom operations defined by the framework
+      if (functionExpression.function.startsWith('https://callidon.github.io/sparql-engine/functions#')) {
+        customFunction =
+        functionExpression.function in CUSTOM_OPERATIONS
+          ? CUSTOM_OPERATIONS[functionExpression.function]
+          : null
+      } else {
+        // custom operations defined by the user
+        customFunction =
+        (customFunctions && functionExpression.function in customFunctions)
           ? customFunctions[functionExpression.function]
           : null
+      }
 
       if (!customFunction) {
         throw new Error(`Custom function could not be found: ${functionExpression.function}`)
