@@ -472,5 +472,90 @@ export default {
   'sha1': applyHash('sha1'),
   'sha256': applyHash('sha256'),
   'sha384': applyHash('sha384'),
-  'sha512': applyHash('sha512')
+  'sha512': applyHash('sha512'),
+
+  /*
+    Non-standard SPARQL functions, specific to the sparql-engine framework
+  */
+
+  /*
+    Hyperbolic functions (cosh, sinh, tanh, ...)
+    https://en.wikipedia.org/wiki/Hyperbolic_function
+  */
+
+  // Hyperbolic cosinus
+  'cosh': function (x: Term): Term {
+    if (rdf.termIsLiteral(x) && rdf.literalIsNumeric(x)) {
+      const value = rdf.asJS(x.value, x.datatype.value)
+      return rdf.createFloat((Math.exp(value) + Math.exp(-value)) / 2)
+    }
+    throw new SyntaxError(`SPARQL expression error: cannot compute the hyperbolic cosinus of ${x}, as it is not a number`)
+  },
+
+  // Hyperbolic sinus
+  'sinh': function (x: Term): Term {
+    if (rdf.termIsLiteral(x) && rdf.literalIsNumeric(x)) {
+      const value = rdf.asJS(x.value, x.datatype.value)
+      return rdf.createFloat((Math.exp(value) - Math.exp(-value)) / 2)
+    }
+    throw new SyntaxError(`SPARQL expression error: cannot compute the hyperbolic sinus of ${x}, as it is not a number`)
+  },
+
+  // Hyperbolic tangant
+  'tanh': function (x: Term): Term {
+    if (rdf.termIsLiteral(x) && rdf.literalIsNumeric(x)) {
+      const value = rdf.asJS(x.value, x.datatype.value)
+      return rdf.createFloat((Math.exp(2 * value) - 1) / (Math.exp(2 * value) + 1))
+    }
+    throw new SyntaxError(`SPARQL expression error: cannot compute the hyperbolic tangent of ${x}, as it is not a number`)
+  },
+
+  // Hyperbolic cotangent
+  'coth': function (x: Term): Term {
+    if (rdf.termIsLiteral(x) && rdf.literalIsNumeric(x)) {
+      const value = rdf.asJS(x.value, x.datatype.value)
+      if (value === 0) {
+        throw new SyntaxError(`SPARQL expression error: cannot compute the hyperbolic cotangent of ${x}, as it is equals to 0`)
+      }
+      return rdf.createFloat((Math.exp(2 * value) + 1) / (Math.exp(2 * value) - 1))
+    }
+    throw new SyntaxError(`SPARQL expression error: cannot compute the hyperbolic cotangent of ${x}, as it is not a number`)
+  },
+
+  // Hyperbolic secant
+  'sech': function (x: Term): Term {
+    if (rdf.termIsLiteral(x) && rdf.literalIsNumeric(x)) {
+      const value = rdf.asJS(x.value, x.datatype.value)
+      return rdf.createFloat((2 * Math.exp(value)) / (Math.exp(2 * value) + 1))
+    }
+    throw new SyntaxError(`SPARQL expression error: cannot compute the hyperbolic secant of ${x}, as it is not a number`)
+  },
+
+  // Hyperbolic cosecant
+  'csch': function (x: Term): Term {
+    if (rdf.termIsLiteral(x) && rdf.literalIsNumeric(x)) {
+      const value = rdf.asJS(x.value, x.datatype.value)
+      return rdf.createFloat((2 * Math.exp(value)) / (Math.exp(2 * value) - 1))
+    }
+    throw new SyntaxError(`SPARQL expression error: cannot compute the hyperbolic cosecant of ${x}, as it is not a number`)
+  },
+
+  /*
+    Randians to Degree & Degrees to Randians transformations
+  */
+  'toDegrees': function (x: Term): Term {
+    if (rdf.termIsLiteral(x) && rdf.literalIsNumeric(x)) {
+      const value = rdf.asJS(x.value, x.datatype.value)
+      return rdf.createFloat(value * (180 / Math.PI))
+    }
+    throw new SyntaxError(`SPARQL expression error: cannot convert ${x} to degrees, as it is does not look like radians`)
+  },
+
+  'toRadians': function (x: Term): Term {
+    if (rdf.termIsLiteral(x) && rdf.literalIsNumeric(x)) {
+      const value = rdf.asJS(x.value, x.datatype.value)
+      return rdf.createFloat(value * (Math.PI / 180))
+    }
+    throw new SyntaxError(`SPARQL expression error: cannot convert ${x} to radians, as it is does not look like degrees`)
+  },
 }
