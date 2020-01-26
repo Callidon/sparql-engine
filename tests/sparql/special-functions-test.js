@@ -119,6 +119,22 @@ describe('Non standard SPARQL functions', () => {
         }
       ]
     },
+    {
+      name: 'sea:ACCURACY',
+      query: `
+      PREFIX sea: <https://callidon.github.io/sparql-engine/aggregates#>
+      SELECT (sea:ACCURACY(?x, ?y) AS ?acc) WHERE {
+        ?s a <https://dblp.uni-trier.de/rdf/schema-2017-04-18#Person> .
+        BIND(10 AS ?x)
+        BIND(5 AS ?y)
+      }
+      GROUP BY ?x ?y`,
+      results: [
+        {
+          '?acc': '"0"^^http://www.w3.org/2001/XMLSchema#float'
+        }
+      ]
+    },
   ]
 
   data.forEach(d => {

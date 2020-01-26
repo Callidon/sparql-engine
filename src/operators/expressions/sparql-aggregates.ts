@@ -28,6 +28,8 @@ import { rdf } from '../../utils'
 import { maxBy, meanBy, minBy, sample } from 'lodash'
 import { Term } from 'rdf-js'
 
+type TermRows = { [key: string]: Term[] }
+
 /**
  * SPARQL Aggregation operations.
  * Each operation takes an arguments a SPARQL variable and a row of bindings, i.e., a list of
@@ -37,14 +39,14 @@ import { Term } from 'rdf-js'
  * @author Thomas Minier
  */
 export default {
-  'count': function (variable: string, rows: Object[]): Term {
+  'count': function (variable: string, rows: TermRows): Term {
     let count: number = 0
     if (variable in rows) {
       count = rows[variable].map((v: Term) => v !== null).length
     }
     return rdf.createInteger(count)
   },
-  'sum': function (variable: string, rows: Object[]): Term {
+  'sum': function (variable: string, rows: TermRows): Term {
     let sum = 0
     if (variable in rows) {
       sum = rows[variable].reduce((acc: number, b: Term) => {
@@ -57,7 +59,7 @@ export default {
     return rdf.createInteger(sum)
   },
 
-  'avg': function (variable: string, rows: Object[]): Term {
+  'avg': function (variable: string, rows: TermRows): Term {
     let avg = 0
     if (variable in rows) {
       avg = meanBy(rows[variable], (term: Term) => {
@@ -69,7 +71,7 @@ export default {
     return rdf.createInteger(avg)
   },
 
-  'min': function (variable: string, rows: Object[]): Term {
+  'min': function (variable: string, rows: TermRows): Term {
     return minBy(rows[variable], (v: Term) => {
       if (rdf.termIsLiteral(v)) {
         return rdf.asJS(v.value, v.datatype.value)
@@ -78,7 +80,7 @@ export default {
     }) || rdf.createInteger(-1)
   },
 
-  'max': function (variable: string, rows: Object[]): Term {
+  'max': function (variable: string, rows: TermRows): Term {
     return maxBy(rows[variable], (v: Term) => {
       if (rdf.termIsLiteral(v)) {
         return rdf.asJS(v.value, v.datatype.value)
@@ -87,12 +89,12 @@ export default {
     }) || rdf.createInteger(-1)
   },
 
-  'group_concat': function (variable: string, rows: Object[], sep: string): Term {
+  'group_concat': function (variable: string, rows: TermRows, sep: string): Term {
     const value = rows[variable].map((v: Term) => v.value).join(sep)
     return rdf.createLiteral(value)
   },
 
-  'sample': function (variable: string, rows: Object[]): Term {
-    return sample(rows[variable])
+  'sample': function (variable: string, rows: TermRows): Term {
+    return sample(rows[variable])!
   }
 }

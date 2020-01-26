@@ -26,6 +26,7 @@ SOFTWARE.
 
 import SPARQL_AGGREGATES from './sparql-aggregates'
 import SPARQL_OPERATIONS from './sparql-operations'
+import CUSTOM_AGGREGATES from './custom-aggregates'
 import CUSTOM_OPERATIONS from './custom-operations'
 import { rdf } from '../../utils'
 import { isArray, isString, uniqBy } from 'lodash'
@@ -124,11 +125,18 @@ export class SPARQLExpression {
       // last case: the expression is a custom function
       const functionExpression = expression as Algebra.FunctionCallExpression
       let customFunction: any
+      let isAggregate = false
       // custom operations defined by the framework
       if (functionExpression.function.startsWith('https://callidon.github.io/sparql-engine/functions#')) {
         customFunction =
         functionExpression.function in CUSTOM_OPERATIONS
           ? CUSTOM_OPERATIONS[functionExpression.function]
+          : null
+      } else if (functionExpression.function.startsWith('https://callidon.github.io/sparql-engine/aggregates#')) {
+        isAggregate = true
+        customFunction =
+        functionExpression.function in CUSTOM_AGGREGATES
+          ? CUSTOM_AGGREGATES[functionExpression.function]
           : null
       } else {
         // custom operations defined by the user
@@ -137,9 +145,17 @@ export class SPARQLExpression {
           ? customFunctions[functionExpression.function]
           : null
       }
-
       if (!customFunction) {
         throw new Error(`Custom function could not be found: ${functionExpression.function}`)
+      }
+      if (isAggregate) {
+        return (bindings: Bindings) => {
+          if (bindings.hasProperty('__aggregate')) {
+            const rows = bindings.getProperty('__aggregate')
+            return customFunction(...functionExpression.args, rows)
+          }
+          return bindings
+        }
       }
       return (bindings: Bindings) => {
         try {
