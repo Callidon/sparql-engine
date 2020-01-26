@@ -40,7 +40,6 @@ describe('Non standard SPARQL functions', () => {
       query: `
       PREFIX sef: <https://callidon.github.io/sparql-engine/functions#>
       SELECT ?x WHERE {
-        ?s a <https://dblp.uni-trier.de/rdf/schema-2017-04-18#Person> .
         BIND(sef:cosh(1) AS ?x)
       }`,
       results: [
@@ -54,7 +53,6 @@ describe('Non standard SPARQL functions', () => {
       query: `
       PREFIX sef: <https://callidon.github.io/sparql-engine/functions#>
       SELECT ?x WHERE {
-        ?s a <https://dblp.uni-trier.de/rdf/schema-2017-04-18#Person> .
         BIND(sef:sinh(1) AS ?x)
       }`,
       results: [
@@ -68,7 +66,6 @@ describe('Non standard SPARQL functions', () => {
       query: `
       PREFIX sef: <https://callidon.github.io/sparql-engine/functions#>
       SELECT ?x WHERE {
-        ?s a <https://dblp.uni-trier.de/rdf/schema-2017-04-18#Person> .
         BIND(sef:tanh(1) AS ?x)
       }`,
       results: [
@@ -82,7 +79,6 @@ describe('Non standard SPARQL functions', () => {
       query: `
       PREFIX sef: <https://callidon.github.io/sparql-engine/functions#>
       SELECT ?x WHERE {
-        ?s a <https://dblp.uni-trier.de/rdf/schema-2017-04-18#Person> .
         BIND(sef:coth(1) AS ?x)
       }`,
       results: [
@@ -96,7 +92,6 @@ describe('Non standard SPARQL functions', () => {
       query: `
       PREFIX sef: <https://callidon.github.io/sparql-engine/functions#>
       SELECT ?x WHERE {
-        ?s a <https://dblp.uni-trier.de/rdf/schema-2017-04-18#Person> .
         BIND(sef:sech(1) AS ?x)
       }`,
       results: [
@@ -110,28 +105,11 @@ describe('Non standard SPARQL functions', () => {
       query: `
       PREFIX sef: <https://callidon.github.io/sparql-engine/functions#>
       SELECT ?x WHERE {
-        ?s a <https://dblp.uni-trier.de/rdf/schema-2017-04-18#Person> .
         BIND(sef:csch(1) AS ?x)
       }`,
       results: [
         {
           '?x': '"0.8509181282393214"^^http://www.w3.org/2001/XMLSchema#float'
-        }
-      ]
-    },
-    {
-      name: 'sea:ACCURACY',
-      query: `
-      PREFIX sea: <https://callidon.github.io/sparql-engine/aggregates#>
-      SELECT (sea:ACCURACY(?x, ?y) AS ?acc) WHERE {
-        ?s a <https://dblp.uni-trier.de/rdf/schema-2017-04-18#Person> .
-        BIND(10 AS ?x)
-        BIND(5 AS ?y)
-      }
-      GROUP BY ?x ?y`,
-      results: [
-        {
-          '?acc': '"0"^^http://www.w3.org/2001/XMLSchema#float'
         }
       ]
     },
