@@ -26,9 +26,19 @@ SOFTWARE.
 
 import { Term } from 'rdf-js'
 import { rdf } from '../../utils'
-import { isUndefined, sum, zip } from 'lodash'
+import { intersectionWith, isUndefined, sum, zip } from 'lodash'
 
 type TermRows = { [key: string]: Term[] }
+
+function precision (expected: Term[], predicted: Term[]): number {
+  const intersection = intersectionWith(expected, predicted, (x, y) => rdf.termEquals(x, y))
+  return intersection.length / predicted.length
+}
+
+function recall (expected: Term[], predicted: Term[]): number {
+  const intersection = intersectionWith(expected, predicted, (x, y) => rdf.termEquals(x, y))
+  return intersection.length / expected.length
+}
 
 /**
  * Implementation of Non standard SPARQL aggregations offered by the framework
@@ -100,5 +110,31 @@ export default {
       throw new SyntaxError(`SPARQL aggregation error: cannot compute mean square error between RDF Terms ${expected} and ${predicted}, as they are not numbers`)
     })
     return rdf.createFloat(Math.sqrt((1 / values.length) * sum(values)))
+  },
+
+  // Precision: the fraction of retrieved values that are relevant to the query
+  'https://callidon.github.io/sparql-engine/aggregates#precision': function (a: string, b: string, rows: TermRows): Term {
+    if (!(a in rows) || !(b in rows)) {
+      return rdf.createFloat(0)
+    }
+    return rdf.createFloat(precision(rows[a], rows[b]))
+  },
+
+  // Recall: the fraction of retrieved values that are successfully retrived
+  'https://callidon.github.io/sparql-engine/aggregates#recall': function (a: string, b: string, rows: TermRows): Term {
+    if (!(a in rows) || !(b in rows)) {
+      return rdf.createFloat(0)
+    }
+    return rdf.createFloat(recall(rows[a], rows[b]))
+  },
+
+  // F1 score: The F1 score can be interpreted as a weighted average of the precision and recall, where an F1 score reaches its best value at 1 and worst score at 0.
+  'https://callidon.github.io/sparql-engine/aggregates#f1': function (a: string, b: string, rows: TermRows): Term {
+    if (!(a in rows) || !(b in rows)) {
+      return rdf.createFloat(0)
+    }
+    const prec = precision(rows[a], rows[b])
+    const rec = recall(rows[a], rows[b])
+    return rdf.createFloat(2 * (prec * rec) / (prec + rec))
   },
 }
