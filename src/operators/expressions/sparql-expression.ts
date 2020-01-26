@@ -156,15 +156,16 @@ export class SPARQLExpression {
       // last case: the expression is a custom function
       let customFunction: any
       let isAggregate = false
+      const functionName = expression.function
       // custom aggregations defined by the framework
-      if (expression.function in CUSTOM_AGGREGATES) {
+      if (functionName.toLowerCase() in CUSTOM_AGGREGATES) {
         isAggregate = true
-        customFunction = CUSTOM_AGGREGATES[expression.function]
-      } else if (expression.function in customFunctions) {
+        customFunction = CUSTOM_AGGREGATES[functionName.toLowerCase()]
+      } else if (functionName in customFunctions) {
         // custom operations defined by the user & the framework
-        customFunction = customFunctions[expression.function]
+        customFunction = customFunctions[functionName]
       } else {
-        throw new SyntaxError(`Custom function could not be found: ${expression.function}`)
+        throw new SyntaxError(`Custom function could not be found: ${functionName}`)
       }
       if (isAggregate) {
         return (bindings: Bindings) => {
@@ -172,7 +173,7 @@ export class SPARQLExpression {
             const rows = bindings.getProperty('__aggregate')
             return customFunction(...expression.args, rows)
           }
-          throw new SyntaxError(`SPARQL aggregation error: you are trying to use the ${expression.function} SPARQL aggregate outside of an aggregation query.`)
+          throw new SyntaxError(`SPARQL aggregation error: you are trying to use the ${functionName} SPARQL aggregate outside of an aggregation query.`)
         }
       }
       return (bindings: Bindings) => {

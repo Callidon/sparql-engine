@@ -36,10 +36,10 @@ describe('Non standard SPARQL aggregates', () => {
 
   const data = [
     {
-      name: 'sea:ACCURACY',
+      name: 'sea:accuracy',
       query: `
       PREFIX sea: <https://callidon.github.io/sparql-engine/aggregates#>
-      SELECT (sea:ACCURACY(?x, ?y) AS ?acc) WHERE {
+      SELECT (sea:accuracy(?x, ?y) AS ?acc) WHERE {
         { BIND(10 AS ?x) BIND(5 AS ?y) }
         UNION
         { BIND(10 AS ?x) BIND(10 AS ?y) }
@@ -48,6 +48,26 @@ describe('Non standard SPARQL aggregates', () => {
       results: [
         {
           '?acc': '"0.5"^^http://www.w3.org/2001/XMLSchema#float'
+        }
+      ]
+    },
+    {
+      name: 'sea:gmean',
+      query: `
+      PREFIX sea: <https://callidon.github.io/sparql-engine/aggregates#>
+      SELECT (sea:gmean(?x) AS ?gmean) WHERE {
+        { 
+          { BIND(1 as ?g) BIND(4 AS ?x) }
+          UNION
+          { BIND(1 as ?g) BIND(1 AS ?x) }
+        }
+        UNION
+        { BIND(1 as ?g) BIND(1/32 AS ?x) }
+      }
+      GROUP BY ?g`,
+      results: [
+        {
+          '?gmean': '"0.5"^^http://www.w3.org/2001/XMLSchema#float'
         }
       ]
     },

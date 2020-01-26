@@ -42,7 +42,7 @@ export default {
 
   // Accuracy: computes percentage of times two variables have different values
   // In regular SPARQL, equivalent to sum(if(?a = ?b, 1, 0)) / count(*)
-  'https://callidon.github.io/sparql-engine/aggregates#ACCURACY': function (a: string, b: string, rows: TermRows): Term {
+  'https://callidon.github.io/sparql-engine/aggregates#accuracy': function (a: string, b: string, rows: TermRows): Term {
     const tests = zip(rows[a], rows[b]).map(v => {
       if (isUndefined(v[0]) || isUndefined(v[1])) {
         return 0
@@ -50,5 +50,22 @@ export default {
       return rdf.termEquals(v[0], v[1]) ? 1 : 0
     })
     return rdf.createFloat(sum(tests) / tests.length)
+  },
+
+  // Geometric mean (https://en.wikipedia.org/wiki/Geometric_mean)
+  // "The geometric mean is a mean or average, which indicates the central tendency or typical value of a set of
+  // numbers by using the product of their values (as opposed to the arithmetic mean which uses their sum)."
+  'https://callidon.github.io/sparql-engine/aggregates#gmean': function (variable: string, rows: TermRows): Term {
+    if (variable in rows) {
+      const count = rows[variable].length
+      const product = rows[variable].map(term => {
+        if (rdf.termIsLiteral(term) && rdf.literalIsNumeric(term)) {
+          return rdf.asJS(term.value, term.datatype.value)
+        }
+        return 1
+      }).reduce((acc, value) => acc * value, 1)
+      return rdf.createFloat(Math.pow(product, 1 / count))
+    }
+    throw new SyntaxError(`SPARQL aggregation error: the variable ${variable} cannot be found in the groups ${rows}`)
   }
 }
