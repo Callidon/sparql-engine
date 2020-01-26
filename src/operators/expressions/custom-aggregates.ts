@@ -67,5 +67,38 @@ export default {
       return rdf.createFloat(Math.pow(product, 1 / count))
     }
     throw new SyntaxError(`SPARQL aggregation error: the variable ${variable} cannot be found in the groups ${rows}`)
-  }
+  },
+
+  // Mean Square error: computes the average of the squares of the errors, that is
+  // the average squared difference between the estimated values and the actual value.
+  // In regular SPARQL, equivalent to sum(?a - ?b) * (?a - ?b / count(*))
+  'https://callidon.github.io/sparql-engine/aggregates#mse': function (a: string, b: string, rows: TermRows): Term {
+    const values = zip(rows[a], rows[b]).map(v => {
+      const expected = v[0]
+      const predicted = v[1]
+      if (isUndefined(predicted) || isUndefined(expected)) {
+        return 0
+      } else if (rdf.termIsLiteral(predicted) && rdf.termIsLiteral(expected) && rdf.literalIsNumeric(predicted) && rdf.literalIsNumeric(expected)) {
+        return Math.pow(rdf.asJS(expected.value, expected.datatype.value) - rdf.asJS(predicted.value, predicted.datatype.value), 2)
+      }
+      throw new SyntaxError(`SPARQL aggregation error: cannot compute mean square error between RDF Terms ${expected} and ${predicted}, as they are not numbers`)
+    })
+    return rdf.createFloat((1 / values.length) * sum(values))
+  },
+
+  // Root mean Square error: computes the root of the average of the squares of the errors
+  // In regular SPARQL, equivalent to sqrt(sum(?a - ?b) * (?a - ?b / count(*)))
+  'https://callidon.github.io/sparql-engine/aggregates#rmse': function (a: string, b: string, rows: TermRows): Term {
+    const values = zip(rows[a], rows[b]).map(v => {
+      const expected = v[0]
+      const predicted = v[1]
+      if (isUndefined(predicted) || isUndefined(expected)) {
+        return 0
+      } else if (rdf.termIsLiteral(predicted) && rdf.termIsLiteral(expected) && rdf.literalIsNumeric(predicted) && rdf.literalIsNumeric(expected)) {
+        return Math.pow(rdf.asJS(expected.value, expected.datatype.value) - rdf.asJS(predicted.value, predicted.datatype.value), 2)
+      }
+      throw new SyntaxError(`SPARQL aggregation error: cannot compute mean square error between RDF Terms ${expected} and ${predicted}, as they are not numbers`)
+    })
+    return rdf.createFloat(Math.sqrt((1 / values.length) * sum(values)))
+  },
 }

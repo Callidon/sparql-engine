@@ -71,6 +71,22 @@ describe('Non standard SPARQL aggregates', () => {
         }
       ]
     },
+    {
+      name: 'sea:rmse',
+      query: `
+      PREFIX sea: <https://callidon.github.io/sparql-engine/aggregates#>
+      SELECT (sea:rmse(?x, ?y) AS ?mse) WHERE { 
+        { BIND(1 as ?g) BIND(10 AS ?x) BIND(5 AS ?y) }
+        UNION
+        { BIND(1 as ?g) BIND(5 AS ?x) BIND(8 AS ?y) }
+      }
+      GROUP BY ?g`,
+      results: [
+        {
+          '?mse': '"4.123105625617661"^^http://www.w3.org/2001/XMLSchema#float'
+        }
+      ]
+    },
   ]
 
   data.forEach(d => {
