@@ -276,14 +276,14 @@ The `sparql-engine` framework provides a supports for declaring such custom func
 A SPARQL value function is an extension point of the SPARQL query language that allows URI to name a function in the query processor.
 It is defined by an `IRI` in a `FILTER`, `BIND` or `HAVING BY` expression.
 To register custom functions, you must create a JSON object that maps each function's `IRI` to a Javascript function that takes a variable number of **RDF Terms** arguments and returns one of the following:
-* A new RDF Term (an IRI, Literal or Blank Node).
+* A new RDF Term (an IRI, a Literal or a Blank Node) in RDF.js format.
 * An array of RDF Terms.
 * An [Iterable](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols) or a [Generator](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Generator) that yields RDF Terms.
 * The `null` value, to indicates that the function's evaluation has failed.
 
 RDF Terms are represented using the [RDF.js data model](http://rdf.js.org/data-model-spec/).
 The [`rdf` subpackage](https://callidon.github.io/sparql-engine/modules/rdf.html) exposes a lot
-of utilities methods to manipulate such terms in the context of custom SPARQL functions.
+of utilities methods to create and manipulate RDF.js terms in the context of custom SPARQL functions.
 
 The following shows a declaration of some simple custom functions.
 ```javascript
@@ -297,7 +297,7 @@ const customFunctions = {
     const reverseValue = rdfTerm.value.split("").reverse().join("")
     return rdf.shallowCloneTerm(rdfTerm, reverseValue)
   },
-  // Test if a RDF Luteral is a palindrome
+  // Test if a RDF Literal is a palindrome
   'http://example.com#IS_PALINDROME': function (rdfTerm) {
     const result = rdfTerm.value.split("").reverse().join("") === rdfTerm.value
     return rdf.createBoolean(result)
