@@ -113,6 +113,23 @@ describe('Non standard SPARQL functions', () => {
         }
       ]
     },
+    {
+      name: 'sef:strsplit',
+      query: `
+      PREFIX sef: <https://callidon.github.io/sparql-engine/functions#>
+      SELECT ?y WHERE {
+        BIND("Thomas Minier" AS ?x)
+        BIND(sef:strsplit(?x, " ") AS ?y)
+      }`,
+      results: [
+        {
+          '?y': '"Thomas"'
+        },
+        {
+          '?y': '"Minier"'
+        }
+      ]
+    },
   ]
 
   data.forEach(d => {

@@ -60,15 +60,20 @@ export default function bind (source: PipelineStage<Bindings>, variable: string,
       if (value !== null && (isArray(value) || isIterable(value))) {
         // build a source of bindings from the array/iterable produced by the expression's evaluation
         return Pipeline.getInstance().fromAsync(input => {
-          for (let term of value) {
-            const mu = bindings.clone()
-            if (term === null) {
-              mu.set(variable, rdf.toN3(rdf.createUnbound()))
-            } else {
-              mu.set(variable, rdf.toN3(term))
+          try {
+            for (let term of value) {
+              const mu = bindings.clone()
+              if (term === null) {
+                mu.set(variable, rdf.toN3(rdf.createUnbound()))
+              } else {
+                mu.set(variable, rdf.toN3(term))
+              }
+              input.next(mu)
             }
-            input.next(mu)
+          } catch (e) {
+            input.error(e)
           }
+          input.complete()
         })
       } else {
         // simple case: bound the value to the given variable in the set of bindings

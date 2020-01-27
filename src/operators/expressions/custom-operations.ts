@@ -113,4 +113,18 @@ export default {
     }
     throw new SyntaxError(`SPARQL expression error: cannot convert ${x} to radians, as it is does not look like degrees`)
   },
+
+  /*
+    Generator functions, i.e? SPARQL expression whose evaluation generates several RDF Terms
+  */
+
+  // Split a RDF Term as a string using a separator
+  'https://callidon.github.io/sparql-engine/functions#strsplit': function (term: Term, separator: Term): Iterable<Term> {
+    return function * () {
+      for (let token of term.value.split(separator.value)) {
+        yield rdf.createLiteral(token)
+      }
+      return
+    }()
+  },
 }
