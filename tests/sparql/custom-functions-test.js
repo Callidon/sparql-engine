@@ -156,7 +156,7 @@ describe('SPARQL custom operators', () => {
     iterator.subscribe(b => {
       b = b.toObject()
       expect(b).to.have.keys('?error')
-      expect(b['?error']).to.equal('UNBOUND')
+      expect(b['?error']).to.equal('"UNBOUND"')
       results.push(b)
     }, done, () => {
       done()

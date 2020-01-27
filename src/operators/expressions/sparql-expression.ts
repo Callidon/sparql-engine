@@ -40,14 +40,23 @@ import { Term } from 'rdf-js'
 export type InputExpression = Algebra.Expression | string | string[]
 
 /**
+ * The output of a SPARQL expression's evaluation, one of the following
+ * * A RDFJS Term.
+ * * An array of RDFJS Terms.
+ * * An iterator that yields RDFJS Terms or null values.
+ * * A `null` value, which indicates that the expression's evaluation has failed.
+ */
+export type ExpressionOutput = Term | Term[] | Iterable<Term | null> | null
+
+/**
  * A SPARQL expression compiled as a function
  */
-export type CompiledExpression = (bindings: Bindings) => Term | Term[] | null
+export type CompiledExpression = (bindings: Bindings) => ExpressionOutput
 
 /**
  * Type alias to describe the shape of custom functions. It's basically a JSON object from an IRI (in string form) to a function of 0 to many RDFTerms that produces an RDFTerm.
  */
-export type CustomFunctions = { [key: string]: (...args: (Term | Term[] | null)[]) => Term }
+export type CustomFunctions = { [key: string]: (...args: (Term | Term[] | null)[]) => ExpressionOutput }
 
 /**
  * Test if a SPARQL expression is a SPARQL operation
@@ -197,7 +206,7 @@ export class SPARQLExpression {
    * @param  bindings - Set of mappings
    * @return Results of the evaluation
    */
-  evaluate (bindings: Bindings): Term | Term[] | null {
+  evaluate (bindings: Bindings): ExpressionOutput {
     return this._expression(bindings)
   }
 }
