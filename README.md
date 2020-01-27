@@ -275,33 +275,41 @@ The `sparql-engine` framework provides a supports for declaring such custom func
 
 A SPARQL value function is an extension point of the SPARQL query language that allows URI to name a function in the query processor.
 It is defined by an `IRI` in a `FILTER`, `BIND` or `HAVING BY` expression.
-To register custom functions, you must create a JSON object that maps each `IRI` to a Javascript function that takes a variable number of [RDFTerms](https://callidon.github.io/sparql-engine/interfaces/terms.rdfterm.html) arguments and returns an `RDFTerm`.
-See [the `terms` package documentation](https://callidon.github.io/sparql-engine/modules/terms.html) for more details on how to manipulate RDF terms.
+To register custom functions, you must create a JSON object that maps each function's `IRI` to a Javascript function that takes a variable number of **RDF Terms** arguments and returns one of the following:
+* A new RDF Term (an IRI, Literal or Blank Node).
+* An array of RDF Terms.
+* An [Iterable](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols) or a [Generator](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Generator) that yields RDF Terms.
+* The `null` value, to indicates that the function's evaluation has failed.
+
+RDF Terms are represented using the [RDF.js data model](http://rdf.js.org/data-model-spec/).
+The [`rdf` subpackage](https://callidon.github.io/sparql-engine/modules/rdf.html) exposes a lot
+of utilities methods to manipulate such terms in the context of custom SPARQL functions.
 
 The following shows a declaration of some simple custom functions.
 ```javascript
 // load the utility functions used to manipulate RDF terms
-const { terms } = require('sparql-engine')
+const { rdf } = require('sparql-engine')
 
 // define some custom SPARQL functions
 const customFunctions = {
   // reverse a RDF literal
   'http://example.com#REVERSE': function (rdfTerm) {
     const reverseValue = rdfTerm.value.split("").reverse().join("")
-    return terms.replaceLiteralValue(rdfTerm, reverseValue)
+    return rdf.shallowCloneTerm(rdfTerm, reverseValue)
   },
   // Test if a RDF Luteral is a palindrome
   'http://example.com#IS_PALINDROME': function (rdfTerm) {
     const result = rdfTerm.value.split("").reverse().join("") === rdfTerm.value
-    return terms.createBoolean(result)
+    return rdf.createBoolean(result)
   },
   // Test if a number is even
   'http://example.com#IS_EVEN': function (rdfTerm) {
-    if (terms.isNumber(rdfTerm)) {
-      const result = rdfTerm.value % 2 === 0
-      return terms.createBoolean(result)
+    if (rdf.termIsLiteral(rdfTerm) && rdf.literalIsNumeric(rdfTerm)) {
+      const jsValue = rdf.asJS(rdfTerm.value, rdfTerm.datatype.value)
+      const result = jsValue % 2 === 0
+      return rdf.createBoolean(result)
     }
-    return terms.createBoolean(false)
+    return terms.createFalse()
   }
 }
 ```
