@@ -26,10 +26,10 @@ SOFTWARE.
 
 import { Pipeline } from '../engine/pipeline/pipeline'
 import { PipelineStage } from '../engine/pipeline/pipeline-engine'
-import SPARQLExpression from './expressions/sparql-expression'
+import { CustomFunctions, SPARQLExpression } from './expressions/sparql-expression'
 import { Algebra } from 'sparqljs'
 import { Bindings } from '../rdf/bindings'
-import { CustomFunctions } from '../engine/plan-builder'
+import { rdf } from '../utils'
 
 /**
  * Evaluate SPARQL Filter clauses
@@ -44,6 +44,9 @@ export default function sparqlFilter (source: PipelineStage<Bindings>, expressio
   const expr = new SPARQLExpression(expression, customFunctions)
   return Pipeline.getInstance().filter(source, (bindings: Bindings) => {
     const value: any = expr.evaluate(bindings)
-    return value !== null && value.asJS
+    if (value !== null && rdf.termIsLiteral(value) && rdf.literalIsBoolean(value)) {
+      return rdf.asJS(value.value, value.datatype.value)
+    }
+    return false
   })
 }

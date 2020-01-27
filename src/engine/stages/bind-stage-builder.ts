@@ -22,7 +22,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-
 'use strict'
 
 import StageBuilder from './stage-builder'
@@ -30,10 +29,8 @@ import bind from '../../operators/bind'
 import { Algebra } from 'sparqljs'
 import { PipelineStage } from '../pipeline/pipeline-engine'
 import { Bindings } from '../../rdf/bindings'
-import { terms } from '../../rdf-terms'
 import ExecutionContext from '../context/execution-context'
-
-export type CustomFunctions = { [key:string]: (...args: (terms.RDFTerm | terms.RDFTerm[] | null)[]) => terms.RDFTerm }
+import { CustomFunctions } from '../../operators/expressions/sparql-expression'
 
 /**
  * A BindStageBuilder evaluates BIND clauses

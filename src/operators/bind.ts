@@ -26,10 +26,21 @@ SOFTWARE.
 
 import { Pipeline } from '../engine/pipeline/pipeline'
 import { PipelineStage } from '../engine/pipeline/pipeline-engine'
-import SPARQLExpression from './expressions/sparql-expression'
 import { Algebra } from 'sparqljs'
 import { Bindings } from '../rdf/bindings'
-import { CustomFunctions } from '../engine/plan-builder'
+import { SPARQLExpression, CustomFunctions } from './expressions/sparql-expression'
+import { rdf } from '../utils'
+import { Term } from 'rdf-js'
+import { isArray } from 'lodash'
+
+/**
+ * Test if an object is an iterator that yields RDF Terms or null values
+ * @param obj - Input object
+ * @return True if the input obkect is an iterator, False otherwise
+ */
+function isIterable (obj: Object): obj is Iterable<Term | null> {
+  return typeof obj[Symbol.iterator] === 'function'
+}
 
 /**
  * Apply a SPARQL BIND clause
@@ -43,16 +54,42 @@ import { CustomFunctions } from '../engine/plan-builder'
  */
 export default function bind (source: PipelineStage<Bindings>, variable: string, expression: Algebra.Expression | string, customFunctions?: CustomFunctions): PipelineStage<Bindings> {
   const expr = new SPARQLExpression(expression, customFunctions)
-  return Pipeline.getInstance().map(source, bindings => {
-    const res = bindings.clone()
+  return Pipeline.getInstance().mergeMap(source, bindings => {
     try {
-      const value: any = expr.evaluate(bindings)
-      if (value !== null) {
-        res.set(variable, value.asRDF)
+      const value = expr.evaluate(bindings)
+      if (value !== null && (isArray(value) || isIterable(value))) {
+        // build a source of bindings from the array/iterable produced by the expression's evaluation
+        return Pipeline.getInstance().fromAsync(input => {
+          try {
+            for (let term of value) {
+              const mu = bindings.clone()
+              if (term === null) {
+                mu.set(variable, rdf.toN3(rdf.createUnbound()))
+              } else {
+                mu.set(variable, rdf.toN3(term))
+              }
+              input.next(mu)
+            }
+          } catch (e) {
+            input.error(e)
+          }
+          input.complete()
+        })
+      } else {
+        // simple case: bound the value to the given variable in the set of bindings
+        const res = bindings.clone()
+        // null values indicates that an error occurs during the expression's evaluation
+        // in this case, the variable is bind to a special UNBOUND value
+        if (value === null) {
+          res.set(variable, rdf.toN3(rdf.createUnbound()))
+        } else {
+          res.set(variable, rdf.toN3(value))
+        }
+        return Pipeline.getInstance().of(res)
       }
     } catch (e) {
       // silence errors
     }
-    return res
+    return Pipeline.getInstance().empty()
   })
 }

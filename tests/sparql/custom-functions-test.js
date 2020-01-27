@@ -25,8 +25,7 @@ SOFTWARE.
 'use strict'
 
 const expect = require('chai').expect
-const { XSD } = require('../../dist/utils.js').rdf
-const terms = require('../../dist/api').terms
+const { rdf } = require('../../dist/api.js')
 const { getGraph, TestEngine } = require('../utils.js')
 
 describe('SPARQL custom operators', () => {
@@ -34,8 +33,8 @@ describe('SPARQL custom operators', () => {
   it('should allow for custom functions in BIND', done => {
 
     const customFunctions = {
-      'http://test.com#REVERSE': function (a) {
-        return terms.replaceLiteralValue(a, a.value.split("").reverse().join(""))
+      'http://test.com#REVERSE': function (a) {        
+        return rdf.shallowCloneTerm(a, a.value.split("").reverse().join(""))
       }
     }
 
@@ -67,7 +66,7 @@ describe('SPARQL custom operators', () => {
 
     const customFunctions = {
       'http://test.com#CONTAINS_THOMAS': function (a) {
-        return terms.createBoolean(a.value.toLowerCase().indexOf("thomas") >= 0)
+        return rdf.createBoolean(a.value.toLowerCase().indexOf("thomas") >= 0)
       }
     }
     const g = getGraph('./tests/data/dblp.nt')
@@ -97,7 +96,8 @@ describe('SPARQL custom operators', () => {
 
     const customFunctions = {
       'http://test.com#IS_EVEN': function (a) {
-        return terms.createBoolean(a.value % 2 === 0)
+        const value = rdf.asJS(a.value, a.datatype.value)
+        return rdf.createBoolean(value % 2 === 0)
       }
     }
     const g = getGraph('./tests/data/dblp.nt')
@@ -156,7 +156,7 @@ describe('SPARQL custom operators', () => {
     iterator.subscribe(b => {
       b = b.toObject()
       expect(b).to.have.keys('?error')
-      expect(b['?error']).to.equal('UNBOUND')
+      expect(b['?error']).to.equal('"UNBOUND"')
       results.push(b)
     }, done, () => {
       done()
