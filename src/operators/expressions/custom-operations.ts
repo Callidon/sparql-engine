@@ -56,7 +56,7 @@ export default {
     throw new SyntaxError(`SPARQL expression error: cannot compute the hyperbolic sinus of ${x}, as it is not a number`)
   },
 
-  // Hyperbolic tangant
+  // Hyperbolic tangent
   'https://callidon.github.io/sparql-engine/functions#tanh': function (x: Term): Term {
     if (rdf.termIsLiteral(x) && rdf.literalIsNumeric(x)) {
       const value = rdf.asJS(x.value, x.datatype.value)
