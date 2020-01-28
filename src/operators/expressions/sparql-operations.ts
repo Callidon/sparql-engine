@@ -66,6 +66,20 @@ export default {
     }
     return rdf.createUnbound()
   },
+
+  /*
+    IF function https://www.w3.org/TR/sparql11-query/#func-if
+  */
+  'if': function (booleanValue: Term | null, valueIfTrue: Term | null, valueIfFalse: Term | null): Term {
+    if (isNull(booleanValue) || isNull(valueIfTrue) || isNull(valueIfFalse)) {
+      throw new SyntaxError(`SPARQL expression error: some arguments of an IF function are unbound. Got IF(${booleanValue}, ${valueIfTrue}, ${valueIfFalse})`)
+    }
+    if (rdf.termIsLiteral(booleanValue) && (rdf.literalIsBoolean(booleanValue) || rdf.literalIsNumeric(booleanValue))) {
+      return rdf.asJS(booleanValue.value, booleanValue.datatype.value) ? valueIfTrue : valueIfFalse
+    }
+    throw new SyntaxError(`SPARQL expression error: you are using an IF function whose first argument is expected to be a boolean, but instead got ${booleanValue}`)
+  },
+
   /*
     XQuery & XPath functions https://www.w3.org/TR/sparql11-query/#OperatorMapping
   */

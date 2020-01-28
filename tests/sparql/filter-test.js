@@ -857,6 +857,42 @@ describe('FILTER SPARQL queries', () => {
         FILTER NOT EXISTS { ?s dblp-rdf:primaryFullPersonName "Chunck Norris" }
       }`,
       expectedNb: 1
+    },
+    {
+      name: 'COALESCE (value is bound)',
+      query: `
+      SELECT * WHERE {
+        BIND("Thomas" AS ?x)
+        FILTER(COALESCE(?x, "Arnaud") = "Thomas")
+      }`,
+      expectedNb: 1
+    },
+    {
+      name: 'COALESCE (value is not bound)',
+      query: `
+      SELECT * WHERE {
+        BIND("Thomas" AS ?y)
+        FILTER(COALESCE(?x, "Arnaud") = "Arnaud")
+      }`,
+      expectedNb: 1
+    },
+    {
+      name: 'IF (expression is true)',
+      query: `
+      SELECT * WHERE {
+        BIND("Thomas" AS ?x)
+        FILTER(IF(?x = "Thomas", 0, 1) = 0)
+      }`,
+      expectedNb: 1
+    },
+    {
+      name: 'IF (expression is false)',
+      query: `
+      SELECT * WHERE {
+        BIND("Arnaud" AS ?x)
+        FILTER(IF(?x = "Thomas", 0, 1) = 1)
+      }`,
+      expectedNb: 1
     }
   ]
 
