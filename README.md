@@ -34,6 +34,7 @@ An open-source framework for building SPARQL query engines in Javascript/Typescr
   * [Customize the pipeline implementation](#customize-the-pipeline-implementation)
   * [Customize query execution](#customize-query-execution)
 * [Documentation](#documentation)
+* [Aknowledgments](#aknowledgments)
 * [References](#references)
 
 # Installation
@@ -430,6 +431,23 @@ cd sparql-engine
 yarn install
 npm run doc
 ```
+
+# Aknowledgments
+
+This framework is developed since 2018 by many contributors, and we thanks them very much for their contributions to this project! Here is the full list of our amazing contributors.
+
+* [Corentin Marionneau](https://github.com/Slaanaroth) (@Slaanaroth)
+  * Corentin created the first version of `sparql-engine` during its research internship at the [Laboratoire des Sciences du Numérique de Nantes](https://www.ls2n.fr/) (LS2N). He is now a Web developer at SII Nantes.
+* [Merlin Barzilai](https://github.com/Rintarou) (@Rintarou)
+  * Merlin designed the first SPARQL compliance tests for the framework during its research internship at the [LS2N](https://www.ls2n.fr/).
+* [Dustin Whitney](https://github.com/dwhitney) (@dwhitney)
+  * Dustin implemented the support for custom SPARQL functions and provided a lot of feedback during the early stages of development.
+* [Julien Aimonier-Davat](https://github.com/Lastshot97) (@Lastshot97)
+  * Julien implemented the support for SPARQL Proprty Paths evaluation during its research internship at the [LS2N](https://www.ls2n.fr/).
+* [Arnaud Grall](https://github.com/folkvir) (@folkvir)
+  * Arnaud contributed to many bugfixes and provided a lot of feedback throughout the development of the framework.
+* [Thomas Minier](https://github.com/Callidon) (@Callidon)
+  * Thomas developed the framework during his PhD thesis in the [Team "Gestion des Données Distribuées"](https://sites.google.com/site/gddlina/) (GDD) and supervise its evolution ever since.
 
 # References
 
