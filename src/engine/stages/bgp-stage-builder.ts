@@ -37,6 +37,7 @@ import { fts } from './rewritings'
 import ExecutionContext from '../context/execution-context'
 import { rdf } from '../../utils'
 import { isNaN, isNull, isInteger } from 'lodash'
+import * as uuid from 'uuid/v4'
 
 import boundJoin from '../../operators/join/bound-join'
 
@@ -49,7 +50,28 @@ function bgpEvaluation (source: PipelineStage<Bindings>, bgp: Algebra.TripleObje
   const engine = Pipeline.getInstance()
   return engine.mergeMap(source, (bindings: Bindings) => {
     let boundedBGP = bgp.map(t => bindings.bound(t))
-    return engine.map(graph.evalBGP(boundedBGP, context), (item: Bindings) => {
+    // check the cache
+    let iterator
+    if (context.cachingEnabled()) {
+      if (context.cache!.has(boundedBGP)) {
+        iterator = Pipeline.getInstance().from(context.cache!.get(boundedBGP)!.map(b => b.clone()))
+      } else {
+        // generate an unique writer ID
+        const writerID = uuid()
+        // put all solutions into the cache
+        iterator = Pipeline.getInstance().tap(graph.evalBGP(boundedBGP, context), b => {
+          context.cache!.update(boundedBGP, b, writerID)
+        })
+        // commit the cache entry when the BGP evaluation is done
+        iterator = Pipeline.getInstance().finalize(iterator, () => {
+          context.cache!.commit(boundedBGP, writerID)
+        })
+      }
+    } else {
+      iterator = graph.evalBGP(boundedBGP, context)
+    }
+    // build join results
+    return engine.map(iterator, (item: Bindings) => {
       // if (item.size === 0 && hasVars) return null
       return item.union(bindings)
     })
