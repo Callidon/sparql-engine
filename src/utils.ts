@@ -33,6 +33,7 @@ import { parseZone, Moment, ISO_8601 } from 'moment'
 import * as DataFactory from '@rdfjs/data-model'
 import { BlankNode, Literal, NamedNode, Term } from 'rdf-js'
 import { termToString, stringToTerm } from 'rdf-string'
+import * as crypto from 'crypto'
 
 /**
  * RDF related utilities
@@ -405,6 +406,15 @@ export namespace rdf {
   }
 
   /**
+   * Hash Triple (pattern) to assign it an unique ID
+   * @param triple - Triple (pattern) to hash
+   * @return An unique ID to identify the Triple (pattern)
+   */
+  export function hashTriple (triple: Algebra.TripleObject): string {
+    return `s=${triple.subject}&p=${triple.predicate}&o=${triple.object}`
+  }
+
+  /**
    * Create an IRI under the XSD namespace
    * (<http://www.w3.org/2001/XMLSchema#>)
    * @param suffix - Suffix appended to the XSD namespace to create an IRI
@@ -449,6 +459,22 @@ export namespace rdf {
  * SPARQL related utilities
  */
 export namespace sparql {
+  /**
+   * Hash Basic Graph pattern to assign them an unique ID
+   * @param bgp - Basic Graph Pattern to hash
+   * @param md5 - True if the ID should be hashed to md5, False to keep it as a plain text string
+   * @return An unique ID to identify the BGP
+   */
+  export function hashBGP (bgp: Algebra.TripleObject[], md5: boolean = false): string {
+    const hashedBGP = bgp.map(rdf.hashTriple).join(';')
+    if (!md5) {
+      return hashedBGP
+    }
+    const hash = crypto.createHash('md5')
+    hash.update(hashedBGP)
+    return hash.digest('hex')
+  }
+
   /**
    * Get the set of SPARQL variables in a triple pattern
    * @param  pattern - Triple Pattern
