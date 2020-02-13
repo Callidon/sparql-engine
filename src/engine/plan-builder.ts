@@ -54,6 +54,8 @@ import OptionalStageBuilder from './stages/optional-stage-builder'
 import OrderByStageBuilder from './stages/orderby-stage-builder'
 import UnionStageBuilder from './stages/union-stage-builder'
 import UpdateStageBuilder from './stages/update-stage-builder'
+// caching
+import { BGPCache, LRUBGPCache } from './cache/bgp-cache'
 // utilities
 import {
   partition,
@@ -113,6 +115,7 @@ export class PlanBuilder {
   private _optimizer: Optimizer
   private _stageBuilders: Map<SPARQL_OPERATION, StageBuilder>
   private _customFunctions: CustomFunctions | undefined
+  private _currentCache: BGPCache | null
 
   /**
    * Constructor
@@ -123,6 +126,7 @@ export class PlanBuilder {
     this._dataset = dataset
     this._parser = new Parser(prefixes)
     this._optimizer = Optimizer.getDefault()
+    this._currentCache = null
     this._customFunctions = customFunctions
     this._stageBuilders = new Map()
 
@@ -163,6 +167,28 @@ export class PlanBuilder {
   }
 
   /**
+   * Enable Basic Graph Patterns caching for SPARQL query evaluation.
+   * The parameter is optional and used to provide your own cache instance.
+   * If left undefined, the query engine will use a {@link LRUBGPCache} with
+   * a maximum of 500 items and a max age of 20 minutes.
+   * @param customCache - (optional) Custom cache instance
+   */
+  useCache (customCache?: LRUBGPCache): void {
+    if (customCache === undefined) {
+      this._currentCache = new LRUBGPCache(500, 1200 * 60 * 60)
+    } else {
+      this._currentCache = customCache
+    }
+  }
+
+  /**
+   * Disable Basic Graph Patterns caching for SPARQL query evaluation.
+   */
+  disableCache (): void {
+    this._currentCache = null
+  }
+
+  /**
    * Build the physical query execution of a SPARQL 1.1 query
    * and returns a {@link PipelineStage} or a {@link Consumable} that can be consumed to evaluate the query.
    * @param  query    - SPARQL query to evaluated
@@ -176,6 +202,7 @@ export class PlanBuilder {
     }
     if (isNull(context) || isUndefined(context)) {
       context = new ExecutionContext()
+      context.cache = this._currentCache
     }
     // Optimize the logical query execution plan
     query = this._optimizer.optimize(query)
