@@ -31,14 +31,14 @@ import { PipelineStage } from '../pipeline/pipeline-engine'
 import { Algebra } from 'sparqljs'
 import Graph from '../../rdf/graph'
 import { Bindings, BindingBase } from '../../rdf/bindings'
-// import { GRAPH_CAPABILITY } from '../../rdf/graph_capability'
+import { GRAPH_CAPABILITY } from '../../rdf/graph_capability'
 import { parseHints } from '../context/query-hints'
 import { fts } from './rewritings'
 import ExecutionContext from '../context/execution-context'
 import { rdf } from '../../utils'
 import { isNaN, isNull, isInteger } from 'lodash'
 
-// import boundJoin from '../../operators/join/bound-join'
+import boundJoin from '../../operators/join/bound-join'
 
 /**
  * Basic {@link PipelineStage} used to evaluate Basic graph patterns using the "evalBGP" method
@@ -175,9 +175,9 @@ export default class BGPStageBuilder extends StageBuilder {
    * @return A {@link PipelineStage} used to evaluate a Basic Graph pattern
    */
   _buildIterator (source: PipelineStage<Bindings>, graph: Graph, patterns: Algebra.TripleObject[], context: ExecutionContext): PipelineStage<Bindings> {
-    // if (graph._isCapable(GRAPH_CAPABILITY.UNION)) {
-    //   return boundJoin(source, patterns, graph, context)
-    // }
+    if (graph._isCapable(GRAPH_CAPABILITY.UNION)) {
+      return boundJoin(source, patterns, graph, context)
+    }
     return bgpEvaluation(source, patterns, graph, context)
   }
 

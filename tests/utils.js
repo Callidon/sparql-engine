@@ -26,11 +26,16 @@ SOFTWARE.
 
 const { Parser, Store } = require('n3')
 const fs = require('fs')
-const { HashMapDataset, Graph, PlanBuilder } = require('../dist/api.js')
+const { HashMapDataset, Graph, PlanBuilder, Pipeline } = require('../dist/api.js')
 const { pick, isArray } = require('lodash')
 
-function getGraph(filePaths) {
-  const graph = new N3Graph()
+function getGraph(filePaths, isUnion = false) {
+  let graph
+  if (isUnion) {
+    graph = new UnionN3Graph()
+  } else {
+    graph = new N3Graph()
+  }
   if (typeof filePaths === 'string') {
     graph.parse(filePaths)
   } else if (isArray(filePaths)) {
@@ -107,6 +112,16 @@ class N3Graph extends Graph {
     const triples = this._store.getTriples(null, null, null)
     this._store.removeTriples(triples)
     return Promise.resolve()
+  }
+}
+
+class UnionN3Graph extends N3Graph {
+  constructor() {
+    super()
+  }
+
+  evalUnion (patterns, context) {
+    return Pipeline.getInstance().merge(...patterns.map(pattern => this.evalBGP(pattern, context)))
   }
 }
 
