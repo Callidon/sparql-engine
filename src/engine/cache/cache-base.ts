@@ -24,7 +24,7 @@ SOFTWARE.
 
 'use strict'
 
-import LRU from 'lru-cache'
+import * as LRU from 'lru-cache'
 
 interface AsyncCacheEntry<T, I> {
   content: Array<T>,
@@ -134,7 +134,7 @@ export class BaseLRUCache<K, T> implements Cache<K, T> {
       max: maxSize,
       maxAge
     }
-    this._content = new LRU(options)
+    this._content = new LRU<K, T>(options)
   }
 
   put (key: K, item: T): void {
@@ -181,7 +181,7 @@ export class AsyncLRUCache<K, T, I> implements AsyncCache<K, T, I> {
   }
 
   update (key: K, item: T, writerID: I): void {
-    if (this.has(key)) {
+    if (this._cache.has(key)) {
       const entry = this._cache.get(key)!
       if (entry.writerID === writerID) {
         entry.content.push(item)
