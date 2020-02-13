@@ -129,6 +129,11 @@ export interface AsyncCache<K, T, I> {
 export class BaseLRUCache<K, T> implements Cache<K, T> {
   private readonly _content: LRU<K, T>
 
+  /**
+   * Constructor
+   * @param maxSize - The maximum size of the cache
+   * @param maxAge - Maximum age in ms
+   */
   constructor (maxSize: number, maxAge: number) {
     const options = {
       max: maxSize,
@@ -168,6 +173,11 @@ export class BaseLRUCache<K, T> implements Cache<K, T> {
 export class AsyncLRUCache<K, T, I> implements AsyncCache<K, T, I> {
   private readonly _cache: BaseLRUCache<K, AsyncCacheEntry<T, I>>
 
+  /**
+   * Constructor
+   * @param maxSize - The maximum size of the cache
+   * @param maxAge - Maximum age in ms
+   */
   constructor (maxSize: number, maxAge: number) {
     this._cache = new BaseLRUCache(maxSize, maxAge)
   }

@@ -31,8 +31,24 @@ import { Bindings } from '../../rdf/bindings'
 import { Algebra } from 'sparqljs'
 import { sparql } from '../../utils'
 
-export default class BGPCache implements AsyncCache<Algebra.TripleObject[], Bindings, string> {
+/**
+ * An async cache that stores the solution bindings from BGP evaluation
+ * @author Thomas Minier
+ */
+export type BGPCache = AsyncCache<Algebra.TripleObject[], Bindings, string>
+
+/**
+ * An implementation of a {@link BGPCache} using an {@link AsyncLRUCache}
+ * @author Thomas Minier
+ */
+export class LRUBGPCache implements BGPCache {
   private readonly _cache: AsyncLRUCache<string, Bindings, string>
+
+  /**
+   * Constructor
+   * @param maxSize - The maximum size of the cache
+   * @param maxAge - Maximum age in ms
+   */
   constructor (maxSize: number, maxAge: number) {
     this._cache = new AsyncLRUCache(maxSize, maxAge)
   }
