@@ -401,7 +401,7 @@ export class PlanBuilder {
         }
 
         // delegate remaining BGP evaluation to the dedicated executor
-        let iter = this._stageBuilders.get(SPARQL_OPERATION.BGP)!.execute(source, classicTriples as Algebra.TripleObject[], childContext) as PipelineStage<Bindings>
+        let iter = this._stageBuilders.get(SPARQL_OPERATION.BGP)!.execute(source, classicTriples, childContext) as PipelineStage<Bindings>
 
         // filter out variables added by the rewriting of property paths
         if (tempVariables.length > 0) {
