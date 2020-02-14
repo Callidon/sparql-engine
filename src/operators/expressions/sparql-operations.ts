@@ -376,9 +376,20 @@ export default {
     return rdf.createBoolean(test)
   },
 
-  'regex': function (subject: Term, pattern: Term, flags: Term) {
-    let regexp = (flags === null || flags === undefined) ? new RegExp(pattern.value) : new RegExp(pattern.value, flags.value)
+  'regex': function (subject: Term, pattern: Term, flags?: Term) {
+    const regexp = (flags === undefined) ? new RegExp(pattern.value) : new RegExp(pattern.value, flags.value)
     return rdf.createBoolean(regexp.test(subject.value))
+  },
+
+  'replace': function (arg: Term, pattern: Term, replacement: Term, flags?: Term) {
+    const regexp = (flags === undefined) ? new RegExp(pattern.value) : new RegExp(pattern.value, flags.value)
+    const newValue = arg.value.replace(regexp, replacement.value)
+    if (rdf.termIsIRI(arg)) {
+      return rdf.createIRI(newValue)
+    } else if (rdf.termIsBNode(arg)) {
+      return rdf.createBNode(newValue)
+    }
+    return rdf.shallowCloneTerm(arg, newValue)
   },
 
   /*

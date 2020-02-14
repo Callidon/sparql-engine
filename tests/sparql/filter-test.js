@@ -631,6 +631,39 @@ describe('FILTER SPARQL queries', () => {
       expectedNb: 1
     },
     {
+      name: 'replace',
+      query: `
+      PREFIX dblp-rdf: <https://dblp.uni-trier.de/rdf/schema-2017-04-18#>
+      PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+      SELECT * WHERE {
+        ?s rdf:type dblp-rdf:Person .
+        FILTER(replace("abcd", "b", "Z") = "aZcd")
+      }`,
+      expectedNb: 1
+    },
+    {
+      name: 'replace (with flags)',
+      query: `
+      PREFIX dblp-rdf: <https://dblp.uni-trier.de/rdf/schema-2017-04-18#>
+      PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+      SELECT * WHERE {
+        ?s rdf:type dblp-rdf:Person .
+        FILTER(replace("abab", "B", "Z", "i") = "aZab")
+      }`,
+      expectedNb: 1
+    },
+    {
+      name: 'replace (with complex REGEX)',
+      query: `
+      PREFIX dblp-rdf: <https://dblp.uni-trier.de/rdf/schema-2017-04-18#>
+      PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+      SELECT * WHERE {
+        ?s rdf:type dblp-rdf:Person .
+        FILTER(replace("abab", "B.", "Z","i") = "aZb")
+      }`,
+      expectedNb: 1
+    },
+    {
       name: 'abs',
       query: `
       PREFIX dblp-rdf: <https://dblp.uni-trier.de/rdf/schema-2017-04-18#>
