@@ -35,7 +35,14 @@ import { sparql } from '../../utils'
  * An async cache that stores the solution bindings from BGP evaluation
  * @author Thomas Minier
  */
-export type BGPCache = AsyncCache<Algebra.TripleObject[], Bindings, string>
+export interface BGPCache extends AsyncCache<Algebra.TripleObject[], Bindings, string> {
+  /**
+   * Access the cache and returns a pipeline stage that returns the content of the cache for a given BGP
+   * @param bgp - Cache key, i.e., a Basic Graph pattern
+   * @return A pipeline stage that returns the content of the cache entry for the given BGP
+   */
+  getAsPipeline (bgp: Algebra.TripleObject[]): PipelineStage<Bindings>
+}
 
 /**
  * An implementation of a {@link BGPCache} using an {@link AsyncLRUCache}
@@ -61,7 +68,7 @@ export class LRUBGPCache implements BGPCache {
     this._cache.update(sparql.hashBGP(bgp), item, writerID)
   }
 
-  get (bgp: Algebra.TripleObject[]): Bindings[] | null {
+  get (bgp: Algebra.TripleObject[]): Promise<Bindings[]> | null {
     return this._cache.get(sparql.hashBGP(bgp))
   }
 
@@ -70,7 +77,7 @@ export class LRUBGPCache implements BGPCache {
     if (bindings === null) {
       return Pipeline.getInstance().empty()
     }
-    return Pipeline.getInstance().from(bindings.map(b => b.clone()))
+    return Pipeline.getInstance().flatMap(Pipeline.getInstance().from(bindings), x => x.map(b => b.clone()))
   }
 
   commit (bgp: Algebra.TripleObject[], writerID: string): void {

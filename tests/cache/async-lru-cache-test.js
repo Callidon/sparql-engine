@@ -34,16 +34,20 @@ describe('AsyncLRUCache', () => {
   })
 
   describe('#update/commit', () => {
-    it('should supports insertion of items over time', () => {
+    it('should supports insertion of items over time', done => {
       const writerID = 1
       cache.update(1, 1, writerID)
       cache.update(1, 2, writerID)
       cache.update(1, 3, writerID)
       cache.commit(1, writerID)
-      expect(cache.get(1)).to.deep.equals([1, 2, 3])
+      cache.get(1).then(content => {
+        expect(content).to.deep.equals([1, 2, 3])
+        done()
+      }).catch(done)
+      
     })
   
-    it('should supports concurrent insertions of items from distinct writers', () => {
+    it('should supports concurrent insertions of items from distinct writers', done => {
       const firstID = 1
       const secondID = 2
       cache.update(1, 1, firstID)
@@ -55,7 +59,10 @@ describe('AsyncLRUCache', () => {
       cache.update(1, '4', secondID)
       cache.commit(1, secondID)
       cache.commit(1, firstID)
-      expect(cache.get(1)).to.deep.equals([1, 2, 3])
+      cache.get(1).then(content => {
+        expect(content).to.deep.equals([1, 2, 3])
+        done()
+      }).catch(done)
     })
   })
 
@@ -72,24 +79,23 @@ describe('AsyncLRUCache', () => {
 
     it('should returns false when the cache entry is not available', () => {
       const writerID = 1
-      cache.update(1, 1, writerID)
-      cache.update(1, 2, writerID)
-      cache.update(1, 3, writerID)
       expect(cache.has(1)).to.deep.equals(false)
+      cache.update(1, 1, writerID)
       cache.commit(1, writerID)
       expect(cache.has(1)).to.deep.equals(true)
     })
   })
 
-  describe('#get', () => {
+  describe('#get', done => {
     it('should returns null when the cache entry is not available', () => {
       const writerID = 1
-      cache.update(1, 1, writerID)
-      cache.update(1, 2, writerID)
-      cache.update(1, 3, writerID)
       expect(cache.get(1)).to.deep.equals(null)
+      cache.update(1, 1, writerID)
       cache.commit(1, writerID)
-      expect(cache.get(1)).to.deep.equals([1, 2, 3])
+      cache.get(1).then(content => {
+        expect(content).to.deep.equals([1])
+        done()
+      }).catch(done)
     })
   })
 })

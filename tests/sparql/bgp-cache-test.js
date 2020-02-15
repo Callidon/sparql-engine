@@ -54,8 +54,11 @@ describe('Basic Graph Pattern cache', () => {
       const cache = engine._builder._currentCache
       expect(cache.count()).to.equal(1)
       expect(cache.has(bgp)).to.equal(true)
-      expect(cache.get(bgp).length).to.equal(17)
-      done()
+      // check that the cache is accessible
+      cache.get(bgp).then(content => {
+        expect(content.length).to.equals(17)
+        done()
+      }).catch(done)
     })
   })
 })

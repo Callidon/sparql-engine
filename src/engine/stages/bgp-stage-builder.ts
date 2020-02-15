@@ -54,7 +54,7 @@ function bgpEvaluation (source: PipelineStage<Bindings>, bgp: Algebra.TripleObje
     let iterator
     if (context.cachingEnabled()) {
       if (context.cache!.has(boundedBGP)) {
-        iterator = Pipeline.getInstance().from(context.cache!.get(boundedBGP)!.map(b => b.clone()))
+        iterator = context.cache!.getAsPipeline(boundedBGP)
       } else {
         // generate an unique writer ID
         const writerID = uuid()

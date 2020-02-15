@@ -25,12 +25,7 @@ SOFTWARE.
 'use strict'
 
 import * as LRU from 'lru-cache'
-
-interface AsyncCacheEntry<T, I> {
-  content: Array<T>,
-  writerID: I,
-  isComplete: boolean
-}
+import LRUCache = require('lru-cache')
 
 /**
  * A cache is a vue that materializes data for latter re-use
@@ -107,7 +102,7 @@ export interface AsyncCache<K, T, I> {
    * @param key - Item's key
    * @return The values of the item with the given key, or null if it was not found
    */
-  get (key: K): T[] | null
+  get (key: K): Promise<T[]> | null
 
   /**
    * Remove an item from the cache
@@ -167,27 +162,37 @@ export class BaseLRUCache<K, T> implements Cache<K, T> {
 }
 
 /**
- * An in-memory LRU cache that supports async insertion of items
+ * Data-structure used for the base implementation of an asynchronous cache.
  * @author Thomas Minier
  */
-export class AsyncLRUCache<K, T, I> implements AsyncCache<K, T, I> {
-  private readonly _cache: BaseLRUCache<K, AsyncCacheEntry<T, I>>
+interface AsyncCacheEntry<T, I> {
+  /** The cache entry's content */
+  content: Array<T>,
+  /** The ID of the writer that is allowed to edit the cache entry */
+  writerID: I,
+  /** All reads that wait for this cache entry to be committed */
+  pendingReaders: Array<(items: Array<T>) => void>,
+  /** Whether the cache entry is availbale for read or not */
+  isComplete: boolean
+}
+
+/**
+ * A base class for implementing an asynchronous cache.
+ * It simply needs to provides a data structure used to cache items
+ * @author Thomas Minier
+ */
+export abstract class BaseAsyncCache<K, T, I> implements AsyncCache<K, T, I> {
+  private readonly _cache: Cache<K, AsyncCacheEntry<T, I>>
 
   /**
    * Constructor
-   * @param maxSize - The maximum size of the cache
-   * @param maxAge - Maximum age in ms
    */
-  constructor (maxSize: number, maxAge: number) {
-    this._cache = new BaseLRUCache(maxSize, maxAge)
+  constructor (cacheInstance: Cache<K, AsyncCacheEntry<T, I>>) {
+    this._cache = cacheInstance
   }
 
   has (key: K): boolean {
-    if (this._cache.has(key)) {
-      const entry = this._cache.get(key)!
-      return entry.isComplete
-    }
-    return false
+    return this._cache.has(key)
   }
 
   update (key: K, item: T, writerID: I): void {
@@ -201,7 +206,8 @@ export class AsyncLRUCache<K, T, I> implements AsyncCache<K, T, I> {
       this._cache.put(key, {
         content: [item],
         writerID,
-        isComplete: false
+        isComplete: false,
+        pendingReaders: []
       })
     }
   }
@@ -210,15 +216,30 @@ export class AsyncLRUCache<K, T, I> implements AsyncCache<K, T, I> {
     if (this._cache.has(key)) {
       const entry = this._cache.get(key)!
       if (entry.writerID === writerID) {
-        entry.isComplete = true
-        this._cache.put(key, entry)
+        // update cache entry ot marke it complete
+        this._cache.put(key, {
+          content: entry.content,
+          writerID: entry.writerID,
+          isComplete: true,
+          pendingReaders: []
+        })
+        // resolve all pending readers
+        entry.pendingReaders.forEach(resolve => resolve(entry.content))
       }
     }
   }
 
-  get (key: K): T[] | null {
+  get (key: K): Promise<T[]> | null {
     if (this.has(key)) {
-      return this._cache.get(key)!.content
+      const entry = this._cache.get(key)!
+      if (entry.isComplete) {
+        return Promise.resolve(entry.content)
+      }
+      // wait until the entry is complete
+      // all awaiting promises will be resolved by the commit or delete method
+      return new Promise(resolve => {
+        entry.pendingReaders.push(resolve)
+      })
     }
     return null
   }
@@ -227,6 +248,8 @@ export class AsyncLRUCache<K, T, I> implements AsyncCache<K, T, I> {
     if (this._cache.has(key)) {
       const entry = this._cache.get(key)!
       if (entry.writerID === writerID) {
+        // resolve all pending readers with an empty result
+        entry.pendingReaders.forEach(resolve => resolve([]))
         this._cache.delete(key)
       }
     }
@@ -234,5 +257,20 @@ export class AsyncLRUCache<K, T, I> implements AsyncCache<K, T, I> {
 
   count (): number {
     return this._cache.count()
+  }
+}
+
+/**
+ * An in-memory LRU implementation of an asynchronous cache.
+ * @author Thomas Minier
+ */
+export class AsyncLRUCache<K, T, I> extends BaseAsyncCache<K, T, I> {
+  /**
+   * Constructor
+   * @param maxSize - The maximum size of the cache
+   * @param maxAge - Maximum age in ms
+   */
+  constructor (maxSize: number, maxAge: number) {
+    super(new BaseLRUCache<K, AsyncCacheEntry<T, I>>(maxSize, maxAge))
   }
 }
