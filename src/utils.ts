@@ -33,7 +33,11 @@ import { parseZone, Moment, ISO_8601 } from 'moment'
 import * as DataFactory from '@rdfjs/data-model'
 import { BlankNode, Literal, NamedNode, Term } from 'rdf-js'
 import { termToString, stringToTerm } from 'rdf-string'
+import { BGPCache } from './engine/cache/bgp-cache'
+import Graph from './rdf/graph'
+import ExecutionContext from './engine/context/execution-context'
 import * as crypto from 'crypto'
+import * as uuid from 'uuid/v4'
 
 /**
  * RDF related utilities
@@ -524,6 +528,36 @@ export namespace sparql {
       }
     }
     return results
+  }
+}
+
+/**
+ * Utilities related to SPARQL query evaluation
+ * @author Thomas Minier
+ */
+export namespace evaluation {
+  /**
+   * Evaluate a Basic Graph pattern on a RDF graph using a cache
+   * @param bgp - Basic Graph pattern to evaluate
+   * @param graph - RDF graph
+   * @param cache - Cache used
+   * @return A pipeline stage that produces the evaluation results
+   */
+  export function cacheEvalBGP (bgp: Algebra.TripleObject[], graph: Graph, cache: BGPCache, context: ExecutionContext): PipelineStage<Bindings> {
+    if (cache.has(bgp)) {
+      return cache.getAsPipeline(bgp)
+    } else {
+      // generate an unique writer ID
+      const writerID = uuid()
+      // put all solutions into the cache
+      const iterator = Pipeline.getInstance().tap(graph.evalBGP(bgp, context), b => {
+        cache.update(bgp, b, writerID)
+      })
+      // commit the cache entry when the BGP evaluation is done
+      return Pipeline.getInstance().finalize(iterator, () => {
+        cache.commit(bgp, writerID)
+      })
+    }
   }
 }
 

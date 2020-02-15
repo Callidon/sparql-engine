@@ -35,9 +35,8 @@ import { GRAPH_CAPABILITY } from '../../rdf/graph_capability'
 import { parseHints } from '../context/query-hints'
 import { fts } from './rewritings'
 import ExecutionContext from '../context/execution-context'
-import { rdf } from '../../utils'
+import { rdf, evaluation } from '../../utils'
 import { isNaN, isNull, isInteger } from 'lodash'
-import * as uuid from 'uuid/v4'
 
 import boundJoin from '../../operators/join/bound-join'
 
@@ -53,20 +52,7 @@ function bgpEvaluation (source: PipelineStage<Bindings>, bgp: Algebra.TripleObje
     // check the cache
     let iterator
     if (context.cachingEnabled()) {
-      if (context.cache!.has(boundedBGP)) {
-        iterator = context.cache!.getAsPipeline(boundedBGP)
-      } else {
-        // generate an unique writer ID
-        const writerID = uuid()
-        // put all solutions into the cache
-        iterator = Pipeline.getInstance().tap(graph.evalBGP(boundedBGP, context), b => {
-          context.cache!.update(boundedBGP, b, writerID)
-        })
-        // commit the cache entry when the BGP evaluation is done
-        iterator = Pipeline.getInstance().finalize(iterator, () => {
-          context.cache!.commit(boundedBGP, writerID)
-        })
-      }
+      iterator = evaluation.cacheEvalBGP(boundedBGP, graph, context.cache!, context)
     } else {
       iterator = graph.evalBGP(boundedBGP, context)
     }
