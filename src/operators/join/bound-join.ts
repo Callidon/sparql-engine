@@ -29,7 +29,7 @@ import { PipelineStage, StreamPipelineInput } from '../../engine/pipeline/pipeli
 import ExecutionContext from '../../engine/context/execution-context'
 import Graph from '../../rdf/graph'
 import { Bindings } from '../../rdf/bindings'
-import { rdf } from '../../utils'
+import { rdf, evaluation } from '../../utils'
 import rewritingOp from './rewriting-op'
 import { Algebra } from 'sparqljs'
 
@@ -102,7 +102,13 @@ export default function boundJoin (source: PipelineStage<Bindings>, bgp: Algebra
         activeIterators++
         // simple case: first join in the pipeline
         if (bucket.length === 1 && bucket[0].isEmpty) {
-          graph.evalBGP(bgp, context).subscribe((b: Bindings) => {
+          let iterator
+          if (context.cachingEnabled()) {
+            iterator = evaluation.cacheEvalBGP(bgp, graph, context.cache!, context)
+          } else {
+            iterator = graph.evalBGP(bgp, context)
+          }
+          iterator.subscribe((b: Bindings) => {
             input.next(b)
           }, (err: Error) => input.error(err), () => tryClose())
         } else {
