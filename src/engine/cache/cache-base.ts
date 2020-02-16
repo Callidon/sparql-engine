@@ -38,13 +38,21 @@ export class BaseLRUCache<K, T> implements Cache<K, T> {
    * Constructor
    * @param maxSize - The maximum size of the cache
    * @param maxAge - Maximum age in ms
+   * @param length - Function that is used to calculate the length of stored items
    * @param onDispose - Function that is called on items when they are dropped from the cache
    */
-  constructor (maxSize: number, maxAge: number, onDispose?: (key: K, item: T) => void) {
+  constructor (maxSize: number, maxAge: number, length?: (item: T) => number, onDispose?: (key: K, item: T) => void) {
     const options = {
       max: maxSize,
       maxAge,
+      length,
       dispose: onDispose
+    }
+    // if we set a dispose function, we need to turn 'noDisposeOnSet' to True,
+    // otherwise onDispose will be called each time an item is updated (instead of when it slide out),
+    // which will break any class extending BaseAsyncCache
+    if (onDispose !== undefined) {
+      options['noDisposeOnSet'] = true
     }
     this._content = new LRU<K, T>(options)
   }
@@ -181,9 +189,10 @@ export class AsyncLRUCache<K, T, I> extends BaseAsyncCache<K, T, I> {
    * Constructor
    * @param maxSize - The maximum size of the cache
    * @param maxAge - Maximum age in ms
+   * @param length - Function that is used to calculate the length of stored items
    * @param onDispose - Function that is called on items when they are dropped from the cache
    */
-  constructor (maxSize: number, maxAge: number, onDispose?: (key: K, item: AsyncCacheEntry<T, I>) => void) {
-    super(new BaseLRUCache<K, AsyncCacheEntry<T, I>>(maxSize, maxAge, onDispose))
+  constructor (maxSize: number, maxAge: number, length?: (item: AsyncCacheEntry<T, I>) => number, onDispose?: (key: K, item: AsyncCacheEntry<T, I>) => void) {
+    super(new BaseLRUCache<K, AsyncCacheEntry<T, I>>(maxSize, maxAge, length, onDispose))
   }
 }

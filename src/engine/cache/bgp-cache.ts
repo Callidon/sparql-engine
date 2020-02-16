@@ -24,7 +24,7 @@ SOFTWARE.
 
 'use strict'
 
-import { AsyncLRUCache } from './cache-base'
+import { AsyncCacheEntry, AsyncLRUCache } from './cache-base'
 import { AsyncCache } from './cache-interfaces'
 import { Pipeline } from '../pipeline/pipeline'
 import { PipelineStage } from '../pipeline/pipeline-engine'
@@ -70,7 +70,13 @@ export interface BGPCache extends AsyncCache<BasicGraphPattern, Bindings, string
  * @author Thomas Minier
  */
 export class LRUBGPCache implements BGPCache {
+  // Main index: for each triple pattern, register the BGP where their occurs
+  // Used to speed up the #findSubset method
   private readonly _allKeys: BinarySearchTree<string, SavedBGP>
+  // Secondary index: track the triple patterns of each BGP.
+  // Used to clear the primary index when items slides out from the cache
+  private readonly _patternsPerBGP: Map<string, BasicGraphPattern>
+  // AsyncCache used to store set of solution bindings
   private readonly _cache: AsyncLRUCache<string, Bindings, string>
 
   /**
@@ -79,13 +85,19 @@ export class LRUBGPCache implements BGPCache {
    * @param maxAge - Maximum age in ms
    */
   constructor (maxSize: number, maxAge: number) {
+    this._patternsPerBGP = new Map()
     this._allKeys = new BinarySearchTree({
       checkValueEquality: (a: SavedBGP, b: SavedBGP) => a.key === b.key
     })
-    this._cache = new AsyncLRUCache(maxSize, maxAge, (key: string) => {
+    this._cache = new AsyncLRUCache(maxSize, maxAge, (item: AsyncCacheEntry<Bindings, string>) => {
+      return item.content.length
+    }, (key: string) => {
       // remove index entries when they slide out
-      // replace key by something correct
-      // this._allKeys.delete(key, { bgp: [], key })
+      if (this._patternsPerBGP.has(key)) {
+        const bgp = this._patternsPerBGP.get(key)!
+        bgp.forEach(pattern => this._allKeys.delete(rdf.hashTriple(pattern), { bgp, key }))
+        this._patternsPerBGP.delete(key)
+      }
     })
   }
 
@@ -96,6 +108,8 @@ export class LRUBGPCache implements BGPCache {
   update (bgp: BasicGraphPattern, item: Bindings, writerID: string): void {
     const key = sparql.hashBGP(bgp)
     if (!this._cache.has(key)) {
+      // update the indexes
+      this._patternsPerBGP.set(key, bgp)
       bgp.forEach(pattern => this._allKeys.insert(rdf.hashTriple(pattern), { bgp, key }))
     }
     this._cache.update(key, item, writerID)
@@ -120,6 +134,8 @@ export class LRUBGPCache implements BGPCache {
   delete (bgp: BasicGraphPattern, writerID: string): void {
     const key = sparql.hashBGP(bgp)
     this._cache.delete(key, writerID)
+    // clear the indexes
+    this._patternsPerBGP.delete(key)
     bgp.forEach(pattern => this._allKeys.delete(rdf.hashTriple(pattern), { bgp, key }))
   }
 
@@ -134,7 +150,7 @@ export class LRUBGPCache implements BGPCache {
       const searchResults = this._allKeys
         .search(rdf.hashTriple(pattern))
         .filter(v => {
-          // remove all BGps that are not a subset of the input BGP
+          // remove all BGPs that are not a subset of the input BGP
           // we use lodash.findIndex + rdf.tripleEquals to check for triple pattern equality
           return v.bgp.every(a => findIndex(bgp, b => rdf.tripleEquals(a, b)) > -1)
         })

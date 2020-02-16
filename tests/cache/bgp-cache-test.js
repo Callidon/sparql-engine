@@ -31,7 +31,7 @@ const { BindingBase } = require('../../dist/api.js')
 describe('LRUBGPCache', () => {
   let cache = null
   beforeEach(() => {
-    cache = new LRUBGPCache(Infinity, Infinity)
+    cache = new LRUBGPCache(0, Infinity)
   })
 
   describe('#update/commit', () => {
