@@ -52,7 +52,7 @@ export namespace rdf {
   export function tripleEquals (a: Algebra.TripleObject, b: Algebra.TripleObject): boolean {
     return a.subject === b.subject && a.predicate === b.predicate && a.object === b.object
   }
-  
+
   /**
    * Convert an string RDF Term to a RDFJS representation
    * @see https://rdf.js.org/data-model-spec

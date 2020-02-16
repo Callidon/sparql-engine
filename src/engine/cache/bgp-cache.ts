@@ -24,7 +24,8 @@ SOFTWARE.
 
 'use strict'
 
-import { AsyncLRUCache, AsyncCache } from './cache-base'
+import { AsyncLRUCache } from './cache-base'
+import { AsyncCache } from './cache-interfaces'
 import { Pipeline } from '../pipeline/pipeline'
 import { PipelineStage } from '../pipeline/pipeline-engine'
 import { Bindings } from '../../rdf/bindings'
