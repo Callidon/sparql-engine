@@ -128,11 +128,13 @@ export class BaseLRUCache<K, T> implements Cache<K, T> {
    * Constructor
    * @param maxSize - The maximum size of the cache
    * @param maxAge - Maximum age in ms
+   * @param onDispose - Function that is called on items when they are dropped from the cache
    */
-  constructor (maxSize: number, maxAge: number) {
+  constructor (maxSize: number, maxAge: number, onDispose?: (key: K, item: T) => void) {
     const options = {
       max: maxSize,
-      maxAge
+      maxAge,
+      dispose: onDispose
     }
     this._content = new LRU<K, T>(options)
   }
@@ -153,7 +155,7 @@ export class BaseLRUCache<K, T> implements Cache<K, T> {
   }
 
   delete (key: K): void {
-    this.delete(key)
+    this._content.del(key)
   }
 
   count (): number {
@@ -165,7 +167,7 @@ export class BaseLRUCache<K, T> implements Cache<K, T> {
  * Data-structure used for the base implementation of an asynchronous cache.
  * @author Thomas Minier
  */
-interface AsyncCacheEntry<T, I> {
+export interface AsyncCacheEntry<T, I> {
   /** The cache entry's content */
   content: Array<T>,
   /** The ID of the writer that is allowed to edit the cache entry */
@@ -248,9 +250,9 @@ export abstract class BaseAsyncCache<K, T, I> implements AsyncCache<K, T, I> {
     if (this._cache.has(key)) {
       const entry = this._cache.get(key)!
       if (entry.writerID === writerID) {
+        this._cache.delete(key)
         // resolve all pending readers with an empty result
         entry.pendingReaders.forEach(resolve => resolve([]))
-        this._cache.delete(key)
       }
     }
   }
@@ -269,8 +271,9 @@ export class AsyncLRUCache<K, T, I> extends BaseAsyncCache<K, T, I> {
    * Constructor
    * @param maxSize - The maximum size of the cache
    * @param maxAge - Maximum age in ms
+   * @param onDispose - Function that is called on items when they are dropped from the cache
    */
-  constructor (maxSize: number, maxAge: number) {
-    super(new BaseLRUCache<K, AsyncCacheEntry<T, I>>(maxSize, maxAge))
+  constructor (maxSize: number, maxAge: number, onDispose?: (key: K, item: AsyncCacheEntry<T, I>) => void) {
+    super(new BaseLRUCache<K, AsyncCacheEntry<T, I>>(maxSize, maxAge, onDispose))
   }
 }

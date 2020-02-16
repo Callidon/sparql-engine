@@ -86,16 +86,40 @@ describe('AsyncLRUCache', () => {
     })
   })
 
-  describe('#get', done => {
-    it('should returns null when the cache entry is not available', () => {
-      const writerID = 1
+  describe('#get', () => {
+    it('should returns null when the key is not in the cache', () => {
       expect(cache.get(1)).to.deep.equals(null)
+    })
+
+    it('should delay execution until the cache entry is committed', done => {
+      const writerID = 1
       cache.update(1, 1, writerID)
-      cache.commit(1, writerID)
       cache.get(1).then(content => {
-        expect(content).to.deep.equals([1])
+        expect(content).to.deep.equals([1, 2])
         done()
       }).catch(done)
+      cache.update(1, 2, writerID)
+      cache.commit(1, writerID)
+    })
+  })
+
+  describe('#delete', () => {
+    it('should delete items inserted into the cache', () => {
+      const writerID = 1
+      cache.update(1, 1, writerID)
+      expect(cache.has(1)).to.deep.equals(true)
+      cache.delete(1, writerID)
+      expect(cache.has(1)).to.deep.equals(false)
+    })
+
+    it('should resolve get promises to an empty array when an uncommitted entry is deleted', done => {
+      const writerID = 1
+      cache.update(1, 1, writerID)
+      cache.get(1).then(content => {
+        expect(content.length).to.deep.equals(0)
+        done()
+      }).catch(done)
+      cache.delete(1, writerID)
     })
   })
 })

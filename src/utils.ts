@@ -44,6 +44,16 @@ import * as uuid from 'uuid/v4'
  */
 export namespace rdf {
   /**
+   * Test if two triple (patterns) are equals
+   * @param a - First triple (pattern)
+   * @param b - Second triple (pattern)
+   * @return True if the two triple (patterns) are equals, False otherwise
+   */
+  export function tripleEquals (a: Algebra.TripleObject, b: Algebra.TripleObject): boolean {
+    return a.subject === b.subject && a.predicate === b.predicate && a.object === b.object
+  }
+  
+  /**
    * Convert an string RDF Term to a RDFJS representation
    * @see https://rdf.js.org/data-model-spec
    * @param term - A string-based term representation
