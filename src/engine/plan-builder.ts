@@ -167,7 +167,7 @@ export class PlanBuilder {
   }
 
   /**
-   * Enable Basic Graph Patterns caching for SPARQL query evaluation.
+   * Enable Basic Graph Patterns semantic caching for SPARQL query evaluation.
    * The parameter is optional and used to provide your own cache instance.
    * If left undefined, the query engine will use a {@link LRUBGPCache} with
    * a maximum of 500 items and a max age of 20 minutes.
@@ -182,7 +182,7 @@ export class PlanBuilder {
   }
 
   /**
-   * Disable Basic Graph Patterns caching for SPARQL query evaluation.
+   * Disable Basic Graph Patterns semantic caching for SPARQL query evaluation.
    */
   disableCache (): void {
     this._currentCache = null
