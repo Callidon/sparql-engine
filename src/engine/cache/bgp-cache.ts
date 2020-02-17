@@ -144,7 +144,11 @@ export class LRUBGPCache implements BGPCache {
   }
 
   findSubset (bgp: BasicGraphPattern): [BasicGraphPattern, BasicGraphPattern] {
-    // find all bgp matching
+    // if the bgp is in the cache, then the computation is simple
+    if (this.has(bgp)) {
+      return [bgp, []]
+    }
+    // otherwise, we search for all candidate subsets
     let matches = []
     for (let pattern of bgp) {
       const searchResults = this._allKeys

@@ -24,14 +24,15 @@ SOFTWARE.
 
 'use strict'
 
+import { Algebra } from 'sparqljs'
+import { Bindings } from '../../rdf/bindings'
 import { Pipeline } from '../../engine/pipeline/pipeline'
 import { PipelineStage, StreamPipelineInput } from '../../engine/pipeline/pipeline-engine'
+import { rdf, evaluation } from '../../utils'
+import BGPStageBuilder from '../../engine/stages/bgp-stage-builder'
 import ExecutionContext from '../../engine/context/execution-context'
 import Graph from '../../rdf/graph'
-import { Bindings } from '../../rdf/bindings'
-import { rdf, evaluation } from '../../utils'
 import rewritingOp from './rewriting-op'
-import { Algebra } from 'sparqljs'
 
 // The default size of the bucket of Basic Graph Patterns used by the Bound Join algorithm
 const BOUND_JOIN_BUFFER_SIZE = 15
@@ -72,7 +73,7 @@ function rewriteTriple (triple: Algebra.TripleObject, key: number): Algebra.Trip
  * @param  Context - Query execution context
  * @return A pipeline stage which evaluates the bound join
  */
-export default function boundJoin (source: PipelineStage<Bindings>, bgp: Algebra.TripleObject[], graph: Graph, context: ExecutionContext) {
+export default function boundJoin (source: PipelineStage<Bindings>, bgp: Algebra.TripleObject[], graph: Graph, builder: BGPStageBuilder, context: ExecutionContext) {
   return Pipeline.getInstance().fromAsync((input: StreamPipelineInput<Bindings>) => {
     let sourceClosed = false
     let activeIterators = 0
@@ -104,7 +105,7 @@ export default function boundJoin (source: PipelineStage<Bindings>, bgp: Algebra
         if (bucket.length === 1 && bucket[0].isEmpty) {
           let iterator
           if (context.cachingEnabled()) {
-            iterator = evaluation.cacheEvalBGP(bgp, graph, context.cache!, context)
+            iterator = evaluation.cacheEvalBGP(bgp, graph, context.cache!, builder, context)
           } else {
             iterator = graph.evalBGP(bgp, context)
           }
@@ -133,7 +134,7 @@ export default function boundJoin (source: PipelineStage<Bindings>, bgp: Algebra
             key++
           })
           // Evaluates the bucket using the Sage server
-          rewritingOp(graph, bgpBucket, rewritingTable, context)
+          rewritingOp(graph, bgpBucket, rewritingTable, builder, context)
             .subscribe(b => input.next(b), err => input.error(err), () => tryClose())
         }
       }, err => input.error(err), () => { sourceClosed = true })

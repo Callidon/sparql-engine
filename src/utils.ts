@@ -24,20 +24,21 @@ SOFTWARE.
 
 'use strict'
 
-import { Pipeline } from './engine/pipeline/pipeline'
-import { PipelineStage } from './engine/pipeline/pipeline-engine'
 import { Algebra } from 'sparqljs'
-import { Bindings } from './rdf/bindings'
+import { BGPCache } from './engine/cache/bgp-cache'
+import { Bindings, BindingBase } from './rdf/bindings'
+import { BlankNode, Literal, NamedNode, Term } from 'rdf-js'
 import { includes, union } from 'lodash'
 import { parseZone, Moment, ISO_8601 } from 'moment'
-import * as DataFactory from '@rdfjs/data-model'
-import { BlankNode, Literal, NamedNode, Term } from 'rdf-js'
+import { Pipeline } from './engine/pipeline/pipeline'
+import { PipelineStage } from './engine/pipeline/pipeline-engine'
 import { termToString, stringToTerm } from 'rdf-string'
-import { BGPCache } from './engine/cache/bgp-cache'
-import Graph from './rdf/graph'
-import ExecutionContext from './engine/context/execution-context'
 import * as crypto from 'crypto'
+import * as DataFactory from '@rdfjs/data-model'
 import * as uuid from 'uuid/v4'
+import BGPStageBuilder from './engine/stages/bgp-stage-builder'
+import ExecutionContext from './engine/context/execution-context'
+import Graph from './rdf/graph'
 
 /**
  * RDF related utilities
@@ -553,13 +554,13 @@ export namespace evaluation {
    * @param cache - Cache used
    * @return A pipeline stage that produces the evaluation results
    */
-  export function cacheEvalBGP (bgp: Algebra.TripleObject[], graph: Graph, cache: BGPCache, context: ExecutionContext): PipelineStage<Bindings> {
-    if (cache.has(bgp)) {
-      return cache.getAsPipeline(bgp)
-    } else {
+  export function cacheEvalBGP (bgp: Algebra.TripleObject[], graph: Graph, cache: BGPCache, builder: BGPStageBuilder, context: ExecutionContext): PipelineStage<Bindings> {
+    const [subsetBGP, missingBGP] = cache.findSubset(bgp)
+    // case 1: no subset of the BGP are in cache => classic evaluation (most frequent)
+    if (subsetBGP.length === 0) {
       // generate an unique writer ID
       const writerID = uuid()
-      // put all solutions into the cache
+      // evaluate the BGP while saving all solutions into the cache
       const iterator = Pipeline.getInstance().tap(graph.evalBGP(bgp, context), b => {
         cache.update(bgp, b, writerID)
       })
@@ -568,6 +569,12 @@ export namespace evaluation {
         cache.commit(bgp, writerID)
       })
     }
+    // case 2: no missing patterns => the complete BGP is in the cache
+    if (missingBGP.length === 0) {
+      return cache.getAsPipeline(bgp)
+    }
+    // case 3: evaluate the subset BGP using the cache, then join with the missing patterns
+    return builder.execute(cache.getAsPipeline(subsetBGP), missingBGP, context)
   }
 }
 

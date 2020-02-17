@@ -45,14 +45,14 @@ import boundJoin from '../../operators/join/bound-join'
  * available
  * @private
  */
-function bgpEvaluation (source: PipelineStage<Bindings>, bgp: Algebra.TripleObject[], graph: Graph, context: ExecutionContext) {
+function bgpEvaluation (source: PipelineStage<Bindings>, bgp: Algebra.TripleObject[], graph: Graph, builder: BGPStageBuilder, context: ExecutionContext) {
   const engine = Pipeline.getInstance()
   return engine.mergeMap(source, (bindings: Bindings) => {
     let boundedBGP = bgp.map(t => bindings.bound(t))
     // check the cache
     let iterator
     if (context.cachingEnabled()) {
-      iterator = evaluation.cacheEvalBGP(boundedBGP, graph, context.cache!, context)
+      iterator = evaluation.cacheEvalBGP(boundedBGP, graph, context.cache!, builder, context)
     } else {
       iterator = graph.evalBGP(boundedBGP, context)
     }
@@ -184,9 +184,9 @@ export default class BGPStageBuilder extends StageBuilder {
    */
   _buildIterator (source: PipelineStage<Bindings>, graph: Graph, patterns: Algebra.TripleObject[], context: ExecutionContext): PipelineStage<Bindings> {
     if (graph._isCapable(GRAPH_CAPABILITY.UNION)) {
-      return boundJoin(source, patterns, graph, context)
+      return boundJoin(source, patterns, graph, this, context)
     }
-    return bgpEvaluation(source, patterns, graph, context)
+    return bgpEvaluation(source, patterns, graph, this, context)
   }
 
   /**
