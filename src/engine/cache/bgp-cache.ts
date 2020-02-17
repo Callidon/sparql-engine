@@ -32,7 +32,7 @@ import { Bindings } from '../../rdf/bindings'
 import { Algebra } from 'sparqljs'
 import { rdf, sparql } from '../../utils'
 import { BinarySearchTree } from 'binary-search-tree'
-import { findIndex, maxBy } from 'lodash'
+import { differenceWith, findIndex, maxBy } from 'lodash'
 
 // type alias to simplify the type defintion in this file
 type BasicGraphPattern = Algebra.TripleObject[]
@@ -158,12 +158,9 @@ export class LRUBGPCache implements BGPCache {
     }
     // compute the largest subset BGP and the missing patterns (missingPatterns = input_BGP - subset_BGP)
     let foundPatterns: BasicGraphPattern = []
-    let missingPatterns: BasicGraphPattern = []
     let maxBGPLength = -1
     for (let match of matches) {
-      if (match.searchResults.length === 0) {
-        missingPatterns.push(match.pattern)
-      } else {
+      if (match.searchResults.length > 0) {
         const localMax = maxBy(match.searchResults, v => v.bgp.length)
         if (localMax !== undefined && localMax.bgp.length > maxBGPLength) {
           maxBGPLength = localMax.bgp.length
@@ -171,6 +168,6 @@ export class LRUBGPCache implements BGPCache {
         }
       }
     }
-    return [foundPatterns, missingPatterns]
+    return [foundPatterns, differenceWith(bgp, foundPatterns, rdf.tripleEquals)]
   }
 }
