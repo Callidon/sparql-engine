@@ -24,20 +24,36 @@ SOFTWARE.
 
 'use strict'
 
-import { Pipeline } from './engine/pipeline/pipeline'
-import { PipelineStage } from './engine/pipeline/pipeline-engine'
 import { Algebra } from 'sparqljs'
-import { Bindings } from './rdf/bindings'
+import { BGPCache } from './engine/cache/bgp-cache'
+import { Bindings, BindingBase } from './rdf/bindings'
+import { BlankNode, Literal, NamedNode, Term } from 'rdf-js'
 import { includes, union } from 'lodash'
 import { parseZone, Moment, ISO_8601 } from 'moment'
-import * as DataFactory from '@rdfjs/data-model'
-import { BlankNode, Literal, NamedNode, Term } from 'rdf-js'
+import { Pipeline } from './engine/pipeline/pipeline'
+import { PipelineStage } from './engine/pipeline/pipeline-engine'
 import { termToString, stringToTerm } from 'rdf-string'
+import * as crypto from 'crypto'
+import * as DataFactory from '@rdfjs/data-model'
+import * as uuid from 'uuid/v4'
+import BGPStageBuilder from './engine/stages/bgp-stage-builder'
+import ExecutionContext from './engine/context/execution-context'
+import Graph from './rdf/graph'
 
 /**
  * RDF related utilities
  */
 export namespace rdf {
+  /**
+   * Test if two triple (patterns) are equals
+   * @param a - First triple (pattern)
+   * @param b - Second triple (pattern)
+   * @return True if the two triple (patterns) are equals, False otherwise
+   */
+  export function tripleEquals (a: Algebra.TripleObject, b: Algebra.TripleObject): boolean {
+    return a.subject === b.subject && a.predicate === b.predicate && a.object === b.object
+  }
+
   /**
    * Convert an string RDF Term to a RDFJS representation
    * @see https://rdf.js.org/data-model-spec
@@ -405,6 +421,15 @@ export namespace rdf {
   }
 
   /**
+   * Hash Triple (pattern) to assign it an unique ID
+   * @param triple - Triple (pattern) to hash
+   * @return An unique ID to identify the Triple (pattern)
+   */
+  export function hashTriple (triple: Algebra.TripleObject): string {
+    return `s=${triple.subject}&p=${triple.predicate}&o=${triple.object}`
+  }
+
+  /**
    * Create an IRI under the XSD namespace
    * (<http://www.w3.org/2001/XMLSchema#>)
    * @param suffix - Suffix appended to the XSD namespace to create an IRI
@@ -449,6 +474,22 @@ export namespace rdf {
  * SPARQL related utilities
  */
 export namespace sparql {
+  /**
+   * Hash Basic Graph pattern to assign them an unique ID
+   * @param bgp - Basic Graph Pattern to hash
+   * @param md5 - True if the ID should be hashed to md5, False to keep it as a plain text string
+   * @return An unique ID to identify the BGP
+   */
+  export function hashBGP (bgp: Algebra.TripleObject[], md5: boolean = false): string {
+    const hashedBGP = bgp.map(rdf.hashTriple).join(';')
+    if (!md5) {
+      return hashedBGP
+    }
+    const hash = crypto.createHash('md5')
+    hash.update(hashedBGP)
+    return hash.digest('hex')
+  }
+
   /**
    * Get the set of SPARQL variables in a triple pattern
    * @param  pattern - Triple Pattern
@@ -498,6 +539,42 @@ export namespace sparql {
       }
     }
     return results
+  }
+}
+
+/**
+ * Utilities related to SPARQL query evaluation
+ * @author Thomas Minier
+ */
+export namespace evaluation {
+  /**
+   * Evaluate a Basic Graph pattern on a RDF graph using a cache
+   * @param bgp - Basic Graph pattern to evaluate
+   * @param graph - RDF graph
+   * @param cache - Cache used
+   * @return A pipeline stage that produces the evaluation results
+   */
+  export function cacheEvalBGP (bgp: Algebra.TripleObject[], graph: Graph, cache: BGPCache, builder: BGPStageBuilder, context: ExecutionContext): PipelineStage<Bindings> {
+    const [subsetBGP, missingBGP] = cache.findSubset(bgp)
+    // case 1: no subset of the BGP are in cache => classic evaluation (most frequent)
+    if (subsetBGP.length === 0) {
+      // generate an unique writer ID
+      const writerID = uuid()
+      // evaluate the BGP while saving all solutions into the cache
+      const iterator = Pipeline.getInstance().tap(graph.evalBGP(bgp, context), b => {
+        cache.update(bgp, b, writerID)
+      })
+      // commit the cache entry when the BGP evaluation is done
+      return Pipeline.getInstance().finalize(iterator, () => {
+        cache.commit(bgp, writerID)
+      })
+    }
+    // case 2: no missing patterns => the complete BGP is in the cache
+    if (missingBGP.length === 0) {
+      return cache.getAsPipeline(bgp)
+    }
+    // case 3: evaluate the subset BGP using the cache, then join with the missing patterns
+    return builder.execute(cache.getAsPipeline(subsetBGP), missingBGP, context)
   }
 }
 

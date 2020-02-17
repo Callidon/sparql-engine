@@ -12,6 +12,7 @@ An open-source framework for building SPARQL query engines in Javascript/Typescr
 * Implements advanced *SPARQL query rewriting techniques* for transparently optimizing SPARQL query processing.
 * Supports [full text search queries](#full-text-search).
 * Supports [Custom SPARQL functions](#custom-functions).
+* Supports [Semantic Caching](#enable-caching), to speed up query evaluation of reccurent patterns.
 * Supports the [SPARQL UPDATE protocol](https://www.w3.org/TR/2013/REC-sparql11-update-20130321/).
 * Supports Basic [Federated SPARQL queries](https://www.w3.org/TR/2013/REC-sparql11-federated-query-20130321/) using **SERVICE clauses**.
 * Customize every step of SPARQL query processing, thanks to *a modular architecture*.
@@ -27,6 +28,7 @@ An open-source framework for building SPARQL query engines in Javascript/Typescr
   * [RDF Graphs](#rdf-graphs)
   * [RDF Datasets](#rdf-datasets)
   * [Running a SPARQL query](#running-a-sparql-query)
+* [Enable caching](#enable-caching)
 * [Full text search](#full-text-search)
 * [Federated SPARQL Queries](#federated-sparql-queries)
 * [Custom Functions](#custom-functions)
@@ -186,6 +188,23 @@ Finally, to run a SPARQL query on your RDF dataset, you need to use the `PlanBui
     err => console.error(err),
     () => console.log('Query evaluation complete!')
   )
+```
+
+# Enable caching
+
+The `sparql-engine` provides support for automatic caching of Basic Graph Pattern evaluation using the [Semantic Cache algorithm](https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=1161590). Basically, the cache will save the results of BGPs already evaluated and, when the engine wants to evaluates a BGP, it will look for the largest subset of the BGP in the cache. If one is available, it will re-use the cached results to speed up query processing.
+
+By default, semantic caching is disabled. You can turn it on/off using the `PlanBuilder.useCache` and `PlanBuilder.disableCache` methods, respectively. The `useCache` method accepts an optional parameter, so you can provide your own implementation of the semantic cache. By defaults, it uses an in-memory [LRU cache](https://callidon.github.io/sparql-engine/classes/lrubgpcache.html) which stores up to 500MB of items for 20 minutes.
+
+```javascript
+// get an instance of a PlanBuilder
+const builder = new PlanBuilder(/* ... */)
+
+// activate the cache
+builder.useCache()
+
+// disable the cache
+builder.disableCache()
 ```
 
 # Full Text Search

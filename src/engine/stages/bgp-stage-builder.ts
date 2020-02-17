@@ -35,7 +35,7 @@ import { GRAPH_CAPABILITY } from '../../rdf/graph_capability'
 import { parseHints } from '../context/query-hints'
 import { fts } from './rewritings'
 import ExecutionContext from '../context/execution-context'
-import { rdf } from '../../utils'
+import { rdf, evaluation } from '../../utils'
 import { isNaN, isNull, isInteger } from 'lodash'
 
 import boundJoin from '../../operators/join/bound-join'
@@ -45,11 +45,19 @@ import boundJoin from '../../operators/join/bound-join'
  * available
  * @private
  */
-function bgpEvaluation (source: PipelineStage<Bindings>, bgp: Algebra.TripleObject[], graph: Graph, context: ExecutionContext) {
+function bgpEvaluation (source: PipelineStage<Bindings>, bgp: Algebra.TripleObject[], graph: Graph, builder: BGPStageBuilder, context: ExecutionContext) {
   const engine = Pipeline.getInstance()
   return engine.mergeMap(source, (bindings: Bindings) => {
     let boundedBGP = bgp.map(t => bindings.bound(t))
-    return engine.map(graph.evalBGP(boundedBGP, context), (item: Bindings) => {
+    // check the cache
+    let iterator
+    if (context.cachingEnabled()) {
+      iterator = evaluation.cacheEvalBGP(boundedBGP, graph, context.cache!, builder, context)
+    } else {
+      iterator = graph.evalBGP(boundedBGP, context)
+    }
+    // build join results
+    return engine.map(iterator, (item: Bindings) => {
       // if (item.size === 0 && hasVars) return null
       return item.union(bindings)
     })
@@ -176,9 +184,9 @@ export default class BGPStageBuilder extends StageBuilder {
    */
   _buildIterator (source: PipelineStage<Bindings>, graph: Graph, patterns: Algebra.TripleObject[], context: ExecutionContext): PipelineStage<Bindings> {
     if (graph._isCapable(GRAPH_CAPABILITY.UNION)) {
-      return boundJoin(source, patterns, graph, context)
+      return boundJoin(source, patterns, graph, this, context)
     }
-    return bgpEvaluation(source, patterns, graph, context)
+    return bgpEvaluation(source, patterns, graph, this, context)
   }
 
   /**

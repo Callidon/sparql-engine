@@ -28,7 +28,10 @@ import { Pipeline } from '../../engine/pipeline/pipeline'
 import ExecutionContext from '../../engine/context/execution-context'
 import Graph from '../../rdf/graph'
 import { Bindings } from '../../rdf/bindings'
+import { evaluation } from '../../utils'
 import { Algebra } from 'sparqljs'
+import { PipelineStage } from '../../engine/pipeline/pipeline-engine'
+import BGPStageBuilder from '../../engine/stages/bgp-stage-builder'
 
 /**
  * Find a rewriting key in a list of variables
@@ -90,8 +93,25 @@ function rewriteSolutions (bindings: Bindings, rewritingMap: Map<number, Binding
  * @param  context - Query execution context
  * @return A pipeline stage which evaluates the query.
  */
-export default function rewritingOp (graph: Graph, bgpBucket: Algebra.TripleObject[][], rewritingTable: Map<number, Bindings>, context: ExecutionContext) {
-  return Pipeline.getInstance().map(graph.evalUnion(bgpBucket, context), bindings => {
+export default function rewritingOp (graph: Graph, bgpBucket: Algebra.TripleObject[][], rewritingTable: Map<number, Bindings>, builder: BGPStageBuilder, context: ExecutionContext) {
+  let source
+  if (context.cachingEnabled()) {
+    // partition the BGPs that can be evaluated using the cache from the others
+    const stages: PipelineStage<Bindings>[] = []
+    const others: Algebra.TripleObject[][] = []
+    bgpBucket.forEach(bgp => {
+      if (context.cache!.has(bgp)) {
+        stages.push(evaluation.cacheEvalBGP(bgp, graph, context.cache!, builder, context))
+      } else {
+        others.push(bgp)
+      }
+    })
+    // merge all sources from the cache first, and then the evaluation of bgp that are not in the cache
+    source = Pipeline.getInstance().merge(Pipeline.getInstance().merge(...stages), graph.evalUnion(others, context))
+  } else {
+    source = graph.evalUnion(bgpBucket, context)
+  }
+  return Pipeline.getInstance().map(source, bindings => {
     return rewriteSolutions(bindings, rewritingTable)
   })
 }
