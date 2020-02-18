@@ -60,9 +60,10 @@ export interface BGPCache extends AsyncCache<BasicGraphPattern, Bindings, string
   /**
    * Access the cache and returns a pipeline stage that returns the content of the cache for a given BGP
    * @param bgp - Cache key, i.e., a Basic Graph pattern
+   * @param onCancel - Callback invoked when the cache entry is deleted before being committed, so we can produce an alternative pipeline stage to continue query processing. Typically, it is the pipeline stage used to evaluate the BGP without the cache.
    * @return A pipeline stage that returns the content of the cache entry for the given BGP
    */
-  getAsPipeline (bgp: BasicGraphPattern): PipelineStage<Bindings>
+  getAsPipeline (bgp: BasicGraphPattern, onCancel?: () => PipelineStage<Bindings>): PipelineStage<Bindings>
 }
 
 /**
@@ -119,12 +120,20 @@ export class LRUBGPCache implements BGPCache {
     return this._cache.get(sparql.hashBGP(bgp))
   }
 
-  getAsPipeline (bgp: BasicGraphPattern): PipelineStage<Bindings> {
+  getAsPipeline (bgp: BasicGraphPattern, onCancel?: () => PipelineStage<Bindings>): PipelineStage<Bindings> {
     const bindings = this.get(bgp)
     if (bindings === null) {
       return Pipeline.getInstance().empty()
     }
-    return Pipeline.getInstance().flatMap(Pipeline.getInstance().from(bindings), x => x.map(b => b.clone()))
+    let iterator = Pipeline.getInstance().from(bindings)
+    return Pipeline.getInstance().mergeMap(iterator, bindings => {
+      // if the results is empty AND the cache do not contains the BGP
+      // it means that the entry has been deleted before its insertion completed
+      if (bindings.length === 0 && !this.has(bgp)) {
+        return (onCancel === undefined) ? Pipeline.getInstance().empty() : onCancel()
+      }
+      return Pipeline.getInstance().from(bindings.map(b => b.clone()))
+    })
   }
 
   commit (bgp: BasicGraphPattern, writerID: string): void {

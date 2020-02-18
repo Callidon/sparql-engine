@@ -571,10 +571,11 @@ export namespace evaluation {
     }
     // case 2: no missing patterns => the complete BGP is in the cache
     if (missingBGP.length === 0) {
-      return cache.getAsPipeline(bgp)
+      return cache.getAsPipeline(bgp, () => graph.evalBGP(bgp, context))
     }
     // case 3: evaluate the subset BGP using the cache, then join with the missing patterns
-    return builder.execute(cache.getAsPipeline(subsetBGP), missingBGP, context)
+    const iterator = cache.getAsPipeline(subsetBGP, () => graph.evalBGP(subsetBGP, context))
+    return builder.execute(iterator, missingBGP, context)
   }
 }
 
