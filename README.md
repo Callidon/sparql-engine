@@ -168,12 +168,11 @@ Finally, to run a SPARQL query on your RDF dataset, you need to use the `PlanBui
 
   // Get the name of all people in the Default Graph
   const query = `
-    PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
     PREFIX foaf: <http://xmlns.com/foaf/0.1/>
     SELECT ?name
     WHERE {
       ?s a foaf:Person .
-      ?s rdfs:label ?label .
+      ?s foaf:name ?name .
     }`
 
   // Creates a plan builder for the RDF dataset
