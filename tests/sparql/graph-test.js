@@ -107,6 +107,50 @@ describe("GRAPH/FROM queries", () => {
       }
     },
     {
+      text: "should evaluate a query over unknown named graphs and bind the graph iri to a variable",
+      query: `
+      PREFIX dblp-pers: <https://dblp.org/pers/m/>
+      PREFIX dblp-rdf: <https://dblp.uni-trier.de/rdf/schema-2017-04-18#>
+      PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+      SELECT ?s ?name ?article ?g
+      WHERE {
+        GRAPH ?g {
+          ?s rdf:type dblp-rdf:Person .
+          ?s dblp-rdf:primaryFullPersonName ?name .
+          ?s dblp-rdf:authorOf ?article .
+        }
+      }`,
+      nbResults: 7,
+      testFun: function(b) {
+        expect(b).to.have.all.keys(["?s", "?name", "?article", "?g"]);
+        switch (b["?s"]) {
+          case "https://dblp.org/pers/g/Grall:Arnaud":
+            expect(b["?g"]).to.equal(GRAPH_B_IRI);
+            expect(b["?s"]).to.equal("https://dblp.org/pers/g/Grall:Arnaud");
+            expect(b["?name"]).to.equal('"Arnaud Grall"');
+            expect(b["?article"]).to.be.oneOf([
+              "https://dblp.org/rec/conf/semweb/GrallSM18",
+              "https://dblp.org/rec/conf/esws/GrallFMSMSV17"
+            ]);
+            break;
+          case "https://dblp.org/pers/m/Minier:Thomas":
+            expect(b["?g"]).to.equal(GRAPH_A_IRI);
+            expect(b["?s"]).to.equal("https://dblp.org/pers/m/Minier:Thomas");
+            expect(b["?name"]).to.equal('"Thomas Minier"@en');
+            expect(b["?article"]).to.be.oneOf([
+              "https://dblp.org/rec/conf/esws/MinierSMV18a",
+              "https://dblp.org/rec/conf/esws/MinierSMV18",
+              "https://dblp.org/rec/journals/corr/abs-1806-00227",
+              "https://dblp.org/rec/conf/esws/MinierMSM17",
+              "https://dblp.org/rec/conf/esws/MinierMSM17a"
+            ]);
+            break;
+          default:
+            throw new Error(`Unexpected ?s binding found ${b["?s"]}`);
+        }
+      }
+    },
+    {
       text: "should evaluate simple SPARQL GRAPH queries",
       query: `
       PREFIX dblp-pers: <https://dblp.org/pers/m/>
