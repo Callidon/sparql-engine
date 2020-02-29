@@ -47,7 +47,7 @@ export default class GraphStageBuilder extends StageBuilder {
   execute (source: PipelineStage<Bindings>, node: Algebra.GraphNode, context: ExecutionContext): PipelineStage<Bindings> {
     let subquery: Algebra.RootNode
     if (node.patterns[0].type === 'query') {
-      subquery = (<Algebra.RootNode> node.patterns[0])
+      subquery = node.patterns[0] as Algebra.RootNode
     } else {
       subquery = {
         prefixes: context.getProperty('prefixes'),
@@ -68,13 +68,22 @@ export default class GraphStageBuilder extends StageBuilder {
       } else {
         namedGraphs = this._dataset.getAllGraphs(true).map(g => g.iri)
       }
-      // execute the subquery using each graph, and bound the graph var to the graph iri
-      const iterators = namedGraphs.map((iri: string) => {
-        return Pipeline.getInstance().map(this._buildIterator(source, iri, subquery, context), (b: Bindings) => {
-          return b.extendMany([[node.name, iri]])
+      // build a pipeline stage that allows to peek on the first set of input bindings
+      const peekable = Pipeline.getInstance().limit(Pipeline.getInstance().clone(source), 1)
+      return Pipeline.getInstance().mergeMap(peekable, b => {
+        // if the input bindings bound the graph's variable, use it as graph IRI
+        if (b.has(node.name)) {
+          const graphIRI = b.get(node.name)!
+          return this._buildIterator(source, graphIRI, subquery, context)
+        }
+        // otherwise, execute the subquery using each graph, and bound the graph var to the graph iri
+        const iterators = namedGraphs.map((iri: string) => {
+          return Pipeline.getInstance().map(this._buildIterator(source, iri, subquery, context), (b: Bindings) => {
+            return b.extendMany([[node.name, iri]])
+          })
         })
+        return Pipeline.getInstance().merge(...iterators)
       })
-      return Pipeline.getInstance().merge(...iterators)
     }
     // otherwise, execute the subquery using the Graph
     return this._buildIterator(source, node.name, subquery, context)

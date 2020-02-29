@@ -268,7 +268,7 @@ export class PlanBuilder {
 
     // Handles WHERE clause
     let graphIterator: PipelineStage<Bindings>
-    if (query.where != null && query.where.length > 0) {
+    if (query.where.length > 0) {
       graphIterator = this._buildWhere(source, query.where, context)
     } else {
       graphIterator = engine.of(new BindingBase())
@@ -364,7 +364,7 @@ export class PlanBuilder {
     let prec = null
     for (let i = 0; i < groups.length; i++) {
       let group = groups[i]
-      if (group.type === 'bgp' && prec != null && prec.type === 'bgp') {
+      if (group.type === 'bgp' && prec !== null && prec.type === 'bgp') {
         let lastGroup = newGroups[newGroups.length - 1] as Algebra.BGPNode
         lastGroup.triples = lastGroup.triples.concat((group as Algebra.BGPNode).triples)
       } else {
