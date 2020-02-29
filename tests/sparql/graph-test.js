@@ -169,25 +169,35 @@ describe("GRAPH/FROM queries", () => {
       PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
       SELECT *
       WHERE {
-        BIND(<${GRAPH_B_IRI}> as ?g) .
         ?s dblp-rdf:coCreatorWith ?coCreator .
         GRAPH ?g {
           ?s2 dblp-rdf:coCreatorWith ?coCreator .
           ?s2 dblp-rdf:primaryFullPersonName ?name .
         }
       }`,
-      nbResults: 3,
+      nbResults: 7,
       testFun: function(b) {
-        expect(b).to.have.all.keys(["?s", "?s2", "?coCreator", "?name", "?g"]);
-        expect(b["?s"]).to.equal("https://dblp.org/pers/m/Minier:Thomas");
+       expect(b).to.have.all.keys(["?s", "?s2", "?coCreator", "?name", "?g"]);
+       expect(b["?s"]).to.equal("https://dblp.org/pers/m/Minier:Thomas");
+       expect(b["?g"]).to.be.oneOf([GRAPH_A_IRI, GRAPH_B_IRI]);
+       if (b['?g'] === GRAPH_A_IRI) {
+        expect(b["?s2"]).to.equal("https://dblp.org/pers/m/Minier:Thomas");
+        expect(b["?name"]).to.equal('"Thomas Minier"@en');
+        expect(b["?coCreator"]).to.be.oneOf([
+          "https://dblp.org/pers/m/Molli:Pascal",
+          "https://dblp.org/pers/m/Montoya:Gabriela",
+          "https://dblp.org/pers/s/Skaf=Molli:Hala",
+          'https://dblp.org/pers/v/Vidal:Maria=Esther'
+        ]);
+       } else {
         expect(b["?s2"]).to.equal("https://dblp.org/pers/g/Grall:Arnaud");
-        expect(b["?g"]).to.be.oneOf([GRAPH_A_IRI, GRAPH_B_IRI]);
         expect(b["?name"]).to.equal('"Arnaud Grall"');
         expect(b["?coCreator"]).to.be.oneOf([
           "https://dblp.org/pers/m/Molli:Pascal",
           "https://dblp.org/pers/m/Montoya:Gabriela",
           "https://dblp.org/pers/s/Skaf=Molli:Hala"
         ]);
+       }
       }
     }
   ];

@@ -338,14 +338,19 @@ export class PlanBuilder {
   _buildWhere (source: PipelineStage<Bindings>, groups: Algebra.PlanNode[], context: ExecutionContext): PipelineStage<Bindings> {
     groups = sortBy(groups, g => {
       switch (g.type) {
+        case 'graph':
+          if (rdf.isVariable((g as Algebra.GraphNode).name)) {
+            return 5
+          }
+          return 0
         case 'bgp':
           return 0
         case 'values':
-          return 2
-        case 'filter':
           return 3
+        case 'filter':
+          return 4
         default:
-          return 0
+          return 1
       }
     })
 

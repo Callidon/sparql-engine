@@ -57,18 +57,24 @@ export default class GraphStageBuilder extends StageBuilder {
         where: node.patterns
       }
     }
-    const engine = Pipeline.getInstance()
     // handle the case where the GRAPh IRI is a SPARQL variable
-    if (rdf.isVariable(node.name) && context.namedGraphs.length > 0) {
+    if (rdf.isVariable(node.name)) {
       // clone the source first
-      source = engine.clone(source)
+      source = Pipeline.getInstance().clone(source)
+      let namedGraphs: string[] = []
+      // use named graphs is provided, otherwise use all named graphs
+      if (context.namedGraphs.length > 0) {
+        namedGraphs = context.namedGraphs
+      } else {
+        namedGraphs = this._dataset.getAllGraphs(true).map(g => g.iri)
+      }
       // execute the subquery using each graph, and bound the graph var to the graph iri
-      const iterators = context.namedGraphs.map((iri: string) => {
-        return engine.map(this._buildIterator(source, iri, subquery, context), (b: Bindings) => {
+      const iterators = namedGraphs.map((iri: string) => {
+        return Pipeline.getInstance().map(this._buildIterator(source, iri, subquery, context), (b: Bindings) => {
           return b.extendMany([[node.name, iri]])
         })
       })
-      return engine.merge(...iterators)
+      return Pipeline.getInstance().merge(...iterators)
     }
     // otherwise, execute the subquery using the Graph
     return this._buildIterator(source, node.name, subquery, context)
