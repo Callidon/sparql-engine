@@ -361,4 +361,24 @@ export abstract class PipelineEngine {
       })
     })
   }
+
+  /**
+   * Peek values from the input pipeline stage, and use them to decide
+   * between two candidate pipeline stages to continue the pipeline.
+   * @param input - Input pipeline stage
+   * @param count - How many items to peek from the input?
+   * @param predicate - Predicate function invoked with the values
+   * @param ifCase - Callback invoked if the predicate function evaluates to True
+   * @param elseCase - Callback invoked if the predicate function evaluates to False
+   * @return A pipeline stage
+   */
+  peekIf<T, O> (input: PipelineStage<T>, count: number, predicate: (values: T[]) => boolean, ifCase: (values: T[]) => PipelineStage<O>, elseCase: (values: T[]) => PipelineStage<O>): PipelineStage<O> {
+    const peekable = this.limit(this.clone(input), count)
+    return this.mergeMap(this.collect(peekable), values => {
+      if (predicate(values)) {
+        return ifCase(values)
+      }
+      return elseCase(values)
+    })
+  }
 }

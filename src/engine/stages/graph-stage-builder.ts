@@ -69,20 +69,20 @@ export default class GraphStageBuilder extends StageBuilder {
         namedGraphs = this._dataset.getAllGraphs(true).map(g => g.iri)
       }
       // build a pipeline stage that allows to peek on the first set of input bindings
-      const peekable = Pipeline.getInstance().limit(Pipeline.getInstance().clone(source), 1)
-      return Pipeline.getInstance().mergeMap(peekable, b => {
+      return Pipeline.getInstance().peekIf(source, 1, values => {
+        return values[0].has(node.name)
+      }, values => {
         // if the input bindings bound the graph's variable, use it as graph IRI
-        if (b.has(node.name)) {
-          const graphIRI = b.get(node.name)!
-          return this._buildIterator(source, graphIRI, subquery, context)
-        }
+        const graphIRI = values[0].get(node.name)!
+        return this._buildIterator(source, graphIRI, subquery, context)
+      }, () => {
         // otherwise, execute the subquery using each graph, and bound the graph var to the graph iri
-        const iterators = namedGraphs.map((iri: string) => {
-          return Pipeline.getInstance().map(this._buildIterator(source, iri, subquery, context), (b: Bindings) => {
-            return b.extendMany([[node.name, iri]])
+        return Pipeline.getInstance().merge(...namedGraphs.map((iri: string) => {
+          const stage = this._buildIterator(source, iri, subquery, context)
+          return Pipeline.getInstance().map(stage, bindings => {
+            return bindings.extendMany([[node.name, iri]])
           })
-        })
-        return Pipeline.getInstance().merge(...iterators)
+        }))
       })
     }
     // otherwise, execute the subquery using the Graph
