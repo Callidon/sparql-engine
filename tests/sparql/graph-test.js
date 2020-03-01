@@ -162,15 +162,53 @@ describe("GRAPH/FROM queries", () => {
       }
     },
     {
-      text: "should evaluate SPARQL GRAPH with the name bound in a variable",
+      text: "should evaluate a query where the graph IRI is a SPARQL variable",
       query: `
       PREFIX dblp-pers: <https://dblp.org/pers/m/>
       PREFIX dblp-rdf: <https://dblp.uni-trier.de/rdf/schema-2017-04-18#>
       PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
       SELECT *
       WHERE {
-        BIND(<${GRAPH_B_IRI}> as ?g) .
         ?s dblp-rdf:coCreatorWith ?coCreator .
+        GRAPH ?g {
+          ?s2 dblp-rdf:coCreatorWith ?coCreator .
+          ?s2 dblp-rdf:primaryFullPersonName ?name .
+        }
+      }`,
+      nbResults: 7,
+      testFun: function(b) {
+       expect(b).to.have.all.keys(["?s", "?s2", "?coCreator", "?name", "?g"]);
+       expect(b["?s"]).to.equal("https://dblp.org/pers/m/Minier:Thomas");
+       expect(b["?g"]).to.be.oneOf([GRAPH_A_IRI, GRAPH_B_IRI]);
+       if (b['?g'] === GRAPH_A_IRI) {
+        expect(b["?s2"]).to.equal("https://dblp.org/pers/m/Minier:Thomas");
+        expect(b["?name"]).to.equal('"Thomas Minier"@en');
+        expect(b["?coCreator"]).to.be.oneOf([
+          "https://dblp.org/pers/m/Molli:Pascal",
+          "https://dblp.org/pers/m/Montoya:Gabriela",
+          "https://dblp.org/pers/s/Skaf=Molli:Hala",
+          'https://dblp.org/pers/v/Vidal:Maria=Esther'
+        ]);
+       } else {
+        expect(b["?s2"]).to.equal("https://dblp.org/pers/g/Grall:Arnaud");
+        expect(b["?name"]).to.equal('"Arnaud Grall"');
+        expect(b["?coCreator"]).to.be.oneOf([
+          "https://dblp.org/pers/m/Molli:Pascal",
+          "https://dblp.org/pers/m/Montoya:Gabriela",
+          "https://dblp.org/pers/s/Skaf=Molli:Hala"
+        ]);
+       }
+      }
+    },
+    {
+      text: "should evaluate a SPARQL query where the graph IRI is bounded by another expression",
+      query: `
+      PREFIX dblp-pers: <https://dblp.org/pers/m/>
+      PREFIX dblp-rdf: <https://dblp.uni-trier.de/rdf/schema-2017-04-18#>
+      PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+      SELECT * WHERE {
+        ?s dblp-rdf:coCreatorWith ?coCreator .
+        BIND(<${GRAPH_B_IRI}> as ?g)
         GRAPH ?g {
           ?s2 dblp-rdf:coCreatorWith ?coCreator .
           ?s2 dblp-rdf:primaryFullPersonName ?name .
@@ -178,10 +216,10 @@ describe("GRAPH/FROM queries", () => {
       }`,
       nbResults: 3,
       testFun: function(b) {
-        expect(b).to.have.all.keys(["?s", "?s2", "?coCreator", "?name", "?g"]);
+        expect(b).to.have.all.keys(["?s", "?s2", '?g', "?coCreator", "?name"]);
         expect(b["?s"]).to.equal("https://dblp.org/pers/m/Minier:Thomas");
         expect(b["?s2"]).to.equal("https://dblp.org/pers/g/Grall:Arnaud");
-        expect(b["?g"]).to.be.oneOf([GRAPH_A_IRI, GRAPH_B_IRI]);
+        expect(b['?g']).to.equals(GRAPH_B_IRI)
         expect(b["?name"]).to.equal('"Arnaud Grall"');
         expect(b["?coCreator"]).to.be.oneOf([
           "https://dblp.org/pers/m/Molli:Pascal",
@@ -189,7 +227,7 @@ describe("GRAPH/FROM queries", () => {
           "https://dblp.org/pers/s/Skaf=Molli:Hala"
         ]);
       }
-    }
+    },
   ];
 
   data.forEach(d => {

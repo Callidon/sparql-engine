@@ -47,7 +47,7 @@ export default class GraphStageBuilder extends StageBuilder {
   execute (source: PipelineStage<Bindings>, node: Algebra.GraphNode, context: ExecutionContext): PipelineStage<Bindings> {
     let subquery: Algebra.RootNode
     if (node.patterns[0].type === 'query') {
-      subquery = (<Algebra.RootNode> node.patterns[0])
+      subquery = node.patterns[0] as Algebra.RootNode
     } else {
       subquery = {
         prefixes: context.getProperty('prefixes'),
@@ -57,18 +57,33 @@ export default class GraphStageBuilder extends StageBuilder {
         where: node.patterns
       }
     }
-    const engine = Pipeline.getInstance()
     // handle the case where the GRAPh IRI is a SPARQL variable
-    if (rdf.isVariable(node.name) && context.namedGraphs.length > 0) {
+    if (rdf.isVariable(node.name)) {
       // clone the source first
-      source = engine.clone(source)
-      // execute the subquery using each graph, and bound the graph var to the graph iri
-      const iterators = context.namedGraphs.map((iri: string) => {
-        return engine.map(this._buildIterator(source, iri, subquery, context), (b: Bindings) => {
-          return b.extendMany([[node.name, iri]])
-        })
+      source = Pipeline.getInstance().clone(source)
+      let namedGraphs: string[] = []
+      // use named graphs is provided, otherwise use all named graphs
+      if (context.namedGraphs.length > 0) {
+        namedGraphs = context.namedGraphs
+      } else {
+        namedGraphs = this._dataset.getAllGraphs(true).map(g => g.iri)
+      }
+      // build a pipeline stage that allows to peek on the first set of input bindings
+      return Pipeline.getInstance().peekIf(source, 1, values => {
+        return values[0].has(node.name)
+      }, values => {
+        // if the input bindings bound the graph's variable, use it as graph IRI
+        const graphIRI = values[0].get(node.name)!
+        return this._buildIterator(source, graphIRI, subquery, context)
+      }, () => {
+        // otherwise, execute the subquery using each graph, and bound the graph var to the graph iri
+        return Pipeline.getInstance().merge(...namedGraphs.map((iri: string) => {
+          const stage = this._buildIterator(source, iri, subquery, context)
+          return Pipeline.getInstance().map(stage, bindings => {
+            return bindings.extendMany([[node.name, iri]])
+          })
+        }))
       })
-      return engine.merge(...iterators)
     }
     // otherwise, execute the subquery using the Graph
     return this._buildIterator(source, node.name, subquery, context)
