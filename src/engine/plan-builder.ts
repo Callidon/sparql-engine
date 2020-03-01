@@ -173,7 +173,7 @@ export class PlanBuilder {
    * a maximum of 500 items and a max age of 20 minutes.
    * @param customCache - (optional) Custom cache instance
    */
-  useCache (customCache?: LRUBGPCache): void {
+  useCache (customCache?: BGPCache): void {
     if (customCache === undefined) {
       this._currentCache = new LRUBGPCache(500, 1200 * 60 * 60)
     } else {
