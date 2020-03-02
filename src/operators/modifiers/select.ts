@@ -1,7 +1,7 @@
 /* file : select.ts
 MIT License
 
-Copyright (c) 2018 Thomas Minier
+Copyright (c) 2018-2020 Thomas Minier
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -40,7 +40,7 @@ import { Bindings } from '../../rdf/bindings'
  * @return A {@link PipelineStage} which evaluate the SELECT modifier
  */
 export default function select (source: PipelineStage<Bindings>, query: Algebra.RootNode) {
-  const variables = <string[]> query.variables
+  const variables = query.variables as string[]
   const selectAll = variables.length === 1 && variables[0] === '*'
   return Pipeline.getInstance().map(source, (bindings: Bindings) => {
     if (!selectAll) {
@@ -53,6 +53,6 @@ export default function select (source: PipelineStage<Bindings>, query: Algebra.
         return obj
       }, bindings.empty())
     }
-    return bindings.mapValues((k, v) => rdf.isVariable(k) && typeof v === 'string' ? v : null)
+    return bindings.mapValues((k, v) => rdf.isVariable(k) ? v : null)
   })
 }

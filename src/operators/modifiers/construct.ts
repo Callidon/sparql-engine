@@ -1,7 +1,7 @@
 /* file : construct.ts
 MIT License
 
-Copyright (c) 2018 Thomas Minier
+Copyright (c) 2018-2020 Thomas Minier
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -41,7 +41,7 @@ import { Bindings } from '../../rdf/bindings'
  */
 export default function construct (source: PipelineStage<Bindings>, query: any) {
   const rawTriples: Algebra.TripleObject[] = []
-  const templates: Algebra.TripleObject[] = query.template!.filter((t: any) => {
+  const templates: Algebra.TripleObject[] = query.template.filter((t: any) => {
     if (rdf.isVariable(t.subject) || rdf.isVariable(t.predicate) || rdf.isVariable(t.object)) {
       return true
     }

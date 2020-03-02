@@ -136,5 +136,5 @@ export default {
     const prec = precision(rows[a], rows[b])
     const rec = recall(rows[a], rows[b])
     return rdf.createFloat(2 * (prec * rec) / (prec + rec))
-  },
+  }
 }

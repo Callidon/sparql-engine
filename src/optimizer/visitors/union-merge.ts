@@ -1,7 +1,7 @@
 /* file : union-merge.ts
 MIT License
 
-Copyright (c) 2019 Thomas Minier
+Copyright (c) 2018-2020 Thomas Minier
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -34,7 +34,7 @@ import { cloneDeep, partition } from 'lodash'
  * @author Thomas Minier
  */
 export default class UnionMerge extends PlanVisitor {
-  visitUnion(node: Algebra.GroupNode): Algebra.PlanNode {
+  visitUnion (node: Algebra.GroupNode): Algebra.PlanNode {
     const newNode = cloneDeep(node)
     const parts = partition(newNode.patterns, group => group.type === 'union')
     const singleUnion = (parts[0] as Algebra.GroupNode[]).reduce((acc: Algebra.PlanNode[], c) => acc.concat(c.patterns), [])
