@@ -1,7 +1,7 @@
 /* file : update-stage-builder.ts
 MIT License
 
-Copyright (c) 2018 Thomas Minier
+Copyright (c) 2018-2020 Thomas Minier
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -59,26 +59,26 @@ export default class UpdateStageBuilder extends StageBuilder {
           case 'insert':
           case 'delete':
           case 'insertdelete':
-            return this._handleInsertDelete(<Algebra.UpdateQueryNode> update, context)
+            return this._handleInsertDelete(update, context)
           default:
             return new ErrorConsumable(`Unsupported SPARQL UPDATE query: ${update.updateType}`)
         }
       } else if ('type' in update) {
         switch (update.type) {
           case 'clear':
-            return this._handleClearQuery(<Algebra.UpdateClearNode> update)
+            return this._handleClearQuery(update as Algebra.UpdateClearNode)
           case 'add':
-            return this._handleInsertDelete(rewritings.rewriteAdd(<Algebra.UpdateCopyMoveNode> update, this._dataset), context)
+            return this._handleInsertDelete(rewritings.rewriteAdd(update as Algebra.UpdateCopyMoveNode, this._dataset), context)
           case 'copy':
             // A COPY query is rewritten into a sequence [CLEAR query, INSERT query]
-            queries = rewritings.rewriteCopy(<Algebra.UpdateCopyMoveNode> update, this._dataset)
+            queries = rewritings.rewriteCopy(update as Algebra.UpdateCopyMoveNode, this._dataset)
             return new ManyConsumers([
               this._handleClearQuery(queries[0]),
               this._handleInsertDelete(queries[1], context)
             ])
           case 'move':
             // A MOVE query is rewritten into a sequence [CLEAR query, INSERT query, CLEAR query]
-            queries = rewritings.rewriteMove(<Algebra.UpdateCopyMoveNode> update, this._dataset)
+            queries = rewritings.rewriteMove(update as Algebra.UpdateCopyMoveNode, this._dataset)
             return new ManyConsumers([
               this._handleClearQuery(queries[0]),
               this._handleInsertDelete(queries[1], context),
@@ -148,7 +148,7 @@ export default class UpdateStageBuilder extends StageBuilder {
    * @return A consumer used to evaluate a SPARQL INSERT clause
    */
   _buildInsertConsumer (source: PipelineStage<Bindings>, group: Algebra.BGPNode | Algebra.UpdateGraphNode, graph: Graph | null, context: ExecutionContext): InsertConsumer {
-    const tripleSource = construct(source, {template: group.triples})
+    const tripleSource = construct(source, { template: group.triples })
     if (graph === null) {
       graph = (group.type === 'graph' && 'name' in group) ? this._dataset.getNamedGraph(group.name) : this._dataset.getDefaultGraph()
     }
@@ -164,7 +164,7 @@ export default class UpdateStageBuilder extends StageBuilder {
    * @return A consumer used to evaluate a SPARQL DELETE clause
    */
   _buildDeleteConsumer (source: PipelineStage<Bindings>, group: Algebra.BGPNode | Algebra.UpdateGraphNode, graph: Graph | null, context: ExecutionContext): DeleteConsumer {
-    const tripleSource = construct(source, {template: group.triples})
+    const tripleSource = construct(source, { template: group.triples })
     if (graph === null) {
       graph = (group.type === 'graph' && 'name' in group) ? this._dataset.getNamedGraph(group.name) : this._dataset.getDefaultGraph()
     }

@@ -1,7 +1,7 @@
 /* file : pipeline.ts
 MIT License
 
-Copyright (c) 2019 Thomas Minier
+Copyright (c) 2018-2020 Thomas Minier
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -39,7 +39,7 @@ export class Pipeline {
    * Get the instance of the current pipeline engine
    * @return The instance of the current pipeline engine
    */
-  static getInstance(): PipelineEngine {
+  static getInstance (): PipelineEngine {
     return _currentEngine
   }
 
@@ -47,7 +47,7 @@ export class Pipeline {
    * Set the instance of the current pipeline engine
    * @param instance  - New pipeline engine to use as the current one
    */
-  static setInstance(instance: PipelineEngine): void {
+  static setInstance (instance: PipelineEngine): void {
     _currentEngine = instance
   }
 }

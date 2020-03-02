@@ -1,7 +1,7 @@
 /* file : bind-stage-builder.ts
 MIT License
 
-Copyright (c) 2019 Thomas Minier
+Copyright (c) 2018-2020 Thomas Minier
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -37,7 +37,7 @@ import { CustomFunctions } from '../../operators/expressions/sparql-expression'
  * @author Thomas Minier
  */
 export default class BindStageBuilder extends StageBuilder {
-  execute(source: PipelineStage<Bindings>, bindNode: Algebra.BindNode, customFunctions: CustomFunctions, context: ExecutionContext): PipelineStage<Bindings> {
+  execute (source: PipelineStage<Bindings>, bindNode: Algebra.BindNode, customFunctions: CustomFunctions, context: ExecutionContext): PipelineStage<Bindings> {
     return bind(source, bindNode.variable, bindNode.expression, customFunctions)
   }
 }

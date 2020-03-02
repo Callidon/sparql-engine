@@ -1,7 +1,7 @@
 /* file : sateg-builder.ts
 MIT License
 
-Copyright (c) 2018 Thomas Minier
+Copyright (c) 2018-2020 Thomas Minier
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -48,7 +48,7 @@ export default abstract class StageBuilder {
     return this._builder
   }
 
-  set builder (builder: PlanBuilder| null) {
+  set builder (builder: PlanBuilder | null) {
     this._builder = builder
   }
 
@@ -60,5 +60,5 @@ export default abstract class StageBuilder {
     this._dataset = dataset
   }
 
-  abstract execute(...args: any[]): PipelineStage<Bindings> | Consumable
+  abstract execute (...args: any[]): PipelineStage<Bindings> | Consumable
 }

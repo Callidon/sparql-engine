@@ -1,7 +1,7 @@
 /* file : minus-stage-builder.ts
 MIT License
 
-Copyright (c) 2019 Thomas Minier
+Copyright (c) 2018-2020 Thomas Minier
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -22,7 +22,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-
 'use strict'
 
 import StageBuilder from './stage-builder'
@@ -38,7 +37,7 @@ import minus from '../../operators/minus'
  * @author Thomas Minier
  */
 export default class MinusStageBuilder extends StageBuilder {
-  execute(source: PipelineStage<Bindings>, node: Algebra.GroupNode, context: ExecutionContext): PipelineStage<Bindings> {
+  execute (source: PipelineStage<Bindings>, node: Algebra.GroupNode, context: ExecutionContext): PipelineStage<Bindings> {
     const engine = Pipeline.getInstance()
     const rightSource = this.builder!._buildWhere(engine.of(new BindingBase()), node.patterns, context)
     return minus(source, rightSource)

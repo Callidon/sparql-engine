@@ -1,7 +1,7 @@
 /* file : path-stage-builder.ts
 MIT License
 
-Copyright (c) 2018 Thomas Minier
+Copyright (c) 2018-2020 Thomas Minier
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -44,10 +44,10 @@ function boundPathTriple (triple: Algebra.PathTripleObject, bindings: Bindings):
     predicate: triple.predicate,
     object: triple.object
   }
-  if (triple.subject.startsWith('?') && bindings.has(triple.subject)){
+  if (triple.subject.startsWith('?') && bindings.has(triple.subject)) {
     t.subject = bindings.get(triple.subject)!
   }
-  if (triple.object.startsWith('?') && bindings.has(triple.object)){
+  if (triple.object.startsWith('?') && bindings.has(triple.object)) {
     t.object = bindings.get(triple.subject)!
   }
   return t
@@ -89,7 +89,7 @@ export default abstract class PathStageBuilder extends StageBuilder {
     const engine = Pipeline.getInstance()
     return triples.reduce((iter: PipelineStage<Bindings>, triple: Algebra.PathTripleObject) => {
       return engine.mergeMap(iter, bindings => {
-        const {subject, predicate, object} = boundPathTriple(triple, bindings)
+        const { subject, predicate, object } = boundPathTriple(triple, bindings)
         return engine.map(this._buildIterator(subject, predicate, object, context), (b: Bindings) => bindings.union(b))
       })
     }, source)
@@ -103,23 +103,23 @@ export default abstract class PathStageBuilder extends StageBuilder {
    * @param  context - Execution context
    * @return A {@link PipelineStage} which yield set of bindings
    */
-  _buildIterator(subject: string, path: Algebra.PropertyPath, obj: string, context: ExecutionContext): PipelineStage<Bindings> {
+  _buildIterator (subject: string, path: Algebra.PropertyPath, obj: string, context: ExecutionContext): PipelineStage<Bindings> {
     const graph = (context.defaultGraphs.length > 0) ? this._getGraph(context.defaultGraphs) : this._dataset.getDefaultGraph()
     const evaluator = this._executePropertyPath(subject, path, obj, graph, context)
     return Pipeline.getInstance().map(evaluator, (triple: Algebra.TripleObject) => {
-      const temp = {}
+      const temp = new BindingBase()
       if (rdf.isVariable(subject)) {
-        temp[subject] = triple.subject
+        temp.set(subject, triple.subject)
       }
       if (rdf.isVariable(obj)) {
-        temp[obj] = triple.object
+        temp.set(obj, triple.object)
       }
       // TODO: change the function's behavior for ask queries when subject and object are given
       if (!rdf.isVariable(subject) && !rdf.isVariable(obj)) {
-        temp['?ask_s'] = triple.subject;
-        temp['?ask_v'] = triple.object;
+        temp.set('?ask_s', triple.subject)
+        temp.set('?ask_v', triple.object)
       }
-      return BindingBase.fromObject(temp)
+      return temp
     })
   }
 
@@ -132,5 +132,5 @@ export default abstract class PathStageBuilder extends StageBuilder {
    * @param  context - Execution context
    * @return A {@link PipelineStage} which yield RDF triples matching the property path
    */
-  abstract _executePropertyPath(subject: string, path: Algebra.PropertyPath, obj: string, graph: Graph, context: ExecutionContext): PipelineStage<Algebra.TripleObject>
+  abstract _executePropertyPath (subject: string, path: Algebra.PropertyPath, obj: string, graph: Graph, context: ExecutionContext): PipelineStage<Algebra.TripleObject>
 }

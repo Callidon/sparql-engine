@@ -1,7 +1,7 @@
 /* file : rewritings.ts
 MIT License
 
-Copyright (c) 2018 Thomas Minier
+Copyright (c) 2018-2020 Thomas Minier
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -186,7 +186,7 @@ export function extractPropertyPaths (bgp: Algebra.BGPNode): [Algebra.TripleObje
   let pathTriples: Algebra.PathTripleObject[] = parts[1] as Algebra.PathTripleObject[]
   let variables: string[] = []
 
-  //TODO: change bgp evaluation's behavior for ask queries when subject and object are given
+  // TODO: change bgp evaluation's behavior for ask queries when subject and object are given
   /*if (pathTriples.length > 0) {
     // review property paths and rewrite those equivalent to a regular BGP
     const paths: Algebra.PathTripleObject[] = []

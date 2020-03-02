@@ -1,7 +1,7 @@
 /* file : query-hints.ts
 MIT License
 
-Copyright (c) 2018 Thomas Minier
+Copyright (c) 2018-2020 Thomas Minier
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -126,7 +126,7 @@ export class QueryHints {
   }
 }
 
-export function parseHints (bgp: Algebra.TripleObject[], previous?: QueryHints) : [Algebra.TripleObject[], QueryHints] {
+export function parseHints (bgp: Algebra.TripleObject[], previous?: QueryHints): [Algebra.TripleObject[], QueryHints] {
   let res = new QueryHints()
   const regularTriples: Algebra.TripleObject[] = []
   bgp.forEach(triple => {
@@ -136,18 +136,18 @@ export function parseHints (bgp: Algebra.TripleObject[], previous?: QueryHints) 
           case HINT('HashJoin') :
             res.add(QUERY_HINT_SCOPE.BGP, QUERY_HINT.USE_HASH_JOIN)
             break
-            case HINT('SymmetricHashJoin') :
-              res.add(QUERY_HINT_SCOPE.BGP, QUERY_HINT.USE_SYMMETRIC_HASH_JOIN)
-              break
-            default:
-              break
+          case HINT('SymmetricHashJoin') :
+            res.add(QUERY_HINT_SCOPE.BGP, QUERY_HINT.USE_SYMMETRIC_HASH_JOIN)
+            break
+          default:
+            break
         }
       }
     } else {
       regularTriples.push(triple)
     }
   })
-  if (previous !== null && previous !== undefined) {
+  if (previous !== undefined) {
     res = res.merge(previous)
   }
   return [regularTriples, res]
