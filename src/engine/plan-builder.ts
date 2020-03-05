@@ -261,6 +261,9 @@ export class PlanBuilder {
       return this._buildQueryPlan(construct, context, source)
     }
 
+    // from the begining, dectect any LIMIT/OFFSET modifiers, as they cimpact the caching strategy
+    context.setProperty(ContextSymbols.HAS_LIMIT_OFFSET, 'limit' in query || 'offset' in query)
+
     // Handles FROM clauses
     if (query.from) {
       context.defaultGraphs = query.from.default

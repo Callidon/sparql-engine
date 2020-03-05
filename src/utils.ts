@@ -38,6 +38,7 @@ import * as DataFactory from '@rdfjs/data-model'
 import * as uuid from 'uuid/v4'
 import BGPStageBuilder from './engine/stages/bgp-stage-builder'
 import ExecutionContext from './engine/context/execution-context'
+import ContextSymbols from './engine/context/symbols'
 import Graph from './rdf/graph'
 
 /**
@@ -558,6 +559,11 @@ export namespace evaluation {
     const [subsetBGP, missingBGP] = cache.findSubset(bgp)
     // case 1: no subset of the BGP are in cache => classic evaluation (most frequent)
     if (subsetBGP.length === 0) {
+      // we cannot cache the BGP if the query has a LIMIT and/or OFFSET modiifier
+      // otherwise we will cache incomplete results. So, we just evaluate the BGP
+      if (context.hasProperty(ContextSymbols.HAS_LIMIT_OFFSET) && context.getProperty(ContextSymbols.HAS_LIMIT_OFFSET)) {
+        return graph.evalBGP(bgp, context)
+      }
       // generate an unique writer ID
       const writerID = uuid()
       // evaluate the BGP while saving all solutions into the cache
