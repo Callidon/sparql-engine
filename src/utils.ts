@@ -555,19 +555,23 @@ export namespace evaluation {
    * @param cache - Cache used
    * @return A pipeline stage that produces the evaluation results
    */
-  export function cacheEvalBGP (bgp: Algebra.TripleObject[], graph: Graph, cache: BGPCache, builder: BGPStageBuilder, context: ExecutionContext): PipelineStage<Bindings> {
+  export function cacheEvalBGP (patterns: Algebra.TripleObject[], graph: Graph, cache: BGPCache, builder: BGPStageBuilder, context: ExecutionContext): PipelineStage<Bindings> {
+    const bgp = {
+      patterns,
+      graphIRI: graph.iri
+    }
     const [subsetBGP, missingBGP] = cache.findSubset(bgp)
     // case 1: no subset of the BGP are in cache => classic evaluation (most frequent)
     if (subsetBGP.length === 0) {
       // we cannot cache the BGP if the query has a LIMIT and/or OFFSET modiifier
       // otherwise we will cache incomplete results. So, we just evaluate the BGP
       if (context.hasProperty(ContextSymbols.HAS_LIMIT_OFFSET) && context.getProperty(ContextSymbols.HAS_LIMIT_OFFSET)) {
-        return graph.evalBGP(bgp, context)
+        return graph.evalBGP(patterns, context)
       }
       // generate an unique writer ID
       const writerID = uuid()
       // evaluate the BGP while saving all solutions into the cache
-      const iterator = Pipeline.getInstance().tap(graph.evalBGP(bgp, context), b => {
+      const iterator = Pipeline.getInstance().tap(graph.evalBGP(patterns, context), b => {
         cache.update(bgp, b, writerID)
       })
       // commit the cache entry when the BGP evaluation is done
@@ -577,10 +581,14 @@ export namespace evaluation {
     }
     // case 2: no missing patterns => the complete BGP is in the cache
     if (missingBGP.length === 0) {
-      return cache.getAsPipeline(bgp, () => graph.evalBGP(bgp, context))
+      return cache.getAsPipeline(bgp, () => graph.evalBGP(patterns, context))
+    }
+    const cachedBGP = {
+      patterns: subsetBGP,
+      graphIRI: graph.iri
     }
     // case 3: evaluate the subset BGP using the cache, then join with the missing patterns
-    const iterator = cache.getAsPipeline(subsetBGP, () => graph.evalBGP(subsetBGP, context))
+    const iterator = cache.getAsPipeline(cachedBGP, () => graph.evalBGP(subsetBGP, context))
     return builder.execute(iterator, missingBGP, context)
   }
 }

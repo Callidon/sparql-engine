@@ -50,7 +50,10 @@ describe('Semantic caching for SPARQL queries', () => {
       // we have all results in double
       expect(results.length).to.equal(34)
       // check for cache hits
-      const bgp = [ { subject: '?s', predicate: '?p', object: '?o' } ]
+      const bgp = {
+        patterns: [ { subject: '?s', predicate: '?p', object: '?o' } ],
+        graphIRI: engine.defaultGraphIRI()
+      }
       const cache = engine._builder._currentCache
       expect(cache.count()).to.equal(1)
       expect(cache.has(bgp)).to.equal(true)
@@ -78,7 +81,10 @@ describe('Semantic caching for SPARQL queries', () => {
       // we have all results
       expect(results.length).to.equal(10)
       // assert that the cache is empty for this BGP
-      const bgp = [ { subject: '?s', predicate: '?p', object: '?o' } ]
+      const bgp = {
+        patterns: [ { subject: '?s', predicate: '?p', object: '?o' } ],
+        graphIRI: engine.defaultGraphIRI()
+      }
       const cache = engine._builder._currentCache
       expect(cache.count()).to.equal(0)
       expect(cache.has(bgp)).to.equal(false)
@@ -103,7 +109,10 @@ describe('Semantic caching for SPARQL queries', () => {
       // we have all results in double - 10 (due to then offfset)
       expect(results.length).to.equal(24)
       // assert that the cache is empty for this BGP
-      const bgp = [ { subject: '?s', predicate: '?p', object: '?o' } ]
+      const bgp = {
+        patterns: [ { subject: '?s', predicate: '?p', object: '?o' } ],
+        graphIRI: engine.defaultGraphIRI()
+      }
       const cache = engine._builder._currentCache
       expect(cache.count()).to.equal(0)
       expect(cache.has(bgp)).to.equal(false)

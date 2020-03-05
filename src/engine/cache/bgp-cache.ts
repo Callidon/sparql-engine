@@ -34,8 +34,10 @@ import { rdf, sparql } from '../../utils'
 import { BinarySearchTree } from 'binary-search-tree'
 import { differenceWith, findIndex, maxBy } from 'lodash'
 
-// type alias to simplify the type defintion in this file
-type BasicGraphPattern = Algebra.TripleObject[]
+export interface BasicGraphPattern {
+  patterns: Algebra.TripleObject[],
+  graphIRI: string
+}
 
 interface SavedBGP {
   bgp: BasicGraphPattern,
@@ -43,11 +45,18 @@ interface SavedBGP {
 }
 
 /**
+ * Hash a BGP with a Graph IRI
+ * @param bgp - BGP to hash
+ */
+function hashBasicGraphPattern (bgp: BasicGraphPattern): string {
+  return `${sparql.hashBGP(bgp.patterns)}&graph-iri=${bgp.graphIRI}`
+}
+
+/**
  * An async cache that stores the solution bindings from BGP evaluation
  * @author Thomas Minier
  */
 export interface BGPCache extends AsyncCache<BasicGraphPattern, Bindings, string> {
-
   /**
    * Search for a BGP in the cache that is a subset of the input BGP
    * This method enable the user to use the Semantic caching technique,
@@ -55,7 +64,7 @@ export interface BGPCache extends AsyncCache<BasicGraphPattern, Bindings, string
    * @param bgp - Basic Graph pattern
    * @return A pair [subset BGP, set of patterns not in cache]
    */
-  findSubset (bgp: BasicGraphPattern): [BasicGraphPattern, BasicGraphPattern]
+  findSubset (bgp: BasicGraphPattern): [Algebra.TripleObject[], Algebra.TripleObject[]]
 
   /**
    * Access the cache and returns a pipeline stage that returns the content of the cache for a given BGP
@@ -96,28 +105,28 @@ export class LRUBGPCache implements BGPCache {
       // remove index entries when they slide out
       if (this._patternsPerBGP.has(key)) {
         const bgp = this._patternsPerBGP.get(key)!
-        bgp.forEach(pattern => this._allKeys.delete(rdf.hashTriple(pattern), { bgp, key }))
+        bgp.patterns.forEach(pattern => this._allKeys.delete(rdf.hashTriple(pattern), { bgp, key }))
         this._patternsPerBGP.delete(key)
       }
     })
   }
 
   has (bgp: BasicGraphPattern): boolean {
-    return this._cache.has(sparql.hashBGP(bgp))
+    return this._cache.has(hashBasicGraphPattern(bgp))
   }
 
   update (bgp: BasicGraphPattern, item: Bindings, writerID: string): void {
-    const key = sparql.hashBGP(bgp)
+    const key = hashBasicGraphPattern(bgp)
     if (!this._cache.has(key)) {
       // update the indexes
       this._patternsPerBGP.set(key, bgp)
-      bgp.forEach(pattern => this._allKeys.insert(rdf.hashTriple(pattern), { bgp, key }))
+      bgp.patterns.forEach(pattern => this._allKeys.insert(rdf.hashTriple(pattern), { bgp, key }))
     }
     this._cache.update(key, item, writerID)
   }
 
   get (bgp: BasicGraphPattern): Promise<Bindings[]> | null {
-    return this._cache.get(sparql.hashBGP(bgp))
+    return this._cache.get(hashBasicGraphPattern(bgp))
   }
 
   getAsPipeline (bgp: BasicGraphPattern, onCancel?: () => PipelineStage<Bindings>): PipelineStage<Bindings> {
@@ -137,50 +146,50 @@ export class LRUBGPCache implements BGPCache {
   }
 
   commit (bgp: BasicGraphPattern, writerID: string): void {
-    this._cache.commit(sparql.hashBGP(bgp), writerID)
+    this._cache.commit(hashBasicGraphPattern(bgp), writerID)
   }
 
   delete (bgp: BasicGraphPattern, writerID: string): void {
-    const key = sparql.hashBGP(bgp)
+    const key = hashBasicGraphPattern(bgp)
     this._cache.delete(key, writerID)
     // clear the indexes
     this._patternsPerBGP.delete(key)
-    bgp.forEach(pattern => this._allKeys.delete(rdf.hashTriple(pattern), { bgp, key }))
+    bgp.patterns.forEach(pattern => this._allKeys.delete(rdf.hashTriple(pattern), { bgp, key }))
   }
 
   count (): number {
     return this._cache.count()
   }
 
-  findSubset (bgp: BasicGraphPattern): [BasicGraphPattern, BasicGraphPattern] {
+  findSubset (bgp: BasicGraphPattern): [Algebra.TripleObject[], Algebra.TripleObject[]] {
     // if the bgp is in the cache, then the computation is simple
     if (this.has(bgp)) {
-      return [bgp, []]
+      return [bgp.patterns, []]
     }
     // otherwise, we search for all candidate subsets
     let matches = []
-    for (let pattern of bgp) {
+    for (let pattern of bgp.patterns) {
       const searchResults = this._allKeys
         .search(rdf.hashTriple(pattern))
         .filter(v => {
           // remove all BGPs that are not a subset of the input BGP
           // we use lodash.findIndex + rdf.tripleEquals to check for triple pattern equality
-          return v.bgp.every(a => findIndex(bgp, b => rdf.tripleEquals(a, b)) > -1)
+          return v.bgp.patterns.every(a => findIndex(bgp.patterns, b => rdf.tripleEquals(a, b)) > -1)
         })
       matches.push({ pattern, searchResults })
     }
     // compute the largest subset BGP and the missing patterns (missingPatterns = input_BGP - subset_BGP)
-    let foundPatterns: BasicGraphPattern = []
+    let foundPatterns: Algebra.TripleObject[] = []
     let maxBGPLength = -1
     for (let match of matches) {
       if (match.searchResults.length > 0) {
-        const localMax = maxBy(match.searchResults, v => v.bgp.length)
-        if (localMax !== undefined && localMax.bgp.length > maxBGPLength) {
-          maxBGPLength = localMax.bgp.length
-          foundPatterns = localMax.bgp
+        const localMax = maxBy(match.searchResults, v => v.bgp.patterns.length)
+        if (localMax !== undefined && localMax.bgp.patterns.length > maxBGPLength) {
+          maxBGPLength = localMax.bgp.patterns.length
+          foundPatterns = localMax.bgp.patterns
         }
       }
     }
-    return [foundPatterns, differenceWith(bgp, foundPatterns, rdf.tripleEquals)]
+    return [foundPatterns, differenceWith(bgp.patterns, foundPatterns, rdf.tripleEquals)]
   }
 }
