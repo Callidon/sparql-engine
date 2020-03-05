@@ -67,6 +67,7 @@ import {
 } from 'lodash'
 
 import ExecutionContext from './context/execution-context'
+import ContextSymbols from './context/symbols'
 import { CustomFunctions } from '../operators/expressions/sparql-expression'
 import { extractPropertyPaths } from './stages/rewritings'
 import { extendByBindings, deepApplyBindings, rdf } from '../utils'
@@ -233,7 +234,7 @@ export class PlanBuilder {
       // build pipeline starting iterator
       source = engine.of(new BindingBase())
     }
-    context.setProperty('prefixes', query.prefixes)
+    context.setProperty(ContextSymbols.PREFIXES, query.prefixes)
 
     let aggregates: any[] = []
 
@@ -259,6 +260,9 @@ export class PlanBuilder {
       }
       return this._buildQueryPlan(construct, context, source)
     }
+
+    // from the begining, dectect any LIMIT/OFFSET modifiers, as they cimpact the caching strategy
+    context.setProperty(ContextSymbols.HAS_LIMIT_OFFSET, 'limit' in query || 'offset' in query)
 
     // Handles FROM clauses
     if (query.from) {

@@ -31,6 +31,7 @@ import { rdf } from '../../utils'
 import { Algebra } from 'sparqljs'
 import { Bindings } from '../../rdf/bindings'
 import ExecutionContext from '../context/execution-context'
+import ContextSymbols from '../context/symbols'
 
 /**
  * A GraphStageBuilder evaluates GRAPH clauses in a SPARQL query.
@@ -50,7 +51,7 @@ export default class GraphStageBuilder extends StageBuilder {
       subquery = node.patterns[0] as Algebra.RootNode
     } else {
       subquery = {
-        prefixes: context.getProperty('prefixes'),
+        prefixes: context.getProperty(ContextSymbols.PREFIXES),
         queryType: 'SELECT',
         variables: ['*'],
         type: 'query',

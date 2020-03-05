@@ -128,8 +128,13 @@ class UnionN3Graph extends N3Graph {
 class TestEngine {
   constructor(graph, defaultGraphIRI = null, customOperations = {}) {
     this._graph = graph
-    this._dataset = new HashMapDataset(defaultGraphIRI, this._graph)
+    this._defaultGraphIRI = (defaultGraphIRI === null) ? this._graph.iri : defaultGraphIRI
+    this._dataset = new HashMapDataset(this._defaultGraphIRI, this._graph)
     this._builder = new PlanBuilder(this._dataset, {}, customOperations)
+  }
+
+  defaultGraphIRI() {
+    return this._defaultGraphIRI
   }
 
   addNamedGraph(iri, db) {

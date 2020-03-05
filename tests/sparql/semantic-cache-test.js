@@ -1,4 +1,4 @@
-/* file : union-test.js
+/* file : semantic-cache-test.js
 MIT License
 
 Copyright (c) 2018-2020 Thomas Minier
@@ -27,7 +27,7 @@ SOFTWARE.
 const expect = require('chai').expect
 const { getGraph, TestEngine } = require('../utils.js')
 
-describe('Basic Graph Pattern cache', () => {
+describe('Semantic caching for SPARQL queries', () => {
   let engine = null
   before(() => {
     const g = getGraph('./tests/data/dblp.nt')
@@ -50,7 +50,10 @@ describe('Basic Graph Pattern cache', () => {
       // we have all results in double
       expect(results.length).to.equal(34)
       // check for cache hits
-      const bgp = [ { subject: '?s', predicate: '?p', object: '?o' } ]
+      const bgp = {
+        patterns: [ { subject: '?s', predicate: '?p', object: '?o' } ],
+        graphIRI: engine.defaultGraphIRI()
+      }
       const cache = engine._builder._currentCache
       expect(cache.count()).to.equal(1)
       expect(cache.has(bgp)).to.equal(true)
@@ -59,6 +62,62 @@ describe('Basic Graph Pattern cache', () => {
         expect(content.length).to.equals(17)
         done()
       }).catch(done)
+    })
+  })
+
+  it('should not cache BGPs when the query has a LIMIT modifier', done => {
+    const query = `
+    SELECT ?s ?p ?o WHERE {
+      { ?s ?p ?o } UNION { ?s ?p ?o }
+    } LIMIT 10`
+    engine._builder.useCache()
+    const results = []
+    const iterator = engine.execute(query)
+    iterator.subscribe(b => {
+      b = b.toObject()
+      expect(b).to.have.keys('?s', '?p', '?o')
+      results.push(b)
+    }, done, () => {
+      // we have all results
+      expect(results.length).to.equal(10)
+      // assert that the cache is empty for this BGP
+      const bgp = {
+        patterns: [ { subject: '?s', predicate: '?p', object: '?o' } ],
+        graphIRI: engine.defaultGraphIRI()
+      }
+      const cache = engine._builder._currentCache
+      expect(cache.count()).to.equal(0)
+      expect(cache.has(bgp)).to.equal(false)
+      expect(cache.get(bgp)).to.be.null
+      done()
+    })
+  })
+
+  it('should not cache BGPs when the query has an OFFSET modifier', done => {
+    const query = `
+    SELECT ?s ?p ?o WHERE {
+      { ?s ?p ?o } UNION { ?s ?p ?o }
+    } OFFSET 10`
+    engine._builder.useCache()
+    const results = []
+    const iterator = engine.execute(query)
+    iterator.subscribe(b => {
+      b = b.toObject()
+      expect(b).to.have.keys('?s', '?p', '?o')
+      results.push(b)
+    }, done, () => {
+      // we have all results in double - 10 (due to then offfset)
+      expect(results.length).to.equal(24)
+      // assert that the cache is empty for this BGP
+      const bgp = {
+        patterns: [ { subject: '?s', predicate: '?p', object: '?o' } ],
+        graphIRI: engine.defaultGraphIRI()
+      }
+      const cache = engine._builder._currentCache
+      expect(cache.count()).to.equal(0)
+      expect(cache.has(bgp)).to.equal(false)
+      expect(cache.get(bgp)).to.be.null
+      done()
     })
   })
 })

@@ -30,6 +30,7 @@ import { Pipeline } from '../pipeline/pipeline'
 import { PipelineStage } from '../pipeline/pipeline-engine'
 import { Bindings } from '../../rdf/bindings'
 import ExecutionContext from '../context/execution-context'
+import ContextSymbols from '../context/symbols'
 
 /**
  * A ServiceStageBuilder is responsible for evaluation a SERVICE clause in a SPARQL query.
@@ -50,7 +51,7 @@ export default class ServiceStageBuilder extends StageBuilder {
       subquery = node.patterns[0] as Algebra.RootNode
     } else {
       subquery = {
-        prefixes: context.getProperty('prefixes'),
+        prefixes: context.getProperty(ContextSymbols.PREFIXES),
         queryType: 'SELECT',
         variables: ['*'],
         type: 'query',

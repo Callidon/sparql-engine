@@ -99,11 +99,11 @@ export default function rewritingOp (graph: Graph, bgpBucket: Algebra.TripleObje
     // partition the BGPs that can be evaluated using the cache from the others
     const stages: PipelineStage<Bindings>[] = []
     const others: Algebra.TripleObject[][] = []
-    bgpBucket.forEach(bgp => {
-      if (context.cache!.has(bgp)) {
-        stages.push(evaluation.cacheEvalBGP(bgp, graph, context.cache!, builder, context))
+    bgpBucket.forEach(patterns => {
+      if (context.cache!.has({ patterns, graphIRI: graph.iri })) {
+        stages.push(evaluation.cacheEvalBGP(patterns, graph, context.cache!, builder, context))
       } else {
-        others.push(bgp)
+        others.push(patterns)
       }
     })
     // merge all sources from the cache first, and then the evaluation of bgp that are not in the cache

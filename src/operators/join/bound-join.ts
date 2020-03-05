@@ -31,6 +31,7 @@ import { PipelineStage, StreamPipelineInput } from '../../engine/pipeline/pipeli
 import { rdf, evaluation } from '../../utils'
 import BGPStageBuilder from '../../engine/stages/bgp-stage-builder'
 import ExecutionContext from '../../engine/context/execution-context'
+import ContextSymbols from '../../engine/context/symbols'
 import Graph from '../../rdf/graph'
 import rewritingOp from './rewriting-op'
 
@@ -81,8 +82,8 @@ export default function boundJoin (source: PipelineStage<Bindings>, bgp: Algebra
     // Check if a custom bucket size for the bound join buffer has been set by in the context
     // Otherwise, use the default one
     let bufferSize = BOUND_JOIN_BUFFER_SIZE
-    if (context.hasProperty('BOUND_JOIN_BUFFER_SIZE')) {
-      bufferSize = context.getProperty('BOUND_JOIN_BUFFER_SIZE')
+    if (context.hasProperty(ContextSymbols.BOUND_JOIN_BUFFER_SIZE)) {
+      bufferSize = context.getProperty(ContextSymbols.BOUND_JOIN_BUFFER_SIZE)
     }
 
     // Utility function used to close the processing
