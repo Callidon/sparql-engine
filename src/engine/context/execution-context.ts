@@ -31,7 +31,7 @@ import { BGPCache } from '../cache/bgp-cache'
  * An execution context conatains control information for query execution.
  */
 export default class ExecutionContext {
-  protected _properties: Map<string, any>
+  protected _properties: Map<Symbol, any>
   protected _hints: QueryHints
   protected _defaultGraphs: string[]
   protected _namedGraphs: string[]
@@ -124,7 +124,7 @@ export default class ExecutionContext {
    * @param  key - Key associated with the property
    * @return  The value associated with the key
    */
-  getProperty (key: string): any | null {
+  getProperty (key: Symbol): any | null {
     return this._properties.get(key)
   }
 
@@ -133,7 +133,7 @@ export default class ExecutionContext {
    * @param  key - Key associated with the property
    * @return True if the context contains a property associated with the key
    */
-  hasProperty (key: string): boolean {
+  hasProperty (key: Symbol): boolean {
     return this._properties.has(key)
   }
 
@@ -142,7 +142,7 @@ export default class ExecutionContext {
    * @param key - Key of the property
    * @param value - Value of the property
    */
-  setProperty (key: string, value: any): void {
+  setProperty (key: Symbol, value: any): void {
     this._properties.set(key, value)
   }
 

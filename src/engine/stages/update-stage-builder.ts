@@ -38,6 +38,7 @@ import Graph from '../../rdf/graph'
 import { Algebra } from 'sparqljs'
 import { Bindings, BindingBase } from '../../rdf/bindings'
 import ExecutionContext from '../context/execution-context'
+import ContextSymbols from '../context/symbols'
 
 /**
  * An UpdateStageBuilder evaluates SPARQL UPDATE queries.
@@ -109,7 +110,7 @@ export default class UpdateStageBuilder extends StageBuilder {
       graph = ('graph' in update) ? this._dataset.getNamedGraph(update.graph!) : null
       // evaluate the WHERE clause as a classic SELECT query
       const node: Algebra.RootNode = {
-        prefixes: context.getProperty('prefixes'),
+        prefixes: context.getProperty(ContextSymbols.PREFIXES),
         type: 'query',
         where: update.where!,
         queryType: 'SELECT',
