@@ -72,6 +72,24 @@ describe('SERVICE queries (using bound joins)', () => {
           'https://dblp.org/rec/conf/esws/MinierMSM17a'
         ])
       }
+    },
+    {
+      text: 'should evaluate SERVICE queries that requires containement queries',
+      query: `
+      PREFIX dblp-pers: <https://dblp.org/pers/m/>
+      PREFIX dblp-rdf: <https://dblp.uni-trier.de/rdf/schema-2017-04-18#>
+      PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+      SELECT * WHERE {
+        ?s rdf:type dblp-rdf:Person .
+        SERVICE <${GRAPH_A_IRI}> {
+          ?s dblp-rdf:primaryFullPersonName "Thomas Minier"@en .
+        }
+      }`,
+      nbResults: 1,
+      testFun: function (b) {
+        expect(b).to.have.all.keys(['?s'])
+        expect(b['?s']).to.equal('https://dblp.org/pers/m/Minier:Thomas')
+      }
     }
   ]
 

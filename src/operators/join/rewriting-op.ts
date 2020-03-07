@@ -111,7 +111,5 @@ export default function rewritingOp (graph: Graph, bgpBucket: Algebra.TripleObje
   } else {
     source = graph.evalUnion(bgpBucket, context)
   }
-  return Pipeline.getInstance().map(source, bindings => {
-    return rewriteSolutions(bindings, rewritingTable)
-  })
+  return Pipeline.getInstance().map(source, bindings => rewriteSolutions(bindings, rewritingTable))
 }

@@ -52,7 +52,6 @@ type BasicGraphPattern = Algebra.TripleObject[]
  */
 function rewriteTriple (triple: Algebra.TripleObject, key: number): Algebra.TripleObject {
   const res = Object.assign({}, triple)
-
   if (rdf.isVariable(triple.subject)) {
     res.subject = triple.subject + '_' + key
   }
@@ -75,7 +74,70 @@ function rewriteTriple (triple: Algebra.TripleObject, key: number): Algebra.Trip
  * @return A pipeline stage which evaluates the bound join
  */
 export default function boundJoin (source: PipelineStage<Bindings>, bgp: Algebra.TripleObject[], graph: Graph, builder: BGPStageBuilder, context: ExecutionContext) {
-  return Pipeline.getInstance().fromAsync((input: StreamPipelineInput<Bindings>) => {
+  let bufferSize = BOUND_JOIN_BUFFER_SIZE
+  if (context.hasProperty(ContextSymbols.BOUND_JOIN_BUFFER_SIZE)) {
+    bufferSize = context.getProperty(ContextSymbols.BOUND_JOIN_BUFFER_SIZE)
+  }
+  return Pipeline.getInstance().mergeMap(Pipeline.getInstance().bufferCount(source, bufferSize), bucket => {
+    // simple case: first join in the pipeline
+    if (bucket.length === 1 && bucket[0].isEmpty) {
+      if (context.cachingEnabled()) {
+        return evaluation.cacheEvalBGP(bgp, graph, context.cache!, builder, context)
+      }
+      return graph.evalBGP(bgp, context)
+    } else {
+      // The bucket of rewritten basic graph patterns
+      const bgpBucket: BasicGraphPattern[] = []
+      // The set of BGPs fully bounded when joined, so they cannot be joined using a bound join
+      const regularBucket: BasicGraphPattern[] = []
+      // A rewriting table dedicated to this instance of the bound join
+      const rewritingTable = new Map()
+      // The rewriting key (a simple counter) for this instance of the bound join
+      let key = 0
+
+      // Build the bucket of Basic Graph patterns
+      bucket.map(binding => {
+        const boundedBGP: BasicGraphPattern = []
+        const regularBGP: BasicGraphPattern = []
+        bgp.forEach(triple => {
+          let boundedTriple: Algebra.TripleObject = binding.bound(triple)
+          if (rdf.isVariable(boundedTriple.subject) || rdf.isVariable(boundedTriple.predicate) || rdf.isVariable(boundedTriple.object)) {
+            // rewrite the triple pattern and save the rewriting into the table
+            boundedTriple = rewriteTriple(boundedTriple, key)
+            rewritingTable.set(key, binding)
+            boundedBGP.push(boundedTriple)
+          } else {
+            regularBGP.push(triple)
+          }
+        })
+        if (boundedBGP.length > 0) {
+          bgpBucket.push(boundedBGP)
+          key++
+        }
+        if (regularBGP.length > 0) {
+          regularBucket.push(regularBGP)
+        }
+      })
+      let bucketStage: PipelineStage<Bindings> = Pipeline.getInstance().empty()
+      let regularStage: PipelineStage<Bindings> = Pipeline.getInstance().empty()
+      // Evaluates the bucket using the graph, then rewrite it to produce join results
+      if (bgpBucket.length > 0) {
+        bucketStage = rewritingOp(graph, bgpBucket, rewritingTable, builder, context)
+      }
+      // Invoke the BGPStageBuilder to evaluates the BGPs that cannot be evaluated by a bound join
+      if (regularBucket.length > 0) {
+        const newContext = context.clone()
+        newContext.setProperty(ContextSymbols.FORCE_INDEX_JOIN, true)
+        regularStage = Pipeline.getInstance().merge(...regularBucket.map(bgp => {
+          const clonedBucket = bucket.map(b => b.clone())
+          const source = Pipeline.getInstance().flatMap(Pipeline.getInstance().of(clonedBucket), b => b)
+          return builder._buildIterator(source, graph, bgp, newContext)
+        }))
+      }
+      return Pipeline.getInstance().merge(bucketStage, regularStage)
+    }
+  })
+  /*return Pipeline.getInstance().fromAsync((input: StreamPipelineInput<Bindings>) => {
     let sourceClosed = false
     let activeIterators = 0
 
@@ -139,5 +201,5 @@ export default function boundJoin (source: PipelineStage<Bindings>, bgp: Algebra
             .subscribe(b => input.next(b), err => input.error(err), () => tryClose())
         }
       }, err => input.error(err), () => { sourceClosed = true })
-  })
+  })*/
 }

@@ -35,6 +35,7 @@ import { GRAPH_CAPABILITY } from '../../rdf/graph_capability'
 import { parseHints } from '../context/query-hints'
 import { fts } from './rewritings'
 import ExecutionContext from '../context/execution-context'
+import ContextSymbols from '../context/symbols'
 import { rdf, evaluation } from '../../utils'
 import { isNaN, isNull, isInteger } from 'lodash'
 
@@ -183,7 +184,7 @@ export default class BGPStageBuilder extends StageBuilder {
    * @return A {@link PipelineStage} used to evaluate a Basic Graph pattern
    */
   _buildIterator (source: PipelineStage<Bindings>, graph: Graph, patterns: Algebra.TripleObject[], context: ExecutionContext): PipelineStage<Bindings> {
-    if (graph._isCapable(GRAPH_CAPABILITY.UNION)) {
+    if (graph._isCapable(GRAPH_CAPABILITY.UNION) && !context.hasProperty(ContextSymbols.FORCE_INDEX_JOIN)) {
       return boundJoin(source, patterns, graph, this, context)
     }
     return bgpEvaluation(source, patterns, graph, this, context)
