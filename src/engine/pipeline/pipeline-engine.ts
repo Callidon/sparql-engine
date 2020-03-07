@@ -174,6 +174,15 @@ export abstract class PipelineEngine {
   }
 
   /**
+   * Flatten the output of pipeline stage that emits array of values into a pipeline that emits single values.
+   * @param  input  - Input PipelineStage
+   * @return Output PipelineStage
+   */
+  flatten<T> (input: PipelineStage<T[]>): PipelineStage<T> {
+    return this.flatMap(input, v => v)
+  }
+
+  /**
    * Filter items emitted by the source PipelineStage by only emitting those that satisfy a specified predicate.
    * @param  input     - Input PipelineStage
    * @param  predicate - Predicate function
