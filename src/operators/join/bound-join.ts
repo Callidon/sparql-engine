@@ -130,7 +130,7 @@ export default function boundJoin (source: PipelineStage<Bindings>, bgp: Algebra
         newContext.setProperty(ContextSymbols.FORCE_INDEX_JOIN, true)
         regularStage = Pipeline.getInstance().merge(...regularBucket.map(bgp => {
           const clonedBucket = bucket.map(b => b.clone())
-          const source = Pipeline.getInstance().flatMap(Pipeline.getInstance().of(clonedBucket), b => b)
+          const source = Pipeline.getInstance().flatten(Pipeline.getInstance().of(clonedBucket))
           return builder._buildIterator(source, graph, bgp, newContext)
         }))
       }
