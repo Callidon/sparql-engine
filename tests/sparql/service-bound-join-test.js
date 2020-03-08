@@ -74,7 +74,7 @@ describe('SERVICE queries (using bound joins)', () => {
       }
     },
     {
-      text: 'should evaluate SERVICE queries that requires containement queries',
+      text: 'should evaluate simple SERVICE queries that requires containement queries',
       query: `
       PREFIX dblp-pers: <https://dblp.org/pers/m/>
       PREFIX dblp-rdf: <https://dblp.uni-trier.de/rdf/schema-2017-04-18#>
@@ -90,7 +90,33 @@ describe('SERVICE queries (using bound joins)', () => {
         expect(b).to.have.all.keys(['?s'])
         expect(b['?s']).to.equal('https://dblp.org/pers/m/Minier:Thomas')
       }
-    }
+    },
+    {
+      text: 'should evaluate complex SERVICE queries that requires containement queries',
+      query: `
+      PREFIX dblp-pers: <https://dblp.org/pers/m/>
+      PREFIX dblp-rdf: <https://dblp.uni-trier.de/rdf/schema-2017-04-18#>
+      PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+      SELECT ?s ?article WHERE {
+        ?s rdf:type dblp-rdf:Person .
+        ?s dblp-rdf:authorOf ?article .
+        SERVICE <${GRAPH_A_IRI}> {
+          ?s dblp-rdf:primaryFullPersonName "Thomas Minier"@en .
+        }
+      }`,
+      nbResults: 5,
+      testFun: function (b) {
+        expect(b).to.have.all.keys(['?s', '?article'])
+        expect(b['?s']).to.equal('https://dblp.org/pers/m/Minier:Thomas')
+        expect(b['?article']).to.be.oneOf([
+          'https://dblp.org/rec/conf/esws/MinierSMV18a',
+          'https://dblp.org/rec/conf/esws/MinierSMV18',
+          'https://dblp.org/rec/journals/corr/abs-1806-00227',
+          'https://dblp.org/rec/conf/esws/MinierMSM17',
+          'https://dblp.org/rec/conf/esws/MinierMSM17a'
+        ])
+      }
+    },
   ]
 
   data.forEach(d => {

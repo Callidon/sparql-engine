@@ -174,7 +174,7 @@ export abstract class PipelineEngine {
   }
 
   /**
-   * Flatten the output of pipeline stage that emits array of values into a pipeline that emits single values.
+   * Flatten the output of a pipeline stage that emits array of values into single values.
    * @param  input  - Input PipelineStage
    * @return Output PipelineStage
    */

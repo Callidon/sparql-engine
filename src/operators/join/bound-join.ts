@@ -53,13 +53,13 @@ type BasicGraphPattern = Algebra.TripleObject[]
 function rewriteTriple (triple: Algebra.TripleObject, key: number): Algebra.TripleObject {
   const res = Object.assign({}, triple)
   if (rdf.isVariable(triple.subject)) {
-    res.subject = triple.subject + '_' + key
+    res.subject = `${triple.subject}_${key}`
   }
   if (rdf.isVariable(triple.predicate)) {
-    res.predicate = triple.predicate + '_' + key
+    res.predicate = `${triple.predicate}_${key}`
   }
   if (rdf.isVariable(triple.object)) {
-    res.object = triple.object + '_' + key
+    res.object = `${triple.object}_${key}`
   }
   return res
 }
@@ -88,56 +88,39 @@ export default function boundJoin (source: PipelineStage<Bindings>, bgp: Algebra
     } else {
       // The bucket of rewritten basic graph patterns
       const bgpBucket: BasicGraphPattern[] = []
-      // The set of BGPs fully bounded when joined, so they cannot be joined using a bound join
-      const regularBucket: BasicGraphPattern[] = []
       // A rewriting table dedicated to this instance of the bound join
       const rewritingTable = new Map()
       // The rewriting key (a simple counter) for this instance of the bound join
       let key = 0
-
+      // Track if all triple pattern of the BGP are unbounded, i.e., they contains at least a SPARQL variable
+      let unbounded = true
       // Build the bucket of Basic Graph patterns
       bucket.map(binding => {
         const boundedBGP: BasicGraphPattern = []
-        const regularBGP: BasicGraphPattern = []
         bgp.forEach(triple => {
           let boundedTriple: Algebra.TripleObject = binding.bound(triple)
-          if (rdf.isVariable(boundedTriple.subject) || rdf.isVariable(boundedTriple.predicate) || rdf.isVariable(boundedTriple.object)) {
-            // rewrite the triple pattern and save the rewriting into the table
-            boundedTriple = rewriteTriple(boundedTriple, key)
-            rewritingTable.set(key, binding)
-            boundedBGP.push(boundedTriple)
-          } else {
-            regularBGP.push(triple)
-          }
+          // rewrite the triple pattern and save the rewriting into the table
+          boundedTriple = rewriteTriple(boundedTriple, key)
+          rewritingTable.set(key, binding)
+          unbounded = unbounded && (rdf.isVariable(boundedTriple.subject) || rdf.isVariable(boundedTriple.predicate) || rdf.isVariable(boundedTriple.object))
+          boundedBGP.push(boundedTriple)
         })
-        if (boundedBGP.length > 0) {
-          bgpBucket.push(boundedBGP)
-          key++
-        }
-        if (regularBGP.length > 0) {
-          regularBucket.push(regularBGP)
-        }
+        bgpBucket.push(boundedBGP)
+        key++
       })
 
-      let bucketStage: PipelineStage<Bindings> = Pipeline.getInstance().empty()
-      let regularStage: PipelineStage<Bindings> = Pipeline.getInstance().empty()
-      // Evaluates the bucket using the graph, then rewrite it to produce join results
-      if (bgpBucket.length > 0) {
-        bucketStage = rewritingOp(graph, bgpBucket, rewritingTable, builder, context)
-      }
-      // Invoke the BGPStageBuilder to evaluates the BGPs that cannot be evaluated by a bound join
-      if (regularBucket.length > 0) {
-        // create a new context where we force the execution of joins using Index Joins
+      // The bucket can be evaluated with a bound join if it only contains unbounded triple patterns
+      if (unbounded) {
+        return rewritingOp(graph, bgpBucket, rewritingTable, builder, context)
+      } else {
+        // otherwiwe, we create a new context to force the execution using Index Joins
         const newContext = context.clone()
         newContext.setProperty(ContextSymbols.FORCE_INDEX_JOIN, true)
         // Invoke the BGPStageBuilder to evaluate the bucket
-        regularStage = Pipeline.getInstance().merge(...regularBucket.map(bgp => {
-          const clonedBucket = bucket.map(b => b.clone())
-          const source = Pipeline.getInstance().flatten(Pipeline.getInstance().of(clonedBucket))
-          return builder._buildIterator(source, graph, bgp, newContext)
-        }))
+        const clonedBucket = bucket.map(b => b.clone())
+        const source = Pipeline.getInstance().flatten(Pipeline.getInstance().of(clonedBucket))
+        return builder._buildIterator(source, graph, bgp, newContext)
       }
-      return Pipeline.getInstance().merge(bucketStage, regularStage)
     }
   })
   /*return Pipeline.getInstance().fromAsync((input: StreamPipelineInput<Bindings>) => {
