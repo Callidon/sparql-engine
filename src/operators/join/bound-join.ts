@@ -118,6 +118,7 @@ export default function boundJoin (source: PipelineStage<Bindings>, bgp: Algebra
           regularBucket.push(regularBGP)
         }
       })
+
       let bucketStage: PipelineStage<Bindings> = Pipeline.getInstance().empty()
       let regularStage: PipelineStage<Bindings> = Pipeline.getInstance().empty()
       // Evaluates the bucket using the graph, then rewrite it to produce join results
@@ -126,8 +127,10 @@ export default function boundJoin (source: PipelineStage<Bindings>, bgp: Algebra
       }
       // Invoke the BGPStageBuilder to evaluates the BGPs that cannot be evaluated by a bound join
       if (regularBucket.length > 0) {
+        // create a new context where we force the execution of joins using Index Joins
         const newContext = context.clone()
         newContext.setProperty(ContextSymbols.FORCE_INDEX_JOIN, true)
+        // Invoke the BGPStageBuilder to evaluate the bucket
         regularStage = Pipeline.getInstance().merge(...regularBucket.map(bgp => {
           const clonedBucket = bucket.map(b => b.clone())
           const source = Pipeline.getInstance().flatten(Pipeline.getInstance().of(clonedBucket))
