@@ -71,16 +71,16 @@ export default class AggregateStageBuilder extends StageBuilder {
   _executeGroupBy (source: PipelineStage<Bindings>, groupby: Algebra.Aggregation[], context: ExecutionContext, customFunctions?: CustomFunctions): PipelineStage<Bindings> {
     let iterator = source
     // extract GROUP By variables & rewrite SPARQL expressions into BIND clauses
-    const variables: string[] = []
+    const groupingVars: string[] = []
     groupby.forEach(g => {
       if (isString(g.expression)) {
-        variables.push(g.expression)
+        groupingVars.push(g.expression)
       } else {
-        variables.push(g.variable)
+        groupingVars.push(g.variable)
         iterator = bind(iterator, g.variable, g.expression, customFunctions)
       }
     })
-    return groupBy(iterator, variables)
+    return groupBy(iterator, groupingVars)
   }
 
   /**

@@ -28,18 +28,7 @@ import { Pipeline } from '../engine/pipeline/pipeline'
 import { PipelineStage } from '../engine/pipeline/pipeline-engine'
 import { rdf } from '../utils'
 import { Bindings } from '../rdf/bindings'
-
-/**
- * Build a new aggregate group from a set of SPARQL variables
- * @param variables - Set of SPARQL variables
- * @return A new aggregate group
- */
-function buildNewGroup (variables: string[]): Object {
-  return variables.reduce((rows, v) => {
-    rows[v] = []
-    return rows
-  }, {})
-}
+import { sortedIndexOf } from 'lodash'
 
 /**
  * Hash functions for set of bindings
@@ -74,17 +63,22 @@ export default function sparqlGroupBy (source: PipelineStage<Bindings>, variable
   const groups: Map<string, any> = new Map()
   const keys: Map<string, Bindings> = new Map()
   const engine = Pipeline.getInstance()
+  const groupVariables = variables.sort()
   let op = engine.map(source, (bindings: Bindings) => {
     const key = _hashBindings(variables, bindings)
       // create a new group is needed
     if (!groups.has(key)) {
-      keys.set(key, bindings.filter(variable => variables.indexOf(variable) > -1))
-      groups.set(key, buildNewGroup(Array.from(bindings.variables())))
+      keys.set(key, bindings.filter(variable => sortedIndexOf(groupVariables, variable) > -1))
+      groups.set(key, {})
     }
-      // parse each binding in the intermediate format used by SPARQL expressions
-      // and insert it into the corresponding group
+    // parse each binding in the intermediate format used by SPARQL expressions
+    // and insert it into the corresponding group
     bindings.forEach((variable, value) => {
-      groups.get(key)[variable].push(rdf.fromN3(value))
+      if (!(variable in groups.get(key))) {
+        groups.get(key)[variable] = [ rdf.fromN3(value) ]
+      } else {
+        groups.get(key)[variable].push(rdf.fromN3(value))
+      }
     })
     return null
   })

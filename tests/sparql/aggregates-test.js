@@ -191,6 +191,28 @@ describe('SPARQL aggregates', () => {
     })
   })
 
+  it('should evaluate aggregation queries with non-compatible UNION clauses', done => {
+    const query = `
+    SELECT ?s (COUNT(?s) AS ?nbSubjects) WHERE {
+      { ?s a ?o1 . } UNION { ?s a ?o2}
+    }
+    GROUP BY ?s
+    `
+    const results = []
+
+    const iterator = engine.execute(query)
+    iterator.subscribe(b => {
+      b = b.toObject()
+      expect(b).to.have.keys('?s', '?nbSubjects')
+      expect(b['?s']).to.equal('https://dblp.org/pers/m/Minier:Thomas')
+      expect(b['?nbSubjects']).to.equal(`"2"^^${XSD('integer')}`)
+      results.push(b)
+    }, done, () => {
+      expect(results.length).to.equal(1)
+      done()
+    })
+  })
+
   const data = [
     {
       name: 'COUNT-DISTINCT',
