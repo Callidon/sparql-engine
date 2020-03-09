@@ -312,6 +312,25 @@ function testPipelineEngine (pipeline) {
     })
   })
 
+  // flatten method
+  describe('#flattend', () => {
+    it('shoudl flatten the output of a PipelineStage that emits array of values', done => {
+      const out = pipeline.flatten(pipeline.of([1, 2], [3, 4], [5, 6]))
+      const expected = [1, 2, 3, 4, 5, 6]
+      let cpt = 0
+      out.subscribe(x => {
+        expect(x).to.be.oneOf(expected)
+        // pull out element
+        expected.splice(expected.indexOf(x), 1)
+        cpt++
+      }, done, () => {
+        expect(cpt).to.equal(6)
+        expect(expected.length).to.equal(0)
+        done()
+      })
+    })
+  })
+
   // reduce method
   describe('#reduce', () => {
     it('should reduce elements emitted by a PipelineStage', done => {

@@ -42,7 +42,7 @@ function findKey (variables: IterableIterator<string>, maxValue: number = 15): n
   let key = -1
   for (let v of variables) {
     for (let i = 0; i < maxValue; i++) {
-      if (v.endsWith('_' + i)) {
+      if (v.endsWith(`_${i}`)) {
         return i
       }
     }
@@ -57,8 +57,9 @@ function findKey (variables: IterableIterator<string>, maxValue: number = 15): n
 function revertBinding (key: number, input: Bindings, variables: IterableIterator<string>): Bindings {
   const newBinding = input.empty()
   for (let vName of variables) {
-    if (vName.endsWith('_' + key)) {
-      const index = vName.indexOf('_' + key)
+    let suffix = `_${key}`
+    if (vName.endsWith(suffix)) {
+      const index = vName.indexOf(suffix)
       newBinding.set(vName.substring(0, index), input.get(vName)!)
     } else {
       newBinding.set(vName, input.get(vName)!)
@@ -111,7 +112,5 @@ export default function rewritingOp (graph: Graph, bgpBucket: Algebra.TripleObje
   } else {
     source = graph.evalUnion(bgpBucket, context)
   }
-  return Pipeline.getInstance().map(source, bindings => {
-    return rewriteSolutions(bindings, rewritingTable)
-  })
+  return Pipeline.getInstance().map(source, bindings => rewriteSolutions(bindings, rewritingTable))
 }
