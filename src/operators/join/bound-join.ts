@@ -88,39 +88,59 @@ export default function boundJoin (source: PipelineStage<Bindings>, bgp: Algebra
     } else {
       // The bucket of rewritten basic graph patterns
       const bgpBucket: BasicGraphPattern[] = []
+      // The bindings of the bucket that cannot be evaluated with a bound join for this BGP
+      const regularBindings: Bindings[] = []
       // A rewriting table dedicated to this instance of the bound join
       const rewritingTable = new Map()
       // The rewriting key (a simple counter) for this instance of the bound join
       let key = 0
-      // Track if all triple pattern of the BGP are unbounded, i.e., they contains at least a SPARQL variable
-      let unbounded = true
       // Build the bucket of Basic Graph patterns
       bucket.map(binding => {
         const boundedBGP: BasicGraphPattern = []
+        let nbBounded = 0
+
+        // build the bounded BGP using the current set of bindings
         bgp.forEach(triple => {
-          let boundedTriple: Algebra.TripleObject = binding.bound(triple)
-          // rewrite the triple pattern and save the rewriting into the table
-          boundedTriple = rewriteTriple(boundedTriple, key)
-          rewritingTable.set(key, binding)
-          unbounded = unbounded && (rdf.isVariable(boundedTriple.subject) || rdf.isVariable(boundedTriple.predicate) || rdf.isVariable(boundedTriple.object))
+          const boundedTriple = rewriteTriple(binding.bound(triple), key)
           boundedBGP.push(boundedTriple)
+          // track the number of fully bounded triples, i.e., triple patterns without any SPARQL variables
+          if (!rdf.isVariable(boundedTriple.subject) && !rdf.isVariable(boundedTriple.predicate) && !rdf.isVariable(boundedTriple.object)) {
+            nbBounded++
+          }
         })
-        bgpBucket.push(boundedBGP)
+
+        // if the whole BGP is bounded, then the current set of bindings cannot be processed
+        // using a bound join and we must process it using a regular Index Join.
+        // Otherwise, the partially bounded BGP is suitable for a bound join
+        if (nbBounded === bgp.length) {
+          regularBindings.push(binding)
+        } else {
+          // save the rewriting into the table
+          rewritingTable.set(key, binding)
+          bgpBucket.push(boundedBGP)
+        }
         key++
       })
 
-      // The bucket can be evaluated with a bound join if it only contains unbounded triple patterns
-      if (unbounded) {
-        return rewritingOp(graph, bgpBucket, rewritingTable, builder, context)
-      } else {
+      let boundJoinStage: PipelineStage<Bindings> = Pipeline.getInstance().empty()
+      let regularJoinStage: PipelineStage<Bindings> = Pipeline.getInstance().empty()
+
+      // first, evaluates the bucket of partially bounded BGPs using a bound join
+      if (bgpBucket.length > 0) {
+        boundJoinStage = rewritingOp(graph, bgpBucket, rewritingTable, builder, context)
+      }
+
+      // then, evaluates the remaining bindings using a bound join
+      if (regularBindings.length > 0) {
         // otherwiwe, we create a new context to force the execution using Index Joins
         const newContext = context.clone()
         newContext.setProperty(ContextSymbols.FORCE_INDEX_JOIN, true)
         // Invoke the BGPStageBuilder to evaluate the bucket
-        const clonedBucket = bucket.map(b => b.clone())
-        const source = Pipeline.getInstance().flatten(Pipeline.getInstance().of(clonedBucket))
-        return builder._buildIterator(source, graph, bgp, newContext)
+        regularJoinStage = builder._buildIterator(Pipeline.getInstance().of(...regularBindings), graph, bgp, newContext)
       }
+
+      // merge the two pipeline stages to produce the join results
+      return Pipeline.getInstance().merge(boundJoinStage, regularJoinStage)
     }
   })
   /*return Pipeline.getInstance().fromAsync((input: StreamPipelineInput<Bindings>) => {
