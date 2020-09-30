@@ -39,6 +39,8 @@ import { Algebra } from 'sparqljs'
 import { Bindings, BindingBase } from '../../rdf/bindings'
 import ExecutionContext from '../context/execution-context'
 import ContextSymbols from '../context/symbols'
+import NoopConsumer from '../../operators/update/nop-consumer'
+import ActionConsumer from '../../operators/update/action-consumer'
 
 /**
  * An UpdateStageBuilder evaluates SPARQL UPDATE queries.
@@ -66,6 +68,19 @@ export default class UpdateStageBuilder extends StageBuilder {
         }
       } else if ('type' in update) {
         switch (update.type) {
+          case 'create': {
+            const createNode = update as Algebra.UpdateCreateDropNode
+            const iri = createNode.graph.name
+            if (this._dataset.hasNamedGraph(iri)) {
+              if (!createNode.silent) {
+                return new ErrorConsumable(`Cannot create the Graph with iri ${iri} as it already exists`)
+              }
+              return new NoopConsumer()
+            }
+            return new ActionConsumer(() => {
+              this._dataset.addNamedGraph(iri, this._dataset.createGraph(iri))
+            })
+          }
           case 'clear':
             return this._handleClearQuery(update as Algebra.UpdateClearNode)
           case 'add':
