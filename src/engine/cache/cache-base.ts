@@ -102,14 +102,11 @@ export interface AsyncCacheEntry<T, I> {
  * @author Thomas Minier
  */
 export abstract class BaseAsyncCache<K, T, I> implements AsyncCache<K, T, I> {
-  private readonly _cache: Cache<K, AsyncCacheEntry<T, I>>
 
   /**
    * Constructor
    */
-  constructor (cacheInstance: Cache<K, AsyncCacheEntry<T, I>>) {
-    this._cache = cacheInstance
-  }
+  constructor (private readonly _cache: Cache<K, AsyncCacheEntry<T, I>>) {}
 
   has (key: K): boolean {
     return this._cache.has(key)

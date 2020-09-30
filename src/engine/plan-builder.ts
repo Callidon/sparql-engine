@@ -111,24 +111,24 @@ export enum SPARQL_OPERATION {
  * @author Corentin Marionneau
  */
 export class PlanBuilder {
-  private readonly _dataset: Dataset
   private readonly _parser: Parser
   private _optimizer: Optimizer
   private _stageBuilders: Map<SPARQL_OPERATION, StageBuilder>
-  private _customFunctions: CustomFunctions | undefined
   private _currentCache: BGPCache | null
 
   /**
    * Constructor
-   * @param dataset - RDF Dataset used for query execution
-   * @param prefixes - Optional prefixes to use during query processing
+   * @param _dataset - RDF Dataset used for query execution
+   * @param _prefixes - Optional prefixes to use during query processing
    */
-  constructor (dataset: Dataset, prefixes: any = {}, customFunctions?: CustomFunctions) {
-    this._dataset = dataset
+  constructor (
+    private _dataset: Dataset,
+    prefixes: any = {},
+    private _customFunctions?: CustomFunctions) {
+    this._dataset = _dataset
     this._parser = new Parser(prefixes)
     this._optimizer = Optimizer.getDefault()
     this._currentCache = null
-    this._customFunctions = customFunctions
     this._stageBuilders = new Map()
 
     // add default stage builders

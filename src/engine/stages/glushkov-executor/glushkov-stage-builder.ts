@@ -41,18 +41,13 @@ import { PipelineStage } from '../../../engine/pipeline/pipeline-engine'
  * @author Julien Aimonier-Davat
  */
 class Step {
-    private _node: string
-    private _state: number
 
     /**
      * Constructor
      * @param node - The label of a node in the RDF Graph
      * @param state - The ID of a State in the Automaton
      */
-    constructor(node: string, state: number) {
-        this._node = node
-        this._state = state
-    }
+    constructor(private _node: string, private _state: number) {}
 
     /**
      * Get the Automaton's state associated with this Step of the ResultPath

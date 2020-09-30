@@ -29,9 +29,6 @@ SOFTWARE.
  * @author Julien Aimonier-Davat
  */
 export class State<T> {
-    private _name: T; // The State's name. Must be unique.
-    private _isInitial: boolean; // True if the State is an initial State, False otherwise
-    private _isFinal: boolean; // True if the State if a final State, False otherwise
 
     /**
      * Constructor
@@ -39,11 +36,10 @@ export class State<T> {
      * @param isInitial - True to construct an initial State, False otherwise
      * @param isFinal - True to construct a final State, False otherwise
      */
-    constructor(name: T, isInitial: boolean, isFinal: boolean) {
-        this._name = name;
-        this._isInitial = isInitial;
-        this._isFinal = isFinal;
-    }
+    constructor (
+        private _name: T,
+        private _isInitial: boolean,
+        private _isFinal: boolean) {}
 
     /**
      * Get the name of the State

@@ -24,7 +24,7 @@ SOFTWARE.
 
 'use strict'
 
-import { Observable, Subscriber, empty, from, of, concat } from 'rxjs'
+import { Observable, Subscriber, from, of, concat, EMPTY } from 'rxjs'
 import {
   bufferCount,
   catchError,
@@ -77,7 +77,7 @@ export class RxjsStreamInput<T> implements StreamPipelineInput<T> {
 export default class RxjsPipeline extends PipelineEngine {
 
   empty<T> (): Observable<T> {
-    return empty()
+    return EMPTY
   }
 
   of<T> (...values: T[]): Observable<T> {
