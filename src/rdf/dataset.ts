@@ -70,6 +70,12 @@ export default abstract class Dataset {
   abstract getNamedGraph (iri: string): Graph
 
   /**
+   * Delete a Named Graph using its IRI
+   * @param  iri - IRI of the Named Graph to delete
+   */
+  abstract deleteNamedGraph (iri: string): void
+
+  /**
    * Return True if the Dataset contains a Named graph with the provided IRI
    * @param  iri - IRI of the Named Graph
    * @return True if the Dataset contains a Named graph with the provided IRI

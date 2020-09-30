@@ -73,12 +73,25 @@ export default class UpdateStageBuilder extends StageBuilder {
             const iri = createNode.graph.name
             if (this._dataset.hasNamedGraph(iri)) {
               if (!createNode.silent) {
-                return new ErrorConsumable(`Cannot create the Graph with iri ${iri} as it already exists`)
+                return new ErrorConsumable(`Cannot create the Graph with iri ${iri} as it already exists in the RDF dataset`)
               }
               return new NoopConsumer()
             }
             return new ActionConsumer(() => {
               this._dataset.addNamedGraph(iri, this._dataset.createGraph(iri))
+            })
+          }
+          case 'drop': {
+            const createNode = update as Algebra.UpdateCreateDropNode
+            const iri = createNode.graph.name
+            if (!this._dataset.hasNamedGraph(iri)) {
+              if (!createNode.silent) {
+                return new ErrorConsumable(`Cannot drop the Graph with iri ${iri} as it doesn't exists in the RDF dataset`)
+              }
+              return new NoopConsumer()
+            }
+            return new ActionConsumer(() => {
+              this._dataset.deleteNamedGraph(iri)
             })
           }
           case 'clear':

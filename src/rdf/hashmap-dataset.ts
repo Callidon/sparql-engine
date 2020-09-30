@@ -76,4 +76,12 @@ export default class HashMapDataset extends Dataset {
   hasNamedGraph (iri: string): boolean {
     return this._namedGraphs.has(iri)
   }
+
+  deleteNamedGraph (iri: string): void {
+    if (this._namedGraphs.has(iri)) {
+      this._namedGraphs.delete(iri)
+    } else {
+      throw new Error(`Cannot delete unknown graph with iri ${iri}`)
+    }
+  }
 }
