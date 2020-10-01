@@ -54,6 +54,13 @@ describe('SPARQL UPDATE: DROP queries', () => {
         expect(engine.hasNamedGraph(GRAPH_A_IRI)).to.equal(false)
         expect(engine.defaultGraphIRI()).to.equal(GRAPH_B_IRI)
       }
+    },
+    {
+      name: 'DROP ALL',
+      query: `DROP ALL`,
+      testFun: () => {
+        expect(engine._dataset.iris).to.equal(0)
+      }
     }
   ]
 
