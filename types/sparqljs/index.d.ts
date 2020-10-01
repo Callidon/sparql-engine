@@ -166,6 +166,19 @@ declare module 'sparqljs' {
     }
 
     /**
+     * A SPARQL CREATE node
+     */
+    export interface UpdateCreateDropNode extends PlanNode {
+      silent: boolean;
+      graph: {
+        default?: boolean;
+        all?: boolean;
+        type: string;
+        name: string;
+      };
+    }
+
+    /**
      * A SPARQL CLEAR node
      */
     export interface UpdateClearNode extends PlanNode {

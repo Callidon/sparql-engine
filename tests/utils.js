@@ -134,7 +134,7 @@ class TestEngine {
   }
 
   defaultGraphIRI() {
-    return this._defaultGraphIRI
+    return this._dataset.getDefaultGraph().iri
   }
 
   addNamedGraph(iri, db) {
@@ -145,6 +145,10 @@ class TestEngine {
     return this._dataset.getNamedGraph(iri)
   }
 
+  hasNamedGraph(iri) {
+    return this._dataset.hasNamedGraph(iri)
+  }
+
   execute(query, format = 'raw') {
     let iterator = this._builder.build(query)
     return iterator
@@ -153,5 +157,6 @@ class TestEngine {
 
 module.exports = {
   getGraph,
-  TestEngine
+  TestEngine,
+  N3Graph
 }

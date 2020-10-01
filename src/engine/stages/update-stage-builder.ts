@@ -39,6 +39,8 @@ import { Algebra } from 'sparqljs'
 import { Bindings, BindingBase } from '../../rdf/bindings'
 import ExecutionContext from '../context/execution-context'
 import ContextSymbols from '../context/symbols'
+import NoopConsumer from '../../operators/update/nop-consumer'
+import ActionConsumer from '../../operators/update/action-consumer'
 
 /**
  * An UpdateStageBuilder evaluates SPARQL UPDATE queries.
@@ -66,6 +68,50 @@ export default class UpdateStageBuilder extends StageBuilder {
         }
       } else if ('type' in update) {
         switch (update.type) {
+          case 'create': {
+            const createNode = update as Algebra.UpdateCreateDropNode
+            const iri = createNode.graph.name
+            if (this._dataset.hasNamedGraph(iri)) {
+              if (!createNode.silent) {
+                return new ErrorConsumable(`Cannot create the Graph with iri ${iri} as it already exists in the RDF dataset`)
+              }
+              return new NoopConsumer()
+            }
+            return new ActionConsumer(() => {
+              this._dataset.addNamedGraph(iri, this._dataset.createGraph(iri))
+            })
+          }
+          case 'drop': {
+            const dropNode = update as Algebra.UpdateCreateDropNode
+            // handle DROP DEFAULT queries
+            if ('default' in dropNode.graph && dropNode.graph.default) {
+              return new ActionConsumer(() => {
+                const defaultGraphIRI = this._dataset.getDefaultGraph().iri
+                if (this._dataset.iris.length < 1) {
+                  return new ErrorConsumable(`Cannot drop the default Graph with iri ${iri} as it would leaves the RDF dataset empty without a default graph`)
+                }
+                const newDefaultGraphIRI = this._dataset.iris.find(iri => iri !== defaultGraphIRI)!
+                this._dataset.setDefaultGraph(this._dataset.getNamedGraph(newDefaultGraphIRI))
+              })
+            }
+            // handle DROP ALL queries
+            if ('all' in dropNode.graph && dropNode.graph.all) {
+              return new ActionConsumer(() => {
+                this._dataset.iris.forEach(iri => this._dataset.deleteNamedGraph(iri))
+              })
+            }
+            // handle DROP GRAPH queries
+            const iri = dropNode.graph.name
+            if (!this._dataset.hasNamedGraph(iri)) {
+              if (!dropNode.silent) {
+                return new ErrorConsumable(`Cannot drop the Graph with iri ${iri} as it doesn't exists in the RDF dataset`)
+              }
+              return new NoopConsumer()
+            }
+            return new ActionConsumer(() => {
+              this._dataset.deleteNamedGraph(iri)
+            })
+          }
           case 'clear':
             return this._handleClearQuery(update as Algebra.UpdateClearNode)
           case 'add':
