@@ -36,13 +36,9 @@ import { Bindings } from '../../rdf/bindings'
  * @author Thomas Minier
  */
 export default abstract class StageBuilder {
-  protected _dataset: Dataset
-  protected _builder: PlanBuilder | null
+  protected _builder: PlanBuilder | null = null
 
-  constructor (dataset: Dataset) {
-    this._dataset = dataset
-    this._builder = null
-  }
+  constructor (protected _dataset: Dataset) {}
 
   get builder (): PlanBuilder | null {
     return this._builder
