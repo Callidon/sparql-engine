@@ -171,8 +171,9 @@ declare module 'sparqljs' {
     export interface UpdateCreateDropNode extends PlanNode {
       silent: boolean;
       graph: {
-        type: string,
-        name: string
+        default?: boolean;
+        type: string;
+        name: string;
       };
     }
 

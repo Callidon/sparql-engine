@@ -82,10 +82,24 @@ export default class UpdateStageBuilder extends StageBuilder {
             })
           }
           case 'drop': {
-            const createNode = update as Algebra.UpdateCreateDropNode
-            const iri = createNode.graph.name
+            const dropNode = update as Algebra.UpdateCreateDropNode
+            console.log(dropNode);
+            // handle DROP DEFAULT queries
+            if ('default' in dropNode.graph && dropNode.graph.default) {
+              return new ActionConsumer(() => {
+                const defaultGraphIRI = this._dataset.getDefaultGraph().iri
+                if (this._dataset.iris.length < 1) {
+                  return new ErrorConsumable(`Cannot drop the default Graph with iri ${iri} as it would leaves the RDF dataset empty without a default graph`)
+                }
+                const newDefaultGraphIRI = this._dataset.iris.find(iri => iri !== defaultGraphIRI)!
+                this._dataset.setDefaultGraph(this._dataset.getNamedGraph(newDefaultGraphIRI))
+              })
+            }
+            // handle DROP ALL queries
+            // handle DROP GRAPH queries
+            const iri = dropNode.graph.name
             if (!this._dataset.hasNamedGraph(iri)) {
-              if (!createNode.silent) {
+              if (!dropNode.silent) {
                 return new ErrorConsumable(`Cannot drop the Graph with iri ${iri} as it doesn't exists in the RDF dataset`)
               }
               return new NoopConsumer()

@@ -134,7 +134,7 @@ class TestEngine {
   }
 
   defaultGraphIRI() {
-    return this._defaultGraphIRI
+    return this._dataset.getDefaultGraph().iri
   }
 
   addNamedGraph(iri, db) {
