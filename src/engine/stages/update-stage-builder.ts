@@ -83,7 +83,6 @@ export default class UpdateStageBuilder extends StageBuilder {
           }
           case 'drop': {
             const dropNode = update as Algebra.UpdateCreateDropNode
-            console.log(dropNode);
             // handle DROP DEFAULT queries
             if ('default' in dropNode.graph && dropNode.graph.default) {
               return new ActionConsumer(() => {
@@ -96,6 +95,11 @@ export default class UpdateStageBuilder extends StageBuilder {
               })
             }
             // handle DROP ALL queries
+            if ('all' in dropNode.graph && dropNode.graph.all) {
+              return new ActionConsumer(() => {
+                this._dataset.iris.forEach(iri => this._dataset.deleteNamedGraph(iri))
+              })
+            }
             // handle DROP GRAPH queries
             const iri = dropNode.graph.name
             if (!this._dataset.hasNamedGraph(iri)) {

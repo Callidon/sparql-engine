@@ -59,7 +59,7 @@ describe('SPARQL UPDATE: DROP queries', () => {
       name: 'DROP ALL',
       query: `DROP ALL`,
       testFun: () => {
-        expect(engine._dataset.iris).to.equal(0)
+        expect(engine._dataset.iris.length).to.equal(0)
       }
     }
   ]

@@ -172,6 +172,7 @@ declare module 'sparqljs' {
       silent: boolean;
       graph: {
         default?: boolean;
+        all?: boolean;
         type: string;
         name: string;
       };
