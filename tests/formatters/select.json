@@ -1,0 +1,67 @@
+{
+  "head": {
+    "vars": [
+      "name",
+      "article"
+    ]
+  },
+  "results": {
+    "bindings": [
+      {
+        "name": {
+          "type": "literal",
+          "value": "Thomas Minier",
+          "xml:lang": "en"
+        },
+        "article": {
+          "type": "uri",
+          "value": "https://dblp.org/rec/conf/esws/MinierMSM17a"
+        }
+      },
+      {
+        "name": {
+          "type": "literal",
+          "value": "Thomas Minier",
+          "xml:lang": "en"
+        },
+        "article": {
+          "type": "uri",
+          "value": "https://dblp.org/rec/conf/esws/MinierMSM17"
+        }
+      },
+      {
+        "name": {
+          "type": "literal",
+          "value": "Thomas Minier",
+          "xml:lang": "en"
+        },
+        "article": {
+          "type": "uri",
+          "value": "https://dblp.org/rec/journals/corr/abs-1806-00227"
+        }
+      },
+      {
+        "name": {
+          "type": "literal",
+          "value": "Thomas Minier",
+          "xml:lang": "en"
+        },
+        "article": {
+          "type": "uri",
+          "value": "https://dblp.org/rec/conf/esws/MinierSMV18"
+        }
+      },
+      {
+        "name": {
+          "type": "literal",
+          "value": "Thomas Minier",
+          "xml:lang": "en"
+        },
+        "article": {
+          "type": "uri",
+          "value": "https://dblp.org/rec/conf/esws/MinierSMV18a"
+        }
+      }
+    ]
+  }
+}

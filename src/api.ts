@@ -71,5 +71,7 @@ export { default as RxjsPipeline } from './engine/pipeline/rxjs-pipeline'
 export { default as VectorPipeline } from './engine/pipeline/vector-pipeline'
 // RDF terms Utilities
 export { rdf } from './utils'
+// Formatters
+export { default as JsonFormat } from './formatters/json-formatter'
 
 export { stages }
