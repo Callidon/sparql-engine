@@ -73,5 +73,6 @@ export { default as VectorPipeline } from './engine/pipeline/vector-pipeline'
 export { rdf } from './utils'
 // Formatters
 export { default as JsonFormat } from './formatters/json-formatter'
+export { csvFormatter as CSVFormat, tsvFormatter as TSVFormat } from './formatters/csv-tsv-formatter'
 
 export { stages }
