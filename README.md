@@ -16,9 +16,7 @@ An open-source framework for building SPARQL query engines in Javascript/Typescr
 * Supports the [SPARQL UPDATE protocol](https://www.w3.org/TR/2013/REC-sparql11-update-20130321/).
 * Supports Basic [Federated SPARQL queries](https://www.w3.org/TR/2013/REC-sparql11-federated-query-20130321/) using **SERVICE clauses**.
 * Customize every step of SPARQL query processing, thanks to *a modular architecture*.
-
-:warning: **In Development** :warning:
-* Support for SPARQL Graph Management protocol
+* Support for [SPARQL Graph Management protocol](https://www.w3.org/TR/2013/REC-sparql11-update-20130321/#graphManagement).
 
 # Table of contents
 * [Installation](#installation)
