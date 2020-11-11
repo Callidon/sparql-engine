@@ -16,9 +16,7 @@ An open-source framework for building SPARQL query engines in Javascript/Typescr
 * Supports the [SPARQL UPDATE protocol](https://www.w3.org/TR/2013/REC-sparql11-update-20130321/).
 * Supports Basic [Federated SPARQL queries](https://www.w3.org/TR/2013/REC-sparql11-federated-query-20130321/) using **SERVICE clauses**.
 * Customize every step of SPARQL query processing, thanks to *a modular architecture*.
-
-:warning: **In Development** :warning:
-* Support for SPARQL Graph Management protocol
+* Support for [SPARQL Graph Management protocol](https://www.w3.org/TR/2013/REC-sparql11-update-20130321/#graphManagement).
 
 # Table of contents
 * [Installation](#installation)
@@ -463,17 +461,17 @@ npm run doc
 This framework is developed since 2018 by many contributors, and we thanks them very much for their contributions to this project! Here is the full list of our amazing contributors.
 
 * [Corentin Marionneau](https://github.com/Slaanaroth) (@Slaanaroth)
-  * Corentin created the first version of `sparql-engine` during its research internship at the [Laboratoire des Sciences du Numérique de Nantes](https://www.ls2n.fr/) (LS2N). He is now a Web developer at SII Nantes.
+  * Corentin created the first version of `sparql-engine` during its research internship at the [Laboratoire des Sciences du Numérique de Nantes](https://www.ls2n.fr/) (LS2N). He is now a Web developer at SII Atlantique.
 * [Merlin Barzilai](https://github.com/Rintarou) (@Rintarou)
   * Merlin designed the first SPARQL compliance tests for the framework during its research internship at the [LS2N](https://www.ls2n.fr/).
 * [Dustin Whitney](https://github.com/dwhitney) (@dwhitney)
   * Dustin implemented the support for custom SPARQL functions and provided a lot of feedback during the early stages of development.
 * [Julien Aimonier-Davat](https://github.com/Lastshot97) (@Lastshot97)
-  * Julien implemented the support for SPARQL Proprty Paths evaluation during its research internship at the [LS2N](https://www.ls2n.fr/).
+  * Julien implemented the support for SPARQL Property Paths evaluation during its research internship at the [LS2N](https://www.ls2n.fr/). He is now a Ph.D. Studnet at the University of Nantes.
 * [Arnaud Grall](https://github.com/folkvir) (@folkvir)
-  * Arnaud contributed to many bugfixes and provided a lot of feedback throughout the development of the framework.
+  * Arnaud contributed to many bugfixes and provided a lot of feedback throughout the development of the framework. He is now a Software Engineer at SII Atlantique.
 * [Thomas Minier](https://github.com/Callidon) (@Callidon)
-  * Thomas developed the framework during his PhD thesis in the [Team "Gestion des Données Distribuées"](https://sites.google.com/site/gddlina/) (GDD) and supervise its evolution ever since.
+  * Thomas developed the framework during his PhD thesis in the [Team "Gestion des Données Distribuées"](https://sites.google.com/site/gddlina/) (GDD) and supervise its evolution ever since. He is now a Software Engineer at SII Atlantique.
 
 # References
 
