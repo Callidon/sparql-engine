@@ -62,6 +62,14 @@ As a starting point, we provide you with two examples of integration:
 
 ## Preliminaries
 
+### SPARQL.js algebra and TypeScript
+
+The `sparql-engine` framework use the [`SPARQL.js`](https://github.com/RubenVerborgh/SPARQL.js/) library for parsing and manipulating SPARQL queries as JSON objects. For TypeScript compiltation, we use a custom package [`sparqljs-legacy-type`](https://github.com/Callidon/sparqljs-legacy-type) for providing the types information. 
+
+Thus, **if you are working with `sparql-engine` in TypeScript**, you will need to install the [`sparqljs-legacy-type`](https://github.com/Callidon/sparqljs-legacy-type) package.
+
+If want to know why we use a custom types package, see [the discussion of this issue](https://github.com/Callidon/sparql-engine/issues/58).
+
 ### RDF triples representation
 
 This framework represents RDF triples using Javascript Object.
