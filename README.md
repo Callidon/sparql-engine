@@ -456,7 +456,7 @@ yarn install
 npm run doc
 ```
 
-# Aknowledgments
+# Acknowledgments
 
 This framework is developed since 2018 by many contributors, and we thanks them very much for their contributions to this project! Here is the full list of our amazing contributors.
 
