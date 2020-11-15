@@ -467,7 +467,7 @@ This framework is developed since 2018 by many contributors, and we thanks them 
 * [Dustin Whitney](https://github.com/dwhitney) (@dwhitney)
   * Dustin implemented the support for custom SPARQL functions and provided a lot of feedback during the early stages of development.
 * [Julien Aimonier-Davat](https://github.com/Lastshot97) (@Lastshot97)
-  * Julien implemented the support for SPARQL Property Paths evaluation during its research internship at the [LS2N](https://www.ls2n.fr/). He is now a Ph.D. Studnet at the University of Nantes.
+  * Julien implemented the support for SPARQL Property Paths evaluation during its research internship at the [LS2N](https://www.ls2n.fr/). He is now a Ph.D. Student at the University of Nantes.
 * [Arnaud Grall](https://github.com/folkvir) (@folkvir)
   * Arnaud contributed to many bugfixes and provided a lot of feedback throughout the development of the framework. He is now a Software Engineer at SII Atlantique.
 * [Thomas Minier](https://github.com/Callidon) (@Callidon)
