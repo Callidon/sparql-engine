@@ -1,0 +1,766 @@
+<!doctype html>
+<html class="default no-js">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>GlushkovStageBuilder | sparql-engine - v0.8.0</title>
+	<meta name="description" content="">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="../assets/css/main.css">
+</head>
+<body>
+<header>
+	<div class="tsd-page-toolbar">
+		<div class="container">
+			<div class="table-wrap">
+				<div class="table-cell" id="tsd-search" data-index="../assets/js/search.js" data-base="..">
+					<div class="field">
+						<label for="tsd-search-field" class="tsd-widget search no-caption">Search</label>
+						<input id="tsd-search-field" type="text" />
+					</div>
+					<ul class="results">
+						<li class="state loading">Preparing search index...</li>
+						<li class="state failure">The search index is not available</li>
+					</ul>
+					<a href="../index.html" class="title">sparql-engine - v0.8.0</a>
+				</div>
+				<div class="table-cell" id="tsd-widgets">
+					<div id="tsd-filter">
+						<a href="#" class="tsd-widget options no-caption" data-toggle="options">Options</a>
+						<div class="tsd-filter-group">
+							<div class="tsd-select" id="tsd-filter-visibility">
+								<span class="tsd-select-label">All</span>
+								<ul class="tsd-select-list">
+									<li data-value="public">Public</li>
+									<li data-value="protected">Public/Protected</li>
+									<li data-value="private" class="selected">All</li>
+								</ul>
+							</div>
+							<input type="checkbox" id="tsd-filter-inherited" checked />
+							<label class="tsd-widget" for="tsd-filter-inherited">Inherited</label>
+							<input type="checkbox" id="tsd-filter-externals" checked />
+							<label class="tsd-widget" for="tsd-filter-externals">Externals</label>
+							<input type="checkbox" id="tsd-filter-only-exported" />
+							<label class="tsd-widget" for="tsd-filter-only-exported">Only exported</label>
+						</div>
+					</div>
+					<a href="#" class="tsd-widget menu no-caption" data-toggle="menu">Menu</a>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="tsd-page-title">
+		<div class="container">
+			<ul class="tsd-breadcrumb">
+				<li>
+					<a href="../globals.html">Globals</a>
+				</li>
+				<li>
+					<a href="glushkovstagebuilder.html">GlushkovStageBuilder</a>
+				</li>
+			</ul>
+			<h1>Class GlushkovStageBuilder</h1>
+		</div>
+	</div>
+</header>
+<div class="container container-main">
+	<div class="row">
+		<div class="col-8 col-content">
+			<section class="tsd-panel tsd-comment">
+				<div class="tsd-comment tsd-typography">
+					<div class="lead">
+						<p>A GlushkovStageBuilder is responsible for evaluation a SPARQL property path query using a Glushkov state automata.</p>
+					</div>
+					<dl class="tsd-comment-tags">
+						<dt>author</dt>
+						<dd><p>Arthur Trottier</p>
+						</dd>
+						<dt>author</dt>
+						<dd><p>Charlotte Cogan</p>
+						</dd>
+						<dt>author</dt>
+						<dd><p>Julien Aimonier-Davat</p>
+						</dd>
+					</dl>
+				</div>
+			</section>
+			<section class="tsd-panel tsd-hierarchy">
+				<h3>Hierarchy</h3>
+				<ul class="tsd-hierarchy">
+					<li>
+						<a href="pathstagebuilder.html" class="tsd-signature-type">PathStageBuilder</a>
+						<ul class="tsd-hierarchy">
+							<li>
+								<span class="target">GlushkovStageBuilder</span>
+							</li>
+						</ul>
+					</li>
+				</ul>
+			</section>
+			<section class="tsd-panel-group tsd-index-group">
+				<h2>Index</h2>
+				<section class="tsd-panel tsd-index-panel">
+					<div class="tsd-index-content">
+						<section class="tsd-index-section tsd-is-inherited">
+							<h3>Constructors</h3>
+							<ul class="tsd-index-list">
+								<li class="tsd-kind-constructor tsd-parent-kind-class tsd-is-inherited"><a href="glushkovstagebuilder.html#constructor" class="tsd-kind-icon">constructor</a></li>
+							</ul>
+						</section>
+						<section class="tsd-index-section tsd-is-inherited tsd-is-private-protected">
+							<h3>Properties</h3>
+							<ul class="tsd-index-list">
+								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited tsd-is-protected"><a href="glushkovstagebuilder.html#_builder" class="tsd-kind-icon">_builder</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited tsd-is-protected"><a href="glushkovstagebuilder.html#_dataset" class="tsd-kind-icon">_dataset</a></li>
+							</ul>
+						</section>
+						<section class="tsd-index-section tsd-is-inherited">
+							<h3>Accessors</h3>
+							<ul class="tsd-index-list">
+								<li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-inherited"><a href="glushkovstagebuilder.html#builder" class="tsd-kind-icon">builder</a></li>
+								<li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-inherited"><a href="glushkovstagebuilder.html#dataset" class="tsd-kind-icon">dataset</a></li>
+							</ul>
+						</section>
+						<section class="tsd-index-section ">
+							<h3>Methods</h3>
+							<ul class="tsd-index-list">
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="glushkovstagebuilder.html#_builditerator" class="tsd-kind-icon">_build<wbr>Iterator</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-overwrite"><a href="glushkovstagebuilder.html#_executepropertypath" class="tsd-kind-icon">_execute<wbr>Property<wbr>Path</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="glushkovstagebuilder.html#_getgraph" class="tsd-kind-icon">_get<wbr>Graph</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="glushkovstagebuilder.html#evaluatepropertypath" class="tsd-kind-icon">evaluate<wbr>Property<wbr>Path</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited"><a href="glushkovstagebuilder.html#execute" class="tsd-kind-icon">execute</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="glushkovstagebuilder.html#reflexiveclosure" class="tsd-kind-icon">reflexive<wbr>Closure</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="glushkovstagebuilder.html#startpropertypathevaluation" class="tsd-kind-icon">start<wbr>Property<wbr>Path<wbr>Evaluation</a></li>
+							</ul>
+						</section>
+					</div>
+				</section>
+			</section>
+			<section class="tsd-panel-group tsd-member-group tsd-is-inherited">
+				<h2>Constructors</h2>
+				<section class="tsd-panel tsd-member tsd-kind-constructor tsd-parent-kind-class tsd-is-inherited">
+					<a name="constructor" class="tsd-anchor"></a>
+					<h3>constructor</h3>
+					<ul class="tsd-signatures tsd-kind-constructor tsd-parent-kind-class tsd-is-inherited">
+						<li class="tsd-signature tsd-kind-icon">new <wbr>Glushkov<wbr>Stage<wbr>Builder<span class="tsd-signature-symbol">(</span>_dataset<span class="tsd-signature-symbol">: </span><a href="dataset.html" class="tsd-signature-type">Dataset</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="glushkovstagebuilder.html" class="tsd-signature-type">GlushkovStageBuilder</a></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<p>Inherited from <a href="stagebuilder.html">StageBuilder</a>.<a href="stagebuilder.html#constructor">constructor</a></p>
+								<ul>
+									<li>Defined in <a href="https://github.com/Callidon/sparql-engine/blob/c60ee70/src/engine/stages/stage-builder.ts#L39">src/engine/stages/stage-builder.ts:39</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>_dataset: <a href="dataset.html" class="tsd-signature-type">Dataset</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="glushkovstagebuilder.html" class="tsd-signature-type">GlushkovStageBuilder</a></h4>
+						</li>
+					</ul>
+				</section>
+			</section>
+			<section class="tsd-panel-group tsd-member-group tsd-is-inherited tsd-is-private-protected">
+				<h2>Properties</h2>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-inherited tsd-is-protected">
+					<a name="_builder" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagProtected">Protected</span> _builder</h3>
+					<div class="tsd-signature tsd-kind-icon">_builder<span class="tsd-signature-symbol">:</span> <a href="planbuilder.html" class="tsd-signature-type">PlanBuilder</a><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> =&nbsp;null</span></div>
+					<aside class="tsd-sources">
+						<p>Inherited from <a href="stagebuilder.html">StageBuilder</a>.<a href="stagebuilder.html#_builder">_builder</a></p>
+						<ul>
+							<li>Defined in <a href="https://github.com/Callidon/sparql-engine/blob/c60ee70/src/engine/stages/stage-builder.ts#L39">src/engine/stages/stage-builder.ts:39</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-inherited tsd-is-protected">
+					<a name="_dataset" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagProtected">Protected</span> _dataset</h3>
+					<div class="tsd-signature tsd-kind-icon">_dataset<span class="tsd-signature-symbol">:</span> <a href="dataset.html" class="tsd-signature-type">Dataset</a></div>
+					<aside class="tsd-sources">
+						<p>Inherited from <a href="stagebuilder.html">StageBuilder</a>.<a href="stagebuilder.html#_dataset">_dataset</a></p>
+						<ul>
+							<li>Defined in <a href="https://github.com/Callidon/sparql-engine/blob/c60ee70/src/engine/stages/stage-builder.ts#L41">src/engine/stages/stage-builder.ts:41</a></li>
+						</ul>
+					</aside>
+				</section>
+			</section>
+			<section class="tsd-panel-group tsd-member-group tsd-is-inherited">
+				<h2>Accessors</h2>
+				<section class="tsd-panel tsd-member tsd-kind-accessor tsd-parent-kind-class tsd-is-inherited">
+					<a name="builder" class="tsd-anchor"></a>
+					<h3>builder</h3>
+					<ul class="tsd-signatures tsd-kind-accessor tsd-parent-kind-class tsd-is-inherited">
+						<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">get</span> builder<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="planbuilder.html" class="tsd-signature-type">PlanBuilder</a><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span></li>
+						<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">set</span> builder<span class="tsd-signature-symbol">(</span>builder<span class="tsd-signature-symbol">: </span><a href="planbuilder.html" class="tsd-signature-type">PlanBuilder</a><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<p>Inherited from <a href="stagebuilder.html">StageBuilder</a>.<a href="stagebuilder.html#builder">builder</a></p>
+								<ul>
+									<li>Defined in <a href="https://github.com/Callidon/sparql-engine/blob/c60ee70/src/engine/stages/stage-builder.ts#L43">src/engine/stages/stage-builder.ts:43</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-returns-title">Returns <a href="planbuilder.html" class="tsd-signature-type">PlanBuilder</a>
+								<span class="tsd-signature-symbol"> | </span>
+								<span class="tsd-signature-type">null</span>
+							</h4>
+						</li>
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<p>Inherited from <a href="stagebuilder.html">StageBuilder</a>.<a href="stagebuilder.html#builder">builder</a></p>
+								<ul>
+									<li>Defined in <a href="https://github.com/Callidon/sparql-engine/blob/c60ee70/src/engine/stages/stage-builder.ts#L47">src/engine/stages/stage-builder.ts:47</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>builder: <a href="planbuilder.html" class="tsd-signature-type">PlanBuilder</a><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-accessor tsd-parent-kind-class tsd-is-inherited">
+					<a name="dataset" class="tsd-anchor"></a>
+					<h3>dataset</h3>
+					<ul class="tsd-signatures tsd-kind-accessor tsd-parent-kind-class tsd-is-inherited">
+						<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">get</span> dataset<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="dataset.html" class="tsd-signature-type">Dataset</a></li>
+						<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">set</span> dataset<span class="tsd-signature-symbol">(</span>dataset<span class="tsd-signature-symbol">: </span><a href="dataset.html" class="tsd-signature-type">Dataset</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<p>Inherited from <a href="stagebuilder.html">StageBuilder</a>.<a href="stagebuilder.html#dataset">dataset</a></p>
+								<ul>
+									<li>Defined in <a href="https://github.com/Callidon/sparql-engine/blob/c60ee70/src/engine/stages/stage-builder.ts#L51">src/engine/stages/stage-builder.ts:51</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-returns-title">Returns <a href="dataset.html" class="tsd-signature-type">Dataset</a></h4>
+						</li>
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<p>Inherited from <a href="stagebuilder.html">StageBuilder</a>.<a href="stagebuilder.html#dataset">dataset</a></p>
+								<ul>
+									<li>Defined in <a href="https://github.com/Callidon/sparql-engine/blob/c60ee70/src/engine/stages/stage-builder.ts#L55">src/engine/stages/stage-builder.ts:55</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>dataset: <a href="dataset.html" class="tsd-signature-type">Dataset</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+			</section>
+			<section class="tsd-panel-group tsd-member-group ">
+				<h2>Methods</h2>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+					<a name="_builditerator" class="tsd-anchor"></a>
+					<h3>_build<wbr>Iterator</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+						<li class="tsd-signature tsd-kind-icon">_build<wbr>Iterator<span class="tsd-signature-symbol">(</span>subject<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, path<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">PropertyPath</span>, obj<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, context<span class="tsd-signature-symbol">: </span><a href="executioncontext.html" class="tsd-signature-type">ExecutionContext</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../interfaces/pipelinestage.html" class="tsd-signature-type">PipelineStage</a><span class="tsd-signature-symbol">&lt;</span><a href="bindings.html" class="tsd-signature-type">Bindings</a><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<p>Inherited from <a href="pathstagebuilder.html">PathStageBuilder</a>.<a href="pathstagebuilder.html#_builditerator">_buildIterator</a></p>
+								<ul>
+									<li>Defined in <a href="https://github.com/Callidon/sparql-engine/blob/c60ee70/src/engine/stages/path-stage-builder.ts#L106">src/engine/stages/path-stage-builder.ts:106</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Get a <a href="../interfaces/pipelinestage.html">PipelineStage</a> for evaluating the property path.</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>subject: <span class="tsd-signature-type">string</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>Path subject</p>
+									</div>
+								</li>
+								<li>
+									<h5>path: <span class="tsd-signature-type">PropertyPath</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>Property path</p>
+									</div>
+								</li>
+								<li>
+									<h5>obj: <span class="tsd-signature-type">string</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>Path object</p>
+									</div>
+								</li>
+								<li>
+									<h5>context: <a href="executioncontext.html" class="tsd-signature-type">ExecutionContext</a></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>Execution context</p>
+									</div>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="../interfaces/pipelinestage.html" class="tsd-signature-type">PipelineStage</a><span class="tsd-signature-symbol">&lt;</span><a href="bindings.html" class="tsd-signature-type">Bindings</a><span class="tsd-signature-symbol">&gt;</span></h4>
+							<p>A <a href="../interfaces/pipelinestage.html">PipelineStage</a> which yield set of bindings</p>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-overwrite">
+					<a name="_executepropertypath" class="tsd-anchor"></a>
+					<h3>_execute<wbr>Property<wbr>Path</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-overwrite">
+						<li class="tsd-signature tsd-kind-icon">_execute<wbr>Property<wbr>Path<span class="tsd-signature-symbol">(</span>subject<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, path<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">PropertyPath</span>, obj<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, graph<span class="tsd-signature-symbol">: </span><a href="graph.html" class="tsd-signature-type">Graph</a>, context<span class="tsd-signature-symbol">: </span><a href="executioncontext.html" class="tsd-signature-type">ExecutionContext</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../interfaces/pipelinestage.html" class="tsd-signature-type">PipelineStage</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">TripleObject</span><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<p>Overrides <a href="pathstagebuilder.html">PathStageBuilder</a>.<a href="pathstagebuilder.html#_executepropertypath">_executePropertyPath</a></p>
+								<ul>
+									<li>Defined in <a href="https://github.com/Callidon/sparql-engine/blob/c60ee70/src/engine/stages/glushkov-executor/glushkov-stage-builder.ts#L315">src/engine/stages/glushkov-executor/glushkov-stage-builder.ts:315</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Execute a property path against a RDF Graph.</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>subject: <span class="tsd-signature-type">string</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>Path subject</p>
+									</div>
+								</li>
+								<li>
+									<h5>path: <span class="tsd-signature-type">PropertyPath</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>Property path</p>
+									</div>
+								</li>
+								<li>
+									<h5>obj: <span class="tsd-signature-type">string</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>Path object</p>
+									</div>
+								</li>
+								<li>
+									<h5>graph: <a href="graph.html" class="tsd-signature-type">Graph</a></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>RDF graph</p>
+									</div>
+								</li>
+								<li>
+									<h5>context: <a href="executioncontext.html" class="tsd-signature-type">ExecutionContext</a></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>Execution context</p>
+									</div>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="../interfaces/pipelinestage.html" class="tsd-signature-type">PipelineStage</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">TripleObject</span><span class="tsd-signature-symbol">&gt;</span></h4>
+							<p>An Observable which yield RDF triples matching the property path</p>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+					<a name="_getgraph" class="tsd-anchor"></a>
+					<h3>_get<wbr>Graph</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+						<li class="tsd-signature tsd-kind-icon">_get<wbr>Graph<span class="tsd-signature-symbol">(</span>iris<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="graph.html" class="tsd-signature-type">Graph</a></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<p>Inherited from <a href="pathstagebuilder.html">PathStageBuilder</a>.<a href="pathstagebuilder.html#_getgraph">_getGraph</a></p>
+								<ul>
+									<li>Defined in <a href="https://github.com/Callidon/sparql-engine/blob/c60ee70/src/engine/stages/path-stage-builder.ts#L71">src/engine/stages/path-stage-builder.ts:71</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Return the RDF Graph to be used for BGP evaluation.</p>
+									<ul>
+										<li>If <code>iris</code> is empty, returns the default graph</li>
+										<li>If <code>iris</code> has a single entry, returns the corresponding named graph</li>
+										<li>Otherwise, returns an UnionGraph based on the provided iris</li>
+									</ul>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>iris: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>List of Graph&#39;s iris</p>
+									</div>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="graph.html" class="tsd-signature-type">Graph</a></h4>
+							<p>An RDF Graph</p>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="evaluatepropertypath" class="tsd-anchor"></a>
+					<h3>evaluate<wbr>Property<wbr>Path</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">evaluate<wbr>Property<wbr>Path<span class="tsd-signature-symbol">(</span>rPath<span class="tsd-signature-symbol">: </span><a href="resultpath.html" class="tsd-signature-type">ResultPath</a>, obj<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, graph<span class="tsd-signature-symbol">: </span><a href="graph.html" class="tsd-signature-type">Graph</a>, context<span class="tsd-signature-symbol">: </span><a href="executioncontext.html" class="tsd-signature-type">ExecutionContext</a>, automaton<span class="tsd-signature-symbol">: </span><a href="automaton.html" class="tsd-signature-type">Automaton</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span>, forward<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../interfaces/pipelinestage.html" class="tsd-signature-type">PipelineStage</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">TripleObject</span><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/Callidon/sparql-engine/blob/c60ee70/src/engine/stages/glushkov-executor/glushkov-stage-builder.ts#L169">src/engine/stages/glushkov-executor/glushkov-stage-builder.ts:169</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Continues the execution of the SPARQL property path and builds the result&#39;s paths</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>rPath: <a href="resultpath.html" class="tsd-signature-type">ResultPath</a></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>Path being processed</p>
+									</div>
+								</li>
+								<li>
+									<h5>obj: <span class="tsd-signature-type">string</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>Path object</p>
+									</div>
+								</li>
+								<li>
+									<h5>graph: <a href="graph.html" class="tsd-signature-type">Graph</a></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>RDF graph</p>
+									</div>
+								</li>
+								<li>
+									<h5>context: <a href="executioncontext.html" class="tsd-signature-type">ExecutionContext</a></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>Execution context</p>
+									</div>
+								</li>
+								<li>
+									<h5>automaton: <a href="automaton.html" class="tsd-signature-type">Automaton</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>Automaton used to evaluate the SPARQL property path</p>
+									</div>
+								</li>
+								<li>
+									<h5>forward: <span class="tsd-signature-type">boolean</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>if True the walk proceeds through outgoing edges, otherwise the walk proceeds in reverse direction</p>
+									</div>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="../interfaces/pipelinestage.html" class="tsd-signature-type">PipelineStage</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">TripleObject</span><span class="tsd-signature-symbol">&gt;</span></h4>
+							<p>An Observable which yield RDF triples matching the property path</p>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited">
+					<a name="execute" class="tsd-anchor"></a>
+					<h3>execute</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited">
+						<li class="tsd-signature tsd-kind-icon">execute<span class="tsd-signature-symbol">(</span>source<span class="tsd-signature-symbol">: </span><a href="../interfaces/pipelinestage.html" class="tsd-signature-type">PipelineStage</a><span class="tsd-signature-symbol">&lt;</span><a href="bindings.html" class="tsd-signature-type">Bindings</a><span class="tsd-signature-symbol">&gt;</span>, triples<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">PathTripleObject</span><span class="tsd-signature-symbol">[]</span>, context<span class="tsd-signature-symbol">: </span><a href="executioncontext.html" class="tsd-signature-type">ExecutionContext</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../interfaces/pipelinestage.html" class="tsd-signature-type">PipelineStage</a><span class="tsd-signature-symbol">&lt;</span><a href="bindings.html" class="tsd-signature-type">Bindings</a><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<p>Inherited from <a href="pathstagebuilder.html">PathStageBuilder</a>.<a href="pathstagebuilder.html#execute">execute</a></p>
+								<p>Overrides <a href="stagebuilder.html">StageBuilder</a>.<a href="stagebuilder.html#execute">execute</a></p>
+								<ul>
+									<li>Defined in <a href="https://github.com/Callidon/sparql-engine/blob/c60ee70/src/engine/stages/path-stage-builder.ts#L87">src/engine/stages/path-stage-builder.ts:87</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Get a <a href="../interfaces/pipelinestage.html">PipelineStage</a> for evaluating a succession of property paths, connected by joins.</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>source: <a href="../interfaces/pipelinestage.html" class="tsd-signature-type">PipelineStage</a><span class="tsd-signature-symbol">&lt;</span><a href="bindings.html" class="tsd-signature-type">Bindings</a><span class="tsd-signature-symbol">&gt;</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>Input <a href="../interfaces/pipelinestage.html">PipelineStage</a></p>
+									</div>
+								</li>
+								<li>
+									<h5>triples: <span class="tsd-signature-type">PathTripleObject</span><span class="tsd-signature-symbol">[]</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>Triple patterns</p>
+									</div>
+								</li>
+								<li>
+									<h5>context: <a href="executioncontext.html" class="tsd-signature-type">ExecutionContext</a></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>Execution context</p>
+									</div>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="../interfaces/pipelinestage.html" class="tsd-signature-type">PipelineStage</a><span class="tsd-signature-symbol">&lt;</span><a href="bindings.html" class="tsd-signature-type">Bindings</a><span class="tsd-signature-symbol">&gt;</span></h4>
+							<p>A <a href="../interfaces/pipelinestage.html">PipelineStage</a> which yield set of bindings from the pipeline of joins</p>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="reflexiveclosure" class="tsd-anchor"></a>
+					<h3>reflexive<wbr>Closure</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">reflexive<wbr>Closure<span class="tsd-signature-symbol">(</span>subject<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, obj<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, graph<span class="tsd-signature-symbol">: </span><a href="graph.html" class="tsd-signature-type">Graph</a>, context<span class="tsd-signature-symbol">: </span><a href="executioncontext.html" class="tsd-signature-type">ExecutionContext</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../interfaces/pipelinestage.html" class="tsd-signature-type">PipelineStage</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">TripleObject</span><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/Callidon/sparql-engine/blob/c60ee70/src/engine/stages/glushkov-executor/glushkov-stage-builder.ts#L230">src/engine/stages/glushkov-executor/glushkov-stage-builder.ts:230</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Execute a reflexive closure against a RDF Graph.</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>subject: <span class="tsd-signature-type">string</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>Path subject</p>
+									</div>
+								</li>
+								<li>
+									<h5>obj: <span class="tsd-signature-type">string</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>Path object</p>
+									</div>
+								</li>
+								<li>
+									<h5>graph: <a href="graph.html" class="tsd-signature-type">Graph</a></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>RDF graph</p>
+									</div>
+								</li>
+								<li>
+									<h5>context: <a href="executioncontext.html" class="tsd-signature-type">ExecutionContext</a></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>Execution context</p>
+									</div>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="../interfaces/pipelinestage.html" class="tsd-signature-type">PipelineStage</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">TripleObject</span><span class="tsd-signature-symbol">&gt;</span></h4>
+							<p>An Observable which yield RDF triples retrieved after the evaluation of the reflexive closure</p>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="startpropertypathevaluation" class="tsd-anchor"></a>
+					<h3>start<wbr>Property<wbr>Path<wbr>Evaluation</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">start<wbr>Property<wbr>Path<wbr>Evaluation<span class="tsd-signature-symbol">(</span>subject<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, obj<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, graph<span class="tsd-signature-symbol">: </span><a href="graph.html" class="tsd-signature-type">Graph</a>, context<span class="tsd-signature-symbol">: </span><a href="executioncontext.html" class="tsd-signature-type">ExecutionContext</a>, automaton<span class="tsd-signature-symbol">: </span><a href="automaton.html" class="tsd-signature-type">Automaton</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span>, forward<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../interfaces/pipelinestage.html" class="tsd-signature-type">PipelineStage</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">TripleObject</span><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/Callidon/sparql-engine/blob/c60ee70/src/engine/stages/glushkov-executor/glushkov-stage-builder.ts#L268">src/engine/stages/glushkov-executor/glushkov-stage-builder.ts:268</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Starts the execution of a property path against a RDF Graph.</p>
+									<ul>
+										<li>executes the reflexive closure if the path expression contains the empty word</li>
+										<li>builds the first step of the result&#39;s paths</li>
+									</ul>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>subject: <span class="tsd-signature-type">string</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>Path subject</p>
+									</div>
+								</li>
+								<li>
+									<h5>obj: <span class="tsd-signature-type">string</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>Path object</p>
+									</div>
+								</li>
+								<li>
+									<h5>graph: <a href="graph.html" class="tsd-signature-type">Graph</a></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>RDF graph</p>
+									</div>
+								</li>
+								<li>
+									<h5>context: <a href="executioncontext.html" class="tsd-signature-type">ExecutionContext</a></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>Execution context</p>
+									</div>
+								</li>
+								<li>
+									<h5>automaton: <a href="automaton.html" class="tsd-signature-type">Automaton</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>Automaton used to evaluate the SPARQL property path</p>
+									</div>
+								</li>
+								<li>
+									<h5>forward: <span class="tsd-signature-type">boolean</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>if True the walk starts from the subject, otherwise the walk starts from the object</p>
+									</div>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="../interfaces/pipelinestage.html" class="tsd-signature-type">PipelineStage</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">TripleObject</span><span class="tsd-signature-symbol">&gt;</span></h4>
+							<p>An Observable which yield RDF triples matching the property path</p>
+						</li>
+					</ul>
+				</section>
+			</section>
+		</div>
+		<div class="col-4 col-menu menu-sticky-wrap menu-highlight">
+			<nav class="tsd-navigation primary">
+				<ul>
+					<li class="globals  ">
+						<a href="../globals.html"><em>Globals</em></a>
+					</li>
+				</ul>
+			</nav>
+			<nav class="tsd-navigation secondary menu-sticky">
+				<ul class="before-current">
+				</ul>
+				<ul class="current">
+					<li class="current tsd-kind-class">
+						<a href="glushkovstagebuilder.html" class="tsd-kind-icon">Glushkov<wbr>Stage<wbr>Builder</a>
+						<ul>
+							<li class=" tsd-kind-constructor tsd-parent-kind-class tsd-is-inherited">
+								<a href="glushkovstagebuilder.html#constructor" class="tsd-kind-icon">constructor</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-inherited tsd-is-protected">
+								<a href="glushkovstagebuilder.html#_builder" class="tsd-kind-icon">_builder</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-inherited tsd-is-protected">
+								<a href="glushkovstagebuilder.html#_dataset" class="tsd-kind-icon">_dataset</a>
+							</li>
+							<li class=" tsd-kind-accessor tsd-parent-kind-class tsd-is-inherited">
+								<a href="glushkovstagebuilder.html#builder" class="tsd-kind-icon">builder</a>
+							</li>
+							<li class=" tsd-kind-accessor tsd-parent-kind-class tsd-is-inherited">
+								<a href="glushkovstagebuilder.html#dataset" class="tsd-kind-icon">dataset</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+								<a href="glushkovstagebuilder.html#_builditerator" class="tsd-kind-icon">_build<wbr>Iterator</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-overwrite">
+								<a href="glushkovstagebuilder.html#_executepropertypath" class="tsd-kind-icon">_execute<wbr>Property<wbr>Path</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+								<a href="glushkovstagebuilder.html#_getgraph" class="tsd-kind-icon">_get<wbr>Graph</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="glushkovstagebuilder.html#evaluatepropertypath" class="tsd-kind-icon">evaluate<wbr>Property<wbr>Path</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited">
+								<a href="glushkovstagebuilder.html#execute" class="tsd-kind-icon">execute</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="glushkovstagebuilder.html#reflexiveclosure" class="tsd-kind-icon">reflexive<wbr>Closure</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="glushkovstagebuilder.html#startpropertypathevaluation" class="tsd-kind-icon">start<wbr>Property<wbr>Path<wbr>Evaluation</a>
+							</li>
+						</ul>
+					</li>
+				</ul>
+				<ul class="after-current">
+				</ul>
+			</nav>
+		</div>
+	</div>
+</div>
+<footer class="with-border-bottom">
+	<div class="container">
+		<h2>Legend</h2>
+		<div class="tsd-legend-group">
+			<ul class="tsd-legend">
+				<li class="tsd-kind-module"><span class="tsd-kind-icon">Module</span></li>
+				<li class="tsd-kind-object-literal"><span class="tsd-kind-icon">Object literal</span></li>
+				<li class="tsd-kind-variable"><span class="tsd-kind-icon">Variable</span></li>
+				<li class="tsd-kind-function"><span class="tsd-kind-icon">Function</span></li>
+				<li class="tsd-kind-function tsd-has-type-parameter"><span class="tsd-kind-icon">Function with type parameter</span></li>
+				<li class="tsd-kind-index-signature"><span class="tsd-kind-icon">Index signature</span></li>
+				<li class="tsd-kind-type-alias"><span class="tsd-kind-icon">Type alias</span></li>
+				<li class="tsd-kind-type-alias tsd-has-type-parameter"><span class="tsd-kind-icon">Type alias with type parameter</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-enum"><span class="tsd-kind-icon">Enumeration</span></li>
+				<li class="tsd-kind-enum-member"><span class="tsd-kind-icon">Enumeration member</span></li>
+				<li class="tsd-kind-property tsd-parent-kind-enum"><span class="tsd-kind-icon">Property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-enum"><span class="tsd-kind-icon">Method</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-interface"><span class="tsd-kind-icon">Interface</span></li>
+				<li class="tsd-kind-interface tsd-has-type-parameter"><span class="tsd-kind-icon">Interface with type parameter</span></li>
+				<li class="tsd-kind-constructor tsd-parent-kind-interface"><span class="tsd-kind-icon">Constructor</span></li>
+				<li class="tsd-kind-property tsd-parent-kind-interface"><span class="tsd-kind-icon">Property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-interface"><span class="tsd-kind-icon">Method</span></li>
+				<li class="tsd-kind-index-signature tsd-parent-kind-interface"><span class="tsd-kind-icon">Index signature</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-class"><span class="tsd-kind-icon">Class</span></li>
+				<li class="tsd-kind-class tsd-has-type-parameter"><span class="tsd-kind-icon">Class with type parameter</span></li>
+				<li class="tsd-kind-constructor tsd-parent-kind-class"><span class="tsd-kind-icon">Constructor</span></li>
+				<li class="tsd-kind-property tsd-parent-kind-class"><span class="tsd-kind-icon">Property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-class"><span class="tsd-kind-icon">Method</span></li>
+				<li class="tsd-kind-accessor tsd-parent-kind-class"><span class="tsd-kind-icon">Accessor</span></li>
+				<li class="tsd-kind-index-signature tsd-parent-kind-class"><span class="tsd-kind-icon">Index signature</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-constructor tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited constructor</span></li>
+				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited method</span></li>
+				<li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited accessor</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-protected"><span class="tsd-kind-icon">Protected property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-protected"><span class="tsd-kind-icon">Protected method</span></li>
+				<li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-protected"><span class="tsd-kind-icon">Protected accessor</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private method</span></li>
+				<li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private accessor</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-static"><span class="tsd-kind-icon">Static property</span></li>
+				<li class="tsd-kind-call-signature tsd-parent-kind-class tsd-is-static"><span class="tsd-kind-icon">Static method</span></li>
+			</ul>
+		</div>
+	</div>
+</footer>
+<div class="container tsd-generator">
+	<p>Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p>
+</div>
+<div class="overlay"></div>
+<script src="../assets/js/main.js"></script>
+<script>if (location.protocol == 'file:') document.write('<script src="../assets/js/search.js"><' + '/script>');</script>
+</body>
+</html>
