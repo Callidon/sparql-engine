@@ -40,7 +40,7 @@ class LevelRDFGraph extends Graph {
 
 
   insert (triple) {
-    return new Promise(function(resolve, reject) {
+    return new Promise((resolve, reject) => {
       this._db.put(triple, err => {
         if (err) {
           reject(err)
@@ -52,7 +52,7 @@ class LevelRDFGraph extends Graph {
   }
 
   delete (triple) {
-    return new Promise(function(resolve, reject) {
+    return new Promise((resolve, reject) => {
       this._db.del(triple, err => {
         if (err) {
           reject(err)
