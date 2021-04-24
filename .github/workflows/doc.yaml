@@ -1,7 +1,7 @@
 name: 🚀 Publish doc to gh-pages
 on:
-  push:
-    branches: [ master ]
+  release:
+    types: [created]
 jobs:
   publish_doc:
       runs-on: ubuntu-latest
