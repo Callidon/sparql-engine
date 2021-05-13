@@ -1,0 +1,51 @@
+name: 🔒 CodeQL
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    # The branches below must be a subset of the branches above
+    branches: [ master ]
+  schedule:
+    - cron: '00 14 1 * *'
+
+jobs:
+  analyze:
+    name: Analyze
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [ 'javascript' ]
+        node-version: [15.x]
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+    # Initializes the CodeQL tools for scanning.
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v1
+      with:
+        languages: ${{ matrix.language }}
+        config-file: ./.github/codeql.yaml
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v1
+      with:
+        node-version: ${{ matrix.node-version }}
+    - name: Cache node modules
+      uses: actions/cache@v2
+      id: cache
+      with:
+        path: node_modules
+        key: ${{ runner.os }}-${{ matrix.node-version }}-${{ hashFiles('yarn.lock') }}
+    - name: Install package
+      if: steps.cache.outputs.cache-hit != 'true'
+      run: yarn install
+    - name: Build package
+      run: yarn build
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v1
