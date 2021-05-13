@@ -1,4 +1,4 @@
-name: 🚀 Publish doc to gh-pages
+name: 🚀 Publish doc
 on:
   release:
     types: [created]
