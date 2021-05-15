@@ -24,6 +24,7 @@ SOFTWARE.
 
 'use strict'
 
+import { NamedNode } from 'rdf-js'
 import Graph from './graph'
 import UnionGraph from './union-graph'
 
@@ -33,7 +34,7 @@ import UnionGraph from './union-graph'
  * @author Thomas Minier
  */
 export default abstract class Dataset {
-  private _graphFactory: (iri: string) => Graph | null
+  private _graphFactory: (iri: NamedNode) => Graph | null
 
   /**
    * Constructor
@@ -42,7 +43,7 @@ export default abstract class Dataset {
     this._graphFactory = () => null
   }
 
-  abstract get iris (): string[]
+  abstract get iris (): NamedNode[]
   /**
    * Set the Default Graph of the Dataset
    * @param g - Default Graph
@@ -60,27 +61,27 @@ export default abstract class Dataset {
    * @param iri - IRI of the Named Graph
    * @param g   - RDF Graph
    */
-  abstract addNamedGraph (iri: string, g: Graph): void
+  abstract addNamedGraph (iri: NamedNode, g: Graph): void
 
   /**
    * Get a Named Graph using its IRI
    * @param  iri - IRI of the Named Graph to retrieve
    * @return The corresponding Named Graph
    */
-  abstract getNamedGraph (iri: string): Graph
+  abstract getNamedGraph (iri: NamedNode): Graph
 
   /**
    * Delete a Named Graph using its IRI
    * @param  iri - IRI of the Named Graph to delete
    */
-  abstract deleteNamedGraph (iri: string): void
+  abstract deleteNamedGraph (iri: NamedNode): void
 
   /**
    * Return True if the Dataset contains a Named graph with the provided IRI
    * @param  iri - IRI of the Named Graph
    * @return True if the Dataset contains a Named graph with the provided IRI
    */
-  abstract hasNamedGraph (iri: string): boolean
+  abstract hasNamedGraph (iri: NamedNode): boolean
 
   /**
    * Get an UnionGraph, i.e., the dynamic union of several graphs,
@@ -89,7 +90,7 @@ export default abstract class Dataset {
    * @param  includeDefault - True if the default graph should be included
    * @return The dynamic union of several graphs in the Dataset
    */
-  getUnionGraph (iris: string[], includeDefault: boolean = false): UnionGraph {
+  getUnionGraph (iris: NamedNode[], includeDefault: boolean = false): UnionGraph {
     let graphs: Graph[] = []
     if (includeDefault) {
       graphs.push(this.getDefaultGraph())
@@ -118,7 +119,7 @@ export default abstract class Dataset {
    * Set the Graph Factory used by te dataset to create new RDF graphs on-demand
    * @param  factory - Graph Factory
    */
-  setGraphFactory (factory: (iri: string) => Graph) {
+  setGraphFactory (factory: (iri: NamedNode) => Graph) {
     this._graphFactory = factory
   }
 
@@ -128,7 +129,7 @@ export default abstract class Dataset {
    * @param  iri - IRI of the graph to create
    * @return A new RDF Graph
    */
-  createGraph (iri: string): Graph {
+  createGraph (iri: NamedNode): Graph {
     const graph = this._graphFactory(iri)
     if (graph === null) {
       throw new Error(`Impossible to create a new Graph with IRI "${iri}". The RDF dataset does not seems to have a graph factory. Please set it using the "setGraphFactory" method.`)

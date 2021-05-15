@@ -24,11 +24,13 @@ SOFTWARE.
 
 'use strict'
 
+import { NamedNode } from 'rdf-js'
+import * as SPARQL from 'sparqljs'
 import Graph from './graph'
 import { PipelineInput } from '../engine/pipeline/pipeline-engine'
 import { Pipeline } from '../engine/pipeline/pipeline'
-import { Algebra } from 'sparqljs'
 import ExecutionContext from '../engine/context/execution-context'
+import { rdf } from '../utils'
 
 /**
  * An UnionGraph represents the dynamic union of several graphs.
@@ -47,19 +49,19 @@ export default class UnionGraph extends Graph {
    */
   constructor (graphs: Graph[]) {
     super()
-    this.iri = graphs.map(g => g.iri).join('+')
+    this.iri = rdf.createIRI(graphs.map(g => g.iri.value).join('+'))
     this._graphs = graphs
   }
 
-  insert (triple: Algebra.TripleObject): Promise<void> {
+  insert (triple: SPARQL.Triple): Promise<void> {
     return this._graphs[0].insert(triple)
   }
 
-  delete (triple: Algebra.TripleObject): Promise<void> {
+  delete (triple: SPARQL.Triple): Promise<void> {
     return this._graphs.reduce((prev, g) => prev.then(() => g.delete(triple)), Promise.resolve())
   }
 
-  find (triple: Algebra.TripleObject, context: ExecutionContext): PipelineInput<Algebra.TripleObject> {
+  find (triple: SPARQL.Triple, context: ExecutionContext): PipelineInput<SPARQL.Triple> {
     return Pipeline.getInstance().merge(...this._graphs.map(g => g.find(triple, context)))
   }
 
@@ -67,7 +69,7 @@ export default class UnionGraph extends Graph {
     return this._graphs.reduce((prev, g) => prev.then(() => g.clear()), Promise.resolve())
   }
 
-  estimateCardinality (triple: Algebra.TripleObject): Promise<number> {
+  estimateCardinality (triple: SPARQL.Triple): Promise<number> {
     return Promise.all(this._graphs.map(g => g.estimateCardinality(triple)))
       .then((cardinalities: number[]) => {
         return Promise.resolve(cardinalities.reduce((acc, x) => acc + x, 0))
