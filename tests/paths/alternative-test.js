@@ -134,10 +134,36 @@ describe('SPARQL property paths: alternative paths', () => {
                 case 'http://example.org/Carol':
                     expect(b['?o']).to.be.oneOf(['tel:0645123549'])
                     break;
-            }            
+            }
             results.push(b)
         }, done, () => {
             expect(results.length).to.equal(6)
+            done()
+        })
+    });
+
+    it('should evaluate property paths with bound variables within a group', done => {
+        const query = `
+        PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+        PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+        PREFIX : <http://example.org/>
+
+        ASK WHERE {
+          BIND(:Alice as ?foo).
+          BIND(:Bob as ?bar).
+
+          {
+            ?foo foaf:knows | :hate ?bar.
+          }
+        }`;
+
+        const results = []
+        const iterator = engine.execute(query)
+        iterator.subscribe(b => {
+            results.push(b)
+        }, done, () => {
+            expect(results.length).to.equal(1);
+            expect(results[0]).to.equal(true);
             done()
         })
     })
