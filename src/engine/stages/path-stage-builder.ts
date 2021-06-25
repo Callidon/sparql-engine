@@ -48,7 +48,7 @@ function boundPathTriple (triple: Algebra.PathTripleObject, bindings: Bindings):
     t.subject = bindings.get(triple.subject)!
   }
   if (triple.object.startsWith('?') && bindings.has(triple.object)) {
-    t.object = bindings.get(triple.subject)!
+    t.object = bindings.get(triple.object)!
   }
   return t
 }
