@@ -278,14 +278,16 @@ export default class GlushkovStageBuilder extends PathStageBuilder {
     let obs: PipelineStage<Algebra.TripleObject>[] = transitions.map(transition => {
       let reverse = (forward && transition.reverse) || (!forward && !transition.reverse)
       let bgp: Array<Algebra.TripleObject> = [ {
-        subject: reverse ? '?o' : subject,
+        subject: reverse ? (rdf.isVariable(obj) ? '?o' : obj) : subject,
         predicate: transition.negation ? '?p' : transition.predicates[0],
-        object: reverse ? subject : '?o'
+        object: reverse ? subject : (rdf.isVariable(obj) ? '?o' : obj)
       }]
+
       return engine.mergeMap(engine.from(graph.evalBGP(bgp, context)), (binding: Bindings) => {
         let s = (rdf.isVariable(subject) ? binding.get(subject) : subject) as string
         let p = binding.get('?p')
-        let o = binding.get('?o') as string
+        let o = rdf.isVariable(obj) ? binding.get('?o') as string : obj
+
         if (p !== null ? !transition.hasPredicate(p) : true) {
           let path = new ResultPath()
           if (forward) {
