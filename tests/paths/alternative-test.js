@@ -202,4 +202,28 @@ describe('SPARQL property paths: alternative paths', () => {
             done()
         })
     })
+
+    it('should evaluate property paths with bound values both sides with the simplest query', done => {
+        const query = `
+        PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+        PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+        PREFIX : <http://example.org/>
+
+        ASK WHERE {
+          {
+            :Alice foaf:knows | :hate :Bob.
+          }
+        }`;
+
+
+        const results = []
+        const iterator = engine.execute(query)
+        iterator.subscribe(b => {
+            results.push(b)
+        }, done, () => {
+            expect(results.length).to.equal(1);
+            expect(results[0]).to.equal(true);
+            done()
+        })
+    })
 })
