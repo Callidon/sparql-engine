@@ -100,7 +100,7 @@ const sourceObject = // the object to convert into a PipelineStage
 const stage = Pipeline.getInstance().from(sourceObject)
 ```
 
-Fore more information on how to create and manipulate the pipeline, please refers to the documentation of [`Pipeline`](https://callidon.github.io/sparql-engine/classes/pipelinee.html) and [`PipelineEngine`](https://callidon.github.io/sparql-engine/classes/pipelineengine.html).
+Fore more information on how to create and manipulate the pipeline, please refers to the documentation of [`Pipeline`](https://callidon.github.io/sparql-engine/classes/pipeline.html) and [`PipelineEngine`](https://callidon.github.io/sparql-engine/classes/pipelineengine.html).
 
 ## RDF Graphs
 
