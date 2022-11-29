@@ -43,6 +43,8 @@ An open-source framework for building SPARQL query engines in Javascript/Typescr
 npm install --save sparql-engine
 ```
 
+We also provide a browser release under [browser/sparqlEngine.js](https://raw.githubusercontent.com/rdfjs/N3.js/main/browser/sparqlEngine.js). Check the browser folder for an example usage. Please note that it's still an experimental feature.
+
 # Getting started
 
 The `sparql-engine` framework allow you to build a custom SPARQL query engine on top of any data storage system.
