@@ -22,14 +22,14 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-import { Consumable } from './consumer'
+import { Consumable } from './consumer.js'
 
 /**
  * A Consumer that does nothing
  * @author Thomas Minier
  */
 export default class NoopConsumer implements Consumable {
-  execute (): Promise<void> {
+  execute(): Promise<void> {
     return Promise.resolve()
   }
 }

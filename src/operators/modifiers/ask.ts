@@ -24,9 +24,9 @@ SOFTWARE.
 
 'use strict'
 
-import { Pipeline } from '../../engine/pipeline/pipeline'
-import { PipelineStage } from '../../engine/pipeline/pipeline-engine'
-import { Bindings, BindingBase } from '../../rdf/bindings'
+import { PipelineStage } from '../../engine/pipeline/pipeline-engine.js'
+import { Pipeline } from '../../engine/pipeline/pipeline.js'
+import { BindingBase, Bindings } from '../../rdf/bindings.js'
 
 /**
  * A AskOperator output True if a source iterator has solutions, false otherwise.
@@ -36,7 +36,7 @@ import { Bindings, BindingBase } from '../../rdf/bindings'
  * @param source - Source {@link PipelineStage}
  * @return A {@link PipelineStage} that evaluate the ASK modifier
  */
-export default function ask (source: PipelineStage<Bindings>) {
+export default function ask(source: PipelineStage<Bindings>) {
   const defaultValue: Bindings = new BindingBase()
   const engine = Pipeline.getInstance()
   let op = engine.defaultValues(source, defaultValue)

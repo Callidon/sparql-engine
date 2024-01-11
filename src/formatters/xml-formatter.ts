@@ -24,25 +24,24 @@ SOFTWARE.
 
 'use strict'
 
-import { PipelineStage } from '../engine/pipeline/pipeline-engine'
-import { Pipeline } from '../engine/pipeline/pipeline'
-import { Bindings } from '../rdf/bindings'
-import { rdf } from '../utils'
-import { Term } from 'rdf-js'
-import { map, isBoolean, isNull, isUndefined } from 'lodash'
-import * as xml from 'xml'
+import { isBoolean, isNull, isUndefined, map } from 'lodash'
+import xml from 'xml'
+import { PipelineStage } from '../engine/pipeline/pipeline-engine.js'
+import { Pipeline } from '../engine/pipeline/pipeline.js'
+import { Bindings } from '../rdf/bindings.js'
+import { rdf } from '../utils.js'
 
-type RDFBindings = { [key: string]: Term }
+type RDFBindings = { [key: string]: rdf.Term }
 
-function _writeBoolean (input: boolean, root: any) {
+function _writeBoolean(input: boolean, root: any) {
   root.push({ boolean: input })
 }
 
-function _writeBindings (input: Bindings, results: any) {
+function _writeBindings(input: Bindings, results: any) {
   // convert sets of bindings into objects of RDF Terms
-  let bindings: RDFBindings = input.filter(value => !isNull(value[1]) && !isUndefined(value[1]))
-    .reduce((obj, variable, value) => {
-      obj[variable] = rdf.fromN3(value)
+  let bindings: RDFBindings = input.filter((_variable, value) => !isNull(value) && !isUndefined(value))
+    .reduce<RDFBindings>((obj, variable, value) => {
+      obj[variable.value] = value
       return obj
     }, {})
 
@@ -50,21 +49,25 @@ function _writeBindings (input: Bindings, results: any) {
   results.push({
     result: map(bindings, (value, variable) => {
       let xmlTag
-      if (rdf.termIsIRI(value)) {
+      if (rdf.isNamedNode(value)) {
         xmlTag = { uri: value.value }
-      } else if (rdf.termIsBNode(value)) {
+      } else if (rdf.isBlankNode(value)) {
         xmlTag = { bnode: value.value }
-      } else if (rdf.termIsLiteral(value)) {
+      } else if (rdf.isLiteral(value)) {
         if (value.language === '') {
-          xmlTag = { literal: [
-            { _attr: { 'xml:lang': value.language } },
-            value.value
-          ]}
+          xmlTag = {
+            literal: [
+              { _attr: { 'xml:lang': value.language } },
+              value.value
+            ]
+          }
         } else {
-          xmlTag = { literal: [
-            { _attr: { datatype: value.datatype.value } },
-            value.value
-          ]}
+          xmlTag = {
+            literal: [
+              { _attr: { datatype: value.datatype.value } },
+              value.value
+            ]
+          }
         }
       } else {
         throw new Error(`Unsupported RDF Term type: ${value}`)
@@ -87,7 +90,7 @@ function _writeBindings (input: Bindings, results: any) {
  * @param source - Input pipeline
  * @return A pipeline s-that yields results in W3C SPARQL XML format
  */
-export default function xmlFormat (source: PipelineStage<Bindings | boolean>): PipelineStage<string> {
+export default function xmlFormat(source: PipelineStage<Bindings | boolean>): PipelineStage<string> {
   const results = xml.element({})
   const root = xml.element({
     _attr: { xmlns: 'http://www.w3.org/2005/sparql-results#' },
@@ -103,9 +106,9 @@ export default function xmlFormat (source: PipelineStage<Bindings | boolean>): P
     source.subscribe((b: Bindings | boolean) => {
       // Build the head attribute from the first set of bindings
       if (warmup && !isBoolean(b)) {
-        const variables: string[] = Array.from(b.variables())
+        const variables = Array.from(b.variables())
         root.push({
-          head: variables.filter(name => name !== '*').map(name => {
+          head: variables.map(v => v.value).filter(name => name !== '*').map(name => {
             return { variable: { _attr: { name } } }
           })
         })

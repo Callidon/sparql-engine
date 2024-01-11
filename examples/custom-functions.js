@@ -30,7 +30,7 @@ class N3Graph extends Graph {
   insert(triple) {
     return new Promise((resolve, reject) => {
       try {
-        this._store.addTriple(triple.subject, triple.predicate, triple.object)
+        this._store.addQuad(triple.subject, triple.predicate, triple.object)
         resolve()
       } catch (e) {
         reject(e)
@@ -41,7 +41,7 @@ class N3Graph extends Graph {
   delete(triple) {
     return new Promise((resolve, reject) => {
       try {
-        this._store.removeTriple(triple.subject, triple.predicate, triple.object)
+        this._store.removeQuad(triple.subject, triple.predicate, triple.object)
         resolve()
       } catch (e) {
         reject(e)
@@ -51,7 +51,7 @@ class N3Graph extends Graph {
 
   find(triple) {
     const { subject, predicate, object } = formatTriplePattern(triple)
-    return this._store.getTriples(subject, predicate, object)
+    return this._store.getQuads(subject, predicate, object)
   }
 
   estimateCardinality(triple) {
@@ -72,7 +72,7 @@ parser.parse(`
   :b foaf:name "xyz" .
   :b foaf:name "racecar" .
 `).forEach(t => {
-  graph._store.addTriple(t)
+  graph._store.addQuad(t)
 })
 
 const query = `

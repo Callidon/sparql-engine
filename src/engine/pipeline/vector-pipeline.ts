@@ -24,8 +24,8 @@ SOFTWARE.
 
 'use strict'
 
-import { PipelineInput, StreamPipelineInput, PipelineStage, PipelineEngine } from './pipeline-engine'
-import { chunk, flatMap, flatten, isUndefined, slice, uniq, uniqBy } from 'lodash'
+import { chunk, flatMap, flatten, slice } from 'lodash'
+import { PipelineEngine, PipelineInput, PipelineStage, StreamPipelineInput } from './pipeline-engine.js'
 
 /**
  * A PipelineStage which materializes all intermediate results in main memory.
@@ -37,20 +37,20 @@ export class VectorStage<T> implements PipelineStage<T> {
   // For example, the RDF graph can send HTTP requests to evaluate triple patterns.
   private readonly _content: Promise<Array<T>>
 
-  constructor (content: Promise<Array<T>>) {
+  constructor(content: Promise<Array<T>>) {
     this._content = content
   }
 
-  getContent (): Promise<Array<T>> {
+  getContent(): Promise<Array<T>> {
     return this._content
   }
 
-  subscribe (onData: (value: T) => void, onError: (err: any) => void, onEnd: () => void): void {
+  subscribe(onData: (value: T) => void, onError: (err: any) => void, onEnd: () => void): void {
     try {
       this._content
         .then(c => {
           c.forEach(onData)
-          onEnd()
+          onEnd && onEnd()
         })
         .catch(onError)
     } catch (e) {
@@ -58,12 +58,23 @@ export class VectorStage<T> implements PipelineStage<T> {
     }
   }
 
-  forEach (cb: (value: T) => void): void {
+  forEach(cb: (value: T) => void): void {
     this._content
       .then(c => {
         c.forEach(cb)
       })
       .catch(err => { throw err })
+  }
+
+  toArray(): Promise<T[]> {
+    return new Promise((resolve, reject) => {
+      let results: T[] = []
+      this.subscribe(b => {
+        results.push(b)
+      }, reject, () => {
+        resolve(results)
+      })
+    })
   }
 }
 
@@ -72,21 +83,21 @@ export class VectorStreamInput<T> implements StreamPipelineInput<T> {
   private readonly _reject: (err: any) => void
   private _content: Array<T>
 
-  constructor (resolve: any, reject: any) {
+  constructor(resolve: any, reject: any) {
     this._resolve = resolve
     this._reject = reject
     this._content = []
   }
 
-  next (value: T): void {
+  next(value: T): void {
     this._content.push(value)
   }
 
-  error (err: any): void {
+  error(err: any): void {
     this._reject(err)
   }
 
-  complete (): void {
+  complete(): void {
     this._resolve(this._content)
   }
 }
@@ -100,15 +111,15 @@ export class VectorStreamInput<T> implements StreamPipelineInput<T> {
  */
 export default class VectorPipeline extends PipelineEngine {
 
-  empty<T> (): VectorStage<T> {
+  empty<T>(): VectorStage<T> {
     return new VectorStage<T>(Promise.resolve([]))
   }
 
-  of<T> (...values: T[]): VectorStage<T> {
+  of<T>(...values: T[]): VectorStage<T> {
     return new VectorStage<T>(Promise.resolve(values))
   }
 
-  from<T> (x: PipelineInput<T>): VectorStage<T> {
+  from<T>(x: PipelineInput<T>): VectorStage<T> {
     if ('getContent' in x) {
       return new VectorStage<T>((x as VectorStage<T>).getContent())
     } else if (Array.isArray(x)) {
@@ -121,17 +132,17 @@ export default class VectorPipeline extends PipelineEngine {
     throw new Error('Invalid argument for VectorPipeline.from: ' + x)
   }
 
-  fromAsync<T> (cb: (input: StreamPipelineInput<T>) => void): VectorStage<T> {
+  fromAsync<T>(cb: (input: StreamPipelineInput<T>) => void): VectorStage<T> {
     return new VectorStage<T>(new Promise<T[]>((resolve, reject) => {
       cb(new VectorStreamInput<T>(resolve, reject))
     }))
   }
 
-  clone<T> (stage: VectorStage<T>): VectorStage<T> {
+  clone<T>(stage: VectorStage<T>): VectorStage<T> {
     return new VectorStage<T>(stage.getContent().then(c => c.slice(0)))
   }
 
-  catch<T, O> (input: VectorStage<T>, handler?: (err: Error) => VectorStage<O>): VectorStage<T | O> {
+  catch<T, O>(input: VectorStage<T>, handler?: (err: Error) => VectorStage<O>): VectorStage<T | O> {
     return new VectorStage<T | O>(new Promise((resolve, reject) => {
       input.getContent()
         .then(c => resolve(c.slice(0)))
@@ -147,21 +158,21 @@ export default class VectorPipeline extends PipelineEngine {
     }))
   }
 
-  merge<T> (...inputs: Array<VectorStage<T>>): VectorStage<T> {
+  merge<T>(...inputs: Array<VectorStage<T>>): VectorStage<T> {
     return new VectorStage<T>(Promise.all(inputs.map(i => i.getContent())).then((contents: T[][]) => {
       return flatten(contents)
     }))
   }
 
-  map<F, T> (input: VectorStage<F>, mapper: (value: F) => T): VectorStage<T> {
+  map<F, T>(input: VectorStage<F>, mapper: (value: F) => T): VectorStage<T> {
     return new VectorStage<T>(input.getContent().then(c => c.map(mapper)))
   }
 
-  flatMap<F, T> (input: VectorStage<F>, mapper: (value: F) => T[]): VectorStage<T> {
+  flatMap<F, T>(input: VectorStage<F>, mapper: (value: F) => T[]): VectorStage<T> {
     return new VectorStage<T>(input.getContent().then(c => flatMap(c, mapper)))
   }
 
-  mergeMap<F, T> (input: VectorStage<F>, mapper: (value: F) => VectorStage<T>): VectorStage<T> {
+  mergeMap<F, T>(input: VectorStage<F>, mapper: (value: F) => VectorStage<T>): VectorStage<T> {
     return new VectorStage<T>(input.getContent().then(content => {
       const stages: VectorStage<T>[] = content.map(value => mapper(value))
       return Promise.all(stages.map(s => s.getContent())).then((contents: T[][]) => {
@@ -170,30 +181,30 @@ export default class VectorPipeline extends PipelineEngine {
     }))
   }
 
-  filter<T> (input: VectorStage<T>, predicate: (value: T) => boolean): VectorStage<T> {
+  filter<T>(input: VectorStage<T>, predicate: (value: T) => boolean): VectorStage<T> {
     return new VectorStage<T>(input.getContent().then(c => c.filter(predicate)))
   }
 
-  finalize<T> (input: VectorStage<T>, callback: () => void): VectorStage<T> {
+  finalize<T>(input: VectorStage<T>, callback: () => void): VectorStage<T> {
     return new VectorStage<T>(input.getContent().then(c => {
       callback()
       return c
     }))
   }
 
-  reduce<F, T> (input: VectorStage<F>, reducer: (acc: T, value: F) => T, initial: T): VectorStage<T> {
+  reduce<F, T>(input: VectorStage<F>, reducer: (acc: T, value: F) => T, initial: T): VectorStage<T> {
     return new VectorStage<T>(input.getContent().then(c => [c.reduce(reducer, initial)]))
   }
 
-  limit<T> (input: VectorStage<T>, stopAfter: number): VectorStage<T> {
+  limit<T>(input: VectorStage<T>, stopAfter: number): VectorStage<T> {
     return new VectorStage<T>(input.getContent().then(c => slice(c, 0, stopAfter)))
   }
 
-  skip<T> (input: VectorStage<T>, toSkip: number): VectorStage<T> {
+  skip<T>(input: VectorStage<T>, toSkip: number): VectorStage<T> {
     return new VectorStage<T>(input.getContent().then(c => slice(c, toSkip)))
   }
 
-  defaultValues<T> (input: VectorStage<T>, ...values: T[]): VectorStage<T> {
+  defaultValues<T>(input: VectorStage<T>, ...values: T[]): VectorStage<T> {
     return new VectorStage<T>(input.getContent().then(content => {
       if (content.length > 0) {
         return content.slice(0)
@@ -202,15 +213,15 @@ export default class VectorPipeline extends PipelineEngine {
     }))
   }
 
-  bufferCount<T> (input: VectorStage<T>, count: number): VectorStage<T[]> {
+  bufferCount<T>(input: VectorStage<T>, count: number): VectorStage<T[]> {
     return new VectorStage<T[]>(input.getContent().then(c => chunk(c, count)))
   }
 
-  forEach<T> (input: VectorStage<T>, cb: (value: T) => void): void {
+  forEach<T>(input: VectorStage<T>, cb: (value: T) => void): void {
     input.forEach(cb)
   }
 
-  first<T> (input: VectorStage<T>): VectorStage<T> {
+  first<T>(input: VectorStage<T>): VectorStage<T> {
     return new VectorStage<T>(input.getContent().then(content => {
       if (content.length < 1) {
         return []
@@ -219,7 +230,7 @@ export default class VectorPipeline extends PipelineEngine {
     }))
   }
 
-  collect<T> (input: VectorStage<T>): VectorStage<T[]> {
+  collect<T>(input: VectorStage<T>): VectorStage<T[]> {
     return new VectorStage<T[]>(input.getContent().then(c => [c]))
   }
 }

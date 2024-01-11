@@ -24,11 +24,11 @@ SOFTWARE.
 
 'use strict'
 
-import { Pipeline } from '../engine/pipeline/pipeline'
-import { PipelineStage } from '../engine/pipeline/pipeline-engine'
-import { Bindings, BindingBase } from '../rdf/bindings'
-import { PlanBuilder } from '../engine/plan-builder'
-import ExecutionContext from '../engine/context/execution-context'
+import ExecutionContext from '../engine/context/execution-context.js'
+import { PipelineStage } from '../engine/pipeline/pipeline-engine.js'
+import { Pipeline } from '../engine/pipeline/pipeline.js'
+import { PlanBuilder } from '../engine/plan-builder.js'
+import { BindingBase, Bindings } from '../rdf/bindings.js'
 
 interface ConditionalBindings {
   bindings: Bindings,
@@ -46,7 +46,7 @@ interface ConditionalBindings {
  * @param context   - Execution context
  * @return A {@link PipelineStage} which evaluate the FILTER (NOT) EXISTS operation
  */
-export default function exists (source: PipelineStage<Bindings>, groups: any[], builder: PlanBuilder, notexists: boolean, context: ExecutionContext) {
+export default function exists(source: PipelineStage<Bindings>, groups: any[], builder: PlanBuilder, notexists: boolean, context: ExecutionContext) {
   const defaultValue: Bindings = new BindingBase()
   defaultValue.setProperty('exists', false)
   const engine = Pipeline.getInstance()

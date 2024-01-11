@@ -5,7 +5,7 @@ const { HashMapDataset, Graph, PlanBuilder } = require('sparql-engine')
 
 // Format a triple pattern according to N3 API:
 // SPARQL variables must be replaced by `null` values
-function formatTriplePattern (triple) {
+function formatTriplePattern(triple) {
   let subject = null
   let predicate = null
   let object = null
@@ -22,15 +22,15 @@ function formatTriplePattern (triple) {
 }
 
 class N3Graph extends Graph {
-  constructor () {
+  constructor() {
     super()
     this._store = Store()
   }
 
-  insert (triple) {
+  insert(triple) {
     return new Promise((resolve, reject) => {
       try {
-        this._store.addTriple(triple.subject, triple.predicate, triple.object)
+        this._store.addQuad(triple.subject, triple.predicate, triple.object)
         resolve()
       } catch (e) {
         reject(e)
@@ -38,10 +38,10 @@ class N3Graph extends Graph {
     })
   }
 
-  delete (triple) {
+  delete(triple) {
     return new Promise((resolve, reject) => {
       try {
-        this._store.removeTriple(triple.subject, triple.predicate, triple.object)
+        this._store.removeQuad(triple.subject, triple.predicate, triple.object)
         resolve()
       } catch (e) {
         reject(e)
@@ -49,12 +49,12 @@ class N3Graph extends Graph {
     })
   }
 
-  find (triple) {
+  find(triple) {
     const { subject, predicate, object } = formatTriplePattern(triple)
-    return this._store.getTriples(subject, predicate, object)
+    return this._store.getQuads(subject, predicate, object)
   }
 
-  estimateCardinality (triple) {
+  estimateCardinality(triple) {
     const { subject, predicate, object } = formatTriplePattern(triple)
     return Promise.resolve(this._store.countTriples(subject, predicate, object))
   }
@@ -71,7 +71,7 @@ parser.parse(`
   :a foaf:name "a" .
   :b foaf:name "b" .
 `).forEach(t => {
-  graph._store.addTriple(t)
+  graph._store.addQuad(t)
 })
 
 const query = `

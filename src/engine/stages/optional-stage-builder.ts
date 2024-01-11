@@ -24,19 +24,19 @@ SOFTWARE.
 
 'use strict'
 
-import StageBuilder from './stage-builder'
-import { Algebra } from 'sparqljs'
-import { PipelineStage } from '../pipeline/pipeline-engine'
-import { Bindings } from '../../rdf/bindings'
-import ExecutionContext from '../context/execution-context'
-import optional from '../../operators/optional'
+import * as SPARQL from 'sparqljs'
+import optional from '../../operators/optional.js'
+import { Bindings } from '../../rdf/bindings.js'
+import ExecutionContext from '../context/execution-context.js'
+import { PipelineStage } from '../pipeline/pipeline-engine.js'
+import StageBuilder from './stage-builder.js'
 
 /**
  * A OptionalStageBuilder evaluates OPTIONAL clauses
  * @author Thomas Minier
  */
 export default class OptionalStageBuilder extends StageBuilder {
-  execute (source: PipelineStage<Bindings>, node: Algebra.GroupNode, context: ExecutionContext): PipelineStage<Bindings> {
+  execute(source: PipelineStage<Bindings>, node: SPARQL.OptionalPattern, context: ExecutionContext): PipelineStage<Bindings> {
     return optional(source, node.patterns, this.builder!, context)
   }
 }

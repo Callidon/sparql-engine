@@ -24,28 +24,33 @@ SOFTWARE.
 
 'use strict'
 
-import StageBuilder from './stage-builder'
-import exists from '../../operators/exists'
-import sparqlFilter from '../../operators/sparql-filter'
-import { Algebra } from 'sparqljs'
-import { PipelineStage } from '../pipeline/pipeline-engine'
-import { Bindings } from '../../rdf/bindings'
-import ExecutionContext from '../context/execution-context'
-import { CustomFunctions } from '../../operators/expressions/sparql-expression'
+import * as SPARQL from 'sparqljs'
+import exists from '../../operators/exists.js'
+import { CustomFunctions } from '../../operators/expressions/sparql-expression.js'
+import sparqlFilter from '../../operators/sparql-filter.js'
+import { Bindings } from '../../rdf/bindings.js'
+import ExecutionContext from '../context/execution-context.js'
+import { PipelineStage } from '../pipeline/pipeline-engine.js'
+import StageBuilder from './stage-builder.js'
 
 /**
- * A FilterStageBuilder evaluates FILTER clauses
+ * A FilterPattern evaluates filter Filter clauses
  * @author Thomas Minier
  */
 export default class FilterStageBuilder extends StageBuilder {
-  execute (source: PipelineStage<Bindings>, filterNode: Algebra.FilterNode, customFunctions: CustomFunctions, context: ExecutionContext): PipelineStage<Bindings> {
-    switch (filterNode.expression.operator) {
-      case 'exists':
-        return exists(source, filterNode.expression.args, this.builder!, false, context)
-      case 'notexists':
-        return exists(source, filterNode.expression.args, this.builder!, true, context)
-      default:
-        return sparqlFilter(source, filterNode.expression, customFunctions)
+  execute(source: PipelineStage<Bindings>, pattern: SPARQL.FilterPattern, customFunctions: CustomFunctions, context: ExecutionContext): PipelineStage<Bindings> {
+    const expression = pattern.expression as SPARQL.OperationExpression
+    if (['operation', 'functionCall'].includes(expression.type)) {
+      switch (expression.operator) {
+        case 'exists':
+          return exists(source, expression.args, this.builder!, false, context)
+        case 'notexists':
+          return exists(source, expression.args, this.builder!, true, context)
+        default:
+          return sparqlFilter(source, expression, customFunctions)
+      }
+    } else {
+      throw new Error(`FilterPattern: expression type not supported ${expression}`)
     }
   }
 }

@@ -24,11 +24,11 @@ SOFTWARE.
 
 'use strict'
 
-import { PipelineStage, StreamPipelineInput } from '../engine/pipeline/pipeline-engine'
-import { Pipeline } from '../engine/pipeline/pipeline'
-import { Bindings } from '../rdf/bindings'
-import { rdf } from '../utils'
 import { isBoolean } from 'lodash'
+import { PipelineStage, StreamPipelineInput } from '../engine/pipeline/pipeline-engine.js'
+import { Pipeline } from '../engine/pipeline/pipeline.js'
+import { Bindings } from '../rdf/bindings.js'
+import { rdf } from '../utils.js'
 
 /**
  * Write the JSON headers
@@ -36,10 +36,10 @@ import { isBoolean } from 'lodash'
  * @param bindings - Input bindings
  * @param input - Output where to write results
  */
-function writeHead (bindings: Bindings, input: StreamPipelineInput<string>) {
-  const variables = Array.from(bindings.variables())
-  .map(v => v.startsWith('?') ? `"${v.substring(1)}"` : `"${v}"`)
-  .join(',')
+function writeHead(bindings: Bindings, input: StreamPipelineInput<string>) {
+  const variables = Array.from(bindings.variables()).map(v => v.value)
+    .map(v => v.startsWith('?') ? `"${v.substring(1)}"` : `"${v}"`)
+    .join(',')
   input.next(`"head":{"vars": [${variables}]}`)
 }
 
@@ -49,19 +49,19 @@ function writeHead (bindings: Bindings, input: StreamPipelineInput<string>) {
  * @param bindings - Input bindings
  * @param input - Output where to write results
  */
-function writeBindings (bindings: Bindings, input: StreamPipelineInput<string>): void {
+function writeBindings(bindings: Bindings, input: StreamPipelineInput<string>): void {
   let cpt = 0
   bindings.forEach((variable, value) => {
     if (cpt >= 1) {
       input.next(',')
     }
-    input.next(`"${variable.startsWith('?') ? variable.substring(1) : variable}":`)
-    const term = rdf.fromN3(value)
-    if (rdf.termIsIRI(term)) {
+    input.next(`"${variable.value}":`)
+    const term = value
+    if (rdf.isNamedNode(term)) {
       input.next(`{"type":"uri","value":"${term.value}"}`)
-    } else if (rdf.termIsBNode(term)) {
+    } else if (rdf.isBlankNode(term)) {
       input.next(`{"type":"bnode","value":"${term.value}"}`)
-    } else if (rdf.termIsLiteral(term)) {
+    } else if (rdf.isLiteral(term)) {
       if (term.language.length > 0) {
         input.next(`{"type":"literal","value":"${term.value}","xml:lang":"${term.language}"}`)
       } else if (term.datatype) {
@@ -83,7 +83,7 @@ function writeBindings (bindings: Bindings, input: StreamPipelineInput<string>):
  * @param source - Input pipeline
  * @return A pipeline that yields results in W3C SPARQL JSON format
  */
-export default function jsonFormat (source: PipelineStage<Bindings | boolean>): PipelineStage<string> {
+export default function jsonFormat(source: PipelineStage<Bindings | boolean>): PipelineStage<string> {
   return Pipeline.getInstance().fromAsync(input => {
     input.next('{')
     let cpt = 0

@@ -24,35 +24,58 @@ SOFTWARE.
 
 'use strict'
 
-import { Algebra } from 'sparqljs'
-import { BGPCache } from './engine/cache/bgp-cache'
-import { Bindings, BindingBase } from './rdf/bindings'
-import { BlankNode, Literal, NamedNode, Term } from 'rdf-js'
-import { includes, union } from 'lodash'
-import { parseZone, Moment, ISO_8601 } from 'moment'
-import { Pipeline } from './engine/pipeline/pipeline'
-import { PipelineStage } from './engine/pipeline/pipeline-engine'
-import { termToString, stringToTerm } from 'rdf-string'
+import DataFactory from '@rdfjs/data-model'
+import namespace from "@rdfjs/namespace"
+import * as RDF from '@rdfjs/types'
 import * as crypto from 'crypto'
-import * as DataFactory from '@rdfjs/data-model'
-import * as uuid from 'uuid/v4'
-import BGPStageBuilder from './engine/stages/bgp-stage-builder'
-import ExecutionContext from './engine/context/execution-context'
-import ContextSymbols from './engine/context/symbols'
-import Graph from './rdf/graph'
+import { includes, union } from 'lodash'
+import { ISO_8601, Moment, parseZone } from 'moment'
+import { stringToTerm, termToString } from 'rdf-string'
+import * as SPARQL from 'sparqljs'
+import { v4 as uuid } from 'uuid'
+import { BGPCache } from './engine/cache/bgp-cache.js'
+import ExecutionContext from './engine/context/execution-context.js'
+import ContextSymbols from './engine/context/symbols.js'
+import { PipelineStage } from './engine/pipeline/pipeline-engine.js'
+import { Pipeline } from './engine/pipeline/pipeline.js'
+import BGPStageBuilder from './engine/stages/bgp-stage-builder.js'
+import { Bindings } from './rdf/bindings.js'
+import Graph from './rdf/graph.js'
+
 
 /**
  * RDF related utilities
  */
 export namespace rdf {
+
+  export type NamedNode = RDF.NamedNode
+  export type Variable = RDF.Variable
+  export type Literal = RDF.Literal
+  export type BlankNode = RDF.BlankNode
+  export type Term = SPARQL.Term
+  export type Quad = RDF.Quad
+  /**
+   * Values allowed for a triple subject, predicate or object
+   */
+  export type TripleValue = Variable | NamedNode | Literal | BlankNode
+
   /**
    * Test if two triple (patterns) are equals
    * @param a - First triple (pattern)
    * @param b - Second triple (pattern)
    * @return True if the two triple (patterns) are equals, False otherwise
    */
-  export function tripleEquals (a: Algebra.TripleObject, b: Algebra.TripleObject): boolean {
-    return a.subject === b.subject && a.predicate === b.predicate && a.object === b.object
+  export function tripleEquals(a: SPARQL.Triple, b: SPARQL.Triple): boolean {
+    if (a.subject.termType !== b.subject.termType || a.object.termType !== b.object.termType) {
+      return false
+    } else if (isPropertyPath(a.predicate) && isPropertyPath(b.predicate)) {
+      return a.subject.equals(b.subject) && JSON.stringify(a.predicate) === JSON.stringify(b.predicate) && a.object.equals(b.object)
+    } else if ((a.predicate as SPARQL.Term).termType !== (b.predicate as SPARQL.Term).termType) {
+      return false
+    } else {
+      return a.subject.equals(b.subject) && (a.predicate as SPARQL.Term).equals((b.predicate as SPARQL.Term)) && a.object.equals(b.object)
+    }
+    return false
   }
 
   /**
@@ -61,8 +84,8 @@ export namespace rdf {
    * @param term - A string-based term representation
    * @return A RDF.js term
    */
-  export function fromN3 (term: string): Term {
-    return stringToTerm(term)
+  export function fromN3(term: string): Term {
+    return stringToTerm(term) as Term
   }
 
   /**
@@ -71,7 +94,10 @@ export namespace rdf {
    * @param term A RDFJS term
    * @return A string-based term representation
    */
-  export function toN3 (term: Term): string {
+  export function toN3(term: Term | SPARQL.PropertyPath): string {
+    if (isPropertyPath(term)) {
+      throw new Error("Cannot convert a property path to N3")
+    }
     return termToString(term)
   }
 
@@ -82,37 +108,37 @@ export namespace rdf {
    * @param type - Literal datatype
    * @return Javascript representation of the literal
    */
-  export function asJS (value: string, type: string | null): any {
+  export function asJS(value: string, type: string | null): any {
     switch (type) {
-      case XSD('integer'):
-      case XSD('byte'):
-      case XSD('short'):
-      case XSD('int'):
-      case XSD('unsignedByte'):
-      case XSD('unsignedShort'):
-      case XSD('unsignedInt'):
-      case XSD('number'):
-      case XSD('float'):
-      case XSD('decimal'):
-      case XSD('double'):
-      case XSD('long'):
-      case XSD('unsignedLong'):
-      case XSD('positiveInteger'):
-      case XSD('nonPositiveInteger'):
-      case XSD('negativeInteger'):
-      case XSD('nonNegativeInteger'):
+      case XSD.integer.value:
+      case XSD.byte.value:
+      case XSD.short.value:
+      case XSD.int.value:
+      case XSD.unsignedByte.value:
+      case XSD.unsignedShort.value:
+      case XSD.unsignedInt.value:
+      case XSD.number.value:
+      case XSD.float.value:
+      case XSD.decimal.value:
+      case XSD.double.value:
+      case XSD.long.value:
+      case XSD.unsignedLong.value:
+      case XSD.positiveInteger.value:
+      case XSD.nonPositiveInteger.value:
+      case XSD.negativeInteger.value:
+      case XSD.nonNegativeInteger.value:
         return Number(value)
-      case XSD('boolean'):
+      case XSD.boolean.value:
         return value === 'true' || value === '1'
-      case XSD('dateTime'):
-      case XSD('dateTimeStamp'):
-      case XSD('date'):
-      case XSD('time'):
-      case XSD('duration'):
+      case XSD.dateTime.value:
+      case XSD.dateTimeStamp.value:
+      case XSD.date.value:
+      case XSD.time.value:
+      case XSD.duration.value:
         return parseZone(value, ISO_8601)
-      case XSD('hexBinary'):
+      case XSD.hexBinary.value:
         return Buffer.from(value, 'hex')
-      case XSD('base64Binary'):
+      case XSD.base64Binary.value:
         return Buffer.from(value, 'base64')
       default:
         return value
@@ -124,7 +150,8 @@ export namespace rdf {
    * @param value - IRI value
    * @return A new IRI in RDFJS format
    */
-  export function createIRI (value: string): NamedNode {
+  export function createIRI(value: string): NamedNode {
+    checkValue(value)
     if (value.startsWith('<') && value.endsWith('>')) {
       return DataFactory.namedNode(value.slice(0, value.length - 1))
     }
@@ -136,7 +163,8 @@ export namespace rdf {
    * @param value - Blank node value
    * @return A new Blank Node in RDFJS format
    */
-  export function createBNode (value?: string): BlankNode {
+  export function createBNode(value?: string): BlankNode {
+    checkValue(value)
     return DataFactory.blankNode(value)
   }
 
@@ -145,7 +173,8 @@ export namespace rdf {
    * @param value - Literal value
    * @return A new literal in RDFJS format
    */
-  export function createLiteral (value: string): Literal {
+  export function createLiteral(value: string): Literal {
+    checkValue(value)
     return DataFactory.literal(value)
   }
 
@@ -155,8 +184,8 @@ export namespace rdf {
    * @param type - Literal type (integer, float, dateTime, ...)
    * @return A new typed Literal in RDFJS format
    */
-  export function createTypedLiteral (value: any, type: string): Literal {
-    return DataFactory.literal(`${value}`, createIRI(type))
+  export function createTypedLiteral(value: any, type?: NamedNode): Literal {
+    return DataFactory.literal(`${value}`, type)
   }
 
   /**
@@ -165,8 +194,28 @@ export namespace rdf {
    * @param language - Language tag (en, fr, it, ...)
    * @return A new Literal with a language tag in RDFJS format
    */
-  export function createLangLiteral (value: string, language: string): Literal {
+  export function createLangLiteral(value: string, language: string): Literal {
+    checkValue(value)
     return DataFactory.literal(value, language)
+  }
+
+  function checkValue(value: any) {
+    if (value.startsWith('[') && value.endsWith(']')) {
+      throw new Error(`Invalid variable name ${value}`)
+    }
+  }
+
+  /**
+   * Creates a SPARQL variable in RDF/JS format
+   * @param value Variable value
+   * @returns A new SPARQL Variable
+   */
+  export function createVariable(value: string): Variable {
+    checkValue(value)
+    if (value.startsWith('?')) {
+      return DataFactory.variable(value.substring(1))
+    }
+    return DataFactory.variable(value)
   }
 
   /**
@@ -174,8 +223,8 @@ export namespace rdf {
    * @param value - Integer
    * @return A new integer in RDFJS format
    */
-  export function createInteger (value: number): Literal {
-    return createTypedLiteral(value, XSD('integer'))
+  export function createInteger(value: number): Literal {
+    return createTypedLiteral(value, XSD.integer)
   }
 
   /**
@@ -183,8 +232,8 @@ export namespace rdf {
    * @param value - Float
    * @return A new float in RDFJS format
    */
-  export function createFloat (value: number): Literal {
-    return createTypedLiteral(value, XSD('float'))
+  export function createFloat(value: number): Literal {
+    return createTypedLiteral(value, XSD.float)
   }
 
   /**
@@ -192,7 +241,7 @@ export namespace rdf {
    * @param value - Boolean
    * @return A new boolean in RDFJS format
    */
-  export function createBoolean (value: boolean): Literal {
+  export function createBoolean(value: boolean): Literal {
     return value ? createTrue() : createFalse()
   }
 
@@ -200,16 +249,16 @@ export namespace rdf {
    * Creates a True boolean, in RDFJS format
    * @return A new boolean in RDFJS format
    */
-  export function createTrue (): Literal {
-    return createTypedLiteral('true', XSD('boolean'))
+  export function createTrue(): Literal {
+    return createTypedLiteral('true', XSD.boolean)
   }
 
   /**
    * Creates a False boolean, in RDFJS format
    * @return A new boolean in RDFJS format
    */
-  export function createFalse (): Literal {
-    return createTypedLiteral('false', XSD('boolean'))
+  export function createFalse(): Literal {
+    return createTypedLiteral('false', XSD.boolean)
   }
 
   /**
@@ -217,15 +266,15 @@ export namespace rdf {
    * @param date - Date, in Moment.js format
    * @return A new date literal in RDFJS format
    */
-  export function createDate (date: Moment): Literal {
-    return createTypedLiteral(date.toISOString(), XSD('dateTime'))
+  export function createDate(date: Moment): Literal {
+    return createTypedLiteral(date.toISOString(), XSD.dateTime)
   }
 
   /**
    * Creates an unbounded literal, used when a variable is not bounded in a set of bindings
    * @return A new literal in RDFJS format
    */
-  export function createUnbound (): Literal {
+  export function createUnbound(): Literal {
     return createLiteral('UNBOUND')
   }
 
@@ -235,14 +284,41 @@ export namespace rdf {
    * @param  newValue - New literal value
    * @return The literal with its new value
    */
-  export function shallowCloneTerm (term: Term, newValue: string): Term {
-    if (termIsLiteral(term)) {
+  export function shallowCloneTerm(term: Term, newValue: string): Term {
+    if (isLiteral(term)) {
       if (term.language !== '') {
         return createLangLiteral(newValue, term.language)
       }
-      return createTypedLiteral(newValue, term.datatype.value)
+      return createTypedLiteral(newValue, term.datatype)
     }
     return createLiteral(newValue)
+  }
+
+  /**
+ * Test if given is an RDFJS Term 
+ * @param toTest
+ * @return True of the term RDFJS Term, False otherwise
+ */
+  export function isTerm(term: any): term is Term {
+    return (term as Term).termType !== undefined
+  }
+
+  /**
+   * Test if a RDFJS Term is a Variable
+   * @param term - RDFJS Term
+   * @return True of the term is a Variable, False otherwise
+   */
+  export function isVariable(term: Term | SPARQL.PropertyPath): term is Variable {
+    return (term as Term)?.termType === 'Variable'
+  }
+
+  /**
+   * Test if a RDFJS Term is a Variable
+   * @param term - RDFJS Term
+   * @return True of the term is a Variable, False otherwise
+   */
+  export function isWildcard(term: Term | SPARQL.PropertyPath | SPARQL.Wildcard): term is SPARQL.Wildcard {
+    return (term as SPARQL.Wildcard)?.termType === 'Wildcard'
   }
 
   /**
@@ -250,8 +326,8 @@ export namespace rdf {
    * @param term - RDFJS Term
    * @return True of the term is a Literal, False otherwise
    */
-  export function termIsLiteral (term: Term): term is Literal {
-    return term.termType === 'Literal'
+  export function isLiteral(term: Term | SPARQL.PropertyPath): term is Literal {
+    return (term as Term).termType === 'Literal'
   }
 
   /**
@@ -259,8 +335,8 @@ export namespace rdf {
    * @param term - RDFJS Term
    * @return True of the term is an IRI, False otherwise
    */
-  export function termIsIRI (term: Term): term is NamedNode {
-    return term.termType === 'NamedNode'
+  export function isNamedNode(term: Term | SPARQL.PropertyPath): term is NamedNode {
+    return (term as Term).termType === 'NamedNode'
   }
 
   /**
@@ -268,8 +344,26 @@ export namespace rdf {
    * @param term - RDFJS Term
    * @return True of the term is a Blank Node, False otherwise
    */
-  export function termIsBNode (term: Term): term is BlankNode {
-    return term.termType === 'BlankNode'
+  export function isBlankNode(term: Term | SPARQL.PropertyPath): term is BlankNode {
+    return (term as Term).termType === 'BlankNode'
+  }
+
+  /**
+   * Test if a RDFJS Term is a Variable
+   * @param term - RDFJS Term
+   * @return True of the term is a Variable, False otherwise
+   */
+  export function isQuad(term: Term | SPARQL.PropertyPath): term is Quad {
+    return (term as Term).termType === 'Quad'
+  }
+
+  /**
+  * Return True if a RDF predicate is a property path
+  * @param predicate Predicate to test
+  * @returns True if the predicate is a property path, False otherwise
+  */
+  export function isPropertyPath(predicate: SPARQL.Term | SPARQL.PropertyPath): predicate is SPARQL.PropertyPath {
+    return (predicate as SPARQL.PropertyPath).type === "path"
   }
 
   /**
@@ -277,25 +371,25 @@ export namespace rdf {
    * @param literal - RDFJS Literal
    * @return True of the Literal is a number, False otherwise
    */
-  export function literalIsNumeric (literal: Literal): boolean {
+  export function literalIsNumeric(literal: Literal): boolean {
     switch (literal.datatype.value) {
-      case XSD('integer'):
-      case XSD('byte'):
-      case XSD('short'):
-      case XSD('int'):
-      case XSD('unsignedByte'):
-      case XSD('unsignedShort'):
-      case XSD('unsignedInt'):
-      case XSD('number'):
-      case XSD('float'):
-      case XSD('decimal'):
-      case XSD('double'):
-      case XSD('long'):
-      case XSD('unsignedLong'):
-      case XSD('positiveInteger'):
-      case XSD('nonPositiveInteger'):
-      case XSD('negativeInteger'):
-      case XSD('nonNegativeInteger'):
+      case XSD.integer.value:
+      case XSD.byte.value:
+      case XSD.short.value:
+      case XSD.int.value:
+      case XSD.unsignedByte.value:
+      case XSD.unsignedShort.value:
+      case XSD.unsignedInt.value:
+      case XSD.number.value:
+      case XSD.float.value:
+      case XSD.decimal.value:
+      case XSD.double.value:
+      case XSD.long.value:
+      case XSD.unsignedLong.value:
+      case XSD.positiveInteger.value:
+      case XSD.nonPositiveInteger.value:
+      case XSD.negativeInteger.value:
+      case XSD.nonNegativeInteger.value:
         return true
       default:
         return false
@@ -307,8 +401,8 @@ export namespace rdf {
    * @param literal - RDFJS Literal
    * @return True of the Literal is a date, False otherwise
    */
-  export function literalIsDate (literal: Literal): boolean {
-    return literal.datatype.value === XSD('dateTime')
+  export function literalIsDate(literal: Literal): boolean {
+    return XSD('dateTime').equals(literal.datatype)
   }
 
   /**
@@ -316,8 +410,8 @@ export namespace rdf {
    * @param term - RDFJS Literal
    * @return True of the Literal is a boolean, False otherwise
    */
-  export function literalIsBoolean (literal: Literal): boolean {
-    return literal.datatype.value === XSD('boolean')
+  export function literalIsBoolean(literal: Literal): boolean {
+    return XSD('boolean').equals(literal.datatype)
   }
 
   /**
@@ -326,8 +420,8 @@ export namespace rdf {
    * @param b - Second Term
    * @return True if the two RDFJS Terms are equals, False
    */
-  export function termEquals (a: Term, b: Term): boolean {
-    if (termIsLiteral(a) && termIsLiteral(b)) {
+  export function termEquals(a: Term, b: Term): boolean {
+    if (isLiteral(a) && isLiteral(b)) {
       if (literalIsDate(a) && literalIsDate(b)) {
         const valueA = asJS(a.value, a.datatype.value)
         const valueB = asJS(b.value, b.datatype.value)
@@ -339,32 +433,29 @@ export namespace rdf {
     return a.value === b.value
   }
 
-  /**
-   * Create a RDF triple in Object representation
-   * @param  {string} subj - Triple's subject
-   * @param  {string} pred - Triple's predicate
-   * @param  {string} obj  - Triple's object
-   * @return A RDF triple in Object representation
-   */
-  export function triple (subj: string, pred: string, obj: string): Algebra.TripleObject {
-    return {
-      subject: subj,
-      predicate: pred,
-      object: obj
-    }
-  }
+  // /**
+  //  * Create a RDF triple in Object representation
+  //  * @param  {string} subj - Triple's subject
+  //  * @param  {string} pred - Triple's predicate
+  //  * @param  {string} obj  - Triple's object
+  //  * @return A RDF triple in Object representation
+  //  */
+  // export function triple(subj: string, pred: string, obj: string): SPARQL.Triple {
+  //   return DataFactory.quad(
+  //     fromN3(subj) as Quad_Subject, fromN3(pred) as Quad_Predicate, fromN3(obj) as Quad_Object)
+  // }
 
   /**
    * Count the number of variables in a Triple Pattern
    * @param  {Object} triple - Triple Pattern to process
    * @return The number of variables in the Triple Pattern
    */
-  export function countVariables (triple: Algebra.TripleObject): number {
+  export function countVariables(triple: SPARQL.Triple): number {
     let count = 0
     if (isVariable(triple.subject)) {
       count++
     }
-    if (isVariable(triple.predicate)) {
+    if (!(isPropertyPath(triple.predicate)) && isVariable(triple.predicate)) {
       count++
     }
     if (isVariable(triple.object)) {
@@ -373,61 +464,61 @@ export namespace rdf {
     return count
   }
 
-  /**
-   * Return True if a string is a SPARQL variable
-   * @param  str - String to test
-   * @return True if the string is a SPARQL variable, False otherwise
-   */
-  export function isVariable (str: string): boolean {
-    if (typeof str !== 'string') {
-      return false
-    }
-    return str.startsWith('?')
-  }
+  // /**
+  //  * Return True if a string is a SPARQL variable
+  //  * @param  str - String to test
+  //  * @return True if the string is a SPARQL variable, False otherwise
+  //  */
+  // export function isVariable(str: string): boolean {
+  //   if (typeof str !== 'string') {
+  //     return false
+  //   }
+  //   return str.startsWith('?')
+  // }
 
-  /**
-   * Return True if a string is a RDF Literal
-   * @param  str - String to test
-   * @return True if the string is a RDF Literal, False otherwise
-   */
-  export function isLiteral (str: string): boolean {
-    return str.startsWith('"')
-  }
+  // /**
+  //  * Return True if a string is a RDF Literal
+  //  * @param  str - String to test
+  //  * @return True if the string is a RDF Literal, False otherwise
+  //  */
+  // export function isLiteral(str: string): boolean {
+  //   return str.startsWith('"')
+  // }
 
-  /**
-   * Return True if a string is a RDF IRI/URI
-   * @param  str - String to test
-   * @return True if the string is a RDF IRI/URI, False otherwise
-   */
-  export function isIRI (str: string): boolean {
-    return (!isVariable(str)) && (!isLiteral(str))
-  }
+  // /**
+  //  * Return True if a string is a RDF IRI/URI
+  //  * @param  str - String to test
+  //  * @return True if the string is a RDF IRI/URI, False otherwise
+  //  */
+  // export function isIRI(str: string): boolean {
+  //   return (!isVariable(str)) && (!isLiteral(str))
+  // }
 
   /**
    * Get the value (excluding datatype & language tags) of a RDF literal
    * @param literal - RDF Literal
    * @return The literal's value
    */
-  export function getLiteralValue (literal: string): string {
-    if (literal.startsWith('"')) {
-      let stopIndex = literal.length - 1
-      if (literal.includes('"^^<') && literal.endsWith('>')) {
-        stopIndex = literal.lastIndexOf('"^^<')
-      } else if (literal.includes('"@') && !literal.endsWith('"')) {
-        stopIndex = literal.lastIndexOf('"@')
-      }
-      return literal.slice(1, stopIndex)
-    }
-    return literal
-  }
+  // export function getLiteralValue(literal: string): string {
+  //   if (literal.startsWith('"')) {
+  //     let stopIndex = literal.length - 1
+  //     if (literal.includes('"^^<') && literal.endsWith('>')) {
+  //       stopIndex = literal.lastIndexOf('"^^<')
+  //     } else if (literal.includes('"@') && !literal.endsWith('"')) {
+  //       stopIndex = literal.lastIndexOf('"@')
+  //     }
+  //     return literal.slice(1, stopIndex)
+  //   }
+  //   return literal
+  // }
 
   /**
    * Hash Triple (pattern) to assign it an unique ID
    * @param triple - Triple (pattern) to hash
    * @return An unique ID to identify the Triple (pattern)
    */
-  export function hashTriple (triple: Algebra.TripleObject): string {
-    return `s=${triple.subject}&p=${triple.predicate}&o=${triple.object}`
+  export function hashTriple(triple: SPARQL.Triple): string {
+    return `s=${rdf.toN3(triple.subject)}&p=${rdf.toN3(triple.predicate)}&o=${rdf.toN3(triple.object)}`
   }
 
   /**
@@ -436,9 +527,8 @@ export namespace rdf {
    * @param suffix - Suffix appended to the XSD namespace to create an IRI
    * @return An new IRI, under the XSD namespac
    */
-  export function XSD (suffix: string): string {
-    return `http://www.w3.org/2001/XMLSchema#${suffix}`
-  }
+  export const XSD = namespace("http://www.w3.org/2001/XMLSchema#")
+
 
   /**
    * Create an IRI under the RDF namespace
@@ -446,9 +536,8 @@ export namespace rdf {
    * @param suffix - Suffix appended to the RDF namespace to create an IRI
    * @return An new IRI, under the RDF namespac
    */
-  export function RDF (suffix: string): string {
-    return `http://www.w3.org/1999/02/22-rdf-syntax-ns#${suffix}`
-  }
+  export const RDF = namespace("http://www.w3.org/1999/02/22-rdf-syntax-ns#")
+
 
   /**
    * Create an IRI under the SEF namespace
@@ -456,9 +545,8 @@ export namespace rdf {
    * @param suffix - Suffix appended to the SES namespace to create an IRI
    * @return An new IRI, under the SES namespac
    */
-  export function SEF (suffix: string): string {
-    return `https://callidon.github.io/sparql-engine/functions#${suffix}`
-  }
+  export const SEF = namespace("https://callidon.github.io/sparql-engine/functions#")
+
 
   /**
    * Create an IRI under the SES namespace
@@ -466,22 +554,79 @@ export namespace rdf {
    * @param suffix - Suffix appended to the SES namespace to create an IRI
    * @return An new IRI, under the SES namespac
    */
-  export function SES (suffix: string): string {
-    return `https://callidon.github.io/sparql-engine/search#${suffix}`
-  }
+  export const SES = namespace("https://callidon.github.io/sparql-engine/search#")
+
 }
 
 /**
  * SPARQL related utilities
  */
 export namespace sparql {
+
+  export type Triple = {
+    subject: SPARQL.Triple['subject']
+    predicate: SPARQL.Triple['predicate']
+    object: SPARQL.Triple['object']
+  }
+
+  /**
+   * Bounded values allowed for a triple subject, predicate or object
+   */
+  // FIXME: added | BlankNode is this valid?
+  export type BoundedTripleValue = rdf.NamedNode | rdf.Literal | rdf.BlankNode
+
+  // A triple value which may be unbounded
+  export type UnBoundedTripleValue = sparql.BoundedTripleValue | rdf.Variable
+
+  export type NoPathTriple = {
+    subject: SPARQL.Triple['subject']
+    predicate: Exclude<SPARQL.Triple['predicate'], SPARQL.PropertyPath>
+    object: SPARQL.Triple['object']
+  }
+
+  //FIXME is it valid to remove quad from here?
+  export type PropertyPathTriple = {
+    subject: Exclude<SPARQL.Triple['subject'], rdf.Quad>
+    predicate: SPARQL.PropertyPath
+    object: Exclude<SPARQL.Triple['object'], rdf.Quad>
+  }
+
+  /**
+   * Create a SPARQL.Triple with the given subject, predicate and object that is untested
+   * allowing potentially invalid triples to be created for temporary use. 
+   * @param subject 
+   * @param predicate 
+   * @param object 
+   */
+  export function createLooseTriple(subject: rdf.Term, predicate: rdf.Term, object: rdf.Term): SPARQL.Triple {
+    return {
+      subject,
+      predicate,
+      object
+    } as SPARQL.Triple
+  }
+
+  export function createStrongTriple(subject: rdf.Term, predicate: rdf.Term, object: rdf.Term): SPARQL.Triple {
+    if (!(rdf.isNamedNode(subject) || rdf.isBlankNode(subject) || rdf.isVariable(subject) || rdf.isQuad(subject))) {
+      throw new Error(`Invalid subject ${subject}`)
+    }
+    if (!(rdf.isNamedNode(predicate) || rdf.isVariable(predicate) || rdf.isPropertyPath(predicate))) {
+      throw new Error(`Invalid predicate ${predicate}`)
+    }
+    return {
+      subject,
+      predicate,
+      object
+    } as SPARQL.Triple
+  }
+
   /**
    * Hash Basic Graph pattern to assign them an unique ID
    * @param bgp - Basic Graph Pattern to hash
    * @param md5 - True if the ID should be hashed to md5, False to keep it as a plain text string
    * @return An unique ID to identify the BGP
    */
-  export function hashBGP (bgp: Algebra.TripleObject[], md5: boolean = false): string {
+  export function hashBGP(bgp: SPARQL.Triple[], md5: boolean = false): string {
     const hashedBGP = bgp.map(rdf.hashTriple).join(';')
     if (!md5) {
       return hashedBGP
@@ -496,16 +641,16 @@ export namespace sparql {
    * @param  pattern - Triple Pattern
    * @return The set of SPARQL variables in the triple pattern
    */
-  export function variablesFromPattern (pattern: Algebra.TripleObject): string[] {
+  export function variablesFromPattern(pattern: SPARQL.Triple): string[] {
     const res: string[] = []
     if (rdf.isVariable(pattern.subject)) {
-      res.push(pattern.subject)
+      res.push(pattern.subject.value)
     }
-    if (rdf.isVariable(pattern.predicate)) {
-      res.push(pattern.predicate)
+    if ((!rdf.isPropertyPath(pattern.predicate)) && rdf.isVariable(pattern.predicate)) {
+      res.push(pattern.predicate.value)
     }
     if (rdf.isVariable(pattern.object)) {
-      res.push(pattern.object)
+      res.push(pattern.object.value)
     }
     return res
   }
@@ -516,8 +661,8 @@ export namespace sparql {
    * @param  patterns - Set of triple pattern
    * @return Order set of triple patterns
    */
-  export function leftLinearJoinOrdering (patterns: Algebra.TripleObject[]): Algebra.TripleObject[] {
-    const results: Algebra.TripleObject[] = []
+  export function leftLinearJoinOrdering(patterns: SPARQL.Triple[]): SPARQL.Triple[] {
+    const results: SPARQL.Triple[] = []
     const x = new Set()
     if (patterns.length > 0) {
       // sort pattern by join predicate
@@ -527,7 +672,10 @@ export namespace sparql {
       while (patterns.length > 0) {
         // find the next pattern with a common join predicate
         let index = patterns.findIndex(pattern => {
-          return includes(variables, pattern.subject) || includes(variables, pattern.predicate) || includes(variables, pattern.object)
+          if (rdf.isPropertyPath(pattern.predicate)) {
+            return includes(variables, pattern.subject.value) || includes(variables, pattern.object.value)
+          }
+          return includes(variables, pattern.subject.value) || includes(variables, pattern.predicate.value) || includes(variables, pattern.object.value)
         })
         // if not found, trigger a cartesian product with the first pattern of the sorted set
         if (index < 0) {
@@ -555,7 +703,7 @@ export namespace evaluation {
    * @param cache - Cache used
    * @return A pipeline stage that produces the evaluation results
    */
-  export function cacheEvalBGP (patterns: Algebra.TripleObject[], graph: Graph, cache: BGPCache, builder: BGPStageBuilder, context: ExecutionContext): PipelineStage<Bindings> {
+  export function cacheEvalBGP(patterns: SPARQL.Triple[], graph: Graph, cache: BGPCache, builder: BGPStageBuilder, context: ExecutionContext): PipelineStage<Bindings> {
     const bgp = {
       patterns,
       graphIRI: graph.iri
@@ -600,15 +748,15 @@ export namespace evaluation {
  * @param bindings - Set of bindings
  * @return An new, bounded triple pattern
  */
-export function applyBindings (triple: Algebra.TripleObject, bindings: Bindings): Algebra.TripleObject {
+export function applyBindings(triple: SPARQL.Triple, bindings: Bindings): SPARQL.Triple {
   const newTriple = Object.assign({}, triple)
-  if (triple.subject.startsWith('?') && bindings.has(triple.subject)) {
-    newTriple.subject = bindings.get(triple.subject)!
+  if (rdf.isVariable(triple.subject) && bindings.has(triple.subject)) {
+    newTriple.subject = bindings.get(triple.subject)! as rdf.NamedNode
   }
-  if (triple.predicate.startsWith('?') && bindings.has(triple.predicate)) {
-    newTriple.predicate = bindings.get(triple.predicate)!
+  if (!rdf.isPropertyPath(triple.predicate) && rdf.isVariable(triple.predicate) && bindings.has(triple.predicate)) {
+    newTriple.predicate = bindings.get(triple.predicate)! as rdf.NamedNode
   }
-  if (triple.object.startsWith('?') && bindings.has(triple.object)) {
+  if (rdf.isVariable(triple.object) && bindings.has(triple.object)) {
     newTriple.object = bindings.get(triple.object)!
   }
   return newTriple
@@ -620,31 +768,38 @@ export function applyBindings (triple: Algebra.TripleObject, bindings: Bindings)
  * @param  bindings - Set of bindings to use
  * @return A new SPARQL group pattern with triples bounded
  */
-export function deepApplyBindings (group: Algebra.PlanNode, bindings: Bindings): Algebra.PlanNode {
+export function deepApplyBindings(group: SPARQL.Pattern, bindings: Bindings): SPARQL.Pattern | SPARQL.SelectQuery {
   switch (group.type) {
     case 'bgp':
       // WARNING property paths are not supported here
-      const triples = (group as Algebra.BGPNode).triples as Algebra.TripleObject[]
-      const bgp: Algebra.BGPNode = {
+      const triples = (group as SPARQL.BgpPattern).triples
+      return {
         type: 'bgp',
         triples: triples.map(t => bindings.bound(t))
       }
-      return bgp
     case 'group':
     case 'optional':
     case 'service':
     case 'union':
-      const newGroup: Algebra.GroupNode = {
-        type: group.type,
-        patterns: (group as Algebra.GroupNode).patterns.map(g => deepApplyBindings(g, bindings))
+      return {
+        type: 'union',
+        patterns: (group as SPARQL.GroupPattern).patterns.map(g => deepApplyBindings(g, bindings))
       }
-      return newGroup
+    case 'service':
+      const serviceGroup = group as SPARQL.ServicePattern
+      return {
+        type: serviceGroup.type,
+        silent: serviceGroup.silent,
+        name: serviceGroup.name,
+        patterns: serviceGroup.patterns.map(g => deepApplyBindings(g, bindings))
+      }
     case 'query':
-      let subQuery: Algebra.RootNode = (group as Algebra.RootNode)
-      subQuery.where = subQuery.where.map(g => deepApplyBindings(g, bindings))
+      let subQuery = (group as SPARQL.SelectQuery)
+      subQuery.where = subQuery.where!.map(g => deepApplyBindings(g, bindings))
       return subQuery
     default:
       return group
+
   }
 }
 
@@ -654,6 +809,6 @@ export function deepApplyBindings (group: Algebra.PlanNode, bindings: Bindings):
  * @param  bindings - Bindings added to each set of bindings procuded by the iterator
  * @return A {@link PipelineStage} that extends bindins produced by the source iterator
  */
-export function extendByBindings (source: PipelineStage<Bindings>, bindings: Bindings): PipelineStage<Bindings> {
+export function extendByBindings(source: PipelineStage<Bindings>, bindings: Bindings): PipelineStage<Bindings> {
   return Pipeline.getInstance().map(source, (b: Bindings) => bindings.union(b))
 }

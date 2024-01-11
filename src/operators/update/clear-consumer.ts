@@ -24,8 +24,8 @@ SOFTWARE.
 
 'use strict'
 
-import { Consumable } from './consumer'
-import Graph from '../../rdf/graph'
+import Graph from '../../rdf/graph.js'
+import { Consumable } from './consumer.js'
 
 /**
  * Clear all RDF triples in a RDF Graph
@@ -38,11 +38,11 @@ export default class ClearConsumer implements Consumable {
    * Consuctor
    * @param graph - Input RDF Graph
    */
-  constructor (graph: Graph) {
+  constructor(graph: Graph) {
     this._graph = graph
   }
 
-  execute (): Promise<void> {
+  execute(): Promise<void> {
     return this._graph.clear()
   }
 }

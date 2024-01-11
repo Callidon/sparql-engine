@@ -24,11 +24,11 @@ SOFTWARE.
 
 'use strict'
 
-import { Pipeline } from '../../engine/pipeline/pipeline'
-import { PipelineStage } from '../../engine/pipeline/pipeline-engine'
-import { Algebra } from 'sparqljs'
-import { rdf } from '../../utils'
-import { Bindings } from '../../rdf/bindings'
+import * as SPARQL from 'sparqljs'
+import { PipelineStage } from '../../engine/pipeline/pipeline-engine.js'
+import { Pipeline } from '../../engine/pipeline/pipeline.js'
+import { Bindings } from '../../rdf/bindings.js'
+import { rdf } from '../../utils.js'
 
 /**
  * Evaluates a SPARQL SELECT operation, i.e., perform a selection over sets of solutions bindings
@@ -39,16 +39,16 @@ import { Bindings } from '../../rdf/bindings'
  * @param query - SELECT query
  * @return A {@link PipelineStage} which evaluate the SELECT modifier
  */
-export default function select (source: PipelineStage<Bindings>, query: Algebra.RootNode) {
-  const variables = query.variables as string[]
-  const selectAll = variables.length === 1 && variables[0] === '*'
+export default function select(source: PipelineStage<Bindings>, query: SPARQL.SelectQuery) {
+  const variables = query.variables
+  const selectAll = variables.length === 1 && rdf.isWildcard(variables[0] as SPARQL.Wildcard)
   return Pipeline.getInstance().map(source, (bindings: Bindings) => {
     if (!selectAll) {
-      bindings = variables.reduce((obj, v) => {
+      bindings = (variables as rdf.Variable[]).reduce((obj, v) => {
         if (bindings.has(v)) {
           obj.set(v, bindings.get(v)!)
         } else {
-          obj.set(v, 'UNBOUND')
+          obj.set(v, rdf.createUnbound())
         }
         return obj
       }, bindings.empty())

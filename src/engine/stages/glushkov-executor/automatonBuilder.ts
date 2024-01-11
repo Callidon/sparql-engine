@@ -22,7 +22,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-import { Automaton, State, Transition } from './automaton'
+import { rdf } from '../../../utils.js'
+import { Automaton, State, Transition } from './automaton.js'
 
 /**
  * Interface of something that builds an automaton
@@ -31,7 +32,7 @@ import { Automaton, State, Transition } from './automaton'
  * @author Julien Aimonier-Davat
  */
 interface AutomatonBuilder<T, P> {
-  build (): Automaton<T, P>
+  build(): Automaton<T, P>
 }
 
 /**
@@ -43,7 +44,7 @@ interface AutomatonBuilder<T, P> {
  * @param setB - second set
  * @return The union of the two sets
  */
-export function union (setA: Set<number>, setB: Set<number>): Set<number> {
+export function union(setA: Set<number>, setB: Set<number>): Set<number> {
   let union: Set<number> = new Set(setA)
   setB.forEach(value => {
     union.add(value)
@@ -57,13 +58,19 @@ export function union (setA: Set<number>, setB: Set<number>): Set<number> {
  * @author Charlotte Cogan
  * @author Julien Aimonier-Davat
  */
-export class GlushkovBuilder implements AutomatonBuilder<number, string> {
+export class GlushkovBuilder implements AutomatonBuilder<number, rdf.Term> {
+  private static predicateTest = (predicates: Array<rdf.Term>, value: rdf.Term): boolean => {
+    return predicates.some((predicate: rdf.Term) => {
+      return predicate.equals(value)
+    })
+  }
+
   private syntaxTree: any
   private nullable: Map<number, boolean>
   private first: Map<number, Set<number>>
   private last: Map<number, Set<number>>
   private follow: Map<number, Set<number>>
-  private predicates: Map<number, Array<string>>
+  private predicates: Map<number, Array<rdf.Term>>
   private reverse: Map<number, boolean>
   private negation: Map<number, boolean>
 
@@ -71,13 +78,13 @@ export class GlushkovBuilder implements AutomatonBuilder<number, string> {
    * Constructor
    * @param path - Path object
    */
-  constructor (path: any) {
+  constructor(path: any) {
     this.syntaxTree = path
     this.nullable = new Map<number, boolean>()
     this.first = new Map<number, Set<number>>()
     this.last = new Map<number, Set<number>>()
     this.follow = new Map<number, Set<number>>()
-    this.predicates = new Map<number, Array<string>>()
+    this.predicates = new Map<number, Array<rdf.Term>>()
     this.reverse = new Map<number, boolean>()
     this.negation = new Map<number, boolean>()
   }
@@ -88,7 +95,7 @@ export class GlushkovBuilder implements AutomatonBuilder<number, string> {
    * @param num  - first identifier to be assigned
    * @return root node identifier
    */
-  postfixNumbering (node: any, num: number = 1): number {
+  postfixNumbering(node: any, num: number = 1): number {
     if (node.pathType !== 'symbol') {
       for (let i = 0; i < node.items.length; i++) {
         if (node.items[i].pathType === undefined) { // it's a leaf
@@ -107,7 +114,7 @@ export class GlushkovBuilder implements AutomatonBuilder<number, string> {
     return num
   }
 
-  symbolProcessing (node: any) {
+  symbolProcessing(node: any) {
     this.nullable.set(node.id, false)
     this.first.set(node.id, new Set<number>().add(node.id))
     this.last.set(node.id, new Set<number>().add(node.id))
@@ -117,7 +124,7 @@ export class GlushkovBuilder implements AutomatonBuilder<number, string> {
     this.negation.set(node.id, false)
   }
 
-  sequenceProcessing (node: any) {
+  sequenceProcessing(node: any) {
     let index
     let nullableChild
 
@@ -166,7 +173,7 @@ export class GlushkovBuilder implements AutomatonBuilder<number, string> {
     }
   }
 
-  unionProcessing (node: any) {
+  unionProcessing(node: any) {
     let nullableNode = false
     for (let i = 1; i < node.items.length; i++) {
       let nullableChild = this.nullable.get(node.items[i].id) as boolean
@@ -189,7 +196,7 @@ export class GlushkovBuilder implements AutomatonBuilder<number, string> {
     this.last.set(node.id, lastNode)
   }
 
-  oneOrMoreProcessing (node: any) {
+  oneOrMoreProcessing(node: any) {
     let nullableChild = this.nullable.get(node.items[0].id) as boolean
     this.nullable.set(node.id, nullableChild)
     let firstChild = this.first.get(node.items[0].id) as Set<number>
@@ -203,7 +210,7 @@ export class GlushkovBuilder implements AutomatonBuilder<number, string> {
     })
   }
 
-  zeroOrOneProcessing (node: any) {
+  zeroOrOneProcessing(node: any) {
     this.nullable.set(node.id, true)
     let firstChild = this.first.get(node.items[0].id) as Set<number>
     this.first.set(node.id, firstChild)
@@ -211,7 +218,7 @@ export class GlushkovBuilder implements AutomatonBuilder<number, string> {
     this.last.set(node.id, lastChild)
   }
 
-  zeroOrMoreProcessing (node: any) {
+  zeroOrMoreProcessing(node: any) {
     this.nullable.set(node.id, true)
     let firstChild = this.first.get(node.items[0].id) as Set<number>
     this.first.set(node.id, firstChild)
@@ -224,7 +231,7 @@ export class GlushkovBuilder implements AutomatonBuilder<number, string> {
     })
   }
 
-  searchChild (node: any): Set<number> {
+  searchChild(node: any): Set<number> {
     return node.items.reduce((acc: any, n: any) => {
       if (n.pathType === 'symbol') {
         acc.add(n.id)
@@ -235,12 +242,12 @@ export class GlushkovBuilder implements AutomatonBuilder<number, string> {
     }, new Set())
   }
 
-  negationProcessing (node: any) {
-    let negForward: Array<string> = new Array<string>()
-    let negBackward: Array<string> = new Array<string>()
+  negationProcessing(node: any) {
+    let negForward = new Array<rdf.Term>()
+    let negBackward = new Array<rdf.Term>()
 
     this.searchChild(node).forEach((value: number) => {
-      let predicatesChild = this.predicates.get(value) as Array<string>
+      let predicatesChild = this.predicates.get(value) as Array<rdf.Term>
       let isReverseChild = this.reverse.get(value) as boolean
       if (isReverseChild) {
         negBackward.push(...predicatesChild)
@@ -282,7 +289,7 @@ export class GlushkovBuilder implements AutomatonBuilder<number, string> {
     this.last.set(node.id, lastNode)
   }
 
-  inverseProcessing (node: any) {
+  inverseProcessing(node: any) {
     let nullableChild = this.nullable.get(node.items[0].id) as boolean
     this.nullable.set(node.id, nullableChild)
     let firstChild = this.first.get(node.items[0].id) as Set<number>
@@ -311,13 +318,13 @@ export class GlushkovBuilder implements AutomatonBuilder<number, string> {
 
     childInverse.forEach((child) => {
       this.follow.set(child, union(
-          this.follow.get(child) as Set<number>,
-          followTemp.get(child) as Set<number>
+        this.follow.get(child) as Set<number>,
+        followTemp.get(child) as Set<number>
       ))
     })
   }
 
-  nodeProcessing (node: any) {
+  nodeProcessing(node: any) {
     switch (node.pathType) {
       case 'symbol':
         this.symbolProcessing(node)
@@ -346,7 +353,7 @@ export class GlushkovBuilder implements AutomatonBuilder<number, string> {
     }
   }
 
-  treeProcessing (node: any) {
+  treeProcessing(node: any) {
     if (node.pathType !== 'symbol') {
       for (let i = 0; i < node.items.length; i++) {
         this.treeProcessing(node.items[i])
@@ -359,13 +366,13 @@ export class GlushkovBuilder implements AutomatonBuilder<number, string> {
    * Build a Glushkov automaton to evaluate the SPARQL property path
    * @return The Glushkov automaton used to evaluate the SPARQL property path
    */
-  build (): Automaton<number, string> {
+  build(): Automaton<number, rdf.Term> {
     // Assigns an id to each syntax tree's node. These ids will be used to build and name the automaton's states
     this.postfixNumbering(this.syntaxTree)
     // computation of first, last, follow, nullable, reverse and negation
     this.treeProcessing(this.syntaxTree)
 
-    let glushkov = new Automaton<number, string>()
+    let glushkov = new Automaton<number, rdf.Term>()
     let root = this.syntaxTree.id // root node identifier
 
     // Creates and adds the initial state
@@ -383,11 +390,11 @@ export class GlushkovBuilder implements AutomatonBuilder<number, string> {
     // Adds the transitions that start from the initial state
     let firstRoot = this.first.get(root) as Set<number>
     firstRoot.forEach((value: number) => {
-      let toState = glushkov.findState(value) as State<number>
+      let toState = glushkov.getState(value)
       let reverse = this.reverse.get(value) as boolean
       let negation = this.negation.get(value) as boolean
-      let predicates = this.predicates.get(value) as Array<string>
-      let transition = new Transition(initialState, toState, reverse, negation, predicates)
+      let predicates = this.predicates.get(value) as Array<rdf.Term>
+      let transition = new Transition(initialState, toState, reverse, negation, predicates, GlushkovBuilder.predicateTest)
       glushkov.addTransition(transition)
     })
 
@@ -399,8 +406,8 @@ export class GlushkovBuilder implements AutomatonBuilder<number, string> {
         let toState = glushkov.findState(to) as State<number>
         let reverse = this.reverse.get(to) as boolean
         let negation = this.negation.get(to) as boolean
-        let predicates = this.predicates.get(to) as Array<string>
-        let transition = new Transition(fromState, toState, reverse, negation, predicates)
+        let predicates = this.predicates.get(to) as Array<rdf.Term>
+        let transition = new Transition(fromState, toState, reverse, negation, predicates, GlushkovBuilder.predicateTest)
         glushkov.addTransition(transition)
       })
     }

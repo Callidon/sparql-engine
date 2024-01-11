@@ -24,18 +24,18 @@ SOFTWARE.
 
 'use strict'
 
-import StageBuilder from './stage-builder'
-import sparqlDistinct from '../../operators/sparql-distinct'
-import { PipelineStage } from '../pipeline/pipeline-engine'
-import { Bindings } from '../../rdf/bindings'
-import ExecutionContext from '../context/execution-context'
+import sparqlDistinct from '../../operators/sparql-distinct.js'
+import { Bindings } from '../../rdf/bindings.js'
+import ExecutionContext from '../context/execution-context.js'
+import { PipelineStage } from '../pipeline/pipeline-engine.js'
+import StageBuilder from './stage-builder.js'
 
 /**
  * A DistinctStageBuilder evaluates DISTINCT modifiers
  * @author Thomas Minier
  */
 export default class DistinctStageBuilder extends StageBuilder {
-  execute (source: PipelineStage<Bindings>, context: ExecutionContext): PipelineStage<Bindings> {
+  execute(source: PipelineStage<Bindings>, context: ExecutionContext): PipelineStage<Bindings> {
     return sparqlDistinct(source)
   }
 }

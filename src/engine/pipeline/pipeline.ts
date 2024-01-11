@@ -24,8 +24,8 @@ SOFTWARE.
 
 'use strict'
 
-import { PipelineEngine } from './pipeline-engine'
-import RxjsPipeline from './rxjs-pipeline'
+import { PipelineEngine } from './pipeline-engine.js'
+import RxjsPipeline from './rxjs-pipeline.js'
 
 // current pipeline engine used for processing bindings
 let _currentEngine: PipelineEngine = new RxjsPipeline()
@@ -39,7 +39,7 @@ export class Pipeline {
    * Get the instance of the current pipeline engine
    * @return The instance of the current pipeline engine
    */
-  static getInstance (): PipelineEngine {
+  static getInstance(): PipelineEngine {
     return _currentEngine
   }
 
@@ -47,7 +47,7 @@ export class Pipeline {
    * Set the instance of the current pipeline engine
    * @param instance  - New pipeline engine to use as the current one
    */
-  static setInstance (instance: PipelineEngine): void {
+  static setInstance(instance: PipelineEngine): void {
     _currentEngine = instance
   }
 }

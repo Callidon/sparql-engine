@@ -24,9 +24,9 @@ SOFTWARE.
 
 'use strict'
 
-import PlanVisitor from '../plan-visitor'
-import { Algebra } from 'sparqljs'
 import { cloneDeep, partition } from 'lodash'
+import * as SPARQL from 'sparqljs'
+import PlanVisitor from '../plan-visitor.js'
 
 /**
  * Implements the UNION Merge rule: all SPARQL UNION clauses in the same group pattern
@@ -34,10 +34,10 @@ import { cloneDeep, partition } from 'lodash'
  * @author Thomas Minier
  */
 export default class UnionMerge extends PlanVisitor {
-  visitUnion (node: Algebra.GroupNode): Algebra.PlanNode {
+  visitUnion(node: SPARQL.UnionPattern): SPARQL.Pattern {
     const newNode = cloneDeep(node)
     const parts = partition(newNode.patterns, group => group.type === 'union')
-    const singleUnion = (parts[0] as Algebra.GroupNode[]).reduce((acc: Algebra.PlanNode[], c) => acc.concat(c.patterns), [])
+    const singleUnion = (parts[0] as SPARQL.GroupPattern[]).reduce((acc: SPARQL.Pattern[], c) => acc.concat(c.patterns), [])
     newNode.patterns = parts[1].concat(singleUnion)
     return newNode
   }

@@ -24,7 +24,7 @@ SOFTWARE.
 
 'use strict'
 
-import { Consumable } from './consumer'
+import { Consumable } from './consumer.js'
 
 /**
  * ManyConsumers group multiple {@link Consumable} to be evaluated in sequence
@@ -37,11 +37,11 @@ export default class ManyConsumers implements Consumable {
    * Constructor
    * @param consumers - Set of consumables
    */
-  constructor (consumers: Consumable[]) {
+  constructor(consumers: Consumable[]) {
     this._consumers = consumers
   }
 
-  execute (): Promise<void> {
+  execute(): Promise<void> {
     if (this._consumers.length === 1) {
       return this._consumers[0].execute()
     }

@@ -24,13 +24,14 @@ SOFTWARE.
 
 'use strict'
 
-import StageBuilder from './stage-builder'
-import { Algebra } from 'sparqljs'
-import { Pipeline } from '../pipeline/pipeline'
-import { PipelineStage } from '../pipeline/pipeline-engine'
-import { Bindings } from '../../rdf/bindings'
-import ExecutionContext from '../context/execution-context'
-import ContextSymbols from '../context/symbols'
+import * as SPARQL from 'sparqljs'
+import { Bindings } from '../../rdf/bindings.js'
+import { rdf } from '../../utils.js'
+import ExecutionContext from '../context/execution-context.js'
+import ContextSymbols from '../context/symbols.js'
+import { PipelineStage } from '../pipeline/pipeline-engine.js'
+import { Pipeline } from '../pipeline/pipeline.js'
+import StageBuilder from './stage-builder.js'
 
 /**
  * A ServiceStageBuilder is responsible for evaluation a SERVICE clause in a SPARQL query.
@@ -45,31 +46,38 @@ export default class ServiceStageBuilder extends StageBuilder {
    * @param  options - Execution options
    * @return A {@link PipelineStage} used to evaluate a SERVICE clause
    */
-  execute (source: PipelineStage<Bindings>, node: Algebra.ServiceNode, context: ExecutionContext): PipelineStage<Bindings> {
-    let subquery: Algebra.RootNode
+  execute(source: PipelineStage<Bindings>, node: SPARQL.ServicePattern, context: ExecutionContext): PipelineStage<Bindings> {
+    let subquery: SPARQL.Query
     if (node.patterns[0].type === 'query') {
-      subquery = node.patterns[0] as Algebra.RootNode
+      subquery = node.patterns[0] as SPARQL.Query
     } else {
       subquery = {
         prefixes: context.getProperty(ContextSymbols.PREFIXES),
         queryType: 'SELECT',
-        variables: ['*'],
+        variables: [new SPARQL.Wildcard()],
         type: 'query',
         where: node.patterns
       }
     }
-    // auto-add the graph used to evaluate the SERVICE close if it is missing from the dataset
-    if ((this.dataset.getDefaultGraph().iri !== node.name) && (!this.dataset.hasNamedGraph(node.name))) {
-      const graph = this.dataset.createGraph(node.name)
-      this.dataset.addNamedGraph(node.name, graph)
-    }
-    let handler = undefined
-    if (node.silent) {
-      handler = () => {
-        return Pipeline.getInstance().empty<Bindings>()
+    // FIXME is it ok to assume these are no longer variables?
+    // Or should we allow vaiables in the Dataset
+    const iri = node.name
+    if (rdf.isNamedNode(iri)) {
+      // auto-add the graph used to evaluate the SERVICE close if it is missing from the dataset
+      if (!this.dataset.getDefaultGraph().iri.equals(iri) && !this.dataset.hasNamedGraph(iri)) {
+        const graph = this.dataset.createGraph(iri)
+        this.dataset.addNamedGraph(iri, graph)
       }
+      let handler = undefined
+      if (node.silent) {
+        handler = () => {
+          return Pipeline.getInstance().empty<Bindings>()
+        }
+      }
+      return Pipeline.getInstance().catch<Bindings, Bindings>(this._buildIterator(source, iri, subquery, context), handler)
+    } else {
+      throw new Error(`Invalid IRI for a SERVICE clause: ${iri}`)
     }
-    return Pipeline.getInstance().catch<Bindings, Bindings>(this._buildIterator(source, node.name, subquery, context), handler)
   }
 
   /**
@@ -81,9 +89,10 @@ export default class ServiceStageBuilder extends StageBuilder {
    * @param options   - Execution options
    * @return A {@link PipelineStage} used to evaluate a SERVICE clause
    */
-  _buildIterator (source: PipelineStage<Bindings>, iri: string, subquery: Algebra.RootNode, context: ExecutionContext): PipelineStage<Bindings> {
+  _buildIterator(source: PipelineStage<Bindings>, iri: rdf.NamedNode, subquery: SPARQL.Query, context: ExecutionContext): PipelineStage<Bindings> {
     const opts = context.clone()
-    opts.defaultGraphs = [ iri ]
-    return this._builder!._buildQueryPlan(subquery, opts, source)
+    opts.defaultGraphs = [iri]
+
+    return this._builder!._buildQueryPlan(subquery, opts, source) as PipelineStage<Bindings>
   }
 }

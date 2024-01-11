@@ -24,26 +24,26 @@ SOFTWARE.
 
 'use strict'
 
-import { Pipeline } from '../engine/pipeline/pipeline'
-import { PipelineInput, PipelineStage } from '../engine/pipeline/pipeline-engine'
-import { Algebra } from 'sparqljs'
-import indexJoin from '../operators/join/index-join'
-import { rdf, sparql } from '../utils'
-import { Bindings, BindingBase } from './bindings'
-import { GRAPH_CAPABILITY } from './graph_capability'
-import ExecutionContext from '../engine/context/execution-context'
-import { mean, orderBy, isNull, round, sortBy } from 'lodash'
+import { isNull, mean, orderBy, round, sortBy } from 'lodash'
+import * as SPARQL from 'sparqljs'
+import ExecutionContext from '../engine/context/execution-context.js'
+import { PipelineInput, PipelineStage } from '../engine/pipeline/pipeline-engine.js'
+import { Pipeline } from '../engine/pipeline/pipeline.js'
+import indexJoin from '../operators/join/index-join.js'
+import { rdf, sparql } from '../utils.js'
+import { BindingBase, Bindings } from './bindings.js'
+import { GRAPH_CAPABILITY } from './graph_capability.js'
 
 /**
  * Metadata used for query optimization
  */
 export interface PatternMetadata {
-  triple: Algebra.TripleObject,
+  triple: SPARQL.Triple,
   cardinality: number,
   nbVars: number
 }
 
-function parseCapabilities (registry: Map<GRAPH_CAPABILITY, boolean>, proto: any): void {
+function parseCapabilities(registry: Map<GRAPH_CAPABILITY, boolean>, proto: any): void {
   registry.set(GRAPH_CAPABILITY.ESTIMATE_TRIPLE_CARD, proto.estimateCardinality != null)
   registry.set(GRAPH_CAPABILITY.UNION, proto.evalUnion != null)
 }
@@ -54,11 +54,11 @@ function parseCapabilities (registry: Map<GRAPH_CAPABILITY, boolean>, proto: any
  * @author Thomas Minier
  */
 export default abstract class Graph {
-  private _iri: string
+  private _iri: rdf.NamedNode
   private _capabilities: Map<GRAPH_CAPABILITY, boolean>
 
-  constructor () {
-    this._iri = ''
+  constructor() {
+    this._iri = rdf.createIRI('')
     this._capabilities = new Map()
     parseCapabilities(this._capabilities, Object.getPrototypeOf(this))
   }
@@ -67,7 +67,7 @@ export default abstract class Graph {
    * Get the IRI of the Graph
    * @return The IRI of the Graph
    */
-  get iri (): string {
+  get iri(): rdf.NamedNode {
     return this._iri
   }
 
@@ -75,7 +75,7 @@ export default abstract class Graph {
    * Set the IRI of the Graph
    * @param value - The new IRI of the Graph
    */
-  set iri (value: string) {
+  set iri(value: rdf.NamedNode) {
     this._iri = value
   }
 
@@ -84,7 +84,7 @@ export default abstract class Graph {
    * @param  token - Capability tested
    * @return True if the graph has the reuqested capability, false otherwise
    */
-  _isCapable (token: GRAPH_CAPABILITY): boolean {
+  _isCapable(token: GRAPH_CAPABILITY): boolean {
     return this._capabilities.has(token) && this._capabilities.get(token)!
   }
 
@@ -93,14 +93,14 @@ export default abstract class Graph {
    * @param  triple - RDF Triple to insert
    * @return A Promise fulfilled when the insertion has been completed
    */
-  abstract insert (triple: Algebra.TripleObject): Promise<void>
+  abstract insert(triple: SPARQL.Triple): Promise<void>
 
   /**
    * Delete a RDF triple from the RDF Graph
    * @param  triple - RDF Triple to delete
    * @return A Promise fulfilled when the deletion has been completed
    */
-  abstract delete (triple: Algebra.TripleObject): Promise<void>
+  abstract delete(triple: SPARQL.Triple): Promise<void>
 
   /**
    * Get a {@link PipelineInput} which finds RDF triples matching a triple pattern in the graph.
@@ -108,20 +108,20 @@ export default abstract class Graph {
    * @param context - Execution options
    * @return A {@link PipelineInput} which finds RDF triples matching a triple pattern
    */
-  abstract find (pattern: Algebra.TripleObject, context: ExecutionContext): PipelineInput<Algebra.TripleObject>
+  abstract find(pattern: SPARQL.Triple, context: ExecutionContext): PipelineInput<SPARQL.Triple>
 
   /**
    * Remove all RDF triples in the Graph
    * @return A Promise fulfilled when the clear operation has been completed
    */
-  abstract clear (): Promise<void>
+  abstract clear(): Promise<void>
 
   /**
    * Estimate the cardinality of a Triple pattern, i.e., the number of matching RDF Triples in the RDF Graph.
    * @param  triple - Triple pattern to estimate cardinality
    * @return A Promise fulfilled with the pattern's estimated cardinality
    */
-  estimateCardinality (triple: Algebra.TripleObject): Promise<number> {
+  estimateCardinality(triple: SPARQL.Triple): Promise<number> {
     throw new SyntaxError('Error: this graph is not capable of estimating the cardinality of a triple pattern')
   }
 
@@ -159,7 +159,7 @@ export default abstract class Graph {
    *   console.log(`Matching RDF triple ${item[0]} with score ${item[1]} and rank ${item[2]}`)
    * }, console.error, () => console.log('Search completed!'))
    */
-  fullTextSearch (pattern: Algebra.TripleObject, variable: string, keywords: string[], matchAll: boolean, minRelevance: number | null, maxRelevance: number | null, minRank: number | null, maxRank: number | null, context: ExecutionContext): PipelineStage<[Algebra.TripleObject, number, number]> {
+  fullTextSearch(pattern: SPARQL.Triple, variable: rdf.Variable, keywords: string[], matchAll: boolean, minRelevance: number | null, maxRelevance: number | null, minRank: number | null, maxRank: number | null, context: ExecutionContext): PipelineStage<[SPARQL.Triple, number, number]> {
     if (isNull(minRelevance)) {
       minRelevance = 0
     }
@@ -172,12 +172,13 @@ export default abstract class Graph {
     // in the RDF term that matches kewyords
     let iterator = Pipeline.getInstance().map(source, triple => {
       let words: string[] = []
-      if (pattern.subject === variable) {
-        words = triple.subject.split(' ')
-      } else if (pattern.predicate === variable) {
-        words = triple.predicate.split(' ')
-      } else if (pattern.object === variable) {
-        words = triple.object.split(' ')
+      if (variable.equals(pattern.subject)) {
+        // FIXME: not sure this makes sense if the subject is a variable it wouldn't split
+        words = triple.subject.value.split(' ')
+      } else if ((!rdf.isPropertyPath(pattern.predicate)) && variable.equals(pattern.predicate)) {
+        words = (triple.predicate as SPARQL.VariableTerm).value.split(' ')
+      } else if (variable.equals(pattern.object)) {
+        words = triple.object.value.split(' ')
       }
       // For each keyword, compute % of words matching the keyword
       const keywordScores = keywords.map(keyword => {
@@ -213,7 +214,7 @@ export default abstract class Graph {
       }
       // ranks the matches, and then only keeps the desired ranks
       iterator = Pipeline.getInstance().flatMap(Pipeline.getInstance().collect(iterator), values => {
-        return orderBy(values, [ 'score' ], [ 'desc' ])
+        return orderBy(values, ['score'], ['desc'])
           // add rank
           .map((item, rank) => {
             item.rank = rank
@@ -233,7 +234,7 @@ export default abstract class Graph {
    * @param  context - Execution options
    * @return A {@link PipelineStage} which evaluates the Basic Graph pattern on the Graph
    */
-  evalUnion (patterns: Algebra.TripleObject[][], context: ExecutionContext): PipelineStage<Bindings> {
+  evalUnion(patterns: SPARQL.Triple[][], context: ExecutionContext): PipelineStage<Bindings> {
     throw new SyntaxError('Error: this graph is not capable of evaluating UNION queries')
   }
 
@@ -243,7 +244,7 @@ export default abstract class Graph {
    * @param  context - Execution options
    * @return A {@link PipelineStage} which evaluates the Basic Graph pattern on the Graph
    */
-  evalBGP (bgp: Algebra.TripleObject[], context: ExecutionContext): PipelineStage<Bindings> {
+  evalBGP(bgp: SPARQL.Triple[], context: ExecutionContext): PipelineStage<Bindings> {
     const engine = Pipeline.getInstance()
     if (this._isCapable(GRAPH_CAPABILITY.ESTIMATE_TRIPLE_CARD)) {
       const op = engine.from(Promise.all(bgp.map(triple => {
@@ -254,7 +255,7 @@ export default abstract class Graph {
       return engine.mergeMap(op, (results: PatternMetadata[]) => {
         const sortedPatterns = sparql.leftLinearJoinOrdering(sortBy(results, 'cardinality').map(t => t.triple))
         const start = engine.of(new BindingBase())
-        return sortedPatterns.reduce((iter: PipelineStage<Bindings>, t: Algebra.TripleObject) => {
+        return sortedPatterns.reduce((iter: PipelineStage<Bindings>, t: SPARQL.Triple) => {
           return indexJoin(iter, t, this, context)
         }, start)
       })
@@ -262,7 +263,7 @@ export default abstract class Graph {
       // FIX ME: this trick is required, otherwise ADD, COPY and MOVE queries are not evaluated correctly. We need to find why...
       return engine.mergeMap(engine.from(Promise.resolve(null)), () => {
         const start = engine.of(new BindingBase())
-        return sparql.leftLinearJoinOrdering(bgp).reduce((iter: PipelineStage<Bindings>, t: Algebra.TripleObject) => {
+        return sparql.leftLinearJoinOrdering(bgp).reduce((iter: PipelineStage<Bindings>, t: SPARQL.Triple) => {
           return indexJoin(iter, t, this, context)
         }, start)
       })

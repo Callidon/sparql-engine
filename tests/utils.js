@@ -24,10 +24,10 @@ SOFTWARE.
 
 'use strict'
 
-const { Parser, Store } = require('n3')
-const fs = require('fs')
-const { HashMapDataset, Graph, PlanBuilder, Pipeline } = require('../dist/api.js')
-const { pick, isArray } = require('lodash')
+import fs from 'fs'
+import { isArray, pick } from 'lodash'
+import { Parser, Store } from 'n3'
+import { Graph, HashMapDataset, Pipeline, PlanBuilder, rdf } from '../src/api'
 
 function getGraph(filePaths, isUnion = false) {
   let graph
@@ -48,14 +48,14 @@ function formatTriplePattern(triple) {
   let subject = null
   let predicate = null
   let object = null
-  if (!triple.subject.startsWith('?')) {
-    subject = triple.subject
+  if (!rdf.isVariable(triple.subject)) {
+    subject = triple.subject.value
   }
-  if (!triple.predicate.startsWith('?')) {
-    predicate = triple.predicate
+  if (!rdf.isVariable(triple.predicate)) {
+    predicate = triple.predicate.value
   }
-  if (!triple.object.startsWith('?')) {
-    object = triple.object
+  if (!rdf.isVariable(triple.object)) {
+    object = triple.object.value
   }
   return { subject, predicate, object }
 }
@@ -63,21 +63,21 @@ function formatTriplePattern(triple) {
 class N3Graph extends Graph {
   constructor() {
     super()
-    this._store = Store()
-    this._parser = Parser()
+    this._store = new Store()
+    this._parser = new Parser()
   }
 
   parse(file) {
     const content = fs.readFileSync(file).toString('utf-8')
     this._parser.parse(content).forEach(t => {
-      this._store.addTriple(t)
+      this._store.addQuad(t)
     })
   }
 
   insert(triple) {
     return new Promise((resolve, reject) => {
       try {
-        this._store.addTriple(triple.subject, triple.predicate, triple.object)
+        this._store.addQuad(triple.subject, triple.predicate, triple.object)
         resolve()
       } catch (e) {
         reject(e)
@@ -88,7 +88,7 @@ class N3Graph extends Graph {
   delete(triple) {
     return new Promise((resolve, reject) => {
       try {
-        this._store.removeTriple(triple.subject, triple.predicate, triple.object)
+        this._store.removeQuad(triple.subject, triple.predicate, triple.object)
         resolve()
       } catch (e) {
         reject(e)
@@ -98,19 +98,19 @@ class N3Graph extends Graph {
 
   find(triple) {
     const { subject, predicate, object } = formatTriplePattern(triple)
-    return this._store.getTriples(subject, predicate, object).map(t => {
+    return this._store.getQuads(subject, predicate, object).map(t => {
       return pick(t, ['subject', 'predicate', 'object'])
     })
   }
 
   estimateCardinality(triple) {
     const { subject, predicate, object } = formatTriplePattern(triple)
-    return Promise.resolve(this._store.countTriples(subject, predicate, object))
+    return Promise.resolve(this._store.countQuads(subject, predicate, object))
   }
 
   clear() {
-    const triples = this._store.getTriples(null, null, null)
-    this._store.removeTriples(triples)
+    const triples = this._store.getQuads(null, null, null)
+    this._store.removeQuads(triples)
     return Promise.resolve()
   }
 }
@@ -120,7 +120,7 @@ class UnionN3Graph extends N3Graph {
     super()
   }
 
-  evalUnion (patterns, context) {
+  evalUnion(patterns, context) {
     return Pipeline.getInstance().merge(...patterns.map(pattern => this.evalBGP(pattern, context)))
   }
 }

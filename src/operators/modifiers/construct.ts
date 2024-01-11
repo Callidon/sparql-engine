@@ -24,12 +24,12 @@ SOFTWARE.
 
 'use strict'
 
-import { Pipeline } from '../../engine/pipeline/pipeline'
-import { PipelineStage } from '../../engine/pipeline/pipeline-engine'
-import { Algebra } from 'sparqljs'
 import { compact } from 'lodash'
-import { rdf } from '../../utils'
-import { Bindings } from '../../rdf/bindings'
+import * as SPARQL from 'sparqljs'
+import { PipelineStage } from '../../engine/pipeline/pipeline-engine.js'
+import { Pipeline } from '../../engine/pipeline/pipeline.js'
+import { Bindings } from '../../rdf/bindings.js'
+import { rdf } from '../../utils.js'
 
 /**
  * A ConstructOperator transform solution mappings into RDF triples, according to a template
@@ -39,9 +39,9 @@ import { Bindings } from '../../rdf/bindings'
  * @return A {@link PipelineStage} which evaluate the CONSTRUCT modifier
  * @author Thomas Minier
  */
-export default function construct (source: PipelineStage<Bindings>, query: any) {
-  const rawTriples: Algebra.TripleObject[] = []
-  const templates: Algebra.TripleObject[] = query.template.filter((t: any) => {
+export default function construct(source: PipelineStage<Bindings>, query: any) {
+  const rawTriples: SPARQL.Triple[] = []
+  const templates: SPARQL.Triple[] = query.template.filter((t: any) => {
     if (rdf.isVariable(t.subject) || rdf.isVariable(t.predicate) || rdf.isVariable(t.object)) {
       return true
     }

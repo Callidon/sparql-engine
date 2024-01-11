@@ -24,10 +24,10 @@ SOFTWARE.
 
 'use strict'
 
-import { Consumer } from './consumer'
-import Graph from '../../rdf/graph'
-import { PipelineStage } from '../../engine/pipeline/pipeline-engine'
-import { Algebra } from 'sparqljs'
+import * as SPARQL from 'sparqljs'
+import { PipelineStage } from '../../engine/pipeline/pipeline-engine.js'
+import Graph from '../../rdf/graph.js'
+import { Consumer } from './consumer.js'
 
 /**
  * A DeleteConsumer evaluates a SPARQL DELETE clause
@@ -43,12 +43,12 @@ export default class DeleteConsumer extends Consumer {
    * @param graph - Input RDF Graph
    * @param options - Execution options
    */
-  constructor (source: PipelineStage<Algebra.TripleObject>, graph: Graph, options: Object) {
+  constructor(source: PipelineStage<SPARQL.Triple>, graph: Graph, options: Object) {
     super(source, options)
     this._graph = graph
   }
 
-  _write (triple: Algebra.TripleObject, encoding: string | undefined, done: (err?: Error) => void): void {
+  _write(triple: SPARQL.Triple, encoding: string | undefined, done: (err?: Error) => void): void {
     this._graph.delete(triple)
       .then(() => done())
       .catch(err => {

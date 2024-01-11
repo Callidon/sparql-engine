@@ -24,21 +24,21 @@ SOFTWARE.
 
 'use strict'
 
-import { Pipeline } from '../engine/pipeline/pipeline'
-import { PipelineStage } from '../engine/pipeline/pipeline-engine'
-import { Algebra } from 'sparqljs'
-import { Bindings } from '../rdf/bindings'
-import { SPARQLExpression, CustomFunctions } from './expressions/sparql-expression'
-import { rdf } from '../utils'
-import { Term } from 'rdf-js'
 import { isArray } from 'lodash'
+import * as SPARQL from 'sparqljs'
+import { PipelineStage } from '../engine/pipeline/pipeline-engine.js'
+import { Pipeline } from '../engine/pipeline/pipeline.js'
+import { Bindings } from '../rdf/bindings.js'
+import { rdf, sparql } from '../utils.js'
+import { CustomFunctions, SPARQLExpression } from './expressions/sparql-expression.js'
 
 /**
  * Test if an object is an iterator that yields RDF Terms or null values
  * @param obj - Input object
  * @return True if the input obkect is an iterator, False otherwise
  */
-function isIterable (obj: Object): obj is Iterable<Term | null> {
+function isIterable(obj: Object): obj is Iterable<rdf.Term | null> {
+  // @ts-ignore
   return typeof obj[Symbol.iterator] === 'function'
 }
 
@@ -52,7 +52,7 @@ function isIterable (obj: Object): obj is Iterable<Term | null> {
  * @param expression - SPARQL expression
  * @return A {@link PipelineStage} which evaluate the BIND operation
  */
-export default function bind (source: PipelineStage<Bindings>, variable: string, expression: Algebra.Expression | string, customFunctions?: CustomFunctions): PipelineStage<Bindings> {
+export default function bind(source: PipelineStage<Bindings>, variable: rdf.Variable, expression: SPARQL.Expression, customFunctions?: CustomFunctions): PipelineStage<Bindings> {
   const expr = new SPARQLExpression(expression, customFunctions)
   return Pipeline.getInstance().mergeMap(source, bindings => {
     try {
@@ -64,9 +64,10 @@ export default function bind (source: PipelineStage<Bindings>, variable: string,
             for (let term of value) {
               const mu = bindings.clone()
               if (term === null) {
-                mu.set(variable, rdf.toN3(rdf.createUnbound()))
+                mu.set(variable, rdf.createUnbound())
               } else {
-                mu.set(variable, rdf.toN3(term))
+                // FIXME is this as rdf.BoundedTripleValue cast safe?
+                mu.set(variable, term as sparql.BoundedTripleValue)
               }
               input.next(mu)
             }
@@ -81,9 +82,10 @@ export default function bind (source: PipelineStage<Bindings>, variable: string,
         // null values indicates that an error occurs during the expression's evaluation
         // in this case, the variable is bind to a special UNBOUND value
         if (value === null) {
-          res.set(variable, rdf.toN3(rdf.createUnbound()))
+          res.set(variable, rdf.createUnbound())
         } else {
-          res.set(variable, rdf.toN3(value))
+          // FIXME is this as rdf.BoundedTripleValue cast safe?
+          res.set(variable, value as sparql.BoundedTripleValue)
         }
         return Pipeline.getInstance().of(res)
       }
