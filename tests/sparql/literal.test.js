@@ -26,7 +26,7 @@ SOFTWARE.
 
 import { beforeEach, describe, expect, it } from 'vitest'
 import { rdf } from '../../src/utils'
-import { TestEngine, getGraph } from '../utils.js'
+import { TestEngine, getGraph } from '../utils'
 
 
 const GRAPH_A_IRI = rdf.createIRI('http://example.org#some-graph-a')
@@ -50,22 +50,19 @@ describe('SERVICE queries', () => {
 
   const data = [
     {
-      text: 'should evaluate simple SPARQL SERVICE queries',
+      text: 'should evaluate simple SPARQL queries with literal values',
       query: `
       PREFIX dblp-pers: <https://dblp.org/pers/m/>
       PREFIX dblp-rdf: <https://dblp.uni-trier.de/rdf/schema-2017-04-18#>
       PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-      SELECT ?name ?article WHERE {
-        ?s rdf:type dblp-rdf:Person .
-        SERVICE <${GRAPH_A_IRI.value}> {
-          ?s dblp-rdf:primaryFullPersonName ?name .
-          ?s dblp-rdf:authorOf ?article .
-        }
-      }`,
+      SELECT ?article WHERE {
+            ?s rdf:type dblp-rdf:Person .
+            ?s dblp-rdf:primaryFullPersonName "Thomas Minier"@en .
+            ?s dblp-rdf:authorOf ?article .
+          }`,
       nbResults: 5,
       testFun: function (b) {
-        expect(b).to.have.all.keys(['?name', '?article'])
-        expect(b['?name']).to.equal('"Thomas Minier"@en')
+        expect(b).to.have.all.keys(['?article'])
         expect(b['?article']).to.be.oneOf([
           'https://dblp.org/rec/conf/esws/MinierSMV18a',
           'https://dblp.org/rec/conf/esws/MinierSMV18',
@@ -76,28 +73,75 @@ describe('SERVICE queries', () => {
       }
     },
     {
-      text: 'should evaluate SPARQL SERVICE queries where at least one RDF Graph needs to be auto-created',
+      text: 'should evaluate SPARQL queries where literal in BIND',
+      query: `
+      PREFIX dblp-pers: <https://dblp.org/pers/m/>
+      PREFIX dblp-rdf: <https://dblp.uni-trier.de/rdf/schema-2017-04-18#>
+      PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+      SELECT ?article WHERE {
+        BIND("Thomas Minier"@en AS ?name)
+        ?s rdf:type dblp-rdf:Person .
+        ?s dblp-rdf:primaryFullPersonName ?name .
+        ?s dblp-rdf:authorOf ?article .
+      }`,
+      nbResults: 5,
+      testFun: function (b) {
+        expect(b).to.have.all.keys(['?article'])
+        expect(b['?article']).to.be.oneOf([
+          'https://dblp.org/rec/conf/esws/MinierSMV18a',
+          'https://dblp.org/rec/conf/esws/MinierSMV18',
+          'https://dblp.org/rec/journals/corr/abs-1806-00227',
+          'https://dblp.org/rec/conf/esws/MinierMSM17',
+          'https://dblp.org/rec/conf/esws/MinierMSM17a'
+        ])
+      }
+    },
+    {
+      text: 'should evaluate simple SPARQL queries with literal value in SERVICE clause',
       query: `
       PREFIX dblp-pers: <https://dblp.org/pers/m/>
       PREFIX dblp-rdf: <https://dblp.uni-trier.de/rdf/schema-2017-04-18#>
       PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
       SELECT * WHERE {
-        ?s dblp-rdf:coCreatorWith ?coCreator .
-        SERVICE <${GRAPH_B_IRI.value}> {
-          ?s2 dblp-rdf:coCreatorWith ?coCreator .
-          ?s2 dblp-rdf:primaryFullPersonName ?name .
+        ?s rdf:type dblp-rdf:Person .
+        SERVICE <${GRAPH_A_IRI.value}> {
+          ?s dblp-rdf:primaryFullPersonName "Thomas Minier"@en .
         }
       }`,
-      nbResults: 3,
+      nbResults: 1,
       testFun: function (b) {
-        expect(b).to.have.all.keys(['?s', '?s2', '?coCreator', '?name'])
-        expect(b['?s']).to.equal('https://dblp.org/pers/m/Minier:Thomas')
-        expect(b['?s2']).to.equal('https://dblp.org/pers/g/Grall:Arnaud')
-        expect(b['?name']).to.equal('"Arnaud Grall"')
-        expect(b['?coCreator']).to.be.oneOf([
-          'https://dblp.org/pers/m/Molli:Pascal',
-          'https://dblp.org/pers/m/Montoya:Gabriela',
-          'https://dblp.org/pers/s/Skaf=Molli:Hala'
+        expect(b).to.have.all.keys(['?s'])
+        expect(b['?s']).to.be.oneOf([
+          'https://dblp.org/pers/m/Minier:Thomas',
+        ])
+      }
+    },
+    {
+      text: 'should evaluate SPARQL queries where literal in BIND for SERVICE clause',
+      query: `
+      PREFIX dblp-pers: <https://dblp.org/pers/m/>
+      PREFIX dblp-rdf: <https://dblp.uni-trier.de/rdf/schema-2017-04-18#>
+      PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+      SELECT ?s ?article WHERE {
+        ?s rdf:type dblp-rdf:Person .
+        ?s dblp-rdf:authorOf ?article .
+        SERVICE <${GRAPH_A_IRI.value}> {
+          BIND("Thomas Minier"@en AS ?name)
+          ?s dblp-rdf:primaryFullPersonName ?name .
+        }
+      }`,
+      nbResults: 5,
+      testFun: function (b) {
+        expect(b).to.have.all.keys(['?s', '?article'])
+        expect(b['?article']).to.be.oneOf([
+          'https://dblp.org/rec/conf/esws/MinierSMV18a',
+          'https://dblp.org/rec/conf/esws/MinierSMV18',
+          'https://dblp.org/rec/journals/corr/abs-1806-00227',
+          'https://dblp.org/rec/conf/esws/MinierMSM17',
+          'https://dblp.org/rec/conf/esws/MinierMSM17a'
+        ])
+        expect(b['?s']).to.be.oneOf([
+          'https://dblp.org/pers/m/Minier:Thomas',
         ])
       }
     }

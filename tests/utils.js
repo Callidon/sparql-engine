@@ -49,13 +49,13 @@ function formatTriplePattern(triple) {
   let predicate = null
   let object = null
   if (!rdf.isVariable(triple.subject)) {
-    subject = triple.subject.value
+    subject = triple.subject
   }
   if (!rdf.isVariable(triple.predicate)) {
-    predicate = triple.predicate.value
+    predicate = triple.predicate
   }
   if (!rdf.isVariable(triple.object)) {
-    object = triple.object.value
+    object = triple.object
   }
   return { subject, predicate, object }
 }
