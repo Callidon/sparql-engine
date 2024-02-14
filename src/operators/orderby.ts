@@ -50,7 +50,7 @@ function _compileComparators(comparators: SPARQL.Ordering[]) {
   })
   return (left: Bindings, right: Bindings) => {
     let temp
-    for (let comp of comparatorsFuncs) {
+    for (const comp of comparatorsFuncs) {
       temp = comp(left, right)
       if (temp !== 0) {
         return temp

@@ -79,7 +79,7 @@ export class VectorStage<T> implements PipelineStage<T> {
 
   toArray(): Promise<T[]> {
     return new Promise((resolve, reject) => {
-      let results: T[] = []
+      const results: T[] = []
       this.subscribe(
         (b) => {
           results.push(b)

@@ -43,7 +43,7 @@ export default function minus(
 ) {
   // first materialize the right source in a buffer, then apply difference on the left source
   const engine = Pipeline.getInstance()
-  let op = engine.reduce(
+  const op = engine.reduce(
     rightSource,
     (acc: Bindings[], b: Bindings) => concat(acc, b),
     [],

@@ -39,7 +39,7 @@ function _writeBoolean(input: boolean, root: any) {
 
 function _writeBindings(input: Bindings, results: any) {
   // convert sets of bindings into objects of RDF Terms
-  let bindings: RDFBindings = input
+  const bindings: RDFBindings = input
     .filter((_variable, value) => !isNull(value) && !isUndefined(value))
     .reduce<RDFBindings>((obj, variable, value) => {
       obj[variable.value] = value

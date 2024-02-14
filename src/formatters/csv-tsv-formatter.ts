@@ -66,10 +66,10 @@ function writeBindings(
   order: rdf.Variable[],
   input: StreamPipelineInput<string>,
 ): void {
-  let output: string[] = []
+  const output: string[] = []
   order.forEach((variable) => {
     if (bindings.has(variable)) {
-      let value = bindings.get(variable)!
+      const value = bindings.get(variable)!
       output.push(rdf.toN3(value))
     }
   })

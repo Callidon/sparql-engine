@@ -411,7 +411,7 @@ export abstract class PipelineEngine {
       elementSelector = identity
     }
     const groups: Map<K, R[]> = new Map()
-    let stage: PipelineStage<SubGroup<K, R>> = this.map(input, (value) => {
+    const stage: PipelineStage<SubGroup<K, R>> = this.map(input, (value) => {
       return {
         key: keySelector(value),
         value: elementSelector!(value),

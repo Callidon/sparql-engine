@@ -32,7 +32,7 @@ import { QueryHints } from './query-hints.js'
  * An execution context conatains control information for query execution.
  */
 export default class ExecutionContext {
-  protected _properties: Map<Symbol, any>
+  protected _properties: Map<symbol, any>
   protected _hints: QueryHints
   protected _defaultGraphs: Array<rdf.NamedNode | rdf.Variable>
   protected _namedGraphs: rdf.NamedNode[]
@@ -125,7 +125,7 @@ export default class ExecutionContext {
    * @param  key - Key associated with the property
    * @return  The value associated with the key
    */
-  getProperty(key: Symbol): any | null {
+  getProperty(key: symbol): any | null {
     return this._properties.get(key)
   }
 
@@ -134,7 +134,7 @@ export default class ExecutionContext {
    * @param  key - Key associated with the property
    * @return True if the context contains a property associated with the key
    */
-  hasProperty(key: Symbol): boolean {
+  hasProperty(key: symbol): boolean {
     return this._properties.has(key)
   }
 
@@ -143,7 +143,7 @@ export default class ExecutionContext {
    * @param key - Key of the property
    * @param value - Value of the property
    */
-  setProperty(key: Symbol, value: any): void {
+  setProperty(key: symbol, value: any): void {
     this._properties.set(key, value)
   }
 

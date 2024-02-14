@@ -42,8 +42,8 @@ function findKey(
   variables: IterableIterator<rdf.Variable>,
   maxValue: number = 15,
 ): number {
-  let key = -1
-  for (let v of variables) {
+  const key = -1
+  for (const v of variables) {
     for (let i = 0; i < maxValue; i++) {
       if (v.value.endsWith(`_${i}`)) {
         return i
@@ -63,9 +63,9 @@ function revertBinding(
   variables: IterableIterator<rdf.Variable>,
 ): Bindings {
   const newBinding = input.empty()
-  for (let variable of variables) {
-    let suffix = `_${key}`
-    let vName = variable.value
+  for (const variable of variables) {
+    const suffix = `_${key}`
+    const vName = variable.value
     if (vName.endsWith(suffix)) {
       const index = vName.indexOf(suffix)
       newBinding.set(

@@ -183,7 +183,7 @@ export class Transition<T, P> {
         to: ${this.to.toString()},\n\t
         reverse: ${this.reverse},\n\t
         negation: ${this.negation},\n\t`
-    let self = this
+    const self = this
     this.predicates.forEach((pred, index) => {
       if (index === 0) {
         result += ',\n\t\tpredicates: [\n'
@@ -287,8 +287,8 @@ export class Automaton<T, P> {
    * @return Transitions which arrives to a final State
    */
   getTransitionsToFinalStates(): Array<Transition<T, P>> {
-    let transitions: Array<Transition<T, P>> = []
-    let finalStates = this.states.filter((state: State<T>) => {
+    const transitions: Array<Transition<T, P>> = []
+    const finalStates = this.states.filter((state: State<T>) => {
       return state.isFinal
     })
     finalStates.forEach((state: State<T>) => {
@@ -303,7 +303,7 @@ export class Automaton<T, P> {
    * @return True if the State is an initial State, False otherwise
    */
   isInitial(stateName: T): boolean {
-    let state: State<T> | null = this.findState(stateName)
+    const state: State<T> | null = this.findState(stateName)
     if (state !== null) {
       return state.isInitial
     }
@@ -316,7 +316,7 @@ export class Automaton<T, P> {
    * @return True if the State is a final State, False otherwise
    */
   isFinal(stateName: T): boolean {
-    let state: State<T> | null = this.findState(stateName)
+    const state: State<T> | null = this.findState(stateName)
     if (state !== null) {
       return state.isFinal
     }

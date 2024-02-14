@@ -45,7 +45,7 @@ interface AutomatonBuilder<T, P> {
  * @return The union of the two sets
  */
 export function union(setA: Set<number>, setB: Set<number>): Set<number> {
-  let union: Set<number> = new Set(setA)
+  const union: Set<number> = new Set(setA)
   setB.forEach((value) => {
     union.add(value)
   })
@@ -143,7 +143,7 @@ export class GlushkovBuilder implements AutomatonBuilder<number, rdf.Term> {
     index = -1
     do {
       index++
-      let firstChild = this.first.get(node.items[index].id) as Set<number>
+      const firstChild = this.first.get(node.items[index].id) as Set<number>
       firstNode = union(firstNode, firstChild)
       nullableChild = this.nullable.get(node.items[index].id) as boolean
     } while (index < node.items.length - 1 && nullableChild)
@@ -153,22 +153,22 @@ export class GlushkovBuilder implements AutomatonBuilder<number, rdf.Term> {
     index = node.items.length
     do {
       index--
-      let lastChild = this.last.get(node.items[index].id) as Set<number>
+      const lastChild = this.last.get(node.items[index].id) as Set<number>
       lastNode = union(lastNode, lastChild)
       nullableChild = this.nullable.get(node.items[index].id) as boolean
     } while (index > 0 && nullableChild)
     this.last.set(node.id, lastNode)
 
-    let self = this
+    const self = this
     for (let i = 0; i < node.items.length - 1; i++) {
-      let lastChild = this.last.get(node.items[i].id) as Set<number>
+      const lastChild = this.last.get(node.items[i].id) as Set<number>
       lastChild.forEach((value: number) => {
         let suiv = i
         let followChildLast = self.follow.get(value) as Set<number>
         let nullableNextChild = false
         do {
           suiv++
-          let firstNextChild = self.first.get(
+          const firstNextChild = self.first.get(
             node.items[suiv].id,
           ) as Set<number>
           followChildLast = union(followChildLast, firstNextChild)
@@ -182,57 +182,57 @@ export class GlushkovBuilder implements AutomatonBuilder<number, rdf.Term> {
   unionProcessing(node: any) {
     let nullableNode = false
     for (let i = 1; i < node.items.length; i++) {
-      let nullableChild = this.nullable.get(node.items[i].id) as boolean
+      const nullableChild = this.nullable.get(node.items[i].id) as boolean
       nullableNode = nullableNode || nullableChild
     }
     this.nullable.set(node.id, nullableNode)
 
     let firstNode = new Set<number>()
     for (let i = 0; i < node.items.length; i++) {
-      let firstChild = this.first.get(node.items[i].id) as Set<number>
+      const firstChild = this.first.get(node.items[i].id) as Set<number>
       firstNode = union(firstNode, firstChild)
     }
     this.first.set(node.id, firstNode)
 
     let lastNode = new Set<number>()
     for (let i = 0; i < node.items.length; i++) {
-      let lastChild = this.last.get(node.items[i].id) as Set<number>
+      const lastChild = this.last.get(node.items[i].id) as Set<number>
       lastNode = union(lastNode, lastChild)
     }
     this.last.set(node.id, lastNode)
   }
 
   oneOrMoreProcessing(node: any) {
-    let nullableChild = this.nullable.get(node.items[0].id) as boolean
+    const nullableChild = this.nullable.get(node.items[0].id) as boolean
     this.nullable.set(node.id, nullableChild)
-    let firstChild = this.first.get(node.items[0].id) as Set<number>
+    const firstChild = this.first.get(node.items[0].id) as Set<number>
     this.first.set(node.id, firstChild)
-    let lastChild = this.last.get(node.items[0].id) as Set<number>
+    const lastChild = this.last.get(node.items[0].id) as Set<number>
     this.last.set(node.id, lastChild)
 
     lastChild.forEach((value: number) => {
-      let followLastChild = this.follow.get(value) as Set<number>
+      const followLastChild = this.follow.get(value) as Set<number>
       this.follow.set(value, union(followLastChild, firstChild))
     })
   }
 
   zeroOrOneProcessing(node: any) {
     this.nullable.set(node.id, true)
-    let firstChild = this.first.get(node.items[0].id) as Set<number>
+    const firstChild = this.first.get(node.items[0].id) as Set<number>
     this.first.set(node.id, firstChild)
-    let lastChild = this.last.get(node.items[0].id) as Set<number>
+    const lastChild = this.last.get(node.items[0].id) as Set<number>
     this.last.set(node.id, lastChild)
   }
 
   zeroOrMoreProcessing(node: any) {
     this.nullable.set(node.id, true)
-    let firstChild = this.first.get(node.items[0].id) as Set<number>
+    const firstChild = this.first.get(node.items[0].id) as Set<number>
     this.first.set(node.id, firstChild)
-    let lastChild = this.last.get(node.items[0].id) as Set<number>
+    const lastChild = this.last.get(node.items[0].id) as Set<number>
     this.last.set(node.id, lastChild)
 
     lastChild.forEach((value: number) => {
-      let followLastChild = this.follow.get(value) as Set<number>
+      const followLastChild = this.follow.get(value) as Set<number>
       this.follow.set(value, union(followLastChild, firstChild))
     })
   }
@@ -249,12 +249,12 @@ export class GlushkovBuilder implements AutomatonBuilder<number, rdf.Term> {
   }
 
   negationProcessing(node: any) {
-    let negForward = new Array<rdf.Term>()
-    let negBackward = new Array<rdf.Term>()
+    const negForward = new Array<rdf.Term>()
+    const negBackward = new Array<rdf.Term>()
 
     this.searchChild(node).forEach((value: number) => {
-      let predicatesChild = this.predicates.get(value) as Array<rdf.Term>
-      let isReverseChild = this.reverse.get(value) as boolean
+      const predicatesChild = this.predicates.get(value) as Array<rdf.Term>
+      const isReverseChild = this.reverse.get(value) as boolean
       if (isReverseChild) {
         negBackward.push(...predicatesChild)
       } else {
@@ -262,11 +262,11 @@ export class GlushkovBuilder implements AutomatonBuilder<number, rdf.Term> {
       }
     })
 
-    let firstNode = new Set<number>()
-    let lastNode = new Set<number>()
+    const firstNode = new Set<number>()
+    const lastNode = new Set<number>()
 
     if (negForward.length > 0) {
-      let id = node.id + 1
+      const id = node.id + 1
       this.nullable.set(id, false)
       this.first.set(id, new Set<number>().add(id))
       this.last.set(id, new Set<number>().add(id))
@@ -278,7 +278,7 @@ export class GlushkovBuilder implements AutomatonBuilder<number, rdf.Term> {
       lastNode.add(id)
     }
     if (negBackward.length > 0) {
-      let id = node.id + 2
+      const id = node.id + 2
       this.nullable.set(id, false)
       this.first.set(id, new Set<number>().add(id))
       this.last.set(id, new Set<number>().add(id))
@@ -296,27 +296,27 @@ export class GlushkovBuilder implements AutomatonBuilder<number, rdf.Term> {
   }
 
   inverseProcessing(node: any) {
-    let nullableChild = this.nullable.get(node.items[0].id) as boolean
+    const nullableChild = this.nullable.get(node.items[0].id) as boolean
     this.nullable.set(node.id, nullableChild)
-    let firstChild = this.first.get(node.items[0].id) as Set<number>
+    const firstChild = this.first.get(node.items[0].id) as Set<number>
     this.last.set(node.id, firstChild)
-    let lastChild = this.last.get(node.items[0].id) as Set<number>
+    const lastChild = this.last.get(node.items[0].id) as Set<number>
     this.first.set(node.id, lastChild)
 
-    let childInverse = this.searchChild(node)
+    const childInverse = this.searchChild(node)
 
-    let followTemp = new Map<number, Set<number>>()
+    const followTemp = new Map<number, Set<number>>()
     childInverse.forEach((nodeToReverse: number) => {
       followTemp.set(nodeToReverse, new Set<number>())
     })
 
     childInverse.forEach((nodeToReverse: number) => {
-      let isReverseNodeToReverse = this.reverse.get(nodeToReverse) as boolean
+      const isReverseNodeToReverse = this.reverse.get(nodeToReverse) as boolean
       this.reverse.set(nodeToReverse, !isReverseNodeToReverse)
-      let followeesNodeToReverse = this.follow.get(nodeToReverse) as Set<number>
+      const followeesNodeToReverse = this.follow.get(nodeToReverse) as Set<number>
       followeesNodeToReverse.forEach((followee) => {
         if (childInverse.has(followee)) {
-          ;(followTemp.get(followee) as Set<number>).add(nodeToReverse)
+          (followTemp.get(followee) as Set<number>).add(nodeToReverse)
           followeesNodeToReverse.delete(followee)
         }
       })
@@ -381,29 +381,29 @@ export class GlushkovBuilder implements AutomatonBuilder<number, rdf.Term> {
     // computation of first, last, follow, nullable, reverse and negation
     this.treeProcessing(this.syntaxTree)
 
-    let glushkov = new Automaton<number, rdf.Term>()
-    let root = this.syntaxTree.id // root node identifier
+    const glushkov = new Automaton<number, rdf.Term>()
+    const root = this.syntaxTree.id // root node identifier
 
     // Creates and adds the initial state
-    let nullableRoot = this.nullable.get(root) as boolean
-    let initialState = new State(0, true, nullableRoot)
+    const nullableRoot = this.nullable.get(root) as boolean
+    const initialState = new State(0, true, nullableRoot)
     glushkov.addState(initialState)
 
     // Creates and adds the other states
-    let lastRoot = this.last.get(root) as Set<number>
-    for (let id of Array.from(this.predicates.keys())) {
-      let isFinal = lastRoot.has(id)
+    const lastRoot = this.last.get(root) as Set<number>
+    for (const id of Array.from(this.predicates.keys())) {
+      const isFinal = lastRoot.has(id)
       glushkov.addState(new State(id, false, isFinal))
     }
 
     // Adds the transitions that start from the initial state
-    let firstRoot = this.first.get(root) as Set<number>
+    const firstRoot = this.first.get(root) as Set<number>
     firstRoot.forEach((value: number) => {
-      let toState = glushkov.getState(value)
-      let reverse = this.reverse.get(value) as boolean
-      let negation = this.negation.get(value) as boolean
-      let predicates = this.predicates.get(value) as Array<rdf.Term>
-      let transition = new Transition(
+      const toState = glushkov.getState(value)
+      const reverse = this.reverse.get(value) as boolean
+      const negation = this.negation.get(value) as boolean
+      const predicates = this.predicates.get(value) as Array<rdf.Term>
+      const transition = new Transition(
         initialState,
         toState,
         reverse,
@@ -415,15 +415,15 @@ export class GlushkovBuilder implements AutomatonBuilder<number, rdf.Term> {
     })
 
     // Ads the transitions between states
-    for (let from of Array.from(this.follow.keys())) {
-      let followFrom = this.follow.get(from) as Set<number>
+    for (const from of Array.from(this.follow.keys())) {
+      const followFrom = this.follow.get(from) as Set<number>
       followFrom.forEach((to: number) => {
-        let fromState = glushkov.findState(from) as State<number>
-        let toState = glushkov.findState(to) as State<number>
-        let reverse = this.reverse.get(to) as boolean
-        let negation = this.negation.get(to) as boolean
-        let predicates = this.predicates.get(to) as Array<rdf.Term>
-        let transition = new Transition(
+        const fromState = glushkov.findState(from) as State<number>
+        const toState = glushkov.findState(to) as State<number>
+        const reverse = this.reverse.get(to) as boolean
+        const negation = this.negation.get(to) as boolean
+        const predicates = this.predicates.get(to) as Array<rdf.Term>
+        const transition = new Transition(
           fromState,
           toState,
           reverse,

@@ -69,7 +69,7 @@ export default function bind(
         // build a source of bindings from the array/iterable produced by the expression's evaluation
         return Pipeline.getInstance().fromAsync((input) => {
           try {
-            for (let term of value) {
+            for (const term of value) {
               const mu = bindings.clone()
               if (term === null) {
                 mu.set(variable, rdf.createUnbound())

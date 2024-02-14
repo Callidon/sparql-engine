@@ -879,7 +879,7 @@ export function deepApplyBindings(
         ),
       }
     case 'query':
-      let subQuery = group as SPARQL.SelectQuery
+      const subQuery = group as SPARQL.SelectQuery
       subQuery.where = subQuery.where!.map((g) =>
         deepApplyBindings(g, bindings),
       )

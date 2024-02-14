@@ -207,10 +207,10 @@ export function extractPropertyPaths(
     bgp.triples,
     (triple) => !rdf.isPropertyPath(triple.predicate),
   )
-  let classicTriples: sparql.NoPathTriple[] = parts[0] as sparql.NoPathTriple[]
-  let pathTriples: sparql.PropertyPathTriple[] =
+  const classicTriples: sparql.NoPathTriple[] = parts[0] as sparql.NoPathTriple[]
+  const pathTriples: sparql.PropertyPathTriple[] =
     parts[1] as sparql.PropertyPathTriple[]
-  let variables: string[] = []
+  const variables: string[] = []
 
   // TODO: change bgp evaluation's behavior for ask queries when subject and object are given
   /*if (pathTriples.length > 0) {

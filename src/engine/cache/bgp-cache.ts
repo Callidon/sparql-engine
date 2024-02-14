@@ -150,7 +150,7 @@ export class LRUBGPCache implements BGPCache {
     if (bindings === null) {
       return Pipeline.getInstance().empty()
     }
-    let iterator = Pipeline.getInstance().from(bindings)
+    const iterator = Pipeline.getInstance().from(bindings)
     return Pipeline.getInstance().mergeMap(iterator, (bindings) => {
       // if the results is empty AND the cache do not contains the BGP
       // it means that the entry has been deleted before its insertion completed
@@ -187,8 +187,8 @@ export class LRUBGPCache implements BGPCache {
       return [bgp.patterns, []]
     }
     // otherwise, we search for all candidate subsets
-    let matches = []
-    for (let pattern of bgp.patterns) {
+    const matches = []
+    for (const pattern of bgp.patterns) {
       const searchResults = this._allKeys
         .search(rdf.hashTriple(pattern))
         .filter((v) => {
@@ -203,7 +203,7 @@ export class LRUBGPCache implements BGPCache {
     // compute the largest subset BGP and the missing patterns (missingPatterns = input_BGP - subset_BGP)
     let foundPatterns: SPARQL.Triple[] = []
     let maxBGPLength = -1
-    for (let match of matches) {
+    for (const match of matches) {
       if (match.searchResults.length > 0) {
         const localMax = maxBy(
           match.searchResults,

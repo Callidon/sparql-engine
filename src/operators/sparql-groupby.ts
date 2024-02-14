@@ -69,7 +69,7 @@ export default function sparqlGroupBy(
   const keys: Map<string, Bindings> = new Map()
   const engine = Pipeline.getInstance()
   const groupVariables = variables.sort()
-  let op = engine.map(source, (bindings: Bindings) => {
+  const op = engine.map(source, (bindings: Bindings) => {
     const key = _hashBindings(variables, bindings)
     // create a new group is needed
     if (!groups.has(key)) {

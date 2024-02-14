@@ -434,12 +434,12 @@ export class PlanBuilder {
     }
 
     // merge BGPs on the same level
-    let newGroups = []
+    const newGroups = []
     let prec = null
     for (let i = 0; i < groups.length; i++) {
-      let group = groups[i]
+      const group = groups[i]
       if (group.type === 'bgp' && prec !== null && prec.type === 'bgp') {
-        let lastGroup = newGroups[newGroups.length - 1] as SPARQL.BgpPattern
+        const lastGroup = newGroups[newGroups.length - 1] as SPARQL.BgpPattern
         lastGroup.triples = lastGroup.triples.concat(
           (group as SPARQL.BgpPattern).triples,
         )
@@ -469,7 +469,7 @@ export class PlanBuilder {
   ): PipelineStage<Bindings> {
     const engine = Pipeline.getInstance()
     // Reset flags on the options for child iterators
-    let childContext = context.clone()
+    const childContext = context.clone()
 
     switch (group.type) {
       case 'bgp':
@@ -479,7 +479,7 @@ export class PlanBuilder {
           )
         }
         // find possible Property paths
-        let [classicTriples, pathTriples, tempVariables] = extractPropertyPaths(
+        const [classicTriples, pathTriples, tempVariables] = extractPropertyPaths(
           group as SPARQL.BgpPattern,
         )
         if (pathTriples.length > 0) {
@@ -613,7 +613,7 @@ export class PlanBuilder {
     groups: SPARQL.Pattern[],
     context: ExecutionContext,
   ): PipelineStage<Bindings> {
-    let [values, others] = partition(groups, (g) => g.type === 'values')
+    const [values, others] = partition(groups, (g) => g.type === 'values')
     const bindingsLists = values.map((g) => (g as SPARQL.ValuesPattern).values)
     // for each VALUES clause
     const iterators = bindingsLists.map((bList) => {

@@ -178,7 +178,7 @@ export class SPARQLExpression {
       return (bindings: Bindings) => {
         if (bindings.hasProperty('__aggregate')) {
           const aggVariable = expression.expression as rdf.Variable
-          let rows = bindings.getProperty('__aggregate')
+          const rows = bindings.getProperty('__aggregate')
           if (expression.distinct) {
             rows.set(
               aggVariable.value,

@@ -237,7 +237,7 @@ export abstract class Bindings {
     if (this.size !== other.size) {
       return false
     }
-    for (let variable of other.variables()) {
+    for (const variable of other.variables()) {
       if (!this.has(variable) || this.get(variable) !== other.get(variable)) {
         return false
       }
@@ -346,7 +346,7 @@ export abstract class Bindings {
   ): Bindings {
     const result = this.empty()
     this.forEach((variable, value) => {
-      let [newVar, newValue] = mapper(variable, value)
+      const [newVar, newValue] = mapper(variable, value)
       if (
         !(
           isNull(newVar) ||

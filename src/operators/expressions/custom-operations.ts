@@ -159,7 +159,7 @@ export default {
     separator: rdf.Term,
   ): Iterable<rdf.Term> {
     return (function* () {
-      for (let token of term.value.split(separator.value)) {
+      for (const token of term.value.split(separator.value)) {
         yield rdf.createLiteral(token)
       }
       return

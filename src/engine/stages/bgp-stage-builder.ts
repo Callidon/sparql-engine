@@ -54,7 +54,7 @@ function bgpEvaluation(
 ) {
   const engine = Pipeline.getInstance()
   return engine.mergeMap(source, (bindings: Bindings) => {
-    let boundedBGP = bgp.map((t) => bindings.bound(t))
+    const boundedBGP = bgp.map((t) => bindings.bound(t))
     // check the cache
     let iterator
     if (context.cachingEnabled()) {
@@ -116,7 +116,7 @@ export default class BGPStageBuilder extends StageBuilder {
     if (patterns.length === 0) return source
 
     // extract eventual query hints from the BGP & merge them into the context
-    let extraction = parseHints(patterns, context.hints)
+    const extraction = parseHints(patterns, context.hints)
     context.hints = extraction[1]
 
     // extract full text search queries from the BGP
@@ -427,7 +427,7 @@ export default class BGPStageBuilder extends StageBuilder {
     }
     // join the input bindings with the full text search operation
     return Pipeline.getInstance().mergeMap(source, (bindings) => {
-      let boundedPattern = bindings.bound(pattern)
+      const boundedPattern = bindings.bound(pattern)
       // delegate the actual full text search to the RDF graph
       const iterator = graph.fullTextSearch(
         boundedPattern,

@@ -58,7 +58,7 @@ declare module 'rxjs' {
 // Now TypeScript knows about the new method, and you can add it to the prototype
 Observable.prototype.toArray = function () {
   return new Promise((resolve, reject) => {
-    let results: any[] = []
+    const results: any[] = []
     this.subscribe(
       (b) => {
         results.push(b)
