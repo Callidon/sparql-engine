@@ -46,9 +46,13 @@ describe('W3C JSON formatter', () => {
       ?s dblp-rdf:authorOf ?article .
     }`
 
-    const results = await (await jsonFormatter(engine.execute(query)).toArray()).join('')
+    const results = await (
+      await jsonFormatter(engine.execute(query)).toArray()
+    ).join('')
     expect(() => JSON.parse(results)).not.toThrow()
-    expect(results).toMatchInlineSnapshot(`"{"head":{"vars": ["name","article"]},"results": {"bindings": [{"name":{"type":"literal","value":"Thomas Minier","xml:lang":"en"},"article":{"type":"uri","value":"https://dblp.org/rec/conf/esws/MinierSMV18a"}},{"name":{"type":"literal","value":"Thomas Minier","xml:lang":"en"},"article":{"type":"uri","value":"https://dblp.org/rec/conf/esws/MinierSMV18"}},{"name":{"type":"literal","value":"Thomas Minier","xml:lang":"en"},"article":{"type":"uri","value":"https://dblp.org/rec/journals/corr/abs-1806-00227"}},{"name":{"type":"literal","value":"Thomas Minier","xml:lang":"en"},"article":{"type":"uri","value":"https://dblp.org/rec/conf/esws/MinierMSM17"}},{"name":{"type":"literal","value":"Thomas Minier","xml:lang":"en"},"article":{"type":"uri","value":"https://dblp.org/rec/conf/esws/MinierMSM17a"}}]}}"`)
+    expect(results).toMatchInlineSnapshot(
+      `"{"head":{"vars": ["name","article"]},"results": {"bindings": [{"name":{"type":"literal","value":"Thomas Minier","xml:lang":"en"},"article":{"type":"uri","value":"https://dblp.org/rec/conf/esws/MinierSMV18a"}},{"name":{"type":"literal","value":"Thomas Minier","xml:lang":"en"},"article":{"type":"uri","value":"https://dblp.org/rec/conf/esws/MinierSMV18"}},{"name":{"type":"literal","value":"Thomas Minier","xml:lang":"en"},"article":{"type":"uri","value":"https://dblp.org/rec/journals/corr/abs-1806-00227"}},{"name":{"type":"literal","value":"Thomas Minier","xml:lang":"en"},"article":{"type":"uri","value":"https://dblp.org/rec/conf/esws/MinierMSM17"}},{"name":{"type":"literal","value":"Thomas Minier","xml:lang":"en"},"article":{"type":"uri","value":"https://dblp.org/rec/conf/esws/MinierMSM17a"}}]}}"`,
+    )
   })
 
   it('should evaluate ASK queries', async () => {
@@ -61,10 +65,12 @@ describe('W3C JSON formatter', () => {
       ?s dblp-rdf:primaryFullPersonName ?name .
       ?s dblp-rdf:authorOf ?article .
     }`
-    const results = (await jsonFormatter(engine.execute(query)).toArray()).join('')
+    const results = (await jsonFormatter(engine.execute(query)).toArray()).join(
+      '',
+    )
     const json = JSON.parse(results)
     expect(json).to.deep.equals({
-      boolean: true
+      boolean: true,
     })
   })
 })

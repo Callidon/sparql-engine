@@ -36,12 +36,18 @@ import { LRUBGPCache } from '../../src/engine/cache/bgp-cache'
  * @param {*} graphIRI - Graph's IRI
  */
 function formatBGP(patterns, graphIRI) {
-  return { patterns: patterns.map(formatPattern), graphIRI: rdf.createIRI(graphIRI) }
+  return {
+    patterns: patterns.map(formatPattern),
+    graphIRI: rdf.createIRI(graphIRI),
+  }
 }
 
 function formatPattern(pattern) {
-  return { subject: rdf.fromN3(pattern.subject), predicate: rdf.fromN3(pattern.predicate), object: rdf.fromN3(pattern.object) }
-
+  return {
+    subject: rdf.fromN3(pattern.subject),
+    predicate: rdf.fromN3(pattern.predicate),
+    object: rdf.fromN3(pattern.object),
+  }
 }
 
 describe('LRUBGPCache', () => {
@@ -53,31 +59,37 @@ describe('LRUBGPCache', () => {
   describe('#update/commit', () => {
     it('should supports insertion of items over time', async () => {
       const writerID = 1
-      const patterns = [{ subject: '?s', predicate: 'rdf:type', object: '?type' }]
+      const patterns = [
+        { subject: '?s', predicate: 'rdf:type', object: '?type' },
+      ]
       const bgp = formatBGP(patterns, 'http://example.org#graphA')
       const bindings = [
         BindingBase.fromObject({ '?s': ':s1', '?type': ':c1' }),
-        BindingBase.fromObject({ '?s': ':s2', '?type': ':c2' })
+        BindingBase.fromObject({ '?s': ':s2', '?type': ':c2' }),
       ]
       cache.update(bgp, bindings[0], writerID)
       cache.update(bgp, bindings[1], writerID)
       cache.commit(bgp, writerID)
       const content = await cache.get(bgp)
-      expect(content.map(x => x.toObject())).to.deep.equals(bindings.map(x => x.toObject()))
+      expect(content.map((x) => x.toObject())).to.deep.equals(
+        bindings.map((x) => x.toObject()),
+      )
     })
   })
 
   describe('#findSubset', () => {
     it('should find a subset for a Basic Graph Pattern which is partially in the cache', () => {
       // populate cache
-      const subsetPatterns = [{ subject: '?s', predicate: 'rdf:type', object: '?type' }]
+      const subsetPatterns = [
+        { subject: '?s', predicate: 'rdf:type', object: '?type' },
+      ]
       const subsetBGP = formatBGP(subsetPatterns, 'http://example.org#graphA')
       cache.update(subsetBGP, BindingBase.fromObject({ '?s': ':s1' }), 1)
       cache.commit(subsetBGP, 1)
       // search for subset
       const patterns = [
         { subject: '?s', predicate: 'rdf:type', object: '?type' },
-        { subject: '?s', predicate: 'foaf:name', object: '?name' }
+        { subject: '?s', predicate: 'foaf:name', object: '?name' },
       ]
       const bgp = formatBGP(patterns, 'http://example.org#graphA')
       const [computedSubset, computedMissing] = cache.findSubset(bgp)
@@ -87,14 +99,16 @@ describe('LRUBGPCache', () => {
 
     it('should find an empty subset for a Basic Graph Pattern with no valid subset in the cache', () => {
       // populate cache
-      const subsetPatterns = [{ subject: '?s', predicate: 'rdf:type', object: '?type' }]
+      const subsetPatterns = [
+        { subject: '?s', predicate: 'rdf:type', object: '?type' },
+      ]
       const subsetBGP = formatBGP(subsetPatterns, 'http://example.org#graphA')
       cache.update(subsetBGP, BindingBase.fromObject({ '?s': ':s1' }), 1)
       cache.commit(subsetBGP, 1)
       // search for subset
       const patterns = [
         { subject: '?s', predicate: 'foaf:knows', object: '?type' },
-        { subject: '?s', predicate: 'foaf:name', object: '?name' }
+        { subject: '?s', predicate: 'foaf:name', object: '?name' },
       ]
       const bgp = formatBGP(patterns, 'http://example.org#graphA')
       const [computedSubset, computedMissing] = cache.findSubset(bgp)
@@ -104,13 +118,21 @@ describe('LRUBGPCache', () => {
 
     it('should find the largest subset from the cache entry', () => {
       // populate cache
-      const subsetPatterns_a = [{ subject: '?s', predicate: 'rdf:type', object: '?type' }]
+      const subsetPatterns_a = [
+        { subject: '?s', predicate: 'rdf:type', object: '?type' },
+      ]
       const subsetPatterns_b = [
         { subject: '?s', predicate: 'rdf:type', object: '?type' },
-        { subject: '?s', predicate: 'foaf:name', object: '?name' }
+        { subject: '?s', predicate: 'foaf:name', object: '?name' },
       ]
-      const subsetBGP_a = formatBGP(subsetPatterns_a, 'http://example.org#graphA')
-      const subsetBGP_b = formatBGP(subsetPatterns_b, 'http://example.org#graphA')
+      const subsetBGP_a = formatBGP(
+        subsetPatterns_a,
+        'http://example.org#graphA',
+      )
+      const subsetBGP_b = formatBGP(
+        subsetPatterns_b,
+        'http://example.org#graphA',
+      )
       cache.update(subsetBGP_a, BindingBase.fromObject({ '?s': ':s1' }), 1)
       cache.commit(subsetBGP_a, 1)
       cache.update(subsetBGP_b, BindingBase.fromObject({ '?s': ':s2' }), 1)
@@ -119,7 +141,7 @@ describe('LRUBGPCache', () => {
       const patterns = [
         { subject: '?s', predicate: 'rdf:type', object: '?type' },
         { subject: '?s', predicate: 'foaf:knows', object: '?type' },
-        { subject: '?s', predicate: 'foaf:name', object: '?name' }
+        { subject: '?s', predicate: 'foaf:name', object: '?name' },
       ]
       const bgp = formatBGP(patterns, 'http://example.org#graphA')
       const [computedSubset, computedMissing] = cache.findSubset(bgp)

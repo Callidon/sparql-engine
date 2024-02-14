@@ -54,25 +54,31 @@ describe('CONSTRUCT SPARQL queries', () => {
       'https://dblp.org/rec/conf/esws/MinierSMV18',
       'https://dblp.org/rec/journals/corr/abs-1806-00227',
       'https://dblp.org/rec/conf/esws/MinierMSM17',
-      'https://dblp.org/rec/conf/esws/MinierMSM17a'
+      'https://dblp.org/rec/conf/esws/MinierMSM17a',
     ]
 
     const results = await engine.execute(query).toArray()
-    results.forEach(triple => {
+    results.forEach((triple) => {
       expect(triple).to.have.all.keys('subject', 'predicate', 'object')
-      expect(triple.subject.value).to.equal('https://dblp.org/pers/m/Minier:Thomas')
+      expect(triple.subject.value).to.equal(
+        'https://dblp.org/pers/m/Minier:Thomas',
+      )
       expect(triple.predicate.value).to.be.oneOf([
         'https://dblp.uni-trier.de/rdf/schema-2017-04-18#primaryFullPersonName',
-        'https://dblp.uni-trier.de/rdf/schema-2017-04-18#authorOf'
+        'https://dblp.uni-trier.de/rdf/schema-2017-04-18#authorOf',
       ])
-      if (triple.predicate.value === 'https://dblp.uni-trier.de/rdf/schema-2017-04-18#primaryFullPersonName') {
+      if (
+        triple.predicate.value ===
+        'https://dblp.uni-trier.de/rdf/schema-2017-04-18#primaryFullPersonName'
+      ) {
         expect(triple.object.value).to.equal('Thomas Minier')
         expect(triple.object.id).to.equal('"Thomas Minier"@en')
       } else {
         expect(triple.object.value).to.be.oneOf(expectedArticles)
-        expectedArticles = expectedArticles.filter(a => a !== triple.object.value)
+        expectedArticles = expectedArticles.filter(
+          (a) => a !== triple.object.value,
+        )
       }
-
     })
     expect(results.length).to.equal(10)
     expect(expectedArticles.length).to.equal(0)

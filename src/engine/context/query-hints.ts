@@ -41,7 +41,7 @@ export const HINT = namespace(HINT_PREFIX)
  */
 export enum QUERY_HINT_SCOPE {
   QUERY,
-  BGP
+  BGP,
 }
 
 /**
@@ -50,7 +50,7 @@ export enum QUERY_HINT_SCOPE {
 export enum QUERY_HINT {
   USE_HASH_JOIN,
   USE_SYMMETRIC_HASH_JOIN,
-  SORTED_TRIPLES
+  SORTED_TRIPLES,
 }
 
 export class QueryHints {
@@ -125,10 +125,13 @@ export class QueryHints {
   }
 }
 
-export function parseHints(bgp: SPARQL.Triple[], previous?: QueryHints): [SPARQL.Triple[], QueryHints] {
+export function parseHints(
+  bgp: SPARQL.Triple[],
+  previous?: QueryHints,
+): [SPARQL.Triple[], QueryHints] {
   let res = new QueryHints()
   const regularTriples: SPARQL.Triple[] = []
-  bgp.forEach(triple => {
+  bgp.forEach((triple) => {
     if (triple.subject.value.startsWith(HINT_PREFIX)) {
       if (HINT.Group.equals(triple.subject)) {
         switch (triple.predicate) {

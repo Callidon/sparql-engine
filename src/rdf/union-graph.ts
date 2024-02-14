@@ -48,7 +48,7 @@ export default class UnionGraph extends Graph {
    */
   constructor(graphs: Graph[]) {
     super()
-    this.iri = rdf.createIRI(graphs.map(g => g.iri.value).join('+'))
+    this.iri = rdf.createIRI(graphs.map((g) => g.iri.value).join('+'))
     this._graphs = graphs
   }
 
@@ -57,21 +57,33 @@ export default class UnionGraph extends Graph {
   }
 
   delete(triple: SPARQL.Triple): Promise<void> {
-    return this._graphs.reduce((prev, g) => prev.then(() => g.delete(triple)), Promise.resolve())
+    return this._graphs.reduce(
+      (prev, g) => prev.then(() => g.delete(triple)),
+      Promise.resolve(),
+    )
   }
 
-  find(triple: SPARQL.Triple, context: ExecutionContext): PipelineInput<SPARQL.Triple> {
-    return Pipeline.getInstance().merge(...this._graphs.map(g => g.find(triple, context)))
+  find(
+    triple: SPARQL.Triple,
+    context: ExecutionContext,
+  ): PipelineInput<SPARQL.Triple> {
+    return Pipeline.getInstance().merge(
+      ...this._graphs.map((g) => g.find(triple, context)),
+    )
   }
 
   clear(): Promise<void> {
-    return this._graphs.reduce((prev, g) => prev.then(() => g.clear()), Promise.resolve())
+    return this._graphs.reduce(
+      (prev, g) => prev.then(() => g.clear()),
+      Promise.resolve(),
+    )
   }
 
   estimateCardinality(triple: SPARQL.Triple): Promise<number> {
-    return Promise.all(this._graphs.map(g => g.estimateCardinality(triple)))
-      .then((cardinalities: number[]) => {
-        return Promise.resolve(cardinalities.reduce((acc, x) => acc + x, 0))
-      })
+    return Promise.all(
+      this._graphs.map((g) => g.estimateCardinality(triple)),
+    ).then((cardinalities: number[]) => {
+      return Promise.resolve(cardinalities.reduce((acc, x) => acc + x, 0))
+    })
   }
 }

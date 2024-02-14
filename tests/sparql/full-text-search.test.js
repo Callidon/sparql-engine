@@ -28,7 +28,6 @@ import { expect } from 'chai'
 import { beforeAll, describe, it } from 'vitest'
 import { TestEngine, getGraph } from '../utils.js'
 
-
 describe('Full Text Search SPARQL queries', () => {
   let engine = null
   beforeAll(() => {
@@ -51,9 +50,9 @@ describe('Full Text Search SPARQL queries', () => {
       results: [
         {
           '?s': 'https://dblp.org/pers/m/Minier:Thomas',
-          '?name': '"Thomas Minier"@en'
-        }
-      ]
+          '?name': '"Thomas Minier"@en',
+        },
+      ],
     },
     {
       description: 'a query with the ses:matchAllTerms parameter',
@@ -67,9 +66,9 @@ describe('Full Text Search SPARQL queries', () => {
       }`,
       results: [
         {
-          '?s': 'https://dblp.org/pers/m/Minier:Thomas.nt'
-        }
-      ]
+          '?s': 'https://dblp.org/pers/m/Minier:Thomas.nt',
+        },
+      ],
     },
     {
       description: 'a query which includes the rank and the relevance score',
@@ -89,9 +88,9 @@ describe('Full Text Search SPARQL queries', () => {
           '?s': 'https://dblp.org/pers/m/Minier:Thomas',
           '?name': '"Thomas Minier"@en',
           '?score': '"0.5"^^http://www.w3.org/2001/XMLSchema#float',
-          '?rank': '"0"^^http://www.w3.org/2001/XMLSchema#integer'
-        }
-      ]
+          '?rank': '"0"^^http://www.w3.org/2001/XMLSchema#integer',
+        },
+      ],
     },
     {
       description: 'a query which a minimum relevance score',
@@ -106,9 +105,9 @@ describe('Full Text Search SPARQL queries', () => {
       results: [
         {
           '?o': 'https://dblp.org/pers/m/Minier:Thomas',
-          '?score': '"1"^^http://www.w3.org/2001/XMLSchema#float'
-        }
-      ]
+          '?score': '"1"^^http://www.w3.org/2001/XMLSchema#float',
+        },
+      ],
     },
     {
       description: 'a query which minimum and maximum relevance scores',
@@ -124,9 +123,9 @@ describe('Full Text Search SPARQL queries', () => {
       results: [
         {
           '?o': '"provenance information for RDF data of dblp person \'m/Minier:Thomas\'"',
-          '?score': '"0.111"^^http://www.w3.org/2001/XMLSchema#float'
-        }
-      ]
+          '?score': '"0.111"^^http://www.w3.org/2001/XMLSchema#float',
+        },
+      ],
     },
     {
       description: 'a query which a maximum rank',
@@ -143,19 +142,19 @@ describe('Full Text Search SPARQL queries', () => {
         {
           '?o': 'https://dblp.org/pers/m/Minier:Thomas',
           '?score': '"1"^^http://www.w3.org/2001/XMLSchema#float',
-          '?rank': '"0"^^http://www.w3.org/2001/XMLSchema#integer'
+          '?rank': '"0"^^http://www.w3.org/2001/XMLSchema#integer',
         },
         {
           '?o': '"Thomas Minier"@en',
           '?score': '"0.5"^^http://www.w3.org/2001/XMLSchema#float',
-          '?rank': '"1"^^http://www.w3.org/2001/XMLSchema#integer'
+          '?rank': '"1"^^http://www.w3.org/2001/XMLSchema#integer',
         },
         {
           '?o': 'https://dblp.org/rec/conf/esws/MinierSMV18a',
           '?score': '"0.5"^^http://www.w3.org/2001/XMLSchema#float',
-          '?rank': '"2"^^http://www.w3.org/2001/XMLSchema#integer'
-        }
-      ]
+          '?rank': '"2"^^http://www.w3.org/2001/XMLSchema#integer',
+        },
+      ],
     },
     {
       description: 'a query which minimum and maximum ranks',
@@ -173,21 +172,21 @@ describe('Full Text Search SPARQL queries', () => {
         {
           '?o': '"Thomas Minier"@en',
           '?score': '"0.5"^^http://www.w3.org/2001/XMLSchema#float',
-          '?rank': '"1"^^http://www.w3.org/2001/XMLSchema#integer'
+          '?rank': '"1"^^http://www.w3.org/2001/XMLSchema#integer',
         },
         {
           '?o': 'https://dblp.org/rec/conf/esws/MinierSMV18a',
           '?score': '"0.5"^^http://www.w3.org/2001/XMLSchema#float',
-          '?rank': '"2"^^http://www.w3.org/2001/XMLSchema#integer'
-        }
-      ]
+          '?rank': '"2"^^http://www.w3.org/2001/XMLSchema#integer',
+        },
+      ],
     },
   ]
 
-  data.forEach(d => {
+  data.forEach((d) => {
     it(`should evaluate ${d.description}`, async () => {
       const results = await engine.execute(d.query).toArray()
-      expect(results.map(b => b.toObject())).to.deep.equals(d.results)
+      expect(results.map((b) => b.toObject())).to.deep.equals(d.results)
     })
   })
 })

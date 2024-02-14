@@ -28,7 +28,6 @@ import { expect } from 'chai'
 import { beforeAll, describe, it } from 'vitest'
 import { TestEngine, getGraph } from '../utils.js'
 
-
 describe('Queries with Turtle notation', () => {
   let engine = null
   beforeAll(() => {
@@ -49,10 +48,9 @@ describe('Queries with Turtle notation', () => {
       ] .
     }`
     const results = await engine.execute(query).toArray()
-    results.forEach(b => {
+    results.forEach((b) => {
       expect(b.toObject()).to.have.keys('?name', '?article')
     })
     expect(results.length).to.equal(5)
   })
 })
-

@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "lib": [ "es2023" ],
+    "lib": ["es2023"],
     "module": "node16",
     "target": "es2022",
     "declaration": true,
@@ -15,11 +15,6 @@
       "./types/"
     ]
   },
-  "include": [
-    "src/**/*.ts"
-  ],
-  "exclude": [
-    "node_modules/",
-    "tests/"
-  ]
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules/", "tests/"]
 }

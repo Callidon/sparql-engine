@@ -54,7 +54,9 @@ describe('W3C CSV formatter', async () => {
 "Thomas Minier"@en,https://dblp.org/rec/conf/esws/MinierMSM17
 "Thomas Minier"@en,https://dblp.org/rec/conf/esws/MinierMSM17a
 `
-    const results = (await engine.execute(query).pipe(csvFormatter).toArray()).join('')
+    const results = (
+      await engine.execute(query).pipe(csvFormatter).toArray()
+    ).join('')
     expect(results).to.equals(expected)
   })
 
@@ -68,7 +70,9 @@ describe('W3C CSV formatter', async () => {
       ?s dblp-rdf:primaryFullPersonName ?name .
       ?s dblp-rdf:authorOf ?article .
     }`
-    const results = (await engine.execute(query).pipe(csvFormatter).toArray()).join('')
+    const results = (
+      await engine.execute(query).pipe(csvFormatter).toArray()
+    ).join('')
     const expected = `boolean
 true
 `

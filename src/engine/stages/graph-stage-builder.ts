@@ -45,7 +45,11 @@ export default class GraphStageBuilder extends StageBuilder {
    * @param  options - Execution options
    * @return A {@link PipelineStage} used to evaluate a GRAPH clause
    */
-  execute(source: PipelineStage<Bindings>, pattern: SPARQL.GraphPattern, context: ExecutionContext): PipelineStage<Bindings> {
+  execute(
+    source: PipelineStage<Bindings>,
+    pattern: SPARQL.GraphPattern,
+    context: ExecutionContext,
+  ): PipelineStage<Bindings> {
     let subquery: SPARQL.Query
     if (pattern.patterns[0].type === 'query') {
       subquery = pattern.patterns[0] as SPARQL.Query
@@ -55,7 +59,7 @@ export default class GraphStageBuilder extends StageBuilder {
         queryType: 'SELECT',
         variables: [new SPARQL.Wildcard()],
         type: 'query',
-        where: pattern.patterns
+        where: pattern.patterns,
       }
     }
     // handle the case where the GRAPh IRI is a SPARQL variable
@@ -67,24 +71,39 @@ export default class GraphStageBuilder extends StageBuilder {
       if (context.namedGraphs.length > 0) {
         namedGraphs = context.namedGraphs
       } else {
-        namedGraphs = this._dataset.getAllGraphs(true).map(g => g.iri)
+        namedGraphs = this._dataset.getAllGraphs(true).map((g) => g.iri)
       }
       // build a pipeline stage that allows to peek on the first set of input bindings
-      return Pipeline.getInstance().peekIf(source, 1, values => {
-        return values[0].has(pattern.name)
-      }, values => {
-        // if the input bindings bound the graph's variable, use it as graph IRI
-        const graphIRI = values[0].get(pattern.name as rdf.Variable)!
-        return this._buildIterator(source, graphIRI as rdf.NamedNode, subquery, context)
-      }, () => {
-        // otherwise, execute the subquery using each graph, and bound the graph var to the graph iri
-        return Pipeline.getInstance().merge(...namedGraphs.map((iri: rdf.NamedNode) => {
-          const stage = this._buildIterator(source, iri, subquery, context)
-          return Pipeline.getInstance().map(stage, bindings => {
-            return bindings.extendMany([[pattern.name as rdf.Variable, iri]])
-          })
-        }))
-      })
+      return Pipeline.getInstance().peekIf(
+        source,
+        1,
+        (values) => {
+          return values[0].has(pattern.name)
+        },
+        (values) => {
+          // if the input bindings bound the graph's variable, use it as graph IRI
+          const graphIRI = values[0].get(pattern.name as rdf.Variable)!
+          return this._buildIterator(
+            source,
+            graphIRI as rdf.NamedNode,
+            subquery,
+            context,
+          )
+        },
+        () => {
+          // otherwise, execute the subquery using each graph, and bound the graph var to the graph iri
+          return Pipeline.getInstance().merge(
+            ...namedGraphs.map((iri: rdf.NamedNode) => {
+              const stage = this._buildIterator(source, iri, subquery, context)
+              return Pipeline.getInstance().map(stage, (bindings) => {
+                return bindings.extendMany([
+                  [pattern.name as rdf.Variable, iri],
+                ])
+              })
+            }),
+          )
+        },
+      )
     }
     // otherwise, execute the subquery using the Graph
     return this._buildIterator(source, pattern.name, subquery, context)
@@ -98,9 +117,18 @@ export default class GraphStageBuilder extends StageBuilder {
    * @param  options   - Execution options
    * @return A {@link PipelineStage} used to evaluate a GRAPH clause
    */
-  _buildIterator(source: PipelineStage<Bindings>, iri: rdf.NamedNode, subquery: SPARQL.Query, context: ExecutionContext): PipelineStage<Bindings> {
+  _buildIterator(
+    source: PipelineStage<Bindings>,
+    iri: rdf.NamedNode,
+    subquery: SPARQL.Query,
+    context: ExecutionContext,
+  ): PipelineStage<Bindings> {
     const opts = context.clone()
     opts.defaultGraphs = [iri]
-    return this._builder!._buildQueryPlan(subquery, opts, source) as PipelineStage<Bindings>
+    return this._builder!._buildQueryPlan(
+      subquery,
+      opts,
+      source,
+    ) as PipelineStage<Bindings>
   }
 }

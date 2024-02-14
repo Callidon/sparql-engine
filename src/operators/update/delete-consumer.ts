@@ -43,15 +43,24 @@ export default class DeleteConsumer extends Consumer {
    * @param graph - Input RDF Graph
    * @param options - Execution options
    */
-  constructor(source: PipelineStage<SPARQL.Triple>, graph: Graph, options: Object) {
+  constructor(
+    source: PipelineStage<SPARQL.Triple>,
+    graph: Graph,
+    options: Object,
+  ) {
     super(source, options)
     this._graph = graph
   }
 
-  _write(triple: SPARQL.Triple, encoding: string | undefined, done: (err?: Error) => void): void {
-    this._graph.delete(triple)
+  _write(
+    triple: SPARQL.Triple,
+    encoding: string | undefined,
+    done: (err?: Error) => void,
+  ): void {
+    this._graph
+      .delete(triple)
       .then(() => done())
-      .catch(err => {
+      .catch((err) => {
         this.emit('error', err)
         done(err)
       })

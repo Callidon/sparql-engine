@@ -37,7 +37,12 @@ import StageBuilder from './stage-builder.js'
  * @author Thomas Minier
  */
 export default class BindStageBuilder extends StageBuilder {
-  execute(source: PipelineStage<Bindings>, bindNode: SPARQL.BindPattern, customFunctions: CustomFunctions, context: ExecutionContext): PipelineStage<Bindings> {
+  execute(
+    source: PipelineStage<Bindings>,
+    bindNode: SPARQL.BindPattern,
+    customFunctions: CustomFunctions,
+    context: ExecutionContext,
+  ): PipelineStage<Bindings> {
     return bind(source, bindNode.variable, bindNode.expression, customFunctions)
   }
 }

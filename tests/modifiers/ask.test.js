@@ -63,6 +63,5 @@ describe('SPARQL ASK queries', () => {
     const results = await engine.execute(query).toArray()
     expect(results).toHaveLength(1)
     expect(results[0]).toBe(false)
-
   })
 })

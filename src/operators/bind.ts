@@ -30,7 +30,10 @@ import { PipelineStage } from '../engine/pipeline/pipeline-engine.js'
 import { Pipeline } from '../engine/pipeline/pipeline.js'
 import { Bindings } from '../rdf/bindings.js'
 import { rdf, sparql } from '../utils.js'
-import { CustomFunctions, SPARQLExpression } from './expressions/sparql-expression.js'
+import {
+  CustomFunctions,
+  SPARQLExpression,
+} from './expressions/sparql-expression.js'
 
 /**
  * Test if an object is an iterator that yields RDF Terms or null values
@@ -52,14 +55,19 @@ function isIterable(obj: Object): obj is Iterable<rdf.Term | null> {
  * @param expression - SPARQL expression
  * @return A {@link PipelineStage} which evaluate the BIND operation
  */
-export default function bind(source: PipelineStage<Bindings>, variable: rdf.Variable, expression: SPARQL.Expression, customFunctions?: CustomFunctions): PipelineStage<Bindings> {
+export default function bind(
+  source: PipelineStage<Bindings>,
+  variable: rdf.Variable,
+  expression: SPARQL.Expression,
+  customFunctions?: CustomFunctions,
+): PipelineStage<Bindings> {
   const expr = new SPARQLExpression(expression, customFunctions)
-  return Pipeline.getInstance().mergeMap(source, bindings => {
+  return Pipeline.getInstance().mergeMap(source, (bindings) => {
     try {
       const value = expr.evaluate(bindings)
       if (value !== null && (isArray(value) || isIterable(value))) {
         // build a source of bindings from the array/iterable produced by the expression's evaluation
-        return Pipeline.getInstance().fromAsync(input => {
+        return Pipeline.getInstance().fromAsync((input) => {
           try {
             for (let term of value) {
               const mu = bindings.clone()

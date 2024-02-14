@@ -36,7 +36,11 @@ import StageBuilder from './stage-builder.js'
  * @author Thomas Minier
  */
 export default class OrderByStageBuilder extends StageBuilder {
-  execute(source: PipelineStage<Bindings>, orders: SPARQL.Ordering[], context: ExecutionContext): PipelineStage<Bindings> {
+  execute(
+    source: PipelineStage<Bindings>,
+    orders: SPARQL.Ordering[],
+    context: ExecutionContext,
+  ): PipelineStage<Bindings> {
     return orderby(source, orders)
   }
 }

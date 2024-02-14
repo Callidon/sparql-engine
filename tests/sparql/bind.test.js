@@ -28,7 +28,6 @@ import { expect } from 'chai'
 import { beforeAll, describe, it } from 'vitest'
 import { TestEngine, getGraph } from '../utils.js'
 
-
 describe('SPARQL BIND', () => {
   let engine = null
   beforeAll(() => {
@@ -46,16 +45,13 @@ describe('SPARQL BIND', () => {
       BIND ("Thomas Minier"@fr AS ?name)
     }`
     const results = await engine.execute(query).toArray()
-    results.forEach(b => {
+    results.forEach((b) => {
       b = b.toObject()
       expect(b).to.have.all.keys('?s', '?name')
       expect(b['?name']).to.equal('"Thomas Minier"@fr')
-
     })
     expect(results.length).to.equal(1)
-
   })
-
 
   it('should evaluate BIND clauses with complex SPARQL expressions', async () => {
     const query = `
@@ -67,14 +63,14 @@ describe('SPARQL BIND', () => {
       BIND (10 + 20 AS ?foo)
     }`
     const results = await engine.execute(query).toArray()
-    results.forEach(b => {
+    results.forEach((b) => {
       b = b.toObject()
       expect(b).to.have.all.keys('?s', '?foo')
-      expect(b['?foo']).to.equal('"30"^^http://www.w3.org/2001/XMLSchema#integer')
-
+      expect(b['?foo']).to.equal(
+        '"30"^^http://www.w3.org/2001/XMLSchema#integer',
+      )
     })
     expect(results.length).to.equal(1)
-
   })
 
   it('should evaluate chained BIND clauses', async () => {
@@ -88,12 +84,13 @@ describe('SPARQL BIND', () => {
       BIND (10 + 20 AS ?foo)
     }`
     const results = await engine.execute(query).toArray()
-    results.forEach(b => {
+    results.forEach((b) => {
       b = b.toObject()
       expect(b).to.have.all.keys('?s', '?name', '?foo')
       expect(b['?name']).to.equal('"Thomas Minier"@fr')
-      expect(b['?foo']).to.equal('"30"^^http://www.w3.org/2001/XMLSchema#integer')
-
+      expect(b['?foo']).to.equal(
+        '"30"^^http://www.w3.org/2001/XMLSchema#integer',
+      )
     })
     expect(results.length).to.equal(1)
   })
@@ -110,15 +107,13 @@ describe('SPARQL BIND', () => {
       BIND(COALESCE(?x, ?y) AS ?undefined)
     }`
     const results = await engine.execute(query).toArray()
-    results.forEach(b => {
+    results.forEach((b) => {
       b = b.toObject()
       expect(b).to.have.all.keys('?s', '?s2', '?name', '?undefined')
       expect(b['?s2']).to.equal(b['?s'])
       expect(b['?name']).to.equal('"Thomas Minier"')
       expect(b['?undefined']).to.equal('"UNBOUND"')
-
     })
     expect(results.length).to.equal(1)
-
   })
 })

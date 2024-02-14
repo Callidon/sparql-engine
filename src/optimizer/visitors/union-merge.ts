@@ -36,8 +36,11 @@ import PlanVisitor from '../plan-visitor.js'
 export default class UnionMerge extends PlanVisitor {
   visitUnion(node: SPARQL.UnionPattern): SPARQL.Pattern {
     const newNode = cloneDeep(node)
-    const parts = partition(newNode.patterns, group => group.type === 'union')
-    const singleUnion = (parts[0] as SPARQL.GroupPattern[]).reduce((acc: SPARQL.Pattern[], c) => acc.concat(c.patterns), [])
+    const parts = partition(newNode.patterns, (group) => group.type === 'union')
+    const singleUnion = (parts[0] as SPARQL.GroupPattern[]).reduce(
+      (acc: SPARQL.Pattern[], c) => acc.concat(c.patterns),
+      [],
+    )
     newNode.patterns = parts[1].concat(singleUnion)
     return newNode
   }

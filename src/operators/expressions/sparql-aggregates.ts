@@ -37,14 +37,14 @@ import { rdf } from '../../utils.js'
  * @author Thomas Minier
  */
 export default {
-  'count': function (variable: rdf.Variable, rows: BindingGroup): rdf.Term {
+  count: function (variable: rdf.Variable, rows: BindingGroup): rdf.Term {
     let count: number = 0
     if (rows.has(variable.value)) {
       count = rows.get(variable.value)!.map((v: rdf.Term) => v !== null).length
     }
     return rdf.createInteger(count)
   },
-  'sum': function (variable: rdf.Variable, rows: BindingGroup): rdf.Term {
+  sum: function (variable: rdf.Variable, rows: BindingGroup): rdf.Term {
     let sum = 0
     if (rows.has(variable.value)) {
       sum = rows.get(variable.value)!.reduce((acc: number, b: rdf.Term) => {
@@ -57,7 +57,7 @@ export default {
     return rdf.createInteger(sum)
   },
 
-  'avg': function (variable: rdf.Variable, rows: BindingGroup): rdf.Term {
+  avg: function (variable: rdf.Variable, rows: BindingGroup): rdf.Term {
     let avg = 0
     if (rows.has(variable.value)) {
       avg = meanBy(rows.get(variable.value)!, (term: rdf.Term) => {
@@ -69,30 +69,41 @@ export default {
     return rdf.createInteger(avg)
   },
 
-  'min': function (variable: rdf.Variable, rows: BindingGroup): rdf.Term {
-    return minBy(rows.get(variable.value)!, (v: rdf.Term) => {
-      if (rdf.isLiteral(v)) {
-        return rdf.asJS(v.value, v.datatype.value)
-      }
-      return v.value
-    }) || rdf.createInteger(-1)
+  min: function (variable: rdf.Variable, rows: BindingGroup): rdf.Term {
+    return (
+      minBy(rows.get(variable.value)!, (v: rdf.Term) => {
+        if (rdf.isLiteral(v)) {
+          return rdf.asJS(v.value, v.datatype.value)
+        }
+        return v.value
+      }) || rdf.createInteger(-1)
+    )
   },
 
-  'max': function (variable: rdf.Variable, rows: BindingGroup): rdf.Term {
-    return maxBy(rows.get(variable.value)!, (v: rdf.Term) => {
-      if (rdf.isLiteral(v)) {
-        return rdf.asJS(v.value, v.datatype.value)
-      }
-      return v.value
-    }) || rdf.createInteger(-1)
+  max: function (variable: rdf.Variable, rows: BindingGroup): rdf.Term {
+    return (
+      maxBy(rows.get(variable.value)!, (v: rdf.Term) => {
+        if (rdf.isLiteral(v)) {
+          return rdf.asJS(v.value, v.datatype.value)
+        }
+        return v.value
+      }) || rdf.createInteger(-1)
+    )
   },
 
-  'group_concat': function (variable: rdf.Variable, rows: BindingGroup, sep: string): rdf.Term {
-    const value = rows.get(variable.value)!.map((v: rdf.Term) => v.value).join(sep)
+  group_concat: function (
+    variable: rdf.Variable,
+    rows: BindingGroup,
+    sep: string,
+  ): rdf.Term {
+    const value = rows
+      .get(variable.value)!
+      .map((v: rdf.Term) => v.value)
+      .join(sep)
     return rdf.createLiteral(value)
   },
 
-  'sample': function (variable: rdf.Variable, rows: BindingGroup): rdf.Term {
+  sample: function (variable: rdf.Variable, rows: BindingGroup): rdf.Term {
     return sample(rows.get(variable.value)!)!
-  }
+  },
 }

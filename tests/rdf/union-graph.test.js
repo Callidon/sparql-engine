@@ -48,20 +48,26 @@ describe('Union Graph', () => {
       const triple = {
         subject: 'http://example.org#toto',
         predicate: 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type',
-        object: 'http://example.org#Person'
+        object: 'http://example.org#Person',
       }
-      union.insert(triple)
-        .then(() => {
-          // check triples have been inserted in gA and not gB
-          let triples = gA._store.getQuads(triple.subject, triple.predicate, triple.object)
-          expect(triples.length).to.equal(1)
-          expect(triples[0].subject.value).to.equal(triple.subject)
-          expect(triples[0].predicate.value).to.equal(triple.predicate)
-          expect(triples[0].object.value).to.equal(triple.object)
-          triples = gB._store.getQuads(triple.subject, triple.predicate, triple.object)
-          expect(triples.length).to.equal(0)
-
-        })
+      union.insert(triple).then(() => {
+        // check triples have been inserted in gA and not gB
+        let triples = gA._store.getQuads(
+          triple.subject,
+          triple.predicate,
+          triple.object,
+        )
+        expect(triples.length).to.equal(1)
+        expect(triples[0].subject.value).to.equal(triple.subject)
+        expect(triples[0].predicate.value).to.equal(triple.predicate)
+        expect(triples[0].object.value).to.equal(triple.object)
+        triples = gB._store.getQuads(
+          triple.subject,
+          triple.predicate,
+          triple.object,
+        )
+        expect(triples.length).to.equal(0)
+      })
     })
   })
 
@@ -71,17 +77,23 @@ describe('Union Graph', () => {
       const triple = {
         subject: 'https://dblp.org/pers/m/Minier:Thomas',
         predicate: 'https://dblp.uni-trier.de/rdf/schema-2017-04-18#authorOf',
-        object: 'https://dblp.org/rec/conf/esws/MinierSMV18a'
+        object: 'https://dblp.org/rec/conf/esws/MinierSMV18a',
       }
-      union.delete(triple)
-        .then(() => {
-          // check triples have been inserted in gA and not gB
-          let triples = gA._store.getQuads(triple.subject, triple.predicate, triple.object)
-          expect(triples.length).to.equal(0)
-          triples = gB._store.getQuads(triple.subject, triple.predicate, triple.object)
-          expect(triples.length).to.equal(0)
-
-        })
+      union.delete(triple).then(() => {
+        // check triples have been inserted in gA and not gB
+        let triples = gA._store.getQuads(
+          triple.subject,
+          triple.predicate,
+          triple.object,
+        )
+        expect(triples.length).to.equal(0)
+        triples = gB._store.getQuads(
+          triple.subject,
+          triple.predicate,
+          triple.object,
+        )
+        expect(triples.length).to.equal(0)
+      })
     })
   })
 
@@ -90,8 +102,10 @@ describe('Union Graph', () => {
       const union = new UnionGraph([gA, gB])
       const triple = {
         subject: rdf.fromN3('https://dblp.org/pers/m/Minier:Thomas'),
-        predicate: rdf.fromN3('https://dblp.uni-trier.de/rdf/schema-2017-04-18#authorOf'),
-        object: rdf.fromN3('?article')
+        predicate: rdf.fromN3(
+          'https://dblp.uni-trier.de/rdf/schema-2017-04-18#authorOf',
+        ),
+        object: rdf.fromN3('?article'),
       }
       let nbResults = 0
       let expectedArticles = [
@@ -104,22 +118,21 @@ describe('Union Graph', () => {
         'https://dblp.org/rec/conf/esws/MinierMSM17',
         'https://dblp.org/rec/conf/esws/MinierMSM17',
         'https://dblp.org/rec/conf/esws/MinierMSM17a',
-        'https://dblp.org/rec/conf/esws/MinierMSM17a'
+        'https://dblp.org/rec/conf/esws/MinierMSM17a',
       ]
       const results = await union.find(triple).toArray()
 
-      results.forEach(b => {
+      results.forEach((b) => {
         expect(b).to.have.all.keys(['subject', 'predicate', 'object'])
         expect(b.subject.value).toEqual(triple.subject.value)
         expect(b.predicate.value).to.equal(triple.predicate.value)
         expect(b.object.value).to.be.oneOf(expectedArticles)
-        const index = expectedArticles.findIndex(v => v === b.object.value)
+        const index = expectedArticles.findIndex((v) => v === b.object.value)
         expectedArticles.splice(index, 1)
         nbResults++
       })
       expect(nbResults).to.equal(10)
       expect(expectedArticles.length).to.equal(0)
-
     })
   })
 })

@@ -38,7 +38,7 @@ import { PlanBuilder } from '../plan-builder.js'
 export default abstract class StageBuilder {
   protected _builder: PlanBuilder | null = null
 
-  constructor(protected _dataset: Dataset) { }
+  constructor(protected _dataset: Dataset) {}
 
   get builder(): PlanBuilder | null {
     return this._builder

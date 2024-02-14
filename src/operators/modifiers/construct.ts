@@ -42,14 +42,21 @@ import { rdf } from '../../utils.js'
 export default function construct(source: PipelineStage<Bindings>, query: any) {
   const rawTriples: SPARQL.Triple[] = []
   const templates: SPARQL.Triple[] = query.template.filter((t: any) => {
-    if (rdf.isVariable(t.subject) || rdf.isVariable(t.predicate) || rdf.isVariable(t.object)) {
+    if (
+      rdf.isVariable(t.subject) ||
+      rdf.isVariable(t.predicate) ||
+      rdf.isVariable(t.object)
+    ) {
       return true
     }
     rawTriples.push(t)
     return false
   })
   const engine = Pipeline.getInstance()
-  return engine.endWith(engine.flatMap(source, (bindings: Bindings) => {
-    return compact(templates.map(t => bindings.bound(t)))
-  }), rawTriples)
+  return engine.endWith(
+    engine.flatMap(source, (bindings: Bindings) => {
+      return compact(templates.map((t) => bindings.bound(t)))
+    }),
+    rawTriples,
+  )
 }

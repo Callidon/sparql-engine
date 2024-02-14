@@ -29,7 +29,6 @@ import { beforeEach, describe, it } from 'vitest'
 import { rdf } from '../../src/utils'
 import { TestEngine, getGraph } from '../utils.js'
 
-
 const GRAPH_A_IRI = rdf.createIRI('http://example.org#some-graph-a')
 const GRAPH_B_IRI = rdf.createIRI('http://example.org#some-graph-b')
 
@@ -48,7 +47,7 @@ describe('SPARQL UPDATE: DROP queries', () => {
       query: `DROP GRAPH <${GRAPH_B_IRI.value}>`,
       testFun: () => {
         expect(engine.hasNamedGraph(GRAPH_B_IRI)).to.equal(false)
-      }
+      },
     },
     {
       name: 'DROP DEFAULT',
@@ -56,20 +55,21 @@ describe('SPARQL UPDATE: DROP queries', () => {
       testFun: () => {
         expect(engine.hasNamedGraph(GRAPH_A_IRI)).to.equal(false)
         expect(engine.defaultGraphIRI()).to.equal(GRAPH_B_IRI)
-      }
+      },
     },
     {
       name: 'DROP ALL',
       query: `DROP ALL`,
       testFun: () => {
         expect(engine._dataset.iris.length).to.equal(0)
-      }
-    }
+      },
+    },
   ]
 
-  data.forEach(d => {
+  data.forEach((d) => {
     it(`should evaluate "${d.name}" queries`, async () => {
-      await engine.execute(d.query)
+      await engine
+        .execute(d.query)
         .execute()
         .then(() => {
           d.testFun()

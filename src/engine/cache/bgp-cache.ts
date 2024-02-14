@@ -35,12 +35,12 @@ import { AsyncCacheEntry, AsyncLRUCache } from './cache-base.js'
 import { AsyncCache } from './cache-interfaces.js'
 
 export interface BasicGraphPattern {
-  patterns: SPARQL.Triple[],
+  patterns: SPARQL.Triple[]
   graphIRI: rdf.NamedNode
 }
 
 interface SavedBGP {
-  bgp: BasicGraphPattern,
+  bgp: BasicGraphPattern
   key: string
 }
 
@@ -56,7 +56,8 @@ function hashBasicGraphPattern(bgp: BasicGraphPattern): string {
  * An async cache that stores the solution bindings from BGP evaluation
  * @author Thomas Minier
  */
-export interface BGPCache extends AsyncCache<BasicGraphPattern, Bindings, string> {
+export interface BGPCache
+  extends AsyncCache<BasicGraphPattern, Bindings, string> {
   /**
    * Search for a BGP in the cache that is a subset of the input BGP
    * This method enable the user to use the Semantic caching technique,
@@ -72,7 +73,10 @@ export interface BGPCache extends AsyncCache<BasicGraphPattern, Bindings, string
    * @param onCancel - Callback invoked when the cache entry is deleted before being committed, so we can produce an alternative pipeline stage to continue query processing. Typically, it is the pipeline stage used to evaluate the BGP without the cache.
    * @return A pipeline stage that returns the content of the cache entry for the given BGP
    */
-  getAsPipeline(bgp: BasicGraphPattern, onCancel?: () => PipelineStage<Bindings>): PipelineStage<Bindings>
+  getAsPipeline(
+    bgp: BasicGraphPattern,
+    onCancel?: () => PipelineStage<Bindings>,
+  ): PipelineStage<Bindings>
 }
 
 /**
@@ -97,18 +101,25 @@ export class LRUBGPCache implements BGPCache {
   constructor(maxSize: number, maxAge: number) {
     this._patternsPerBGP = new Map()
     this._allKeys = new BinarySearchTree({
-      checkValueEquality: (a: SavedBGP, b: SavedBGP) => a.key === b.key
+      checkValueEquality: (a: SavedBGP, b: SavedBGP) => a.key === b.key,
     })
-    this._cache = new AsyncLRUCache(maxSize, maxAge, (item: AsyncCacheEntry<Bindings, string>) => {
-      return item.content.length
-    }, (key: string) => {
-      // remove index entries when they slide out
-      if (this._patternsPerBGP.has(key)) {
-        const bgp = this._patternsPerBGP.get(key)!
-        bgp.patterns.forEach(pattern => this._allKeys.delete(rdf.hashTriple(pattern), { bgp, key }))
-        this._patternsPerBGP.delete(key)
-      }
-    })
+    this._cache = new AsyncLRUCache(
+      maxSize,
+      maxAge,
+      (item: AsyncCacheEntry<Bindings, string>) => {
+        return item.content.length
+      },
+      (key: string) => {
+        // remove index entries when they slide out
+        if (this._patternsPerBGP.has(key)) {
+          const bgp = this._patternsPerBGP.get(key)!
+          bgp.patterns.forEach((pattern) =>
+            this._allKeys.delete(rdf.hashTriple(pattern), { bgp, key }),
+          )
+          this._patternsPerBGP.delete(key)
+        }
+      },
+    )
   }
 
   has(bgp: BasicGraphPattern): boolean {
@@ -120,7 +131,9 @@ export class LRUBGPCache implements BGPCache {
     if (!this._cache.has(key)) {
       // update the indexes
       this._patternsPerBGP.set(key, bgp)
-      bgp.patterns.forEach(pattern => this._allKeys.insert(rdf.hashTriple(pattern), { bgp, key }))
+      bgp.patterns.forEach((pattern) =>
+        this._allKeys.insert(rdf.hashTriple(pattern), { bgp, key }),
+      )
     }
     this._cache.update(key, item, writerID)
   }
@@ -129,19 +142,24 @@ export class LRUBGPCache implements BGPCache {
     return this._cache.get(hashBasicGraphPattern(bgp))
   }
 
-  getAsPipeline(bgp: BasicGraphPattern, onCancel?: () => PipelineStage<Bindings>): PipelineStage<Bindings> {
+  getAsPipeline(
+    bgp: BasicGraphPattern,
+    onCancel?: () => PipelineStage<Bindings>,
+  ): PipelineStage<Bindings> {
     const bindings = this.get(bgp)
     if (bindings === null) {
       return Pipeline.getInstance().empty()
     }
     let iterator = Pipeline.getInstance().from(bindings)
-    return Pipeline.getInstance().mergeMap(iterator, bindings => {
+    return Pipeline.getInstance().mergeMap(iterator, (bindings) => {
       // if the results is empty AND the cache do not contains the BGP
       // it means that the entry has been deleted before its insertion completed
       if (bindings.length === 0 && !this.has(bgp)) {
-        return (onCancel === undefined) ? Pipeline.getInstance().empty() : onCancel()
+        return onCancel === undefined
+          ? Pipeline.getInstance().empty()
+          : onCancel()
       }
-      return Pipeline.getInstance().from(bindings.map(b => b.clone()))
+      return Pipeline.getInstance().from(bindings.map((b) => b.clone()))
     })
   }
 
@@ -154,7 +172,9 @@ export class LRUBGPCache implements BGPCache {
     this._cache.delete(key, writerID)
     // clear the indexes
     this._patternsPerBGP.delete(key)
-    bgp.patterns.forEach(pattern => this._allKeys.delete(rdf.hashTriple(pattern), { bgp, key }))
+    bgp.patterns.forEach((pattern) =>
+      this._allKeys.delete(rdf.hashTriple(pattern), { bgp, key }),
+    )
   }
 
   count(): number {
@@ -171,10 +191,12 @@ export class LRUBGPCache implements BGPCache {
     for (let pattern of bgp.patterns) {
       const searchResults = this._allKeys
         .search(rdf.hashTriple(pattern))
-        .filter(v => {
+        .filter((v) => {
           // remove all BGPs that are not a subset of the input BGP
           // we use lodash.findIndex + rdf.tripleEquals to check for triple pattern equality
-          return v.bgp.patterns.every(a => findIndex(bgp.patterns, b => rdf.tripleEquals(a, b)) > -1)
+          return v.bgp.patterns.every(
+            (a) => findIndex(bgp.patterns, (b) => rdf.tripleEquals(a, b)) > -1,
+          )
         })
       matches.push({ pattern, searchResults })
     }
@@ -183,13 +205,22 @@ export class LRUBGPCache implements BGPCache {
     let maxBGPLength = -1
     for (let match of matches) {
       if (match.searchResults.length > 0) {
-        const localMax = maxBy(match.searchResults, v => v.bgp.patterns.length)
-        if (localMax !== undefined && localMax.bgp.patterns.length > maxBGPLength) {
+        const localMax = maxBy(
+          match.searchResults,
+          (v) => v.bgp.patterns.length,
+        )
+        if (
+          localMax !== undefined &&
+          localMax.bgp.patterns.length > maxBGPLength
+        ) {
           maxBGPLength = localMax.bgp.patterns.length
           foundPatterns = localMax.bgp.patterns
         }
       }
     }
-    return [foundPatterns, differenceWith(bgp.patterns, foundPatterns, rdf.tripleEquals)]
+    return [
+      foundPatterns,
+      differenceWith(bgp.patterns, foundPatterns, rdf.tripleEquals),
+    ]
   }
 }

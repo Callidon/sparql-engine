@@ -43,15 +43,24 @@ export default class InsertConsumer extends Consumer {
    * @param graph - Input RDF Graph
    * @param options - Execution options
    */
-  constructor(source: PipelineStage<SPARQL.Triple>, graph: Graph, options: Object) {
+  constructor(
+    source: PipelineStage<SPARQL.Triple>,
+    graph: Graph,
+    options: Object,
+  ) {
     super(source, options)
     this._graph = graph
   }
 
-  _write(triple: SPARQL.Triple, encoding: string | undefined, done: (err?: Error) => void): void {
-    this._graph.insert(triple)
+  _write(
+    triple: SPARQL.Triple,
+    encoding: string | undefined,
+    done: (err?: Error) => void,
+  ): void {
+    this._graph
+      .insert(triple)
       .then(() => done())
-      .catch(err => {
+      .catch((err) => {
         this.emit('error', err)
         done(err)
       })

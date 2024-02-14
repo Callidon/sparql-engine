@@ -28,7 +28,6 @@ import { expect } from 'chai'
 import { beforeAll, describe, it } from 'vitest'
 import { TestEngine, getGraph } from '../utils.js'
 
-
 describe('Non standard SPARQL aggregates', () => {
   let engine = null
   beforeAll(() => {
@@ -49,9 +48,9 @@ describe('Non standard SPARQL aggregates', () => {
       GROUP BY ?x`,
       results: [
         {
-          '?acc': '"0.5"^^http://www.w3.org/2001/XMLSchema#float'
-        }
-      ]
+          '?acc': '"0.5"^^http://www.w3.org/2001/XMLSchema#float',
+        },
+      ],
     },
     {
       name: 'sea:gmean',
@@ -69,9 +68,9 @@ describe('Non standard SPARQL aggregates', () => {
       GROUP BY ?g`,
       results: [
         {
-          '?gmean': '"0.5"^^http://www.w3.org/2001/XMLSchema#float'
-        }
-      ]
+          '?gmean': '"0.5"^^http://www.w3.org/2001/XMLSchema#float',
+        },
+      ],
     },
     {
       name: 'sea:rmse',
@@ -85,18 +84,17 @@ describe('Non standard SPARQL aggregates', () => {
       GROUP BY ?g`,
       results: [
         {
-          '?mse': '"4.123105625617661"^^http://www.w3.org/2001/XMLSchema#float'
-        }
-      ]
+          '?mse': '"4.123105625617661"^^http://www.w3.org/2001/XMLSchema#float',
+        },
+      ],
     },
   ]
 
-  data.forEach(d => {
+  data.forEach((d) => {
     it(`should evaluate the "${d.name}" SPARQL aggregate`, async () => {
       const iterator = await engine.execute(d.query).toArray()
-      const results = iterator.map(b => b.toObject())
+      const results = iterator.map((b) => b.toObject())
       expect(results).to.deep.equals(d.results)
     })
   })
 })
-

@@ -41,7 +41,12 @@ import { Bindings } from '../rdf/bindings.js'
  * @param context - Execution context
  * @return A {@link PipelineStage} which evaluate the OPTIONAL operation
  */
-export default function optional(source: PipelineStage<Bindings>, patterns: SPARQL.Pattern[], builder: PlanBuilder, context: ExecutionContext): PipelineStage<Bindings> {
+export default function optional(
+  source: PipelineStage<Bindings>,
+  patterns: SPARQL.Pattern[],
+  builder: PlanBuilder,
+  context: ExecutionContext,
+): PipelineStage<Bindings> {
   const seenBefore: Bindings[] = []
   const engine = Pipeline.getInstance()
   const start = engine.tap(source, (bindings: Bindings) => {

@@ -65,14 +65,18 @@ const dataset = new HashMapDataset('http://example.org#default', graph)
 
 // Load some RDF data into the graph
 const parser = new Parser()
-parser.parse(`
+parser
+  .parse(
+    `
   @prefix foaf: <http://xmlns.com/foaf/0.1/> .
   @prefix : <http://example.org#> .
   :a foaf:name "a" .
   :b foaf:name "b" .
-`).forEach(t => {
-  graph._store.addQuad(t)
-})
+`,
+  )
+  .forEach((t) => {
+    graph._store.addQuad(t)
+  })
 
 const query = `
   PREFIX foaf: <http://xmlns.com/foaf/0.1/>
@@ -88,10 +92,14 @@ const builder = new PlanBuilder(dataset)
 const iterator = builder.build(query)
 
 // Read results
-iterator.subscribe(bindings => {
-  console.log('Find solutions:', bindings.toObject())
-}, err => {
-  console.error('error', err)
-}, () => {
-  console.log('Query evaluation complete!')
-})
+iterator.subscribe(
+  (bindings) => {
+    console.log('Find solutions:', bindings.toObject())
+  },
+  (err) => {
+    console.error('error', err)
+  },
+  () => {
+    console.log('Query evaluation complete!')
+  },
+)

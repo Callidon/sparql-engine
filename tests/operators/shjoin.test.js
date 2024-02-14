@@ -38,27 +38,37 @@ describe('Symmetric Hash Join operator', () => {
     nbEach.set('http://example.org#tata', 0)
     const left = from([
       BindingBase.fromObject({ '?x': 'http://example.org#toto' }),
-      BindingBase.fromObject({ '?x': 'http://example.org#titi' })
+      BindingBase.fromObject({ '?x': 'http://example.org#titi' }),
     ])
     const right = from([
       BindingBase.fromObject({ '?x': 'http://example.org#toto', '?y': '"1"' }),
       BindingBase.fromObject({ '?x': 'http://example.org#toto', '?y': '"2"' }),
       BindingBase.fromObject({ '?x': 'http://example.org#toto', '?y': '"3"' }),
       BindingBase.fromObject({ '?x': 'http://example.org#titi', '?y': '"4"' }),
-      BindingBase.fromObject({ '?x': 'http://example.org#tata', '?y': '"5"' })
+      BindingBase.fromObject({ '?x': 'http://example.org#tata', '?y': '"5"' }),
     ])
 
-    const results = await symHashJoin(rdf.createVariable('?x'), left, right).toArray()
-    results.forEach(value => {
+    const results = await symHashJoin(
+      rdf.createVariable('?x'),
+      left,
+      right,
+    ).toArray()
+    results.forEach((value) => {
       expect(value.toObject()).to.have.all.keys('?x', '?y')
       switch (value.getVariable('?x').value) {
         case 'http://example.org#toto':
           expect(value.getVariable('?y').value).to.be.oneOf(['1', '2', '3'])
-          nbEach.set('http://example.org#toto', nbEach.get('http://example.org#toto') + 1)
+          nbEach.set(
+            'http://example.org#toto',
+            nbEach.get('http://example.org#toto') + 1,
+          )
           break
         case 'http://example.org#titi':
           expect(value.getVariable('?y').value).to.be.oneOf(['4'])
-          nbEach.set('http://example.org#titi', nbEach.get('http://example.org#titi') + 1)
+          nbEach.set(
+            'http://example.org#titi',
+            nbEach.get('http://example.org#titi') + 1,
+          )
           break
         default:
           throw new Error(`Unexpected "?x" value: ${value.get('?x')}`)
@@ -67,7 +77,5 @@ describe('Symmetric Hash Join operator', () => {
     expect(results).toHaveLength(4)
     expect(nbEach.get('http://example.org#toto')).toBe(3)
     expect(nbEach.get('http://example.org#titi')).toBe(1)
-
   })
 })
-

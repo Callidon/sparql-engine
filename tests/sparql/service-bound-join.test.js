@@ -28,7 +28,6 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import { rdf } from '../../src/utils'
 import { TestEngine, getGraph } from '../utils.js'
 
-
 const GRAPH_A_IRI = rdf.createIRI('http://example.org#some-graph-a')
 const GRAPH_B_IRI = rdf.createIRI('http://example.org#some-graph-b')
 
@@ -40,7 +39,7 @@ describe('SERVICE queries (using bound joins)', () => {
     gA = getGraph('./tests/data/dblp.nt', true)
     gB = getGraph('./tests/data/dblp2.nt', true)
     engine = new TestEngine(gA, GRAPH_A_IRI)
-    engine._dataset.setGraphFactory(iri => {
+    engine._dataset.setGraphFactory((iri) => {
       if (iri.equals(GRAPH_B_IRI)) {
         return gB
       }
@@ -71,9 +70,9 @@ describe('SERVICE queries (using bound joins)', () => {
           'https://dblp.org/rec/conf/esws/MinierSMV18',
           'https://dblp.org/rec/journals/corr/abs-1806-00227',
           'https://dblp.org/rec/conf/esws/MinierMSM17',
-          'https://dblp.org/rec/conf/esws/MinierMSM17a'
+          'https://dblp.org/rec/conf/esws/MinierMSM17a',
         ])
-      }
+      },
     },
     {
       text: 'should evaluate simple SERVICE queries that requires containement queries',
@@ -91,7 +90,7 @@ describe('SERVICE queries (using bound joins)', () => {
       testFun: function (b) {
         expect(b).to.have.all.keys(['?s'])
         expect(b['?s']).to.equal('https://dblp.org/pers/m/Minier:Thomas')
-      }
+      },
     },
     {
       text: 'should evaluate complex SERVICE queries that requires containement queries',
@@ -115,21 +114,19 @@ describe('SERVICE queries (using bound joins)', () => {
           'https://dblp.org/rec/conf/esws/MinierSMV18',
           'https://dblp.org/rec/journals/corr/abs-1806-00227',
           'https://dblp.org/rec/conf/esws/MinierMSM17',
-          'https://dblp.org/rec/conf/esws/MinierMSM17a'
+          'https://dblp.org/rec/conf/esws/MinierMSM17a',
         ])
-      }
+      },
     },
   ]
 
-  data.forEach(d => {
+  data.forEach((d) => {
     it(d.text, async () => {
       const results = await engine.execute(d.query).toArray()
-      results.forEach(b => {
+      results.forEach((b) => {
         d.testFun(b.toObject())
       })
       expect(results).toHaveLength(d.nbResults)
-
     })
   })
 })
-

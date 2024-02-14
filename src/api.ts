@@ -54,18 +54,26 @@ const stages = {
   OptionalStageBuilder,
   OrderByStageBuilder,
   UnionStageBuilder,
-  UpdateStageBuilder
+  UpdateStageBuilder,
 }
 
 // base types
 export { default as ExecutionContext } from './engine/context/execution-context.js'
-export { PipelineEngine, PipelineInput, PipelineStage, StreamPipelineInput } from './engine/pipeline/pipeline-engine.js'
+export {
+  PipelineEngine,
+  PipelineInput,
+  PipelineStage,
+  StreamPipelineInput,
+} from './engine/pipeline/pipeline-engine.js'
 // pipeline
 export { Pipeline } from './engine/pipeline/pipeline.js'
 export { default as RxjsPipeline } from './engine/pipeline/rxjs-pipeline.js'
 export { default as VectorPipeline } from './engine/pipeline/vector-pipeline.js'
 export { PlanBuilder } from './engine/plan-builder.js'
-export { csvFormatter as CSVFormat, tsvFormatter as TSVFormat } from './formatters/csv-tsv-formatter.js'
+export {
+  csvFormatter as CSVFormat,
+  tsvFormatter as TSVFormat,
+} from './formatters/csv-tsv-formatter.js'
 // Formatters
 export { default as JsonFormat } from './formatters/json-formatter.js'
 export { BindingBase, Bindings } from './rdf/bindings.js'
@@ -75,5 +83,3 @@ export { default as HashMapDataset } from './rdf/hashmap-dataset.js'
 // RDF terms Utilities
 export { rdf } from './utils.js'
 export { stages }
-
-

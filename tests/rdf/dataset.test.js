@@ -29,7 +29,6 @@ import { describe, it } from 'vitest'
 import { Dataset, Graph, HashMapDataset } from '../../src/api'
 import { rdf } from '../../src/utils'
 
-
 describe('Dataset', () => {
   it('should enforce subclasses to implement a "setDefaultGraph" method', () => {
     const d = new Dataset()
@@ -60,7 +59,7 @@ describe('Dataset', () => {
     d.addNamedGraph(GRAPH_B_IRI, gB)
     const all = d.getAllGraphs()
     expect(all.length).to.equal(2)
-    all.forEach(g => {
+    all.forEach((g) => {
       expect(g.iri).to.be.oneOf([GRAPH_A_IRI, GRAPH_B_IRI])
     })
   })
@@ -76,7 +75,7 @@ describe('Dataset', () => {
     it('should provides an UnionGraph (including the Default Graph)', () => {
       const union = d.getUnionGraph([GRAPH_B_IRI], true)
       expect(union._graphs.length).to.equal(2)
-      union._graphs.forEach(g => {
+      union._graphs.forEach((g) => {
         expect(g.iri).to.be.oneOf([GRAPH_A_IRI, GRAPH_B_IRI])
       })
     })

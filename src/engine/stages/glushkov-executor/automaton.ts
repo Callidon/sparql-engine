@@ -29,7 +29,6 @@ SOFTWARE.
  * @author Julien Aimonier-Davat
  */
 export class State<T> {
-
   /**
    * Constructor
    * @param name - Name of the State. Must be unique.
@@ -39,7 +38,8 @@ export class State<T> {
   constructor(
     private _name: T,
     private _isInitial: boolean,
-    private _isFinal: boolean) { }
+    private _isFinal: boolean,
+  ) {}
 
   /**
    * Get the name of the State
@@ -81,9 +81,11 @@ export class State<T> {
    * @return True if the States are equal, False otherwise
    */
   equals(state: State<T>): boolean {
-    return this.name === state.name
-      && this._isInitial === state._isInitial
-      && this._isFinal === state.isFinal
+    return (
+      this.name === state.name &&
+      this._isInitial === state._isInitial &&
+      this._isFinal === state.isFinal
+    )
   }
 
   toString(): string {
@@ -95,7 +97,6 @@ export class State<T> {
  * A transition of the automaton
  */
 export class Transition<T, P> {
-
   /**
    * Constructor
    * @param from - State from which the transition starts
@@ -113,7 +114,8 @@ export class Transition<T, P> {
     private _negation: boolean,
     //FIXME change to termSet
     private _predicates: Array<P>,
-    private _hasFunction: (current: Array<P>, toTest: P) => boolean) { }
+    private _hasFunction: (current: Array<P>, toTest: P) => boolean,
+  ) {}
 
   /**
    * Get the State from which the transition starts
@@ -166,11 +168,13 @@ export class Transition<T, P> {
    * @return True if the Transitions are equal, False otherwise
    */
   equals(transition: Transition<T, P>): boolean {
-    return this.from === transition.from
-      && this.to === transition.to
-      && this.reverse === transition.reverse
-      && this.negation === transition.negation
-      && this.predicates === transition.predicates
+    return (
+      this.from === transition.from &&
+      this.to === transition.to &&
+      this.reverse === transition.reverse &&
+      this.negation === transition.negation &&
+      this.predicates === transition.predicates
+    )
   }
 
   toString(): string {
@@ -322,11 +326,11 @@ export class Automaton<T, P> {
   toString(): string {
     let result: string = '\n============ Automate ============\n'
     result += '\nETATS:\n\n'
-    this.states.forEach(state => {
+    this.states.forEach((state) => {
       result += `${state.toString()}\n`
     })
     result += '\nTRANSITIONS:\n\n'
-    this.transitions.forEach(transition => {
+    this.transitions.forEach((transition) => {
       result += `${transition.toString()}\n`
     })
     result += '\n============ Automate ============\n'

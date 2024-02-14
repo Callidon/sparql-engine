@@ -29,7 +29,6 @@ import { beforeEach, describe, it } from 'vitest'
 import { rdf } from '../../src/utils'
 import { TestEngine, getGraph } from '../utils.js'
 
-
 const GRAPH_A_IRI = rdf.createIRI('http://example.org#some-graph-a')
 const GRAPH_B_IRI = rdf.createIRI('http://example.org#some-graph-b')
 
@@ -47,27 +46,31 @@ describe('SPARQL UPDATE: ADD queries', () => {
       name: 'ADD DEFAULT to NAMED',
       query: `ADD DEFAULT TO <${GRAPH_B_IRI.value}>`,
       testFun: () => {
-        const triples = engine.getNamedGraph(GRAPH_B_IRI)._store.getQuads('https://dblp.org/pers/m/Minier:Thomas')
+        const triples = engine
+          .getNamedGraph(GRAPH_B_IRI)
+          ._store.getQuads('https://dblp.org/pers/m/Minier:Thomas')
         expect(triples.length).to.equal(11)
-      }
+      },
     },
     {
       name: 'ADD NAMED to DEFAULT',
       query: `ADD <${GRAPH_B_IRI.value}> TO DEFAULT`,
       testFun: () => {
-        const triples = engine._graph._store.getQuads('https://dblp.org/pers/g/Grall:Arnaud')
+        const triples = engine._graph._store.getQuads(
+          'https://dblp.org/pers/g/Grall:Arnaud',
+        )
         expect(triples.length).to.equal(10)
-      }
-    }
+      },
+    },
   ]
 
-  data.forEach(d => {
+  data.forEach((d) => {
     it(`should evaluate "${d.name}" queries`, async () => {
-      await engine.execute(d.query)
+      await engine
+        .execute(d.query)
         .execute()
         .then(() => {
           d.testFun()
-
         })
     })
   })

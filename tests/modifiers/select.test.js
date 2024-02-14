@@ -45,7 +45,7 @@ describe('SELECT SPARQL queries', () => {
       ?s dblp-rdf:authorOf ?article .
     }`
     const results = await engine.execute(query).toArray()
-    results.forEach(b => {
+    results.forEach((b) => {
       expect(b.hasVariable('name')).toBe(true)
       expect(b.hasVariable('article')).toBe(true)
     })
@@ -64,13 +64,12 @@ describe('SELECT SPARQL queries', () => {
     }`
     const results = await engine.execute(query).toArray()
 
-    results.forEach(b => {
+    results.forEach((b) => {
       expect(b.hasVariable('?name')).toBe(true)
       expect(b.hasVariable('?article')).toBe(true)
       expect(b.hasVariable('?s')).toBe(true)
     })
     expect(results.length).to.equal(5)
-
   })
 
   it('should evaluate SELECT DISTINCT queries', async ({ expect }) => {
@@ -88,7 +87,7 @@ describe('SELECT SPARQL queries', () => {
       }
     }`
     const results = await engine.execute(query).toArray()
-    results.forEach(b => {
+    results.forEach((b) => {
       expect(b.hasVariable('?name')).toBe(true)
     })
     expect(results.length).to.equal(1)

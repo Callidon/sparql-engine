@@ -36,9 +36,17 @@ import StageBuilder from './stage-builder.js'
  * @author Thomas Minier
  */
 export default class MinusStageBuilder extends StageBuilder {
-  execute(source: PipelineStage<Bindings>, pattern: SPARQL.MinusPattern, context: ExecutionContext): PipelineStage<Bindings> {
+  execute(
+    source: PipelineStage<Bindings>,
+    pattern: SPARQL.MinusPattern,
+    context: ExecutionContext,
+  ): PipelineStage<Bindings> {
     const engine = Pipeline.getInstance()
-    const rightSource = this.builder!._buildWhere(engine.of(new BindingBase()), pattern.patterns, context)
+    const rightSource = this.builder!._buildWhere(
+      engine.of(new BindingBase()),
+      pattern.patterns,
+      context,
+    )
     return minus(source, rightSource)
   }
 }

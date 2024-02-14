@@ -33,26 +33,35 @@ describe('Bind operator', () => {
   it('should bind results of valid SPARQL expression to a variable', async () => {
     let nbResults = 0
     const source = from([
-      BindingBase.fromObject({ '?x': '"1"^^http://www.w3.org/2001/XMLSchema#integer', '?y': '"2"^^http://www.w3.org/2001/XMLSchema#integer' }),
-      BindingBase.fromObject({ '?x': '"2"^^http://www.w3.org/2001/XMLSchema#integer', '?y': '"3"^^http://www.w3.org/2001/XMLSchema#integer' })
+      BindingBase.fromObject({
+        '?x': '"1"^^http://www.w3.org/2001/XMLSchema#integer',
+        '?y': '"2"^^http://www.w3.org/2001/XMLSchema#integer',
+      }),
+      BindingBase.fromObject({
+        '?x': '"2"^^http://www.w3.org/2001/XMLSchema#integer',
+        '?y': '"3"^^http://www.w3.org/2001/XMLSchema#integer',
+      }),
     ])
     const expr = {
       type: 'operation',
       operator: '+',
-      args: [rdf.createVariable('?x'), rdf.createVariable('?y')]
+      args: [rdf.createVariable('?x'), rdf.createVariable('?y')],
     }
     const results = await bind(source, rdf.createVariable('?z'), expr).toArray()
-    results.forEach(value => {
+    results.forEach((value) => {
       expect(value.toObject()).to.have.all.keys('?x', '?y', '?z')
       if (value.getVariable('?x').value.startsWith('1')) {
-        expect(value.getVariable('?z').value).to.equal("3")
-        expect(value.getVariable('?z').datatype.value).to.equal('http://www.w3.org/2001/XMLSchema#integer')
+        expect(value.getVariable('?z').value).to.equal('3')
+        expect(value.getVariable('?z').datatype.value).to.equal(
+          'http://www.w3.org/2001/XMLSchema#integer',
+        )
       } else {
-        expect(value.getVariable('?z').value).to.equal("5")
-        expect(value.getVariable('?z').datatype.value).to.equal('http://www.w3.org/2001/XMLSchema#integer')
+        expect(value.getVariable('?z').value).to.equal('5')
+        expect(value.getVariable('?z').datatype.value).to.equal(
+          'http://www.w3.org/2001/XMLSchema#integer',
+        )
       }
     })
     expect(results).toHaveLength(2)
-
   })
 })

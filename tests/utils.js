@@ -39,7 +39,7 @@ function getGraph(filePaths, isUnion = false) {
   if (typeof filePaths === 'string') {
     graph.parse(filePaths)
   } else if (isArray(filePaths)) {
-    filePaths.forEach(filePath => graph.parse(filePath))
+    filePaths.forEach((filePath) => graph.parse(filePath))
   }
   return graph
 }
@@ -69,7 +69,7 @@ class N3Graph extends Graph {
 
   parse(file) {
     const content = fs.readFileSync(file).toString('utf-8')
-    this._parser.parse(content).forEach(t => {
+    this._parser.parse(content).forEach((t) => {
       this._store.addQuad(t)
     })
   }
@@ -98,7 +98,7 @@ class N3Graph extends Graph {
 
   find(triple) {
     const { subject, predicate, object } = formatTriplePattern(triple)
-    return this._store.getQuads(subject, predicate, object).map(t => {
+    return this._store.getQuads(subject, predicate, object).map((t) => {
       return pick(t, ['subject', 'predicate', 'object'])
     })
   }
@@ -121,14 +121,17 @@ class UnionN3Graph extends N3Graph {
   }
 
   evalUnion(patterns, context) {
-    return Pipeline.getInstance().merge(...patterns.map(pattern => this.evalBGP(pattern, context)))
+    return Pipeline.getInstance().merge(
+      ...patterns.map((pattern) => this.evalBGP(pattern, context)),
+    )
   }
 }
 
 class TestEngine {
   constructor(graph, defaultGraphIRI = null, customOperations = {}) {
     this._graph = graph
-    this._defaultGraphIRI = (defaultGraphIRI === null) ? this._graph.iri : defaultGraphIRI
+    this._defaultGraphIRI =
+      defaultGraphIRI === null ? this._graph.iri : defaultGraphIRI
     this._dataset = new HashMapDataset(this._defaultGraphIRI, this._graph)
     this._builder = new PlanBuilder(this._dataset, {}, customOperations)
   }
@@ -158,5 +161,5 @@ class TestEngine {
 module.exports = {
   getGraph,
   TestEngine,
-  N3Graph
+  N3Graph,
 }

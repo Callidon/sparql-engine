@@ -29,7 +29,6 @@ import { beforeEach, describe, it } from 'vitest'
 import { rdf } from '../../src/utils'
 import { TestEngine, getGraph } from '../utils.js'
 
-
 const GRAPH_A_IRI = rdf.createIRI('http://example.org#some-graph-a')
 const GRAPH_B_IRI = rdf.createIRI('http://example.org#some-graph-b')
 
@@ -49,7 +48,7 @@ describe('SPARQL UPDATE: CLEAR queries', () => {
       testFun: () => {
         const triples = engine._graph._store.getQuads()
         expect(triples.length).to.equal(0)
-      }
+      },
     },
     {
       name: 'CLEAR ALL',
@@ -59,7 +58,7 @@ describe('SPARQL UPDATE: CLEAR queries', () => {
         expect(triples.length).to.equal(0)
         triples = engine.getNamedGraph(GRAPH_B_IRI)._store.getQuads()
         expect(triples.length).to.equal(0)
-      }
+      },
     },
     {
       name: 'CLEAR NAMED',
@@ -69,7 +68,7 @@ describe('SPARQL UPDATE: CLEAR queries', () => {
         expect(triples.length).to.not.equal(0)
         triples = engine.getNamedGraph(GRAPH_B_IRI)._store.getQuads()
         expect(triples.length).to.equal(0)
-      }
+      },
     },
     {
       name: 'CLEAR GRAPH',
@@ -79,13 +78,14 @@ describe('SPARQL UPDATE: CLEAR queries', () => {
         expect(triples.length).to.not.equal(0)
         triples = engine.getNamedGraph(GRAPH_B_IRI)._store.getQuads()
         expect(triples.length).to.equal(0)
-      }
-    }
+      },
+    },
   ]
 
-  data.forEach(d => {
+  data.forEach((d) => {
     it(`should evaluate ${d.name} queries`, async () => {
-      await engine.execute(d.query)
+      await engine
+        .execute(d.query)
         .execute()
         .then(() => {
           d.testFun()

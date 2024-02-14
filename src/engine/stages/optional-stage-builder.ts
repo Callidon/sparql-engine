@@ -36,7 +36,11 @@ import StageBuilder from './stage-builder.js'
  * @author Thomas Minier
  */
 export default class OptionalStageBuilder extends StageBuilder {
-  execute(source: PipelineStage<Bindings>, node: SPARQL.OptionalPattern, context: ExecutionContext): PipelineStage<Bindings> {
+  execute(
+    source: PipelineStage<Bindings>,
+    node: SPARQL.OptionalPattern,
+    context: ExecutionContext,
+  ): PipelineStage<Bindings> {
     return optional(source, node.patterns, this.builder!, context)
   }
 }

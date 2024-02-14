@@ -28,7 +28,6 @@ import { expect } from 'chai'
 import { describe, it } from 'vitest'
 import { Graph } from '../../src/api'
 
-
 describe('Graph', () => {
   it('should enforce subclasses to implement an "insert" method', () => {
     const g = new Graph()

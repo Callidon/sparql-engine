@@ -52,7 +52,7 @@ describe('SPARQL queries with LIMIT/OFFSET', () => {
         'https://dblp.org/rec/conf/esws/MinierSMV18',
         'https://dblp.org/rec/conf/esws/MinierMSM17a',
         'https://dblp.org/rec/conf/esws/MinierMSM17',
-      ]
+      ],
     },
     {
       text: 'should evaluate SPARQL queries with LIMIT',
@@ -70,7 +70,7 @@ describe('SPARQL queries with LIMIT/OFFSET', () => {
       results: [
         'https://dblp.org/rec/journals/corr/abs-1806-00227',
         'https://dblp.org/rec/conf/esws/MinierSMV18a',
-      ]
+      ],
     },
     {
       text: 'should evaluate SPARQL queries with LIMIT & OFFSET',
@@ -89,16 +89,16 @@ describe('SPARQL queries with LIMIT/OFFSET', () => {
       results: [
         'https://dblp.org/rec/conf/esws/MinierMSM17a',
         'https://dblp.org/rec/conf/esws/MinierMSM17',
-      ]
-    }
+      ],
+    },
   ]
 
-  data.forEach(d => {
+  data.forEach((d) => {
     it(d.text, async () => {
       const expectedCardinality = d.results.length
       const results = await engine.execute(d.query).toArray()
       expect(results).toHaveLength(expectedCardinality)
-      results.forEach(b => {
+      results.forEach((b) => {
         const value = b.getVariable('article').value
         expect(d.results.includes(value)).toBe(true)
         d.results.splice(d.results.indexOf(value), 1)

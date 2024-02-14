@@ -43,12 +43,14 @@ function _hashBindings(variables: rdf.Variable[], bindings: Bindings): string {
   if (variables.length === 0) {
     return 'http://callidon.github.io/sparql-engine#DefaultGroupKey'
   }
-  return variables.map(v => {
-    if (bindings.has(v)) {
-      return bindings.get(v)!.value
-    }
-    return 'null'
-  }).join(';')
+  return variables
+    .map((v) => {
+      if (bindings.has(v)) {
+        return bindings.get(v)!.value
+      }
+      return 'null'
+    })
+    .join(';')
 }
 
 /**
@@ -59,7 +61,10 @@ function _hashBindings(variables: rdf.Variable[], bindings: Bindings): string {
  * @param variables - GROUP BY variables
  * @return A {@link PipelineStage} which evaluate the GROUP BY operation
  */
-export default function sparqlGroupBy(source: PipelineStage<Bindings>, variables: rdf.Variable[]) {
+export default function sparqlGroupBy(
+  source: PipelineStage<Bindings>,
+  variables: rdf.Variable[],
+) {
   const groups: Map<string, BindingGroup> = new Map()
   const keys: Map<string, Bindings> = new Map()
   const engine = Pipeline.getInstance()
@@ -68,13 +73,22 @@ export default function sparqlGroupBy(source: PipelineStage<Bindings>, variables
     const key = _hashBindings(variables, bindings)
     // create a new group is needed
     if (!groups.has(key)) {
-      keys.set(key, bindings.filter(variable => sortedIndexOf(groupVariables.map(gv => gv.value), variable.value) > -1))
+      keys.set(
+        key,
+        bindings.filter(
+          (variable) =>
+            sortedIndexOf(
+              groupVariables.map((gv) => gv.value),
+              variable.value,
+            ) > -1,
+        ),
+      )
       groups.set(key, new Map())
     }
     // parse each binding in the intermediate format used by SPARQL expressions
     // and insert it into the corresponding group
     bindings.forEach((variable, value) => {
-      if (!(groups.get(key)!.has(variable.value))) {
+      if (!groups.get(key)!.has(variable.value)) {
         groups.get(key)!.set(variable.value, [value])
       } else {
         groups.get(key)!.get(variable.value)!.push(value)

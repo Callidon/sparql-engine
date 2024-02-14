@@ -29,7 +29,6 @@ import { beforeEach, describe, it } from 'vitest'
 import { rdf } from '../../src/utils'
 import { TestEngine, getGraph } from '../utils.js'
 
-
 const GRAPH_A_IRI = rdf.createIRI('http://example.org#some-graph-a')
 const GRAPH_B_IRI = rdf.createIRI('http://example.org#some-graph-b')
 
@@ -48,34 +47,43 @@ describe('SPARQL UPDATE: COPY queries', () => {
       query: `COPY DEFAULT TO <${GRAPH_B_IRI.value}>`,
       testFun: () => {
         // destination graph should only contains data from the source
-        let triples = engine.getNamedGraph(GRAPH_B_IRI)._store.getQuads('https://dblp.org/pers/m/Minier:Thomas')
+        let triples = engine
+          .getNamedGraph(GRAPH_B_IRI)
+          ._store.getQuads('https://dblp.org/pers/m/Minier:Thomas')
         expect(triples.length).to.equal(11)
-        triples = engine.getNamedGraph(GRAPH_B_IRI)._store.getQuads('https://dblp.org/pers/g/Grall:Arnaud')
+        triples = engine
+          .getNamedGraph(GRAPH_B_IRI)
+          ._store.getQuads('https://dblp.org/pers/g/Grall:Arnaud')
         expect(triples.length).to.equal(0)
         // source graph should not be empty
         triples = engine._graph._store.getQuads()
         expect(triples.length).to.not.equal(0)
-      }
+      },
     },
     {
       name: 'COPY NAMED to DEFAULT',
       query: `COPY <${GRAPH_B_IRI.value}> TO DEFAULT`,
       testFun: () => {
         // destination graph should only contains data from the source
-        let triples = engine._graph._store.getQuads('https://dblp.org/pers/g/Grall:Arnaud')
+        let triples = engine._graph._store.getQuads(
+          'https://dblp.org/pers/g/Grall:Arnaud',
+        )
         expect(triples.length).to.equal(10)
-        triples = engine._graph._store.getQuads('https://dblp.org/pers/m/Minier:Thomas')
+        triples = engine._graph._store.getQuads(
+          'https://dblp.org/pers/m/Minier:Thomas',
+        )
         expect(triples.length).to.equal(0)
         // source graph should not be empty
         triples = engine.getNamedGraph(GRAPH_B_IRI)._store.getQuads()
         expect(triples.length).to.not.equal(0)
-      }
-    }
+      },
+    },
   ]
 
-  data.forEach(d => {
+  data.forEach((d) => {
     it(`should evaluate "${d.name}" queries`, async () => {
-      await engine.execute(d.query)
+      await engine
+        .execute(d.query)
         .execute()
         .then(() => {
           d.testFun()

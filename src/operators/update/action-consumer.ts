@@ -29,10 +29,10 @@ import { Consumable } from './consumer.js'
  * @author Thomas Minier
  */
 export default class ActionConsumer implements Consumable {
-  constructor(private _action: () => void) { }
+  constructor(private _action: () => void) {}
 
   execute(): Promise<void> {
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       this._action()
       resolve()
     })

@@ -53,7 +53,9 @@ describe('W3C TSV formatter', () => {
 "Thomas Minier"@en\thttps://dblp.org/rec/conf/esws/MinierMSM17
 "Thomas Minier"@en\thttps://dblp.org/rec/conf/esws/MinierMSM17a
 `
-    const results = (await engine.execute(query).pipe(tsvFormatter).toArray()).join('')
+    const results = (
+      await engine.execute(query).pipe(tsvFormatter).toArray()
+    ).join('')
     expect(results).to.equals(expected)
   })
 
@@ -71,7 +73,9 @@ describe('W3C TSV formatter', () => {
     const expected = `boolean
 true
 `
-    const results = (await engine.execute(query).pipe(tsvFormatter).toArray()).join('')
+    const results = (
+      await engine.execute(query).pipe(tsvFormatter).toArray()
+    ).join('')
     expect(results).to.equals(expected)
   })
 })

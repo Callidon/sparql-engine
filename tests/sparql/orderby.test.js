@@ -27,7 +27,6 @@ SOFTWARE.
 import { beforeAll, describe, expect, it } from 'vitest'
 import { TestEngine, getGraph } from '../utils.js'
 
-
 describe('ORDER BY queries', () => {
   let engine = null
   beforeAll(() => {
@@ -51,11 +50,11 @@ describe('ORDER BY queries', () => {
       'https://dblp.org/rec/conf/esws/MinierMSM17a',
       'https://dblp.org/rec/conf/esws/MinierSMV18',
       'https://dblp.org/rec/conf/esws/MinierSMV18a',
-      'https://dblp.org/rec/journals/corr/abs-1806-00227'
+      'https://dblp.org/rec/journals/corr/abs-1806-00227',
     ]
 
     const actual = await engine.execute(query).toArray()
-    actual.forEach(b => {
+    actual.forEach((b) => {
       b = b.toObject()
       expect(b['?article']).to.equal(results[0])
       results.shift()
@@ -79,11 +78,11 @@ describe('ORDER BY queries', () => {
       'https://dblp.org/rec/conf/esws/MinierSMV18a',
       'https://dblp.org/rec/conf/esws/MinierSMV18',
       'https://dblp.org/rec/conf/esws/MinierMSM17a',
-      'https://dblp.org/rec/conf/esws/MinierMSM17'
+      'https://dblp.org/rec/conf/esws/MinierMSM17',
     ]
 
     const iterator = await engine.execute(query).toArray()
-    iterator.forEach(b => {
+    iterator.forEach((b) => {
       b = b.toObject()
       expect(b['?article']).to.equal(results[0])
       results.shift()
@@ -107,11 +106,11 @@ describe('ORDER BY queries', () => {
       'https://dblp.org/rec/conf/esws/MinierSMV18a',
       'https://dblp.org/rec/conf/esws/MinierSMV18',
       'https://dblp.org/rec/conf/esws/MinierMSM17a',
-      'https://dblp.org/rec/conf/esws/MinierMSM17'
+      'https://dblp.org/rec/conf/esws/MinierMSM17',
     ]
 
     const iterator = await engine.execute(query).toArray()
-    iterator.forEach(b => {
+    iterator.forEach((b) => {
       b = b.toObject()
       expect(b['?article']).to.equal(results[0])
       results.shift()
@@ -119,4 +118,3 @@ describe('ORDER BY queries', () => {
     expect(results.length).to.equal(0)
   })
 })
-

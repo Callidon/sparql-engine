@@ -65,15 +65,19 @@ const dataset = new HashMapDataset('http://example.org#default', graph)
 
 // Load some RDF data into the graph
 const parser = new Parser()
-parser.parse(`
+parser
+  .parse(
+    `
   @prefix foaf: <http://xmlns.com/foaf/0.1/> .
   @prefix : <http://example.org#> .
   :a foaf:name "abcd" .
   :b foaf:name "xyz" .
   :b foaf:name "racecar" .
-`).forEach(t => {
-  graph._store.addQuad(t)
-})
+`,
+  )
+  .forEach((t) => {
+    graph._store.addQuad(t)
+  })
 
 const query = `
   PREFIX foaf: <http://xmlns.com/foaf/0.1/>
@@ -90,17 +94,17 @@ const query = `
 
 const customFunctions = {
   'http://example.com#REVERSE': function (rdfTerm) {
-    const reverseValue = rdfTerm.value.split("").reverse().join("")
+    const reverseValue = rdfTerm.value.split('').reverse().join('')
     return terms.replaceLiteralValue(rdfTerm, reverseValue)
   },
   'http://example.com#IS_PALINDROME': function (rdfTerm) {
-    const result = rdfTerm.value.split("").reverse().join("") === rdfTerm.value
+    const result = rdfTerm.value.split('').reverse().join('') === rdfTerm.value
     return terms.createBoolean(result)
   },
   'http://example.com#IS_EVEN': function (rdfTerm) {
     const result = rdfTerm.value % 2 === 0
     return terms.createBoolean(result)
-  }
+  },
 }
 
 // Creates a plan builder for the RDF dataset
@@ -110,10 +114,14 @@ const builder = new PlanBuilder(dataset, {}, customFunctions)
 const iterator = builder.build(query)
 
 // Read results
-iterator.subscribe(bindings => {
-  console.log('Find solutions:', bindings.toObject())
-}, err => {
-  console.error('error', err)
-}, () => {
-  console.log('Query evaluation complete!')
-})
+iterator.subscribe(
+  (bindings) => {
+    console.log('Find solutions:', bindings.toObject())
+  },
+  (err) => {
+    console.error('error', err)
+  },
+  () => {
+    console.log('Query evaluation complete!')
+  },
+)

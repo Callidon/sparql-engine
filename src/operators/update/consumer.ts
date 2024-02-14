@@ -82,11 +82,15 @@ export abstract class Consumer extends Writable implements Consumable {
   execute(): Promise<void> {
     // if the source has already ended, no need to drain it
     return new Promise((resolve, reject) => {
-      this._source.subscribe(triple => {
-        this.write(triple)
-      }, reject, () => {
-        this.end(null, '', resolve)
-      })
+      this._source.subscribe(
+        (triple) => {
+          this.write(triple)
+        },
+        reject,
+        () => {
+          this.end(null, '', resolve)
+        },
+      )
     })
   }
 }

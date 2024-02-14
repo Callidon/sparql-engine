@@ -45,19 +45,28 @@ import { rdf, sparql } from '../../utils.js'
  * @return A {@link PipelineStage} which evaluate the join
  * @author Thomas Minier
  */
-export default function indexJoin(source: PipelineStage<Bindings>, pattern: SPARQL.Triple, graph: Graph, context: ExecutionContext) {
+export default function indexJoin(
+  source: PipelineStage<Bindings>,
+  pattern: SPARQL.Triple,
+  graph: Graph,
+  context: ExecutionContext,
+) {
   const engine = Pipeline.getInstance()
   return engine.mergeMap(source, (bindings: Bindings) => {
     const boundedPattern = bindings.bound(pattern)
-    return engine.map(engine.from(graph.find(boundedPattern, context)), (item: SPARQL.Triple) => {
-      let temp = pickBy(item, (v, k) => {
-        return rdf.isVariable(boundedPattern[k as keyof SPARQL.Triple])
-      }) as { [key: string]: sparql.BoundedTripleValue }
-      temp = mapKeys(temp, (v, k) => {
-        return (boundedPattern[k as keyof SPARQL.Triple] as rdf.Variable).value
-      })
-      // if (size(temp) === 0 && hasVars) return null
-      return BindingBase.fromMapping(temp).union(bindings)
-    })
+    return engine.map(
+      engine.from(graph.find(boundedPattern, context)),
+      (item: SPARQL.Triple) => {
+        let temp = pickBy(item, (v, k) => {
+          return rdf.isVariable(boundedPattern[k as keyof SPARQL.Triple])
+        }) as { [key: string]: sparql.BoundedTripleValue }
+        temp = mapKeys(temp, (v, k) => {
+          return (boundedPattern[k as keyof SPARQL.Triple] as rdf.Variable)
+            .value
+        })
+        // if (size(temp) === 0 && hasVars) return null
+        return BindingBase.fromMapping(temp).union(bindings)
+      },
+    )
   })
 }

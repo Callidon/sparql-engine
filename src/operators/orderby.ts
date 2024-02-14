@@ -41,9 +41,9 @@ function _compileComparators(comparators: SPARQL.Ordering[]) {
     return (left: Bindings, right: Bindings) => {
       const variable = c.expression as rdf.Variable
       if (left.get(variable)?.value! < right.get(variable)?.value!) {
-        return (c.descending) ? 1 : -1
+        return c.descending ? 1 : -1
       } else if (left.get(variable)?.value! > right.get(variable)?.value!) {
-        return (c.descending) ? -1 : 1
+        return c.descending ? -1 : 1
       }
       return 0
     }
@@ -69,14 +69,19 @@ function _compileComparators(comparators: SPARQL.Ordering[]) {
  * @param comparators - Set of ORDER BY comparators
  * @return A {@link PipelineStage} which evaluate the ORDER BY operation
  */
-export default function orderby(source: PipelineStage<Bindings>, comparators: SPARQL.Ordering[]) {
-  const comparator = _compileComparators(comparators.map((c: SPARQL.Ordering) => {
-    // explicity tag ascending comparators (sparqljs leaves them untagged)
-    if (!('descending' in c)) {
-      c.descending = false
-    }
-    return c
-  }))
+export default function orderby(
+  source: PipelineStage<Bindings>,
+  comparators: SPARQL.Ordering[],
+) {
+  const comparator = _compileComparators(
+    comparators.map((c: SPARQL.Ordering) => {
+      // explicity tag ascending comparators (sparqljs leaves them untagged)
+      if (!('descending' in c)) {
+        c.descending = false
+      }
+      return c
+    }),
+  )
   const engine = Pipeline.getInstance()
   return engine.mergeMap(engine.collect(source), (values: Bindings[]) => {
     values.sort((a, b) => comparator(a, b))

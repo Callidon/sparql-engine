@@ -28,7 +28,6 @@ import { expect } from 'chai'
 import { beforeAll, describe, it } from 'vitest'
 import { TestEngine, getGraph } from '../utils.js'
 
-
 describe('SPARQL VALUES', () => {
   let engine = null
   beforeAll(() => {
@@ -49,14 +48,13 @@ describe('SPARQL VALUES', () => {
       VALUES ?article { esws:MinierSMV18a esws:MinierMSM17 }
     }`
     const results = await engine.execute(query).toArray()
-    results.forEach(b => {
+    results.forEach((b) => {
       b = b.toObject()
       expect(b).to.have.all.keys('?name', '?article')
       expect(b['?article']).to.be.oneOf([
         'https://dblp.org/rec/conf/esws/MinierMSM17',
-        'https://dblp.org/rec/conf/esws/MinierSMV18a'
+        'https://dblp.org/rec/conf/esws/MinierSMV18a',
       ])
-
     })
     expect(results.length).to.equal(2)
   })
@@ -71,15 +69,16 @@ describe('SPARQL VALUES', () => {
       VALUES ?article { esws:MinierSMV18a esws:MinierMSM17 }
     }`
     const results = await engine.execute(query).toArray()
-    results.forEach(b => {
+    results.forEach((b) => {
       b = b.toObject()
       expect(b).to.have.all.keys('?author', '?article')
-      expect(b['?author']).to.equal('https://dblp.uni-trier.de/pers/m/Minier:Thomas')
+      expect(b['?author']).to.equal(
+        'https://dblp.uni-trier.de/pers/m/Minier:Thomas',
+      )
       expect(b['?article']).to.be.oneOf([
         'https://dblp.org/rec/conf/esws/MinierMSM17',
-        'https://dblp.org/rec/conf/esws/MinierSMV18a'
+        'https://dblp.org/rec/conf/esws/MinierSMV18a',
       ])
-
     })
     expect(results.length).to.equal(2)
   })

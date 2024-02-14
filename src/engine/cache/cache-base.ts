@@ -41,13 +41,18 @@ export class BaseLRUCache<K, T> implements Cache<K, T> {
    * @param length - Function that is used to calculate the length of stored items
    * @param onDispose - Function that is called on items when they are dropped from the cache
    */
-  constructor(maxSize: number, maxAge: number, length?: (item: T) => number, onDispose?: (key: K, item: T) => void) {
+  constructor(
+    maxSize: number,
+    maxAge: number,
+    length?: (item: T) => number,
+    onDispose?: (key: K, item: T) => void,
+  ) {
     const options = {
       max: maxSize,
       maxAge,
       length,
       dispose: onDispose,
-      noDisposeOnSet: false
+      noDisposeOnSet: false,
     }
     // if we set a dispose function, we need to turn 'noDisposeOnSet' to True,
     // otherwise onDispose will be called each time an item is updated (instead of when it slide out),
@@ -88,11 +93,11 @@ export class BaseLRUCache<K, T> implements Cache<K, T> {
  */
 export interface AsyncCacheEntry<T, I> {
   /** The cache entry's content */
-  content: Array<T>,
+  content: Array<T>
   /** The ID of the writer that is allowed to edit the cache entry */
-  writerID: I,
+  writerID: I
   /** All reads that wait for this cache entry to be committed */
-  pendingReaders: Array<(items: Array<T>) => void>,
+  pendingReaders: Array<(items: Array<T>) => void>
   /** Whether the cache entry is availbale for read or not */
   isComplete: boolean
 }
@@ -103,11 +108,10 @@ export interface AsyncCacheEntry<T, I> {
  * @author Thomas Minier
  */
 export abstract class BaseAsyncCache<K, T, I> implements AsyncCache<K, T, I> {
-
   /**
    * Constructor
    */
-  constructor(private readonly _cache: Cache<K, AsyncCacheEntry<T, I>>) { }
+  constructor(private readonly _cache: Cache<K, AsyncCacheEntry<T, I>>) {}
 
   has(key: K): boolean {
     return this._cache.has(key)
@@ -125,7 +129,7 @@ export abstract class BaseAsyncCache<K, T, I> implements AsyncCache<K, T, I> {
         content: [item],
         writerID,
         isComplete: false,
-        pendingReaders: []
+        pendingReaders: [],
       })
     }
   }
@@ -139,10 +143,10 @@ export abstract class BaseAsyncCache<K, T, I> implements AsyncCache<K, T, I> {
           content: entry.content,
           writerID: entry.writerID,
           isComplete: true,
-          pendingReaders: []
+          pendingReaders: [],
         })
         // resolve all pending readers
-        entry.pendingReaders.forEach(resolve => resolve(entry.content))
+        entry.pendingReaders.forEach((resolve) => resolve(entry.content))
       }
     }
   }
@@ -155,7 +159,7 @@ export abstract class BaseAsyncCache<K, T, I> implements AsyncCache<K, T, I> {
       }
       // wait until the entry is complete
       // all awaiting promises will be resolved by the commit or delete method
-      return new Promise(resolve => {
+      return new Promise((resolve) => {
         entry.pendingReaders.push(resolve)
       })
     }
@@ -168,7 +172,7 @@ export abstract class BaseAsyncCache<K, T, I> implements AsyncCache<K, T, I> {
       if (entry.writerID === writerID) {
         this._cache.delete(key)
         // resolve all pending readers with an empty result
-        entry.pendingReaders.forEach(resolve => resolve([]))
+        entry.pendingReaders.forEach((resolve) => resolve([]))
       }
     }
   }
@@ -190,7 +194,19 @@ export class AsyncLRUCache<K, T, I> extends BaseAsyncCache<K, T, I> {
    * @param length - Function that is used to calculate the length of stored items
    * @param onDispose - Function that is called on items when they are dropped from the cache
    */
-  constructor(maxSize: number, maxAge: number, length?: (item: AsyncCacheEntry<T, I>) => number, onDispose?: (key: K, item: AsyncCacheEntry<T, I>) => void) {
-    super(new BaseLRUCache<K, AsyncCacheEntry<T, I>>(maxSize, maxAge, length, onDispose))
+  constructor(
+    maxSize: number,
+    maxAge: number,
+    length?: (item: AsyncCacheEntry<T, I>) => number,
+    onDispose?: (key: K, item: AsyncCacheEntry<T, I>) => void,
+  ) {
+    super(
+      new BaseLRUCache<K, AsyncCacheEntry<T, I>>(
+        maxSize,
+        maxAge,
+        length,
+        onDispose,
+      ),
+    )
   }
 }

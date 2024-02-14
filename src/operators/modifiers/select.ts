@@ -39,9 +39,13 @@ import { rdf } from '../../utils.js'
  * @param query - SELECT query
  * @return A {@link PipelineStage} which evaluate the SELECT modifier
  */
-export default function select(source: PipelineStage<Bindings>, query: SPARQL.SelectQuery) {
+export default function select(
+  source: PipelineStage<Bindings>,
+  query: SPARQL.SelectQuery,
+) {
   const variables = query.variables
-  const selectAll = variables.length === 1 && rdf.isWildcard(variables[0] as SPARQL.Wildcard)
+  const selectAll =
+    variables.length === 1 && rdf.isWildcard(variables[0] as SPARQL.Wildcard)
   return Pipeline.getInstance().map(source, (bindings: Bindings) => {
     if (!selectAll) {
       bindings = (variables as rdf.Variable[]).reduce((obj, v) => {
@@ -53,6 +57,6 @@ export default function select(source: PipelineStage<Bindings>, query: SPARQL.Se
         return obj
       }, bindings.empty())
     }
-    return bindings.mapValues((k, v) => rdf.isVariable(k) ? v : null)
+    return bindings.mapValues((k, v) => (rdf.isVariable(k) ? v : null))
   })
 }

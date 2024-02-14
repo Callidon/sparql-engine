@@ -28,7 +28,6 @@ import { expect } from 'chai'
 import { beforeAll, describe, it } from 'vitest'
 import { TestEngine, getGraph } from '../utils.js'
 
-
 describe('SPARQL UNION', () => {
   let engine = null
   beforeAll(() => {
@@ -51,10 +50,9 @@ describe('SPARQL UNION', () => {
       }
     }`
     const results = await engine.execute(query).toArray()
-    results.forEach(b => {
+    results.forEach((b) => {
       expect(b.toObject()).to.have.keys('?name')
     })
     expect(results.length).to.equal(2)
-
   })
 })

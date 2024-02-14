@@ -90,12 +90,15 @@ export default abstract class Dataset {
    * @param  includeDefault - True if the default graph should be included
    * @return The dynamic union of several graphs in the Dataset
    */
-  getUnionGraph(iris: rdf.NamedNode[], includeDefault: boolean = false): UnionGraph {
+  getUnionGraph(
+    iris: rdf.NamedNode[],
+    includeDefault: boolean = false,
+  ): UnionGraph {
     let graphs: Graph[] = []
     if (includeDefault) {
       graphs.push(this.getDefaultGraph())
     }
-    graphs = graphs.concat(iris.map(iri => this.getNamedGraph(iri)))
+    graphs = graphs.concat(iris.map((iri) => this.getNamedGraph(iri)))
     return new UnionGraph(graphs)
   }
 
@@ -109,7 +112,7 @@ export default abstract class Dataset {
     if (includeDefault) {
       graphs.push(this.getDefaultGraph())
     }
-    this.iris.forEach(iri => {
+    this.iris.forEach((iri) => {
       graphs.push(this.getNamedGraph(iri))
     })
     return graphs
@@ -132,7 +135,9 @@ export default abstract class Dataset {
   createGraph(iri: rdf.NamedNode): Graph {
     const graph = this._graphFactory(iri)
     if (graph === null) {
-      throw new Error(`Impossible to create a new Graph with IRI "${iri}". The RDF dataset does not seems to have a graph factory. Please set it using the "setGraphFactory" method.`)
+      throw new Error(
+        `Impossible to create a new Graph with IRI "${iri}". The RDF dataset does not seems to have a graph factory. Please set it using the "setGraphFactory" method.`,
+      )
     }
     return graph
   }

@@ -25,7 +25,7 @@ SOFTWARE.
 import { PipelineStage } from '../../engine/pipeline/pipeline-engine.js'
 import { Pipeline } from '../../engine/pipeline/pipeline.js'
 import { Bindings } from '../../rdf/bindings.js'
-import { rdf } from "../../utils.js"
+import { rdf } from '../../utils.js'
 import HashJoinTable from './hash-join-table.js'
 
 /**
@@ -35,12 +35,16 @@ import HashJoinTable from './hash-join-table.js'
  * @param  joinKey - SPARQL variable used as join attribute
  * @return A {@link PipelineStage} which performs a Hash join
  */
-export default function hashJoin(left: PipelineStage<Bindings>, right: PipelineStage<Bindings>, joinKey: rdf.Variable) {
+export default function hashJoin(
+  left: PipelineStage<Bindings>,
+  right: PipelineStage<Bindings>,
+  joinKey: rdf.Variable,
+) {
   const joinTable = new HashJoinTable()
   const engine = Pipeline.getInstance()
   return engine.mergeMap(engine.collect(right), (values: Bindings[]) => {
     // materialize right relation into the hash table
-    values.forEach(v => {
+    values.forEach((v) => {
       if (v.has(joinKey)) {
         joinTable.put(v.get(joinKey)!, v)
       }

@@ -30,13 +30,11 @@ import { rdf } from '../../src/api'
 import { TestEngine, getGraph } from '../utils'
 
 describe('SPARQL custom operators', () => {
-
   it('should allow for custom functions in BIND', async () => {
-
     const customFunctions = {
       'http://test.com#REVERSE': function (a) {
-        return rdf.shallowCloneTerm(a, a.value.split("").reverse().join(""))
-      }
+        return rdf.shallowCloneTerm(a, a.value.split('').reverse().join(''))
+      },
     }
 
     const g = getGraph('./tests/data/dblp.nt')
@@ -52,20 +50,18 @@ describe('SPARQL custom operators', () => {
     }
     `
     const results = await engine.execute(query).toArray()
-    results.forEach(b => {
+    results.forEach((b) => {
       b = b.toObject()
       expect(b).to.have.keys('?reversed')
       expect(b['?reversed']).to.equal('"reiniM samohT"@en')
-
     })
   })
 
   it('should allow for custom functions in FILTER', async () => {
-
     const customFunctions = {
       'http://test.com#CONTAINS_THOMAS': function (a) {
-        return rdf.createBoolean(a.value.toLowerCase().indexOf("thomas") >= 0)
-      }
+        return rdf.createBoolean(a.value.toLowerCase().indexOf('thomas') >= 0)
+      },
     }
     const g = getGraph('./tests/data/dblp.nt')
     const engine = new TestEngine(g, null, customFunctions)
@@ -79,21 +75,19 @@ describe('SPARQL custom operators', () => {
     }
     `
     const results = await engine.execute(query).toArray()
-    results.forEach(b => {
+    results.forEach((b) => {
       b = b.toObject()
       expect(b).to.have.keys('?o')
-
     })
     expect(results.length).to.equal(3)
   })
 
   it('should allow for custom functions in HAVING', async () => {
-
     const customFunctions = {
       'http://test.com#IS_EVEN': function (a) {
         const value = rdf.asJS(a.value, a.datatype.value)
         return rdf.createBoolean(value % 2 === 0)
-      }
+      },
     }
     const g = getGraph('./tests/data/dblp.nt')
     const engine = new TestEngine(g, null, customFunctions)
@@ -110,31 +104,26 @@ describe('SPARQL custom operators', () => {
     HAVING (test:IS_EVEN(?length))
     `
     const results = await engine.execute(query).toArray()
-    results.forEach(b => {
-
+    results.forEach((b) => {
       b = b.toObject()
       expect(b).to.have.keys('?length')
-      const length = parseInt(b["?length"].split("^^")[0].replace(/"/g, ""))
+      const length = parseInt(b['?length'].split('^^')[0].replace(/"/g, ''))
       expect(length % 2).to.equal(0)
-
-
     })
     expect(results.length).to.equal(8)
-
   })
 
-
   it('should consider the solution "unbound" on an error, but query should continue continue', async () => {
-
     const customFunctions = {
       'http://test.com#ERROR': function (a) {
-        throw new Error("This should result in an unbould solution, but the query should still evaluate")
-      }
+        throw new Error(
+          'This should result in an unbould solution, but the query should still evaluate',
+        )
+      },
     }
 
     const g = getGraph('./tests/data/dblp.nt')
     const engine = new TestEngine(g, null, customFunctions)
-
 
     const query = `
     PREFIX test: <http://test.com#>
@@ -146,17 +135,14 @@ describe('SPARQL custom operators', () => {
     }
     `
     const results = await engine.execute(query).toArray()
-    results.forEach(b => {
+    results.forEach((b) => {
       b = b.toObject()
       expect(b).to.have.keys('?error')
       expect(b['?error']).to.equal('"UNBOUND"')
-
     })
-
   })
 
   it('should fail if the custom function does not exist', async () => {
-
     const g = getGraph('./tests/data/dblp.nt')
     const engine = new TestEngine(g)
 
@@ -170,6 +156,5 @@ describe('SPARQL custom operators', () => {
     }
     `
     expect(() => engine.execute(query)).to.throw(Error)
-
   })
 })

@@ -24,7 +24,7 @@ SOFTWARE.
 
 'use strict'
 
-import { concat, EMPTY, from, Observable, of, Subscriber } from 'rxjs';
+import { concat, EMPTY, from, Observable, of, Subscriber } from 'rxjs'
 import {
   bufferCount,
   catchError,
@@ -42,16 +42,16 @@ import {
   skip,
   take,
   tap,
-  toArray
-} from 'rxjs/operators';
-import { PipelineEngine, StreamPipelineInput } from './pipeline-engine.js';
+  toArray,
+} from 'rxjs/operators'
+import { PipelineEngine, StreamPipelineInput } from './pipeline-engine.js'
 
 // Declare a module with the same name as the imported module
 declare module 'rxjs' {
   // Inside, declare an interface with the same name as the class you're extending
   // Make sure to include the generic parameter
   interface Observable<T> {
-    toArray(): Promise<T[]>;
+    toArray(): Promise<T[]>
   }
 }
 
@@ -59,14 +59,17 @@ declare module 'rxjs' {
 Observable.prototype.toArray = function () {
   return new Promise((resolve, reject) => {
     let results: any[] = []
-    this.subscribe(b => {
-      results.push(b)
-    }, reject, () => {
-      resolve(results)
-    })
+    this.subscribe(
+      (b) => {
+        results.push(b)
+      },
+      reject,
+      () => {
+        resolve(results)
+      },
+    )
   })
 }
-
 
 /**
  * A StreamPipelineInput implemented using Rxjs' subscribers.
@@ -97,7 +100,6 @@ export class RxjsStreamInput<T> implements StreamPipelineInput<T> {
  * @author Thomas Minier
  */
 export default class RxjsPipeline extends PipelineEngine {
-
   empty<T>(): Observable<T> {
     return EMPTY
   }
@@ -111,21 +113,28 @@ export default class RxjsPipeline extends PipelineEngine {
   }
 
   fromAsync<T>(cb: (input: StreamPipelineInput<T>) => void): Observable<T> {
-    return new Observable<T>(subscriber => cb(new RxjsStreamInput(subscriber)))
+    return new Observable<T>((subscriber) =>
+      cb(new RxjsStreamInput(subscriber)),
+    )
   }
 
   clone<T>(stage: Observable<T>): Observable<T> {
     return stage.pipe(shareReplay(5))
   }
 
-  catch<T, O>(input: Observable<T>, handler?: (err: Error) => Observable<O>): Observable<T | O> {
-    return input.pipe(catchError(err => {
-      if (handler === undefined) {
-        throw err
-      } else {
-        return handler(err)
-      }
-    }))
+  catch<T, O>(
+    input: Observable<T>,
+    handler?: (err: Error) => Observable<O>,
+  ): Observable<T | O> {
+    return input.pipe(
+      catchError((err) => {
+        if (handler === undefined) {
+          throw err
+        } else {
+          return handler(err)
+        }
+      }),
+    )
   }
 
   merge<T>(...inputs: Array<Observable<T>>): Observable<T> {
@@ -136,15 +145,24 @@ export default class RxjsPipeline extends PipelineEngine {
     return input.pipe(map(mapper))
   }
 
-  flatMap<F, T>(input: Observable<F>, mapper: (value: F) => T[]): Observable<T> {
+  flatMap<F, T>(
+    input: Observable<F>,
+    mapper: (value: F) => T[],
+  ): Observable<T> {
     return input.pipe(flatMap(mapper))
   }
 
-  mergeMap<F, T>(input: Observable<F>, mapper: (value: F) => Observable<T>): Observable<T> {
+  mergeMap<F, T>(
+    input: Observable<F>,
+    mapper: (value: F) => Observable<T>,
+  ): Observable<T> {
     return input.pipe(mergeMap(mapper))
   }
 
-  filter<T>(input: Observable<T>, predicate: (value: T) => boolean): Observable<T> {
+  filter<T>(
+    input: Observable<T>,
+    predicate: (value: T) => boolean,
+  ): Observable<T> {
     return input.pipe(filter(predicate))
   }
 
@@ -152,7 +170,11 @@ export default class RxjsPipeline extends PipelineEngine {
     return input.pipe(finalize(callback))
   }
 
-  reduce<F, T>(input: Observable<F>, reducer: (acc: T, value: F) => T, initial: T): Observable<T> {
+  reduce<F, T>(
+    input: Observable<F>,
+    reducer: (acc: T, value: F) => T,
+    initial: T,
+  ): Observable<T> {
     return input.pipe(reduce(reducer, initial))
   }
 
@@ -164,7 +186,10 @@ export default class RxjsPipeline extends PipelineEngine {
     return input.pipe(skip(toSkip))
   }
 
-  distinct<T, K = T>(input: Observable<T>, selector?: (value: T) => K): Observable<T> {
+  distinct<T, K = T>(
+    input: Observable<T>,
+    selector?: (value: T) => K,
+  ): Observable<T> {
     return input.pipe(distinct(selector))
   }
 
@@ -174,19 +199,21 @@ export default class RxjsPipeline extends PipelineEngine {
     } else if (values.length === 1) {
       return input.pipe(defaultIfEmpty(values[0]))
     } else {
-      return new Observable<T>(subscriber => {
+      return new Observable<T>((subscriber) => {
         let isEmpty: boolean = true
-        return input.subscribe((x: T) => {
-          isEmpty = false
-          subscriber.next(x)
-        },
-          err => subscriber.error(err),
+        return input.subscribe(
+          (x: T) => {
+            isEmpty = false
+            subscriber.next(x)
+          },
+          (err) => subscriber.error(err),
           () => {
             if (isEmpty) {
               values.forEach((v: T) => subscriber.next(v))
             }
             subscriber.complete()
-          })
+          },
+        )
       })
     }
   }
@@ -196,9 +223,12 @@ export default class RxjsPipeline extends PipelineEngine {
   }
 
   forEach<T>(input: Observable<T>, cb: (value: T) => void): void {
-    input.forEach(cb)
+    input
+      .forEach(cb)
       .then()
-      .catch(err => { throw err })
+      .catch((err) => {
+        throw err
+      })
   }
 
   first<T>(input: Observable<T>): Observable<T> {

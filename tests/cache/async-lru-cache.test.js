@@ -62,7 +62,6 @@ describe('AsyncLRUCache', async () => {
     })
   })
 
-
   describe('#has', () => {
     it('should returns true when the cache entry is available', () => {
       const writerID = 1

@@ -29,7 +29,10 @@ import { PipelineStage } from '../engine/pipeline/pipeline-engine.js'
 import { Pipeline } from '../engine/pipeline/pipeline.js'
 import { Bindings } from '../rdf/bindings.js'
 import { rdf } from '../utils.js'
-import { CustomFunctions, SPARQLExpression } from './expressions/sparql-expression.js'
+import {
+  CustomFunctions,
+  SPARQLExpression,
+} from './expressions/sparql-expression.js'
 
 /**
  * Evaluate SPARQL Filter clauses
@@ -40,7 +43,11 @@ import { CustomFunctions, SPARQLExpression } from './expressions/sparql-expressi
  * @param customFunctions - User-defined SPARQL functions (optional)
  * @return A {@link PipelineStage} which evaluate the FILTER operation
  */
-export default function sparqlFilter(source: PipelineStage<Bindings>, expression: SPARQL.Expression, customFunctions?: CustomFunctions) {
+export default function sparqlFilter(
+  source: PipelineStage<Bindings>,
+  expression: SPARQL.Expression,
+  customFunctions?: CustomFunctions,
+) {
   const expr = new SPARQLExpression(expression, customFunctions)
   return Pipeline.getInstance().filter(source, (bindings: Bindings) => {
     const value: any = expr.evaluate(bindings)

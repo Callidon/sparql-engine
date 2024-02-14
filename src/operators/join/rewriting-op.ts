@@ -38,7 +38,10 @@ import { evaluation, rdf } from '../../utils.js'
  * For example, in [ ?s, ?o_1 ], the rewriting key is 1
  * @private
  */
-function findKey(variables: IterableIterator<rdf.Variable>, maxValue: number = 15): number {
+function findKey(
+  variables: IterableIterator<rdf.Variable>,
+  maxValue: number = 15,
+): number {
   let key = -1
   for (let v of variables) {
     for (let i = 0; i < maxValue; i++) {
@@ -54,14 +57,21 @@ function findKey(variables: IterableIterator<rdf.Variable>, maxValue: number = 1
  * Undo the bound join rewriting on solutions bindings, e.g., rewrite all variables "?o_1" to "?o"
  * @private
  */
-function revertBinding(key: number, input: Bindings, variables: IterableIterator<rdf.Variable>): Bindings {
+function revertBinding(
+  key: number,
+  input: Bindings,
+  variables: IterableIterator<rdf.Variable>,
+): Bindings {
   const newBinding = input.empty()
   for (let variable of variables) {
     let suffix = `_${key}`
     let vName = variable.value
     if (vName.endsWith(suffix)) {
       const index = vName.indexOf(suffix)
-      newBinding.set(rdf.createVariable(vName.substring(0, index)), input.get(variable)!)
+      newBinding.set(
+        rdf.createVariable(vName.substring(0, index)),
+        input.get(variable)!,
+      )
     } else {
       newBinding.set(variable, input.get(variable)!)
     }
@@ -73,7 +83,10 @@ function revertBinding(key: number, input: Bindings, variables: IterableIterator
  * Undo the rewriting on solutions bindings, and then merge each of them with the corresponding input binding
  * @private
  */
-function rewriteSolutions(bindings: Bindings, rewritingMap: Map<number, Bindings>): Bindings {
+function rewriteSolutions(
+  bindings: Bindings,
+  rewritingMap: Map<number, Bindings>,
+): Bindings {
   const key = findKey(bindings.variables())
   // rewrite binding, and then merge it with the corresponding one in the bucket
   let newBinding = revertBinding(key, bindings, bindings.variables())
@@ -95,23 +108,42 @@ function rewriteSolutions(bindings: Bindings, rewritingMap: Map<number, Bindings
  * @param  context - Query execution context
  * @return A pipeline stage which evaluates the query.
  */
-export default function rewritingOp(graph: Graph, bgpBucket: SPARQL.Triple[][], rewritingTable: Map<number, Bindings>, builder: BGPStageBuilder, context: ExecutionContext) {
+export default function rewritingOp(
+  graph: Graph,
+  bgpBucket: SPARQL.Triple[][],
+  rewritingTable: Map<number, Bindings>,
+  builder: BGPStageBuilder,
+  context: ExecutionContext,
+) {
   let source
   if (context.cachingEnabled()) {
     // partition the BGPs that can be evaluated using the cache from the others
     const stages: PipelineStage<Bindings>[] = []
     const others: SPARQL.Triple[][] = []
-    bgpBucket.forEach(patterns => {
+    bgpBucket.forEach((patterns) => {
       if (context.cache!.has({ patterns, graphIRI: graph.iri })) {
-        stages.push(evaluation.cacheEvalBGP(patterns, graph, context.cache!, builder, context))
+        stages.push(
+          evaluation.cacheEvalBGP(
+            patterns,
+            graph,
+            context.cache!,
+            builder,
+            context,
+          ),
+        )
       } else {
         others.push(patterns)
       }
     })
     // merge all sources from the cache first, and then the evaluation of bgp that are not in the cache
-    source = Pipeline.getInstance().merge(Pipeline.getInstance().merge(...stages), graph.evalUnion(others, context))
+    source = Pipeline.getInstance().merge(
+      Pipeline.getInstance().merge(...stages),
+      graph.evalUnion(others, context),
+    )
   } else {
     source = graph.evalUnion(bgpBucket, context)
   }
-  return Pipeline.getInstance().map(source, bindings => rewriteSolutions(bindings, rewritingTable))
+  return Pipeline.getInstance().map(source, (bindings) =>
+    rewriteSolutions(bindings, rewritingTable),
+  )
 }

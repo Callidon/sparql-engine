@@ -28,7 +28,6 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import { rdf } from '../../src/utils'
 import { TestEngine, getGraph } from '../utils'
 
-
 const GRAPH_A_IRI = rdf.createIRI('http://example.org#some-graph-a')
 const GRAPH_B_IRI = rdf.createIRI('http://example.org#some-graph-b')
 
@@ -40,7 +39,7 @@ describe('SERVICE queries', () => {
     gA = getGraph('./tests/data/dblp.nt')
     gB = getGraph('./tests/data/dblp2.nt')
     engine = new TestEngine(gA, GRAPH_A_IRI)
-    engine._dataset.setGraphFactory(iri => {
+    engine._dataset.setGraphFactory((iri) => {
       if (iri.equals(GRAPH_B_IRI)) {
         return gB
       }
@@ -68,9 +67,9 @@ describe('SERVICE queries', () => {
           'https://dblp.org/rec/conf/esws/MinierSMV18',
           'https://dblp.org/rec/journals/corr/abs-1806-00227',
           'https://dblp.org/rec/conf/esws/MinierMSM17',
-          'https://dblp.org/rec/conf/esws/MinierMSM17a'
+          'https://dblp.org/rec/conf/esws/MinierMSM17a',
         ])
-      }
+      },
     },
     {
       text: 'should evaluate SPARQL queries where literal in BIND',
@@ -92,9 +91,9 @@ describe('SERVICE queries', () => {
           'https://dblp.org/rec/conf/esws/MinierSMV18',
           'https://dblp.org/rec/journals/corr/abs-1806-00227',
           'https://dblp.org/rec/conf/esws/MinierMSM17',
-          'https://dblp.org/rec/conf/esws/MinierMSM17a'
+          'https://dblp.org/rec/conf/esws/MinierMSM17a',
         ])
-      }
+      },
     },
     {
       text: 'should evaluate simple SPARQL queries with literal value in SERVICE clause',
@@ -111,10 +110,8 @@ describe('SERVICE queries', () => {
       nbResults: 1,
       testFun: function (b) {
         expect(b).to.have.all.keys(['?s'])
-        expect(b['?s']).to.be.oneOf([
-          'https://dblp.org/pers/m/Minier:Thomas',
-        ])
-      }
+        expect(b['?s']).to.be.oneOf(['https://dblp.org/pers/m/Minier:Thomas'])
+      },
     },
     {
       text: 'should evaluate SPARQL queries where literal in BIND for SERVICE clause',
@@ -138,19 +135,17 @@ describe('SERVICE queries', () => {
           'https://dblp.org/rec/conf/esws/MinierSMV18',
           'https://dblp.org/rec/journals/corr/abs-1806-00227',
           'https://dblp.org/rec/conf/esws/MinierMSM17',
-          'https://dblp.org/rec/conf/esws/MinierMSM17a'
+          'https://dblp.org/rec/conf/esws/MinierMSM17a',
         ])
-        expect(b['?s']).to.be.oneOf([
-          'https://dblp.org/pers/m/Minier:Thomas',
-        ])
-      }
-    }
+        expect(b['?s']).to.be.oneOf(['https://dblp.org/pers/m/Minier:Thomas'])
+      },
+    },
   ]
 
-  data.forEach(d => {
+  data.forEach((d) => {
     it(d.text, async () => {
       const iterator = await engine.execute(d.query).toArray()
-      iterator.forEach(b => {
+      iterator.forEach((b) => {
         b = b.toObject()
         d.testFun(b)
       })
@@ -158,4 +153,3 @@ describe('SERVICE queries', () => {
     })
   })
 })
-

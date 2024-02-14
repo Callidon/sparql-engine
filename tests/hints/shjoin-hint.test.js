@@ -49,7 +49,7 @@ describe('SELECT SPARQL queries', () => {
     }`
 
     const results = await engine.execute(query).toArray()
-    results.forEach(b => {
+    results.forEach((b) => {
       expect(b.toObject()).to.have.keys('?name', '?article')
     })
     expect(results.length).to.equal(5)

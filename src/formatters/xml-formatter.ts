@@ -39,7 +39,8 @@ function _writeBoolean(input: boolean, root: any) {
 
 function _writeBindings(input: Bindings, results: any) {
   // convert sets of bindings into objects of RDF Terms
-  let bindings: RDFBindings = input.filter((_variable, value) => !isNull(value) && !isUndefined(value))
+  let bindings: RDFBindings = input
+    .filter((_variable, value) => !isNull(value) && !isUndefined(value))
     .reduce<RDFBindings>((obj, variable, value) => {
       obj[variable.value] = value
       return obj
@@ -56,29 +57,23 @@ function _writeBindings(input: Bindings, results: any) {
       } else if (rdf.isLiteral(value)) {
         if (value.language === '') {
           xmlTag = {
-            literal: [
-              { _attr: { 'xml:lang': value.language } },
-              value.value
-            ]
+            literal: [{ _attr: { 'xml:lang': value.language } }, value.value],
           }
         } else {
           xmlTag = {
             literal: [
               { _attr: { datatype: value.datatype.value } },
-              value.value
-            ]
+              value.value,
+            ],
           }
         }
       } else {
         throw new Error(`Unsupported RDF Term type: ${value}`)
       }
       return {
-        binding: [
-          { _attr: { name: variable.substring(1) } },
-          xmlTag
-        ]
+        binding: [{ _attr: { name: variable.substring(1) } }, xmlTag],
       }
-    })
+    }),
   })
 }
 
@@ -90,40 +85,52 @@ function _writeBindings(input: Bindings, results: any) {
  * @param source - Input pipeline
  * @return A pipeline s-that yields results in W3C SPARQL XML format
  */
-export default function xmlFormat(source: PipelineStage<Bindings | boolean>): PipelineStage<string> {
+export default function xmlFormat(
+  source: PipelineStage<Bindings | boolean>,
+): PipelineStage<string> {
   const results = xml.element({})
   const root = xml.element({
     _attr: { xmlns: 'http://www.w3.org/2005/sparql-results#' },
-    results: results
+    results: results,
   })
-  const stream: any = xml({ sparql: root }, { stream: true, indent: '\t', declaration: true })
-  return Pipeline.getInstance().fromAsync(input => {
+  const stream: any = xml(
+    { sparql: root },
+    { stream: true, indent: '\t', declaration: true },
+  )
+  return Pipeline.getInstance().fromAsync((input) => {
     // manually pipe the xml stream's results into the pipeline
     stream.on('error', (err: Error) => input.error(err))
     stream.on('end', () => input.complete())
 
     let warmup = true
-    source.subscribe((b: Bindings | boolean) => {
-      // Build the head attribute from the first set of bindings
-      if (warmup && !isBoolean(b)) {
-        const variables = Array.from(b.variables())
-        root.push({
-          head: variables.map(v => v.value).filter(name => name !== '*').map(name => {
-            return { variable: { _attr: { name } } }
+    source.subscribe(
+      (b: Bindings | boolean) => {
+        // Build the head attribute from the first set of bindings
+        if (warmup && !isBoolean(b)) {
+          const variables = Array.from(b.variables())
+          root.push({
+            head: variables
+              .map((v) => v.value)
+              .filter((name) => name !== '*')
+              .map((name) => {
+                return { variable: { _attr: { name } } }
+              }),
           })
-        })
-        warmup = false
-      }
-      // handle results (boolean for ASK queries, bindings for SELECT queries)
-      if (isBoolean(b)) {
-        _writeBoolean(b, root)
-      } else {
-        _writeBindings(b, results)
-      }
-    }, err => console.error(err), () => {
-      results.close()
-      root.close()
-    })
+          warmup = false
+        }
+        // handle results (boolean for ASK queries, bindings for SELECT queries)
+        if (isBoolean(b)) {
+          _writeBoolean(b, root)
+        } else {
+          _writeBindings(b, results)
+        }
+      },
+      (err) => console.error(err),
+      () => {
+        results.close()
+        root.close()
+      },
+    )
 
     // consume the xml stream
     stream.on('data', (x: any) => input.next(x))

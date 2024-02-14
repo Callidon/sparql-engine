@@ -27,7 +27,6 @@ SOFTWARE.
 import { beforeEach, describe, expect, it } from 'vitest'
 import { TestEngine, getGraph } from '../utils.js'
 
-
 describe('SPARQL queries with OPTIONAL', () => {
   let engine = null
   beforeEach(() => {
@@ -48,14 +47,13 @@ describe('SPARQL queries with OPTIONAL', () => {
       }
     }`
     const results = await engine.execute(query).toArray()
-    results.forEach(b => {
+    results.forEach((b) => {
       b = b.toObject()
       expect(b).to.have.keys('?name', '?article', '?label')
       expect(b['?label']).to.equal('"UNBOUND"')
     })
     expect(results).toHaveLength(5)
   })
-
 
   it('should evaluate OPTIONAL clauses that yield something', async () => {
     const query = `
@@ -68,16 +66,18 @@ describe('SPARQL queries with OPTIONAL', () => {
       }
     }`
     const results = await engine.execute(query).toArray()
-    results.forEach(b => {
+    results.forEach((b) => {
       b = b.toObject()
       expect(b).to.have.keys('?s', '?article')
-      expect(b['?s']).to.be.oneOf(['https://dblp.org/pers/m/Minier:Thomas', 'https://dblp.org/pers/m/Minier:Thomas_2'])
+      expect(b['?s']).to.be.oneOf([
+        'https://dblp.org/pers/m/Minier:Thomas',
+        'https://dblp.org/pers/m/Minier:Thomas_2',
+      ])
       if (b['?s'] === 'https://dblp.org/pers/m/Minier:Thomas_2') {
         expect(b['?article']).to.equal('"UNBOUND"')
       } else {
         expect(b['?article']).to.not.equal('"UNBOUND"')
       }
-
     })
     expect(results).toHaveLength(6)
   })
@@ -95,14 +95,13 @@ describe('SPARQL queries with OPTIONAL', () => {
       }
     }`
     const results = await engine.execute(query).toArray()
-    results.forEach(b => {
+    results.forEach((b) => {
       b = b.toObject()
       expect(b).to.have.keys('?name', '?article')
       expect(b['?article']).to.equal('"UNBOUND"')
     })
     expect(results).toHaveLength(1)
   })
-
 
   it('should evaluate complex OPTIONAL clauses that yield something', async () => {
     const query = `
@@ -116,10 +115,13 @@ describe('SPARQL queries with OPTIONAL', () => {
       }
     }`
     const results = await engine.execute(query).toArray()
-    results.forEach(b => {
+    results.forEach((b) => {
       b = b.toObject()
       expect(b).to.have.keys('?s', '?article')
-      expect(b['?s']).to.be.oneOf(['https://dblp.org/pers/m/Minier:Thomas', 'https://dblp.org/pers/m/Minier:Thomas_2'])
+      expect(b['?s']).to.be.oneOf([
+        'https://dblp.org/pers/m/Minier:Thomas',
+        'https://dblp.org/pers/m/Minier:Thomas_2',
+      ])
       if (b['?s'] === 'https://dblp.org/pers/m/Minier:Thomas_2') {
         expect(b['?article']).to.equal('"UNBOUND"')
       } else {
@@ -129,9 +131,8 @@ describe('SPARQL queries with OPTIONAL', () => {
     expect(results).toHaveLength(6)
   })
 
-
   it('should not get an extra result when an OPTIONAL value exists', async () => {
-    const graph = getGraph("./tests/data/SPARQL-Query-1.1-6.2.ttl")
+    const graph = getGraph('./tests/data/SPARQL-Query-1.1-6.2.ttl')
     engine = new TestEngine(graph)
     const query = `
     # this is a modified example is from section 6.2 of the SPARQL Spec. It should only product 2 results
@@ -147,19 +148,21 @@ describe('SPARQL queries with OPTIONAL', () => {
     `
     const results = await engine.execute(query).toArray()
     expect(results).toHaveLength(2)
-    results.map(b => {
+    results.map((b) => {
       b = b.toObject()
-      expect(b['?title']).to.be.oneOf(['"SPARQL Tutorial"', '"The Semantic Web"'])
+      expect(b['?title']).to.be.oneOf([
+        '"SPARQL Tutorial"',
+        '"The Semantic Web"',
+      ])
       expect(b['?price']).to.be.oneOf([
         '"42"^^http://www.w3.org/2001/XMLSchema#integer',
-        '"23"^^http://www.w3.org/2001/XMLSchema#integer'
+        '"23"^^http://www.w3.org/2001/XMLSchema#integer',
       ])
     })
   })
 
-
   it('should not get an extra result when an OPTIONAL value exists and multiple OPTIONAL clauses are used', async () => {
-    const graph = getGraph("./tests/data/SPARQL-Query-1.1-6.2.ttl")
+    const graph = getGraph('./tests/data/SPARQL-Query-1.1-6.2.ttl')
     engine = new TestEngine(graph)
     const query = `
     # this is a modified example is from section 6.2 of the SPARQL Spec. It should only produce 2 results
@@ -177,19 +180,21 @@ describe('SPARQL queries with OPTIONAL', () => {
     `
     const results = await engine.execute(query).toArray()
     expect(results).toHaveLength(2)
-    results.map(b => {
+    results.map((b) => {
       b = b.toObject()
-      expect(b['?title']).to.be.oneOf(['"SPARQL Tutorial"', '"The Semantic Web"'])
+      expect(b['?title']).to.be.oneOf([
+        '"SPARQL Tutorial"',
+        '"The Semantic Web"',
+      ])
       expect(b['?price']).to.be.oneOf([
         '"42"^^http://www.w3.org/2001/XMLSchema#integer',
-        '"23"^^http://www.w3.org/2001/XMLSchema#integer'
+        '"23"^^http://www.w3.org/2001/XMLSchema#integer',
       ])
     })
   })
 
-
   it('should get the correct number of results when an OPTIONAL results in an UNBOUND', async () => {
-    const graph = getGraph("./tests/data/SPARQL-Query-1.1-6.2.ttl")
+    const graph = getGraph('./tests/data/SPARQL-Query-1.1-6.2.ttl')
     engine = new TestEngine(graph)
     const query = `
     # this is a modified example is from section 6.2 of the SPARQL Spec. It should only produce 2 results
@@ -205,19 +210,21 @@ describe('SPARQL queries with OPTIONAL', () => {
     `
     const results = await engine.execute(query).toArray()
     expect(results).toHaveLength(2)
-    results.map(b => {
+    results.map((b) => {
       b = b.toObject()
-      expect(b['?title']).to.be.oneOf(['"SPARQL Tutorial"', '"The Semantic Web"'])
+      expect(b['?title']).to.be.oneOf([
+        '"SPARQL Tutorial"',
+        '"The Semantic Web"',
+      ])
       expect(b['?price']).to.be.oneOf([
         '"42"^^http://www.w3.org/2001/XMLSchema#integer',
-        '"UNBOUND"'
+        '"UNBOUND"',
       ])
     })
   })
 
-
   it('should get the correct number of results when an OPTIONAL results in an UNBOUND value with multiple OPTIONAL clauses', async () => {
-    const graph = getGraph("./tests/data/SPARQL-Query-1.1-6.2.ttl")
+    const graph = getGraph('./tests/data/SPARQL-Query-1.1-6.2.ttl')
     engine = new TestEngine(graph)
     const query = `
     # this is a modified example is from section 6.2 of the SPARQL Spec. It should only produce 2 results
@@ -235,12 +242,15 @@ describe('SPARQL queries with OPTIONAL', () => {
     `
     const results = await engine.execute(query).toArray()
     expect(results).toHaveLength(2)
-    results.map(b => {
+    results.map((b) => {
       b = b.toObject()
-      expect(b['?title']).to.be.oneOf(['"SPARQL Tutorial"', '"The Semantic Web"'])
+      expect(b['?title']).to.be.oneOf([
+        '"SPARQL Tutorial"',
+        '"The Semantic Web"',
+      ])
       expect(b['?price']).to.be.oneOf([
         '"42"^^http://www.w3.org/2001/XMLSchema#integer',
-        '"UNBOUND"'
+        '"UNBOUND"',
       ])
     })
   })

@@ -42,7 +42,7 @@ export default class PlanVisitor {
    */
   visit(node: SPARQL.Query): SPARQL.Query {
     const newNode = cloneDeep(node)
-    newNode.where = node.where?.map(n => this.visitPattern(n))
+    newNode.where = node.where?.map((n) => this.visitPattern(n))
     return newNode
   }
 
@@ -97,7 +97,7 @@ export default class PlanVisitor {
    */
   visitGroup(node: SPARQL.GroupPattern): SPARQL.Pattern {
     const newNode = cloneDeep(node)
-    newNode.patterns = newNode.patterns.map(p => this.visitPattern(p))
+    newNode.patterns = newNode.patterns.map((p) => this.visitPattern(p))
     return newNode
   }
 
@@ -109,7 +109,7 @@ export default class PlanVisitor {
    */
   visitOptional(node: SPARQL.OptionalPattern): SPARQL.Pattern {
     const newNode = cloneDeep(node)
-    newNode.patterns = newNode.patterns.map(p => this.visitPattern(p))
+    newNode.patterns = newNode.patterns.map((p) => this.visitPattern(p))
     return newNode
   }
 
@@ -121,7 +121,7 @@ export default class PlanVisitor {
    */
   visitUnion(node: SPARQL.UnionPattern): SPARQL.Pattern {
     const newNode = cloneDeep(node)
-    newNode.patterns = newNode.patterns.map(p => this.visitPattern(p))
+    newNode.patterns = newNode.patterns.map((p) => this.visitPattern(p))
     return newNode
   }
 
@@ -143,7 +143,7 @@ export default class PlanVisitor {
    */
   visitGraph(node: SPARQL.GraphPattern): SPARQL.Pattern {
     const newNode = cloneDeep(node)
-    newNode.patterns = newNode.patterns.map(p => this.visitPattern(p))
+    newNode.patterns = newNode.patterns.map((p) => this.visitPattern(p))
     return newNode
   }
 
@@ -155,7 +155,7 @@ export default class PlanVisitor {
    */
   visitMinus(node: SPARQL.MinusPattern): SPARQL.Pattern {
     const newNode = cloneDeep(node)
-    newNode.patterns = newNode.patterns.map(p => this.visitPattern(p))
+    newNode.patterns = newNode.patterns.map((p) => this.visitPattern(p))
     return newNode
   }
 
@@ -167,7 +167,7 @@ export default class PlanVisitor {
    */
   visitService(node: SPARQL.ServicePattern): SPARQL.Pattern {
     const newNode = cloneDeep(node)
-    newNode.patterns = newNode.patterns.map(p => this.visitPattern(p))
+    newNode.patterns = newNode.patterns.map((p) => this.visitPattern(p))
     return newNode
   }
 

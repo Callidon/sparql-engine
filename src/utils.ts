@@ -25,7 +25,7 @@ SOFTWARE.
 'use strict'
 
 import DataFactory from '@rdfjs/data-model'
-import namespace from "@rdfjs/namespace"
+import namespace from '@rdfjs/namespace'
 import * as RDF from '@rdfjs/types'
 import * as crypto from 'crypto'
 import { includes, union } from 'lodash'
@@ -42,12 +42,10 @@ import BGPStageBuilder from './engine/stages/bgp-stage-builder.js'
 import { Bindings } from './rdf/bindings.js'
 import Graph from './rdf/graph.js'
 
-
 /**
  * RDF related utilities
  */
 export namespace rdf {
-
   export type NamedNode = RDF.NamedNode
   export type Variable = RDF.Variable
   export type Literal = RDF.Literal
@@ -66,14 +64,28 @@ export namespace rdf {
    * @return True if the two triple (patterns) are equals, False otherwise
    */
   export function tripleEquals(a: SPARQL.Triple, b: SPARQL.Triple): boolean {
-    if (a.subject.termType !== b.subject.termType || a.object.termType !== b.object.termType) {
+    if (
+      a.subject.termType !== b.subject.termType ||
+      a.object.termType !== b.object.termType
+    ) {
       return false
     } else if (isPropertyPath(a.predicate) && isPropertyPath(b.predicate)) {
-      return a.subject.equals(b.subject) && JSON.stringify(a.predicate) === JSON.stringify(b.predicate) && a.object.equals(b.object)
-    } else if ((a.predicate as SPARQL.Term).termType !== (b.predicate as SPARQL.Term).termType) {
+      return (
+        a.subject.equals(b.subject) &&
+        JSON.stringify(a.predicate) === JSON.stringify(b.predicate) &&
+        a.object.equals(b.object)
+      )
+    } else if (
+      (a.predicate as SPARQL.Term).termType !==
+      (b.predicate as SPARQL.Term).termType
+    ) {
       return false
     } else {
-      return a.subject.equals(b.subject) && (a.predicate as SPARQL.Term).equals((b.predicate as SPARQL.Term)) && a.object.equals(b.object)
+      return (
+        a.subject.equals(b.subject) &&
+        (a.predicate as SPARQL.Term).equals(b.predicate as SPARQL.Term) &&
+        a.object.equals(b.object)
+      )
     }
     return false
   }
@@ -96,7 +108,7 @@ export namespace rdf {
    */
   export function toN3(term: Term | SPARQL.PropertyPath): string {
     if (isPropertyPath(term)) {
-      throw new Error("Cannot convert a property path to N3")
+      throw new Error('Cannot convert a property path to N3')
     }
     return termToString(term)
   }
@@ -295,10 +307,10 @@ export namespace rdf {
   }
 
   /**
- * Test if given is an RDFJS Term 
- * @param toTest
- * @return True of the term RDFJS Term, False otherwise
- */
+   * Test if given is an RDFJS Term
+   * @param toTest
+   * @return True of the term RDFJS Term, False otherwise
+   */
   export function isTerm(term: any): term is Term {
     return (term as Term).termType !== undefined
   }
@@ -308,7 +320,9 @@ export namespace rdf {
    * @param term - RDFJS Term
    * @return True of the term is a Variable, False otherwise
    */
-  export function isVariable(term: Term | SPARQL.PropertyPath): term is Variable {
+  export function isVariable(
+    term: Term | SPARQL.PropertyPath,
+  ): term is Variable {
     return (term as Term)?.termType === 'Variable'
   }
 
@@ -317,7 +331,9 @@ export namespace rdf {
    * @param term - RDFJS Term
    * @return True of the term is a Variable, False otherwise
    */
-  export function isWildcard(term: Term | SPARQL.PropertyPath | SPARQL.Wildcard | SPARQL.Variable): term is SPARQL.Wildcard {
+  export function isWildcard(
+    term: Term | SPARQL.PropertyPath | SPARQL.Wildcard | SPARQL.Variable,
+  ): term is SPARQL.Wildcard {
     return (term as SPARQL.Wildcard)?.termType === 'Wildcard'
   }
 
@@ -335,7 +351,9 @@ export namespace rdf {
    * @param term - RDFJS Term
    * @return True of the term is an IRI, False otherwise
    */
-  export function isNamedNode(term: Term | SPARQL.PropertyPath): term is NamedNode {
+  export function isNamedNode(
+    term: Term | SPARQL.PropertyPath,
+  ): term is NamedNode {
     return (term as Term).termType === 'NamedNode'
   }
 
@@ -344,7 +362,9 @@ export namespace rdf {
    * @param term - RDFJS Term
    * @return True of the term is a Blank Node, False otherwise
    */
-  export function isBlankNode(term: Term | SPARQL.PropertyPath): term is BlankNode {
+  export function isBlankNode(
+    term: Term | SPARQL.PropertyPath,
+  ): term is BlankNode {
     return (term as Term).termType === 'BlankNode'
   }
 
@@ -358,12 +378,14 @@ export namespace rdf {
   }
 
   /**
-  * Return True if a RDF predicate is a property path
-  * @param predicate Predicate to test
-  * @returns True if the predicate is a property path, False otherwise
-  */
-  export function isPropertyPath(predicate: SPARQL.Term | SPARQL.PropertyPath): predicate is SPARQL.PropertyPath {
-    return (predicate as SPARQL.PropertyPath).type === "path"
+   * Return True if a RDF predicate is a property path
+   * @param predicate Predicate to test
+   * @returns True if the predicate is a property path, False otherwise
+   */
+  export function isPropertyPath(
+    predicate: SPARQL.Term | SPARQL.PropertyPath,
+  ): predicate is SPARQL.PropertyPath {
+    return (predicate as SPARQL.PropertyPath).type === 'path'
   }
 
   /**
@@ -428,7 +450,11 @@ export namespace rdf {
         // use Moment.js isSame function to compare two dates
         return valueA.isSame(valueB)
       }
-      return a.value === b.value && a.datatype.value === b.datatype.value && a.language === b.language
+      return (
+        a.value === b.value &&
+        a.datatype.value === b.datatype.value &&
+        a.language === b.language
+      )
     }
     return a.value === b.value
   }
@@ -455,7 +481,7 @@ export namespace rdf {
     if (isVariable(triple.subject)) {
       count++
     }
-    if (!(isPropertyPath(triple.predicate)) && isVariable(triple.predicate)) {
+    if (!isPropertyPath(triple.predicate) && isVariable(triple.predicate)) {
       count++
     }
     if (isVariable(triple.object)) {
@@ -527,8 +553,7 @@ export namespace rdf {
    * @param suffix - Suffix appended to the XSD namespace to create an IRI
    * @return An new IRI, under the XSD namespac
    */
-  export const XSD = namespace("http://www.w3.org/2001/XMLSchema#")
-
+  export const XSD = namespace('http://www.w3.org/2001/XMLSchema#')
 
   /**
    * Create an IRI under the RDF namespace
@@ -536,8 +561,7 @@ export namespace rdf {
    * @param suffix - Suffix appended to the RDF namespace to create an IRI
    * @return An new IRI, under the RDF namespac
    */
-  export const RDF = namespace("http://www.w3.org/1999/02/22-rdf-syntax-ns#")
-
+  export const RDF = namespace('http://www.w3.org/1999/02/22-rdf-syntax-ns#')
 
   /**
    * Create an IRI under the SEF namespace
@@ -545,8 +569,9 @@ export namespace rdf {
    * @param suffix - Suffix appended to the SES namespace to create an IRI
    * @return An new IRI, under the SES namespac
    */
-  export const SEF = namespace("https://callidon.github.io/sparql-engine/functions#")
-
+  export const SEF = namespace(
+    'https://callidon.github.io/sparql-engine/functions#',
+  )
 
   /**
    * Create an IRI under the SES namespace
@@ -554,15 +579,15 @@ export namespace rdf {
    * @param suffix - Suffix appended to the SES namespace to create an IRI
    * @return An new IRI, under the SES namespac
    */
-  export const SES = namespace("https://callidon.github.io/sparql-engine/search#")
-
+  export const SES = namespace(
+    'https://callidon.github.io/sparql-engine/search#',
+  )
 }
 
 /**
  * SPARQL related utilities
  */
 export namespace sparql {
-
   export type Triple = {
     subject: SPARQL.Triple['subject']
     predicate: SPARQL.Triple['predicate']
@@ -592,30 +617,51 @@ export namespace sparql {
 
   /**
    * Create a SPARQL.Triple with the given subject, predicate and object that is untested
-   * allowing potentially invalid triples to be created for temporary use. 
-   * @param subject 
-   * @param predicate 
-   * @param object 
+   * allowing potentially invalid triples to be created for temporary use.
+   * @param subject
+   * @param predicate
+   * @param object
    */
-  export function createLooseTriple(subject: rdf.Term, predicate: rdf.Term, object: rdf.Term): SPARQL.Triple {
+  export function createLooseTriple(
+    subject: rdf.Term,
+    predicate: rdf.Term,
+    object: rdf.Term,
+  ): SPARQL.Triple {
     return {
       subject,
       predicate,
-      object
+      object,
     } as SPARQL.Triple
   }
 
-  export function createStrongTriple(subject: rdf.Term, predicate: rdf.Term, object: rdf.Term): SPARQL.Triple {
-    if (!(rdf.isNamedNode(subject) || rdf.isBlankNode(subject) || rdf.isVariable(subject) || rdf.isQuad(subject))) {
+  export function createStrongTriple(
+    subject: rdf.Term,
+    predicate: rdf.Term,
+    object: rdf.Term,
+  ): SPARQL.Triple {
+    if (
+      !(
+        rdf.isNamedNode(subject) ||
+        rdf.isBlankNode(subject) ||
+        rdf.isVariable(subject) ||
+        rdf.isQuad(subject)
+      )
+    ) {
       throw new Error(`Invalid subject ${subject}`)
     }
-    if (!(rdf.isNamedNode(predicate) || rdf.isVariable(predicate) || rdf.isPropertyPath(predicate))) {
+    if (
+      !(
+        rdf.isNamedNode(predicate) ||
+        rdf.isVariable(predicate) ||
+        rdf.isPropertyPath(predicate)
+      )
+    ) {
       throw new Error(`Invalid predicate ${predicate}`)
     }
     return {
       subject,
       predicate,
-      object
+      object,
     } as SPARQL.Triple
   }
 
@@ -645,7 +691,10 @@ export namespace sparql {
     if (rdf.isVariable(pattern.subject)) {
       res.push(pattern.subject.value)
     }
-    if ((!rdf.isPropertyPath(pattern.predicate)) && rdf.isVariable(pattern.predicate)) {
+    if (
+      !rdf.isPropertyPath(pattern.predicate) &&
+      rdf.isVariable(pattern.predicate)
+    ) {
       res.push(pattern.predicate.value)
     }
     if (rdf.isVariable(pattern.object)) {
@@ -660,7 +709,9 @@ export namespace sparql {
    * @param  patterns - Set of triple pattern
    * @return Order set of triple patterns
    */
-  export function leftLinearJoinOrdering(patterns: SPARQL.Triple[]): SPARQL.Triple[] {
+  export function leftLinearJoinOrdering(
+    patterns: SPARQL.Triple[],
+  ): SPARQL.Triple[] {
     const results: SPARQL.Triple[] = []
     const x = new Set()
     if (patterns.length > 0) {
@@ -670,11 +721,18 @@ export namespace sparql {
       results.push(p)
       while (patterns.length > 0) {
         // find the next pattern with a common join predicate
-        let index = patterns.findIndex(pattern => {
+        let index = patterns.findIndex((pattern) => {
           if (rdf.isPropertyPath(pattern.predicate)) {
-            return includes(variables, pattern.subject.value) || includes(variables, pattern.object.value)
+            return (
+              includes(variables, pattern.subject.value) ||
+              includes(variables, pattern.object.value)
+            )
           }
-          return includes(variables, pattern.subject.value) || includes(variables, pattern.predicate.value) || includes(variables, pattern.object.value)
+          return (
+            includes(variables, pattern.subject.value) ||
+            includes(variables, pattern.predicate.value) ||
+            includes(variables, pattern.object.value)
+          )
         })
         // if not found, trigger a cartesian product with the first pattern of the sorted set
         if (index < 0) {
@@ -702,25 +760,37 @@ export namespace evaluation {
    * @param cache - Cache used
    * @return A pipeline stage that produces the evaluation results
    */
-  export function cacheEvalBGP(patterns: SPARQL.Triple[], graph: Graph, cache: BGPCache, builder: BGPStageBuilder, context: ExecutionContext): PipelineStage<Bindings> {
+  export function cacheEvalBGP(
+    patterns: SPARQL.Triple[],
+    graph: Graph,
+    cache: BGPCache,
+    builder: BGPStageBuilder,
+    context: ExecutionContext,
+  ): PipelineStage<Bindings> {
     const bgp = {
       patterns,
-      graphIRI: graph.iri
+      graphIRI: graph.iri,
     }
     const [subsetBGP, missingBGP] = cache.findSubset(bgp)
     // case 1: no subset of the BGP are in cache => classic evaluation (most frequent)
     if (subsetBGP.length === 0) {
       // we cannot cache the BGP if the query has a LIMIT and/or OFFSET modiifier
       // otherwise we will cache incomplete results. So, we just evaluate the BGP
-      if (context.hasProperty(ContextSymbols.HAS_LIMIT_OFFSET) && context.getProperty(ContextSymbols.HAS_LIMIT_OFFSET)) {
+      if (
+        context.hasProperty(ContextSymbols.HAS_LIMIT_OFFSET) &&
+        context.getProperty(ContextSymbols.HAS_LIMIT_OFFSET)
+      ) {
         return graph.evalBGP(patterns, context)
       }
       // generate an unique writer ID
       const writerID = uuid()
       // evaluate the BGP while saving all solutions into the cache
-      const iterator = Pipeline.getInstance().tap(graph.evalBGP(patterns, context), b => {
-        cache.update(bgp, b, writerID)
-      })
+      const iterator = Pipeline.getInstance().tap(
+        graph.evalBGP(patterns, context),
+        (b) => {
+          cache.update(bgp, b, writerID)
+        },
+      )
       // commit the cache entry when the BGP evaluation is done
       return Pipeline.getInstance().finalize(iterator, () => {
         cache.commit(bgp, writerID)
@@ -732,10 +802,12 @@ export namespace evaluation {
     }
     const cachedBGP = {
       patterns: subsetBGP,
-      graphIRI: graph.iri
+      graphIRI: graph.iri,
     }
     // case 3: evaluate the subset BGP using the cache, then join with the missing patterns
-    const iterator = cache.getAsPipeline(cachedBGP, () => graph.evalBGP(subsetBGP, context))
+    const iterator = cache.getAsPipeline(cachedBGP, () =>
+      graph.evalBGP(subsetBGP, context),
+    )
     return builder.execute(iterator, missingBGP, context)
   }
 }
@@ -747,12 +819,19 @@ export namespace evaluation {
  * @param bindings - Set of bindings
  * @return An new, bounded triple pattern
  */
-export function applyBindings(triple: SPARQL.Triple, bindings: Bindings): SPARQL.Triple {
+export function applyBindings(
+  triple: SPARQL.Triple,
+  bindings: Bindings,
+): SPARQL.Triple {
   const newTriple = Object.assign({}, triple)
   if (rdf.isVariable(triple.subject) && bindings.has(triple.subject)) {
     newTriple.subject = bindings.get(triple.subject)! as rdf.NamedNode
   }
-  if (!rdf.isPropertyPath(triple.predicate) && rdf.isVariable(triple.predicate) && bindings.has(triple.predicate)) {
+  if (
+    !rdf.isPropertyPath(triple.predicate) &&
+    rdf.isVariable(triple.predicate) &&
+    bindings.has(triple.predicate)
+  ) {
     newTriple.predicate = bindings.get(triple.predicate)! as rdf.NamedNode
   }
   if (rdf.isVariable(triple.object) && bindings.has(triple.object)) {
@@ -767,14 +846,17 @@ export function applyBindings(triple: SPARQL.Triple, bindings: Bindings): SPARQL
  * @param  bindings - Set of bindings to use
  * @return A new SPARQL group pattern with triples bounded
  */
-export function deepApplyBindings(group: SPARQL.Pattern, bindings: Bindings): SPARQL.Pattern | SPARQL.SelectQuery {
+export function deepApplyBindings(
+  group: SPARQL.Pattern,
+  bindings: Bindings,
+): SPARQL.Pattern | SPARQL.SelectQuery {
   switch (group.type) {
     case 'bgp':
       // WARNING property paths are not supported here
       const triples = (group as SPARQL.BgpPattern).triples
       return {
         type: 'bgp',
-        triples: triples.map(t => bindings.bound(t))
+        triples: triples.map((t) => bindings.bound(t)),
       }
     case 'group':
     case 'optional':
@@ -782,7 +864,9 @@ export function deepApplyBindings(group: SPARQL.Pattern, bindings: Bindings): SP
     case 'union':
       return {
         type: 'union',
-        patterns: (group as SPARQL.GroupPattern).patterns.map(g => deepApplyBindings(g, bindings))
+        patterns: (group as SPARQL.GroupPattern).patterns.map((g) =>
+          deepApplyBindings(g, bindings),
+        ),
       }
     case 'service':
       const serviceGroup = group as SPARQL.ServicePattern
@@ -790,15 +874,18 @@ export function deepApplyBindings(group: SPARQL.Pattern, bindings: Bindings): SP
         type: serviceGroup.type,
         silent: serviceGroup.silent,
         name: serviceGroup.name,
-        patterns: serviceGroup.patterns.map(g => deepApplyBindings(g, bindings))
+        patterns: serviceGroup.patterns.map((g) =>
+          deepApplyBindings(g, bindings),
+        ),
       }
     case 'query':
-      let subQuery = (group as SPARQL.SelectQuery)
-      subQuery.where = subQuery.where!.map(g => deepApplyBindings(g, bindings))
+      let subQuery = group as SPARQL.SelectQuery
+      subQuery.where = subQuery.where!.map((g) =>
+        deepApplyBindings(g, bindings),
+      )
       return subQuery
     default:
       return group
-
   }
 }
 
@@ -808,6 +895,9 @@ export function deepApplyBindings(group: SPARQL.Pattern, bindings: Bindings): SP
  * @param  bindings - Bindings added to each set of bindings procuded by the iterator
  * @return A {@link PipelineStage} that extends bindins produced by the source iterator
  */
-export function extendByBindings(source: PipelineStage<Bindings>, bindings: Bindings): PipelineStage<Bindings> {
+export function extendByBindings(
+  source: PipelineStage<Bindings>,
+  bindings: Bindings,
+): PipelineStage<Bindings> {
   return Pipeline.getInstance().map(source, (b: Bindings) => bindings.union(b))
 }

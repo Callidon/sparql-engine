@@ -25,7 +25,7 @@ SOFTWARE.
 import { PipelineStage } from '../../engine/pipeline/pipeline-engine.js'
 import { Pipeline } from '../../engine/pipeline/pipeline.js'
 import { Bindings } from '../../rdf/bindings.js'
-import { rdf } from "../../utils.js"
+import { rdf } from '../../utils.js'
 import HashJoinTable from './hash-join-table.js'
 
 /**
@@ -36,7 +36,12 @@ import HashJoinTable from './hash-join-table.js'
  * @param  outerTable - Hash table in which bindings are probed
  * @return A {@link PipelineStage} that performs one half of a symmetric hash join
  */
-function halfHashJoin(joinKey: rdf.Variable, source: PipelineStage<Bindings>, innerTable: HashJoinTable, outerTable: HashJoinTable): PipelineStage<Bindings> {
+function halfHashJoin(
+  joinKey: rdf.Variable,
+  source: PipelineStage<Bindings>,
+  innerTable: HashJoinTable,
+  outerTable: HashJoinTable,
+): PipelineStage<Bindings> {
   const engine = Pipeline.getInstance()
   return engine.mergeMap(source, (bindings: Bindings) => {
     if (!bindings.has(joinKey)) {
@@ -59,7 +64,11 @@ function halfHashJoin(joinKey: rdf.Variable, source: PipelineStage<Bindings>, in
  * @param  right - Right source (a {@link PipelineStage})
  * @return A {@link PipelineStage} that performs a symmetric hash join between the sources
  */
-export default function symHashJoin(joinKey: rdf.Variable, left: PipelineStage<Bindings>, right: PipelineStage<Bindings>) {
+export default function symHashJoin(
+  joinKey: rdf.Variable,
+  left: PipelineStage<Bindings>,
+  right: PipelineStage<Bindings>,
+) {
   const leftTable = new HashJoinTable()
   const rightTable = new HashJoinTable()
   const leftOp = halfHashJoin(joinKey, left, leftTable, rightTable)

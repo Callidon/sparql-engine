@@ -41,5 +41,5 @@ export default function ask(source: PipelineStage<Bindings>) {
   const engine = Pipeline.getInstance()
   let op = engine.defaultValues(source, defaultValue)
   op = engine.first(op)
-  return engine.map(op, b => b.size > 0)
+  return engine.map(op, (b) => b.size > 0)
 }

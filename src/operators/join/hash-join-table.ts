@@ -55,7 +55,10 @@ export default class HashJoinTable {
    * @param  bindings - Bindings to join with
    * @return Join results, or an empty list if there is none.
    */
-  join(key: rdf.Variable | sparql.BoundedTripleValue, bindings: Bindings): Bindings[] {
+  join(
+    key: rdf.Variable | sparql.BoundedTripleValue,
+    bindings: Bindings,
+  ): Bindings[] {
     if (!this._content.has(key.value)) {
       return []
     }

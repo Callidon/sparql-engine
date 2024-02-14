@@ -38,7 +38,12 @@ import StageBuilder from './stage-builder.js'
  * @author Thomas Minier
  */
 export default class FilterStageBuilder extends StageBuilder {
-  execute(source: PipelineStage<Bindings>, pattern: SPARQL.FilterPattern, customFunctions: CustomFunctions, context: ExecutionContext): PipelineStage<Bindings> {
+  execute(
+    source: PipelineStage<Bindings>,
+    pattern: SPARQL.FilterPattern,
+    customFunctions: CustomFunctions,
+    context: ExecutionContext,
+  ): PipelineStage<Bindings> {
     const expression = pattern.expression as SPARQL.OperationExpression
     if (['operation', 'functionCall'].includes(expression.type)) {
       switch (expression.operator) {
@@ -50,7 +55,9 @@ export default class FilterStageBuilder extends StageBuilder {
           return sparqlFilter(source, expression, customFunctions)
       }
     } else {
-      throw new Error(`FilterPattern: expression type not supported ${expression}`)
+      throw new Error(
+        `FilterPattern: expression type not supported ${expression}`,
+      )
     }
   }
 }

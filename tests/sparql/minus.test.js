@@ -27,7 +27,6 @@ SOFTWARE.
 import { beforeAll, describe, expect, it } from 'vitest'
 import { TestEngine, getGraph } from '../utils.js'
 
-
 describe('SPARQL MINUS', () => {
   let engine = null
   beforeAll(() => {
@@ -44,12 +43,12 @@ describe('SPARQL MINUS', () => {
       MINUS { ?s rdf:type dblp-rdf:Person . }
     }`
     const results = await engine.execute(query).toArray()
-    results.forEach(b => {
+    results.forEach((b) => {
       b = b.toObject()
       expect(b).to.have.keys('?s', '?p', '?o')
       expect(b['?s']).to.be.oneOf([
         'https://dblp.uni-trier.de/pers/m/Minier:Thomas',
-        'https://dblp.org/pers/m/Minier:Thomas.nt'
+        'https://dblp.org/pers/m/Minier:Thomas.nt',
       ])
     })
     expect(results).toHaveLength(6)
@@ -65,6 +64,5 @@ describe('SPARQL MINUS', () => {
     }`
     const results = await engine.execute(query).toArray()
     expect(results).toHaveLength(0)
-
   })
 })

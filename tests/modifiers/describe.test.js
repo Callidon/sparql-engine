@@ -45,18 +45,19 @@ describe('DESCRIBE SPARQL queries', () => {
     }`
     const results = await engine.execute(query).toArray()
 
-    results.forEach(triple => {
+    results.forEach((triple) => {
       expect(triple).to.have.all.keys('subject', 'predicate', 'object')
-      expect(triple.subject.value).to.equal('https://dblp.org/pers/m/Minier:Thomas')
+      expect(triple.subject.value).to.equal(
+        'https://dblp.org/pers/m/Minier:Thomas',
+      )
       expect(triple.predicate.value).to.be.oneOf([
         'http://www.w3.org/1999/02/22-rdf-syntax-ns#type',
         'https://dblp.uni-trier.de/rdf/schema-2017-04-18#primaryFullPersonName',
         'https://dblp.uni-trier.de/rdf/schema-2017-04-18#authorOf',
-        'https://dblp.uni-trier.de/rdf/schema-2017-04-18#coCreatorWith'
+        'https://dblp.uni-trier.de/rdf/schema-2017-04-18#coCreatorWith',
       ])
     })
 
     expect(results.length).to.equal(11)
-
   })
 })

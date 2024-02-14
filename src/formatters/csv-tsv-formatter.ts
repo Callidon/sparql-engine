@@ -25,7 +25,10 @@ SOFTWARE.
 'use strict'
 
 import { isBoolean } from 'lodash'
-import { PipelineStage, StreamPipelineInput } from '../engine/pipeline/pipeline-engine.js'
+import {
+  PipelineStage,
+  StreamPipelineInput,
+} from '../engine/pipeline/pipeline-engine.js'
 import { Pipeline } from '../engine/pipeline/pipeline.js'
 import { Bindings } from '../rdf/bindings.js'
 import { rdf } from '../utils.js'
@@ -38,9 +41,13 @@ import { rdf } from '../utils.js'
  * @param input - Output where to write results
  * @return The order of variables in the header
  */
-function writeHead(bindings: Bindings, separator: string, input: StreamPipelineInput<string>): rdf.Variable[] {
+function writeHead(
+  bindings: Bindings,
+  separator: string,
+  input: StreamPipelineInput<string>,
+): rdf.Variable[] {
   const variables = Array.from(bindings.variables())
-  const header = variables.map(v => v.value).join(separator)
+  const header = variables.map((v) => v.value).join(separator)
   input.next(header)
   input.next('\n')
   return variables
@@ -53,9 +60,14 @@ function writeHead(bindings: Bindings, separator: string, input: StreamPipelineI
  * @param separator - Separator to use
  * @param input - Output where to write results
  */
-function writeBindings(bindings: Bindings, separator: string, order: rdf.Variable[], input: StreamPipelineInput<string>): void {
+function writeBindings(
+  bindings: Bindings,
+  separator: string,
+  order: rdf.Variable[],
+  input: StreamPipelineInput<string>,
+): void {
   let output: string[] = []
-  order.forEach(variable => {
+  order.forEach((variable) => {
     if (bindings.has(variable)) {
       let value = bindings.get(variable)!
       output.push(rdf.toN3(value))
@@ -72,27 +84,31 @@ function writeBindings(bindings: Bindings, separator: string, order: rdf.Variabl
  */
 function genericFormatter(separator: string) {
   return (source: PipelineStage<Bindings | boolean>): PipelineStage<string> => {
-    return Pipeline.getInstance().fromAsync(input => {
+    return Pipeline.getInstance().fromAsync((input) => {
       let warmup = true
       let ordering: rdf.Variable[] = []
-      source.subscribe((b: Bindings | boolean) => {
-        // Build the head attribute from the first set of bindings
-        if (warmup && !isBoolean(b)) {
-          ordering = writeHead(b, separator, input)
-        } else if (warmup && isBoolean(b)) {
-          input.next('boolean\n')
-        }
-        warmup = false
-        // handle results (boolean for ASK queries, bindings for SELECT queries)
-        if (isBoolean(b)) {
-          input.next(b ? 'true\n' : 'false\n')
-        } else {
-          writeBindings(b, separator, ordering, input)
-          input.next('\n')
-        }
-      }, err => console.error(err), () => {
-        input.complete()
-      })
+      source.subscribe(
+        (b: Bindings | boolean) => {
+          // Build the head attribute from the first set of bindings
+          if (warmup && !isBoolean(b)) {
+            ordering = writeHead(b, separator, input)
+          } else if (warmup && isBoolean(b)) {
+            input.next('boolean\n')
+          }
+          warmup = false
+          // handle results (boolean for ASK queries, bindings for SELECT queries)
+          if (isBoolean(b)) {
+            input.next(b ? 'true\n' : 'false\n')
+          } else {
+            writeBindings(b, separator, ordering, input)
+            input.next('\n')
+          }
+        },
+        (err) => console.error(err),
+        () => {
+          input.complete()
+        },
+      )
     })
   }
 }

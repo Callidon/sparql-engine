@@ -43,7 +43,7 @@ describe('SPARQL aggregates', () => {
     GROUP BY ?p
     `
     const results = await engine.execute(query).toArray()
-    results.forEach(b => {
+    results.forEach((b) => {
       b = b.toObject()
       expect(b).to.have.keys('?p', '?nbPreds')
       switch (b['?p']) {
@@ -60,12 +60,9 @@ describe('SPARQL aggregates', () => {
         default:
           throw Error(`Unexpected predicate found: ${b['?p']}`)
       }
-
     })
     expect(results.length).to.equal(4)
-
   })
-
 
   it('should evaluate queries with SPARQL expressions in GROUP BY', async () => {
     const query = `
@@ -75,7 +72,7 @@ describe('SPARQL aggregates', () => {
     GROUP BY ?p (5 * 2 AS ?z)
     `
     const results = await engine.execute(query).toArray()
-    results.forEach(b => {
+    results.forEach((b) => {
       b = b.toObject()
       expect(b).to.have.keys('?p', '?nbPreds', '?z')
       expect(b['?z']).toBe(`"10"^^${rdf.XSD.integer.value}`)
@@ -93,12 +90,9 @@ describe('SPARQL aggregates', () => {
         default:
           throw new Error(`Unexpected predicate found: ${b['?p']}`)
       }
-
     })
     expect(results.length).to.equal(4)
-
   })
-
 
   it('should allow aggregate queries without a GROUP BY clause', async () => {
     const query = `
@@ -107,15 +101,13 @@ describe('SPARQL aggregates', () => {
     }`
 
     const results = await engine.execute(query).toArray()
-    results.forEach(b => {
+    results.forEach((b) => {
       b = b.toObject()
       expect(b).to.have.keys('?nbPreds')
       expect(b['?nbPreds']).toBe(`"11"^^${rdf.XSD.integer.value}`)
     })
     expect(results).toHaveLength(1)
-
   })
-
 
   it('should evaluate queries that mix aggregations and numeric operations', async () => {
     const query = `
@@ -125,7 +117,7 @@ describe('SPARQL aggregates', () => {
     GROUP BY ?p
     `
     const results = await engine.execute(query).toArray()
-    results.forEach(b => {
+    results.forEach((b) => {
       b = b.toObject()
       expect(b).to.have.keys('?p', '?nbPreds')
       switch (b['?p']) {
@@ -143,12 +135,9 @@ describe('SPARQL aggregates', () => {
           throw new Error(`Unexpected predicate found: ${b['?p']}`)
           break
       }
-
     })
     expect(results.length).to.equal(4)
-
   })
-
 
   it('should evaluate aggregates with HAVING clauses', async () => {
     const query = `
@@ -159,7 +148,7 @@ describe('SPARQL aggregates', () => {
     HAVING (COUNT(?p) > 1)
     `
     const results = await engine.execute(query).toArray()
-    results.forEach(b => {
+    results.forEach((b) => {
       b = b.toObject()
       expect(b).to.have.keys('?p', '?nbPreds')
       switch (b['?p']) {
@@ -172,12 +161,9 @@ describe('SPARQL aggregates', () => {
         default:
           throw new Error(`Unexpected predicate found: ${b['?p']}`)
       }
-
     })
     expect(results.length).to.equal(2)
-
   })
-
 
   it('should evaluate aggregation queries with non-compatible UNION clauses', async () => {
     const query = `
@@ -187,18 +173,14 @@ describe('SPARQL aggregates', () => {
     GROUP BY ?s
     `
     const results = await engine.execute(query).toArray()
-    results.forEach(b => {
+    results.forEach((b) => {
       b = b.toObject()
       expect(b).to.have.keys('?s', '?nbSubjects')
       expect(b['?s']).toBe('https://dblp.org/pers/m/Minier:Thomas')
       expect(b['?nbSubjects']).toBe(`"2"^^${rdf.XSD.integer.value}`)
-
     })
     expect(results.length).to.equal(1)
-
   })
-
-
 
   const data = [
     {
@@ -212,7 +194,7 @@ describe('SPARQL aggregates', () => {
       nbResults: 1,
       testFun: function (b) {
         expect(b['?count']).toBe(`"10"^^${rdf.XSD.integer.value}`)
-      }
+      },
     },
     {
       name: 'SUM',
@@ -239,7 +221,7 @@ describe('SPARQL aggregates', () => {
           default:
             throw new Error(`Unexpected predicate found: ${b['?sum']}`)
         }
-      }
+      },
     },
     {
       name: 'AVG',
@@ -253,7 +235,7 @@ describe('SPARQL aggregates', () => {
       nbResults: 4,
       testFun: function (b) {
         expect(b['?avg']).toBe(`"10"^^${rdf.XSD.integer.value}`)
-      }
+      },
     },
     {
       name: 'MIN',
@@ -267,7 +249,7 @@ describe('SPARQL aggregates', () => {
       nbResults: 4,
       testFun: function (b) {
         expect(b['?min']).toBe(`"10"^^${rdf.XSD.integer.value}`)
-      }
+      },
     },
     {
       name: 'MAX',
@@ -281,7 +263,7 @@ describe('SPARQL aggregates', () => {
       nbResults: 4,
       testFun: function (b) {
         expect(b['?max']).toBe(`"10"^^${rdf.XSD.integer.value}`)
-      }
+      },
     },
     {
       name: 'GROUP_CONCAT',
@@ -308,7 +290,7 @@ describe('SPARQL aggregates', () => {
           default:
             throw new Error(`Unexpected predicate found: ${b['?concat']}`)
         }
-      }
+      },
     },
     {
       name: 'SAMPLE',
@@ -322,14 +304,14 @@ describe('SPARQL aggregates', () => {
       nbResults: 4,
       testFun: function (b) {
         expect(b['?sample']).toBe(`"10"^^${rdf.XSD.integer.value}`)
-      }
-    }
+      },
+    },
   ]
 
-  data.forEach(d => {
+  data.forEach((d) => {
     it(`should evaluate the "${d.name}" aggregate`, async () => {
       const results = await engine.execute(d.query).toArray()
-      results.forEach(b => {
+      results.forEach((b) => {
         b = b.toObject()
         expect(b).to.have.keys(...d.keys)
         d.testFun(b)

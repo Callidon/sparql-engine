@@ -31,7 +31,7 @@ import { PlanBuilder } from '../engine/plan-builder.js'
 import { BindingBase, Bindings } from '../rdf/bindings.js'
 
 interface ConditionalBindings {
-  bindings: Bindings,
+  bindings: Bindings
   output: boolean
 }
 
@@ -46,7 +46,13 @@ interface ConditionalBindings {
  * @param context   - Execution context
  * @return A {@link PipelineStage} which evaluate the FILTER (NOT) EXISTS operation
  */
-export default function exists(source: PipelineStage<Bindings>, groups: any[], builder: PlanBuilder, notexists: boolean, context: ExecutionContext) {
+export default function exists(
+  source: PipelineStage<Bindings>,
+  groups: any[],
+  builder: PlanBuilder,
+  notexists: boolean,
+  context: ExecutionContext,
+) {
   const defaultValue: Bindings = new BindingBase()
   defaultValue.setProperty('exists', false)
   const engine = Pipeline.getInstance()
@@ -55,10 +61,11 @@ export default function exists(source: PipelineStage<Bindings>, groups: any[], b
     op = engine.defaultValues(op, defaultValue)
     op = engine.first(op)
     return engine.map(op, (b: Bindings) => {
-      const exists: boolean = (!b.hasProperty('exists')) || b.getProperty('exists')
+      const exists: boolean =
+        !b.hasProperty('exists') || b.getProperty('exists')
       return {
         bindings,
-        output: (exists && (!notexists)) || ((!exists) && notexists)
+        output: (exists && !notexists) || (!exists && notexists),
       }
     })
   })

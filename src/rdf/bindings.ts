@@ -88,13 +88,13 @@ export abstract class Bindings {
    * Get the RDF Term associated with a SPARQL variable
    * @param variable - SPARQL variable
    * @return The RDF Term associated with the given SPARQL variable
-   * @throws Error if the variable is not bound 
+   * @throws Error if the variable is not bound
    */
   abstract getBound(variable: rdf.Variable): sparql.BoundedTripleValue
 
   /**
    * Test if mappings exists for a SPARQL variable
-   * 
+   *
    * NB brordened to allow general term check.
    * anything not a vairable will alwaybe false, but saves checking the type of the term.
    * @param variable - SPARQL variable
@@ -104,7 +104,7 @@ export abstract class Bindings {
 
   /**
    * Test if mappings exists for a SPARQL variable
-   * 
+   *
    * NB brordened to allow general term check.
    * anything not a vairable will alwaybe false, but saves checking the type of the term.
    * @param variable - SPARQL variable as string
@@ -162,7 +162,9 @@ export abstract class Bindings {
    * @param callback - Callback to invoke
    * @return
    */
-  abstract forEach(callback: (variable: rdf.Variable, value: Binding) => void): void
+  abstract forEach(
+    callback: (variable: rdf.Variable, value: Binding) => void,
+  ): void
 
   /**
    * Remove all mappings from the set
@@ -236,7 +238,7 @@ export abstract class Bindings {
       return false
     }
     for (let variable of other.variables()) {
-      if (!(this.has(variable)) || (this.get(variable) !== other.get(variable))) {
+      if (!this.has(variable) || this.get(variable) !== other.get(variable)) {
         return false
       }
     }
@@ -253,7 +255,11 @@ export abstract class Bindings {
     if (rdf.isVariable(triple.subject) && this.has(triple.subject)) {
       newTriple.subject = this.get(triple.subject)! as Quad_Subject
     }
-    if (!rdf.isPropertyPath(triple.predicate) && rdf.isVariable(triple.predicate) && this.has(triple.predicate)) {
+    if (
+      !rdf.isPropertyPath(triple.predicate) &&
+      rdf.isVariable(triple.predicate) &&
+      this.has(triple.predicate)
+    ) {
       newTriple.predicate = this.get(triple.predicate)! as Quad_Predicate
     }
     if (rdf.isVariable(triple.object) && this.has(triple.object)) {
@@ -267,9 +273,11 @@ export abstract class Bindings {
    * @param values - Pairs [variable, value] to add to the set
    * @return A new Bindings with the additionnal mappings
    */
-  extendMany(values: Array<[rdf.Variable, sparql.BoundedTripleValue]>): Bindings {
+  extendMany(
+    values: Array<[rdf.Variable, sparql.BoundedTripleValue]>,
+  ): Bindings {
     const cloned = this.clone()
-    values.forEach(v => {
+    values.forEach((v) => {
       cloned.set(v[0], v[1])
     })
     return cloned
@@ -310,7 +318,7 @@ export abstract class Bindings {
    */
   difference(other: Bindings): Bindings {
     return this.filter((variable: rdf.Variable, value: Binding) => {
-      return (!other.has(variable)) || (value !== other.get(variable))
+      return !other.has(variable) || value !== other.get(variable)
     })
   }
 
@@ -330,11 +338,23 @@ export abstract class Bindings {
    * @param mapper - Transformation function (variable, value) => [variable, binding]
    * @return A new set of binding
    */
-  map(mapper: (variable: rdf.Variable, value: Binding) => [rdf.Variable | null, Binding | null]): Bindings {
+  map(
+    mapper: (
+      variable: rdf.Variable,
+      value: Binding,
+    ) => [rdf.Variable | null, Binding | null],
+  ): Bindings {
     const result = this.empty()
     this.forEach((variable, value) => {
       let [newVar, newValue] = mapper(variable, value)
-      if (!(isNull(newVar) || isUndefined(newVar) || isNull(newValue) || isUndefined(newValue))) {
+      if (
+        !(
+          isNull(newVar) ||
+          isUndefined(newVar) ||
+          isNull(newValue) ||
+          isUndefined(newValue)
+        )
+      ) {
         result.set(newVar, newValue)
       }
     })
@@ -346,7 +366,9 @@ export abstract class Bindings {
    * @param mapper - Transformation function
    * @return A new set of mappings
    */
-  mapVariables(mapper: (variable: rdf.Variable, value: Binding) => rdf.Variable | null): Bindings {
+  mapVariables(
+    mapper: (variable: rdf.Variable, value: Binding) => rdf.Variable | null,
+  ): Bindings {
     return this.map((variable, value) => [mapper(variable, value), value])
   }
 
@@ -355,7 +377,9 @@ export abstract class Bindings {
    * @param mapper - Transformation function
    * @return A new set of mappings
    */
-  mapValues(mapper: (variable: rdf.Variable, value: Binding) => Binding | null): Bindings {
+  mapValues(
+    mapper: (variable: rdf.Variable, value: Binding) => Binding | null,
+  ): Bindings {
     return this.map((variable, value) => [variable, mapper(variable, value)])
   }
 
@@ -364,7 +388,9 @@ export abstract class Bindings {
    * @param predicate - Predicate function
    * @return A new set of mappings
    */
-  filter(predicate: (variable: rdf.Variable, value: Binding) => boolean): Bindings {
+  filter(
+    predicate: (variable: rdf.Variable, value: Binding) => boolean,
+  ): Bindings {
     return this.map((variable, value) => {
       if (predicate(variable, value)) {
         return [variable, value]
@@ -379,7 +405,10 @@ export abstract class Bindings {
    * @param start - Value used to start the accumulation
    * @return The accumulated value
    */
-  reduce<T>(reducer: (acc: T, variable: rdf.Variable, value: Binding) => T, start: T): T {
+  reduce<T>(
+    reducer: (acc: T, variable: rdf.Variable, value: Binding) => T,
+    start: T,
+  ): T {
     let acc: T = start
     this.forEach((variable, value) => {
       acc = reducer(acc, variable, value)
@@ -392,7 +421,9 @@ export abstract class Bindings {
    * @param  predicate - Function to test for each mapping
    * @return True if some mappings in the set some the predicate function, False otheriwse
    */
-  some(predicate: (variable: rdf.Variable, value: Binding) => boolean): boolean {
+  some(
+    predicate: (variable: rdf.Variable, value: Binding) => boolean,
+  ): boolean {
     let res = false
     this.forEach((variable, value) => {
       res = res || predicate(variable, value)
@@ -405,7 +436,9 @@ export abstract class Bindings {
    * @param  predicate - Function to test for each mapping
    * @return True if every mappings in the set some the predicate function, False otheriwse
    */
-  every(predicate: (variable: rdf.Variable, value: Binding) => boolean): boolean {
+  every(
+    predicate: (variable: rdf.Variable, value: Binding) => boolean,
+  ): boolean {
     let res = true
     this.forEach((variable, value) => {
       res = res && predicate(variable, value)
@@ -419,7 +452,10 @@ export abstract class Bindings {
  * @author Thomas Minier
  */
 export class BindingBase extends Bindings {
-  private readonly _content: Map<string, sparql.BoundedTripleValue | rdf.Variable>
+  private readonly _content: Map<
+    string,
+    sparql.BoundedTripleValue | rdf.Variable
+  >
 
   constructor() {
     super()
@@ -439,11 +475,21 @@ export class BindingBase extends Bindings {
    * @param obj - a partially bound triple
    * @return A set of mappings
    */
-  static fromMapping(values: { [key: string]: sparql.BoundedTripleValue }): Bindings {
+  static fromMapping(values: {
+    [key: string]: sparql.BoundedTripleValue
+  }): Bindings {
     const res = new BindingBase()
     Object.entries(values).forEach(([key, value]) => {
-      if (!value || rdf.isVariable(value) || rdf.isBlankNode(value) || rdf.isQuad(value) || rdf.isPropertyPath(value)) {
-        throw new SyntaxError(`Cannot use a Variable/BlankNode/Quad/Path ${value} as the value of a binding`)
+      if (
+        !value ||
+        rdf.isVariable(value) ||
+        rdf.isBlankNode(value) ||
+        rdf.isQuad(value) ||
+        rdf.isPropertyPath(value)
+      ) {
+        throw new SyntaxError(
+          `Cannot use a Variable/BlankNode/Quad/Path ${value} as the value of a binding`,
+        )
       }
       res.set(rdf.createVariable(key), value)
     })
@@ -458,8 +504,15 @@ export class BindingBase extends Bindings {
   static fromValues(values: SPARQL.ValuePatternRow): Bindings {
     const res = new BindingBase()
     Object.entries(values).forEach(([key, value]) => {
-      if (!value || rdf.isVariable(value) || rdf.isBlankNode(value) || rdf.isQuad(value)) {
-        throw new SyntaxError(`Cannot use a Variable/BlankNode/Quad ${value} as the value of a binding`)
+      if (
+        !value ||
+        rdf.isVariable(value) ||
+        rdf.isBlankNode(value) ||
+        rdf.isQuad(value)
+      ) {
+        throw new SyntaxError(
+          `Cannot use a Variable/BlankNode/Quad ${value} as the value of a binding`,
+        )
       }
       res.set(rdf.createVariable(key), value)
     })
@@ -476,11 +529,19 @@ export class BindingBase extends Bindings {
     Object.entries(obj).forEach(([key, value]) => {
       const keyTerm = rdf.fromN3(key)
       const valueTerm = rdf.fromN3(value)
-      if (rdf.isVariable(valueTerm) || rdf.isBlankNode(valueTerm) || rdf.isQuad(valueTerm)) {
-        throw new SyntaxError(`Cannot use a Variable/BlankNode/Quad ${value} as the value of a binding`)
+      if (
+        rdf.isVariable(valueTerm) ||
+        rdf.isBlankNode(valueTerm) ||
+        rdf.isQuad(valueTerm)
+      ) {
+        throw new SyntaxError(
+          `Cannot use a Variable/BlankNode/Quad ${value} as the value of a binding`,
+        )
       }
       if (!rdf.isVariable(keyTerm)) {
-        throw new SyntaxError(`Must use a Variable node as the key of a binding, not ${key}`)
+        throw new SyntaxError(
+          `Must use a Variable node as the key of a binding, not ${key}`,
+        )
       } else {
         res.set(keyTerm, valueTerm)
       }
@@ -489,7 +550,9 @@ export class BindingBase extends Bindings {
   }
 
   variables(): IterableIterator<rdf.Variable> {
-    return Array.from(this._content.keys()).map(k => rdf.createVariable(k)).values()
+    return Array.from(this._content.keys())
+      .map((k) => rdf.createVariable(k))
+      .values()
   }
 
   values(): IterableIterator<Binding> {
@@ -537,6 +600,8 @@ export class BindingBase extends Bindings {
   }
 
   forEach(callback: (variable: rdf.Variable, value: Binding) => void): void {
-    this._content.forEach((value, variable) => callback(rdf.createVariable(variable), value))
+    this._content.forEach((value, variable) =>
+      callback(rdf.createVariable(variable), value),
+    )
   }
 }

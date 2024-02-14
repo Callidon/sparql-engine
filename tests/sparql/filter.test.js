@@ -45,7 +45,7 @@ describe('FILTER SPARQL queries', () => {
         ?s dblp-rdf:primaryFullPersonName ?name .
         FILTER(?name = "Thomas Minier"@en)
       }`,
-      expectedNb: 1
+      expectedNb: 1,
     },
     {
       name: '!=',
@@ -57,7 +57,7 @@ describe('FILTER SPARQL queries', () => {
         ?s dblp-rdf:primaryFullPersonName ?name .
         FILTER(?name != "Thomas Minier")
       }`,
-      expectedNb: 1
+      expectedNb: 1,
     },
     {
       name: '<',
@@ -68,7 +68,7 @@ describe('FILTER SPARQL queries', () => {
         ?s rdf:type dblp-rdf:Person .
         FILTER(10 < 20)
       }`,
-      expectedNb: 1
+      expectedNb: 1,
     },
     {
       name: '>',
@@ -79,7 +79,7 @@ describe('FILTER SPARQL queries', () => {
         ?s rdf:type dblp-rdf:Person .
         FILTER(10 > 20)
       }`,
-      expectedNb: 0
+      expectedNb: 0,
     },
     {
       name: '<=',
@@ -90,7 +90,7 @@ describe('FILTER SPARQL queries', () => {
         ?s rdf:type dblp-rdf:Person .
         FILTER(10 <= 10)
       }`,
-      expectedNb: 1
+      expectedNb: 1,
     },
     {
       name: '>=',
@@ -101,7 +101,7 @@ describe('FILTER SPARQL queries', () => {
         ?s rdf:type dblp-rdf:Person .
         FILTER(20 >= 10)
       }`,
-      expectedNb: 1
+      expectedNb: 1,
     },
     {
       name: '= (using xsd:DateTime)',
@@ -111,7 +111,7 @@ describe('FILTER SPARQL queries', () => {
         <https://dblp.org/pers/m/Minier:Thomas.nt> <http://purl.org/dc/terms/modified> ?date .
         FILTER("2018-08-04T00:54:27+0200"^^xsd:dateTime = ?date)
       }`,
-      expectedNb: 1
+      expectedNb: 1,
     },
     {
       name: '!= (using xsd:DateTime)',
@@ -121,7 +121,7 @@ describe('FILTER SPARQL queries', () => {
         <https://dblp.org/pers/m/Minier:Thomas.nt> <http://purl.org/dc/terms/modified> ?date .
         FILTER("2018-08-10T01:54:27+0200"^^xsd:dateTime != ?date)
       }`,
-      expectedNb: 1
+      expectedNb: 1,
     },
     {
       name: '< (using xsd:DateTime)',
@@ -131,7 +131,7 @@ describe('FILTER SPARQL queries', () => {
         <https://dblp.org/pers/m/Minier:Thomas.nt> <http://purl.org/dc/terms/modified> ?date .
         FILTER("2017-08-04T00:54:27+0200"^^xsd:dateTime < ?date)
       }`,
-      expectedNb: 1
+      expectedNb: 1,
     },
     {
       name: '> (using xsd:DateTime)',
@@ -141,7 +141,7 @@ describe('FILTER SPARQL queries', () => {
         <https://dblp.org/pers/m/Minier:Thomas.nt> <http://purl.org/dc/terms/modified> ?date .
         FILTER("2018-10-04T00:54:27+0200"^^xsd:dateTime > ?date)
       }`,
-      expectedNb: 1
+      expectedNb: 1,
     },
     {
       name: '<= (using xsd:DateTime)',
@@ -151,7 +151,7 @@ describe('FILTER SPARQL queries', () => {
         <https://dblp.org/pers/m/Minier:Thomas.nt> <http://purl.org/dc/terms/modified> ?date .
         FILTER("2018-08-04T00:54:27+0200"^^xsd:dateTime <= ?date && "2017-08-04T00:54:27+0200"^^xsd:dateTime <= ?date)
       }`,
-      expectedNb: 1
+      expectedNb: 1,
     },
     {
       name: '>= (using xsd:DateTime)',
@@ -161,7 +161,7 @@ describe('FILTER SPARQL queries', () => {
         <https://dblp.org/pers/m/Minier:Thomas.nt> <http://purl.org/dc/terms/modified> ?date .
         FILTER("2018-08-04T00:54:27+0200"^^xsd:dateTime >= ?date && "2018-10-04T00:54:27+0200"^^xsd:dateTime >= ?date)
       }`,
-      expectedNb: 1
+      expectedNb: 1,
     },
     {
       name: '+',
@@ -172,7 +172,7 @@ describe('FILTER SPARQL queries', () => {
         ?s rdf:type dblp-rdf:Person .
         FILTER(10 + 10 = 20)
       }`,
-      expectedNb: 1
+      expectedNb: 1,
     },
     {
       name: '-',
@@ -183,7 +183,7 @@ describe('FILTER SPARQL queries', () => {
         ?s rdf:type dblp-rdf:Person .
         FILTER(10 - 10 = 20)
       }`,
-      expectedNb: 0
+      expectedNb: 0,
     },
     {
       name: '*',
@@ -194,7 +194,7 @@ describe('FILTER SPARQL queries', () => {
         ?s rdf:type dblp-rdf:Person .
         FILTER(10 * 10 > 20)
       }`,
-      expectedNb: 1
+      expectedNb: 1,
     },
     {
       name: '/',
@@ -205,7 +205,7 @@ describe('FILTER SPARQL queries', () => {
         ?s rdf:type dblp-rdf:Person .
         FILTER(10 / 2 = 5)
       }`,
-      expectedNb: 1
+      expectedNb: 1,
     },
     {
       name: '&&',
@@ -217,7 +217,7 @@ describe('FILTER SPARQL queries', () => {
         ?s dblp-rdf:primaryFullPersonName ?name .
         FILTER(?name = "Thomas Minier"@en && 10 < 20)
       }`,
-      expectedNb: 1
+      expectedNb: 1,
     },
     {
       name: '||',
@@ -229,7 +229,7 @@ describe('FILTER SPARQL queries', () => {
         ?s dblp-rdf:primaryFullPersonName ?name .
         FILTER(?name = "Thomas Minier"@en || 10 < 20)
       }`,
-      expectedNb: 1
+      expectedNb: 1,
     },
     {
       name: '!',
@@ -241,7 +241,7 @@ describe('FILTER SPARQL queries', () => {
         ?s dblp-rdf:primaryFullPersonName ?name .
         FILTER(!(?name = "Thomas Minier"@en))
       }`,
-      expectedNb: 0
+      expectedNb: 0,
     },
     {
       name: 'IN',
@@ -254,7 +254,7 @@ describe('FILTER SPARQL queries', () => {
         ?s dblp-rdf:authorOf ?article .
         FILTER(?article IN (esws:MinierSMV18a, esws:MinierSMV18, esws:MinierMSM17))
       }`,
-      expectedNb: 3
+      expectedNb: 3,
     },
     {
       name: 'NOT IN',
@@ -267,7 +267,7 @@ describe('FILTER SPARQL queries', () => {
         ?s dblp-rdf:authorOf ?article .
         FILTER(?article NOT IN (esws:MinierSMV18a, esws:MinierSMV18, esws:MinierMSM17))
       }`,
-      expectedNb: 2
+      expectedNb: 2,
     },
     {
       name: 'isIRI',
@@ -278,7 +278,7 @@ describe('FILTER SPARQL queries', () => {
         ?s rdf:type dblp-rdf:Person .
         FILTER(isIRI(?s))
       }`,
-      expectedNb: 1
+      expectedNb: 1,
     },
     {
       name: 'isBlank',
@@ -290,7 +290,7 @@ describe('FILTER SPARQL queries', () => {
         ?s dblp-rdf:primaryFullPersonName ?name .
         FILTER(isBlank(?name))
       }`,
-      expectedNb: 0
+      expectedNb: 0,
     },
     {
       name: 'isLiteral',
@@ -302,7 +302,7 @@ describe('FILTER SPARQL queries', () => {
         ?s dblp-rdf:primaryFullPersonName ?name .
         FILTER(isLiteral(?name))
       }`,
-      expectedNb: 1
+      expectedNb: 1,
     },
     {
       name: 'isNumeric',
@@ -314,7 +314,7 @@ describe('FILTER SPARQL queries', () => {
         ?s dblp-rdf:primaryFullPersonName ?name .
         FILTER(!isNumeric(?name) && isNumeric(10))
       }`,
-      expectedNb: 1
+      expectedNb: 1,
     },
     {
       name: 'str',
@@ -325,7 +325,7 @@ describe('FILTER SPARQL queries', () => {
         ?s rdf:type dblp-rdf:Person .
         FILTER(str(?s) = "https://dblp.org/pers/m/Minier:Thomas")
       }`,
-      expectedNb: 1
+      expectedNb: 1,
     },
     {
       name: 'lang',
@@ -337,7 +337,7 @@ describe('FILTER SPARQL queries', () => {
         ?s dblp-rdf:primaryFullPersonName ?name .
         FILTER(lang(?name) = "en")
       }`,
-      expectedNb: 1
+      expectedNb: 1,
     },
     {
       name: 'lang (no lang tag on literal)',
@@ -348,7 +348,7 @@ describe('FILTER SPARQL queries', () => {
         ?s rdf:type dblp-rdf:Person .
         FILTER(lang(?s) = "")
       }`,
-      expectedNb: 1
+      expectedNb: 1,
     },
     {
       name: 'datatype',
@@ -359,7 +359,7 @@ describe('FILTER SPARQL queries', () => {
         ?s rdfs:label ?label
         FILTER(datatype(?label) = xsd:string)
       }`,
-      expectedNb: 1
+      expectedNb: 1,
     },
     {
       name: 'datatype (no datatype)',
@@ -370,7 +370,7 @@ describe('FILTER SPARQL queries', () => {
         ?s rdfs:label ?label
         FILTER(datatype(?s) = "")
       }`,
-      expectedNb: 1
+      expectedNb: 1,
     },
     {
       name: 'datatype (with lang tag)',
@@ -382,7 +382,7 @@ describe('FILTER SPARQL queries', () => {
         ?s dblp-rdf:primaryFullPersonName ?name .
         FILTER(datatype(?name) = rdf:langString)
       }`,
-      expectedNb: 1
+      expectedNb: 1,
     },
     {
       name: 'iri',
@@ -393,7 +393,7 @@ describe('FILTER SPARQL queries', () => {
         ?s rdf:type dblp-rdf:Person .
         FILTER(iri("https://dblp.org/pers/m/Minier:Thomas") = ?s)
       }`,
-      expectedNb: 1
+      expectedNb: 1,
     },
     {
       name: 'strdt',
@@ -403,7 +403,7 @@ describe('FILTER SPARQL queries', () => {
         <https://dblp.org/pers/m/Minier:Thomas.nt> <http://purl.org/dc/terms/modified> ?date .
         FILTER(strdt("2018-08-04T00:54:27+0200", xsd:dateTime) = ?date)
       }`,
-      expectedNb: 1
+      expectedNb: 1,
     },
     {
       name: 'strlang',
@@ -415,7 +415,7 @@ describe('FILTER SPARQL queries', () => {
         ?s dblp-rdf:primaryFullPersonName ?name .
         FILTER(strlang("Thomas Minier", "en") = ?name)
       }`,
-      expectedNb: 1
+      expectedNb: 1,
     },
     {
       name: 'uuid',
@@ -426,7 +426,7 @@ describe('FILTER SPARQL queries', () => {
         ?s rdfs:label ?label
         FILTER(isiri(uuid()) && uuid() != uuid())
       }`,
-      expectedNb: 1
+      expectedNb: 1,
     },
     {
       name: 'struuid',
@@ -437,7 +437,7 @@ describe('FILTER SPARQL queries', () => {
         ?s rdfs:label ?label
         FILTER(isliteral(struuid()) && struuid() != struuid())
       }`,
-      expectedNb: 1
+      expectedNb: 1,
     },
     {
       name: 'strlen',
@@ -449,7 +449,7 @@ describe('FILTER SPARQL queries', () => {
         ?s dblp-rdf:primaryFullPersonName ?name .
         FILTER(strlen(?name) = 13)
       }`,
-      expectedNb: 1
+      expectedNb: 1,
     },
     {
       name: 'substr',
@@ -461,7 +461,7 @@ describe('FILTER SPARQL queries', () => {
         ?s dblp-rdf:primaryFullPersonName ?name .
         FILTER(substr("foobar", 4) = "bar")
       }`,
-      expectedNb: 1
+      expectedNb: 1,
     },
     {
       name: 'substr (with length)',
@@ -473,7 +473,7 @@ describe('FILTER SPARQL queries', () => {
         ?s dblp-rdf:primaryFullPersonName ?name .
         FILTER(substr("foobar", 4, 2) = "ba")
       }`,
-      expectedNb: 1
+      expectedNb: 1,
     },
     {
       name: 'ucase',
@@ -485,7 +485,7 @@ describe('FILTER SPARQL queries', () => {
         ?s dblp-rdf:primaryFullPersonName ?name .
         FILTER(ucase(?name) = "THOMAS MINIER"@en)
       }`,
-      expectedNb: 1
+      expectedNb: 1,
     },
     {
       name: 'lcase',
@@ -497,7 +497,7 @@ describe('FILTER SPARQL queries', () => {
         ?s dblp-rdf:primaryFullPersonName ?name .
         FILTER(lcase(?name) = "thomas minier"@en)
       }`,
-      expectedNb: 1
+      expectedNb: 1,
     },
     {
       name: 'strstarts',
@@ -509,7 +509,7 @@ describe('FILTER SPARQL queries', () => {
         ?s dblp-rdf:primaryFullPersonName ?name .
         FILTER(strstarts(?name, "Thomas"))
       }`,
-      expectedNb: 1
+      expectedNb: 1,
     },
     {
       name: 'strends',
@@ -521,7 +521,7 @@ describe('FILTER SPARQL queries', () => {
         ?s dblp-rdf:primaryFullPersonName ?name .
         FILTER(strends(?name, "Norris"))
       }`,
-      expectedNb: 0
+      expectedNb: 0,
     },
     {
       name: 'contains',
@@ -533,7 +533,7 @@ describe('FILTER SPARQL queries', () => {
         ?s dblp-rdf:primaryFullPersonName ?name .
         FILTER(contains(?name, "Thomas"))
       }`,
-      expectedNb: 1
+      expectedNb: 1,
     },
     {
       name: 'strbefore',
@@ -545,7 +545,7 @@ describe('FILTER SPARQL queries', () => {
         ?s dblp-rdf:primaryFullPersonName ?name .
         FILTER(strbefore(?name, "Minier") = "Thomas "@en)
       }`,
-      expectedNb: 1
+      expectedNb: 1,
     },
     {
       name: 'strafter',
@@ -557,7 +557,7 @@ describe('FILTER SPARQL queries', () => {
         ?s dblp-rdf:primaryFullPersonName ?name .
         FILTER(strafter(?name, "Thomas") = " Minier"@en)
       }`,
-      expectedNb: 1
+      expectedNb: 1,
     },
     {
       name: 'encode_for_uri',
@@ -569,7 +569,7 @@ describe('FILTER SPARQL queries', () => {
         ?s dblp-rdf:primaryFullPersonName ?name .
         FILTER(encode_for_uri(?name) = "Thomas%20Minier")
       }`,
-      expectedNb: 1
+      expectedNb: 1,
     },
     {
       name: 'concat',
@@ -581,7 +581,7 @@ describe('FILTER SPARQL queries', () => {
         ?s dblp-rdf:primaryFullPersonName ?name .
         FILTER(concat("Thomas "@en, "Minier"@en) = ?name)
       }`,
-      expectedNb: 1
+      expectedNb: 1,
     },
     {
       name: 'concat (not the same literal types)',
@@ -592,7 +592,7 @@ describe('FILTER SPARQL queries', () => {
         ?s rdf:type dblp-rdf:Person .
         FILTER(concat("Thomas ", "Minier"@en) = "Thomas Minier")
       }`,
-      expectedNb: 1
+      expectedNb: 1,
     },
     {
       name: 'langmatches',
@@ -604,7 +604,7 @@ describe('FILTER SPARQL queries', () => {
         ?s dblp-rdf:primaryFullPersonName ?name .
         FILTER(langmatches(lang(?name), "EN"))
       }`,
-      expectedNb: 1
+      expectedNb: 1,
     },
     {
       name: 'regex',
@@ -616,7 +616,7 @@ describe('FILTER SPARQL queries', () => {
         ?s dblp-rdf:primaryFullPersonName ?name .
         FILTER(regex(?name, "^tho"))
       }`,
-      expectedNb: 0
+      expectedNb: 0,
     },
     {
       name: 'regex (with flags)',
@@ -628,7 +628,7 @@ describe('FILTER SPARQL queries', () => {
         ?s dblp-rdf:primaryFullPersonName ?name .
         FILTER(regex(?name, "^tho", "i"))
       }`,
-      expectedNb: 1
+      expectedNb: 1,
     },
     {
       name: 'replace',
@@ -639,7 +639,7 @@ describe('FILTER SPARQL queries', () => {
         ?s rdf:type dblp-rdf:Person .
         FILTER(replace("abcd", "b", "Z") = "aZcd")
       }`,
-      expectedNb: 1
+      expectedNb: 1,
     },
     {
       name: 'replace (with flags)',
@@ -650,7 +650,7 @@ describe('FILTER SPARQL queries', () => {
         ?s rdf:type dblp-rdf:Person .
         FILTER(replace("abab", "B", "Z", "i") = "aZab")
       }`,
-      expectedNb: 1
+      expectedNb: 1,
     },
     {
       name: 'replace (with complex REGEX)',
@@ -661,7 +661,7 @@ describe('FILTER SPARQL queries', () => {
         ?s rdf:type dblp-rdf:Person .
         FILTER(replace("abab", "B.", "Z","i") = "aZb")
       }`,
-      expectedNb: 1
+      expectedNb: 1,
     },
     {
       name: 'abs',
@@ -672,7 +672,7 @@ describe('FILTER SPARQL queries', () => {
         ?s rdf:type dblp-rdf:Person .
         FILTER(abs(-10) = 10)
       }`,
-      expectedNb: 1
+      expectedNb: 1,
     },
     {
       name: 'round',
@@ -683,7 +683,7 @@ describe('FILTER SPARQL queries', () => {
         ?s rdf:type dblp-rdf:Person .
         FILTER(round(10.01) = 10)
       }`,
-      expectedNb: 1
+      expectedNb: 1,
     },
     {
       name: 'ceil',
@@ -694,7 +694,7 @@ describe('FILTER SPARQL queries', () => {
         ?s rdf:type dblp-rdf:Person .
         FILTER(ceil(7.004) = 8)
       }`,
-      expectedNb: 1
+      expectedNb: 1,
     },
     {
       name: 'floor',
@@ -705,7 +705,7 @@ describe('FILTER SPARQL queries', () => {
         ?s rdf:type dblp-rdf:Person .
         FILTER(floor(7.004) = 7)
       }`,
-      expectedNb: 1
+      expectedNb: 1,
     },
     {
       name: 'bound',
@@ -716,7 +716,7 @@ describe('FILTER SPARQL queries', () => {
         ?s rdf:type dblp-rdf:Person .
         FILTER(bound(?s))
       }`,
-      expectedNb: 1
+      expectedNb: 1,
     },
     {
       name: 'now',
@@ -728,7 +728,7 @@ describe('FILTER SPARQL queries', () => {
         ?s rdf:type dblp-rdf:Person .
         FILTER(datatype(now()) = xsd:dateTime)
       }`,
-      expectedNb: 1
+      expectedNb: 1,
     },
     {
       name: 'year',
@@ -740,7 +740,7 @@ describe('FILTER SPARQL queries', () => {
         ?s rdf:type dblp-rdf:Person .
         FILTER(year("2011-01-10T14:45:13.815-05:00"^^xsd:dateTime) = 2011)
       }`,
-      expectedNb: 1
+      expectedNb: 1,
     },
     {
       name: 'month',
@@ -752,7 +752,7 @@ describe('FILTER SPARQL queries', () => {
         ?s rdf:type dblp-rdf:Person .
         FILTER(month("2011-01-10T14:45:13.815-05:00"^^xsd:dateTime) = 1)
       }`,
-      expectedNb: 1
+      expectedNb: 1,
     },
     {
       name: 'day',
@@ -764,7 +764,7 @@ describe('FILTER SPARQL queries', () => {
         ?s rdf:type dblp-rdf:Person .
         FILTER(day("2011-01-10T14:45:13.815-05:00"^^xsd:dateTime) = 10)
       }`,
-      expectedNb: 1
+      expectedNb: 1,
     },
     {
       name: 'hours',
@@ -776,7 +776,7 @@ describe('FILTER SPARQL queries', () => {
         ?s rdf:type dblp-rdf:Person .
         FILTER(hours("2011-01-10T14:45:13.815-05:00"^^xsd:dateTime) = 14)
       }`,
-      expectedNb: 1
+      expectedNb: 1,
     },
     {
       name: 'minutes',
@@ -788,7 +788,7 @@ describe('FILTER SPARQL queries', () => {
         ?s rdf:type dblp-rdf:Person .
         FILTER(minutes("2011-01-10T14:45:13.815-05:00"^^xsd:dateTime) = 45)
       }`,
-      expectedNb: 1
+      expectedNb: 1,
     },
     {
       name: 'seconds',
@@ -800,7 +800,7 @@ describe('FILTER SPARQL queries', () => {
         ?s rdf:type dblp-rdf:Person .
         FILTER(seconds("2011-01-10T14:45:13.815-05:00"^^xsd:dateTime) = 13)
       }`,
-      expectedNb: 1
+      expectedNb: 1,
     },
     {
       name: 'tz',
@@ -812,7 +812,7 @@ describe('FILTER SPARQL queries', () => {
         ?s rdf:type dblp-rdf:Person .
         FILTER(tz("2011-01-10T14:45:13.815-05:00"^^xsd:dateTime) = "-5")
       }`,
-      expectedNb: 1
+      expectedNb: 1,
     },
     {
       name: 'md5',
@@ -823,7 +823,7 @@ describe('FILTER SPARQL queries', () => {
         ?s rdf:type dblp-rdf:Person .
         FILTER(MD5("abc") = "900150983cd24fb0d6963f7d28e17f72")
       }`,
-      expectedNb: 1
+      expectedNb: 1,
     },
     {
       name: 'sha1',
@@ -834,7 +834,7 @@ describe('FILTER SPARQL queries', () => {
         ?s rdf:type dblp-rdf:Person .
         FILTER(SHA1("abc") = "a9993e364706816aba3e25717850c26c9cd0d89d")
       }`,
-      expectedNb: 1
+      expectedNb: 1,
     },
     {
       name: 'sha256',
@@ -845,7 +845,7 @@ describe('FILTER SPARQL queries', () => {
         ?s rdf:type dblp-rdf:Person .
         FILTER(SHA256("abc") = "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad")
       }`,
-      expectedNb: 1
+      expectedNb: 1,
     },
     {
       name: 'sha384',
@@ -856,7 +856,7 @@ describe('FILTER SPARQL queries', () => {
         ?s rdf:type dblp-rdf:Person .
         FILTER(SHA384("abc") = "cb00753f45a35e8bb5a03d699ac65007272c32ab0eded1631a8b605a43ff5bed8086072ba1e7cc2358baeca134c825a7")
       }`,
-      expectedNb: 1
+      expectedNb: 1,
     },
     {
       name: 'sha512',
@@ -867,7 +867,7 @@ describe('FILTER SPARQL queries', () => {
         ?s rdf:type dblp-rdf:Person .
         FILTER(SHA512("abc") = "ddaf35a193617abacc417349ae20413112e6fa4e89a97ea20a9eeee64b55d39a2192992a274fc1a836ba3c23a3feebbd454d4423643ce80e2a9ac94fa54ca49f")
       }`,
-      expectedNb: 1
+      expectedNb: 1,
     },
     {
       name: 'EXISTS',
@@ -878,7 +878,7 @@ describe('FILTER SPARQL queries', () => {
         ?s rdf:type dblp-rdf:Person .
         FILTER EXISTS { ?s dblp-rdf:primaryFullPersonName ?name }
       }`,
-      expectedNb: 1
+      expectedNb: 1,
     },
     {
       name: 'NOT EXISTS',
@@ -889,7 +889,7 @@ describe('FILTER SPARQL queries', () => {
         ?s rdf:type dblp-rdf:Person .
         FILTER NOT EXISTS { ?s dblp-rdf:primaryFullPersonName "Chunck Norris" }
       }`,
-      expectedNb: 1
+      expectedNb: 1,
     },
     {
       name: 'COALESCE (value is bound)',
@@ -898,7 +898,7 @@ describe('FILTER SPARQL queries', () => {
         BIND("Thomas" AS ?x)
         FILTER(COALESCE(?x, "Arnaud") = "Thomas")
       }`,
-      expectedNb: 1
+      expectedNb: 1,
     },
     {
       name: 'COALESCE (value is not bound)',
@@ -907,7 +907,7 @@ describe('FILTER SPARQL queries', () => {
         BIND("Thomas" AS ?y)
         FILTER(COALESCE(?x, "Arnaud") = "Arnaud")
       }`,
-      expectedNb: 1
+      expectedNb: 1,
     },
     {
       name: 'IF (expression is true)',
@@ -916,7 +916,7 @@ describe('FILTER SPARQL queries', () => {
         BIND("Thomas" AS ?x)
         FILTER(IF(?x = "Thomas", 0, 1) = 0)
       }`,
-      expectedNb: 1
+      expectedNb: 1,
     },
     {
       name: 'IF (expression is false)',
@@ -925,11 +925,11 @@ describe('FILTER SPARQL queries', () => {
         BIND("Arnaud" AS ?x)
         FILTER(IF(?x = "Thomas", 0, 1) = 1)
       }`,
-      expectedNb: 1
-    }
+      expectedNb: 1,
+    },
   ]
 
-  data.forEach(d => {
+  data.forEach((d) => {
     it(`should evaluate the "${d.name}" FILTER`, async () => {
       const results = await engine.execute(d.query).toArray()
       expect(results).toHaveLength(d.expectedNb)

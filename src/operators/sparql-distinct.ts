@@ -37,7 +37,9 @@ import { rdf } from '../utils.js'
  */
 function _hash(bindings: Bindings): string {
   const items: string[] = []
-  bindings.forEach((k: rdf.Variable, v: Binding) => items.push(`${k.value}=${encodeURIComponent(rdf.toN3(v))}`))
+  bindings.forEach((k: rdf.Variable, v: Binding) =>
+    items.push(`${k.value}=${encodeURIComponent(rdf.toN3(v))}`),
+  )
   items.sort()
   return items.join('&')
 }
@@ -50,5 +52,7 @@ function _hash(bindings: Bindings): string {
  * @return A {@link PipelineStage} which evaluate the DISTINCT operation
  */
 export default function sparqlDistinct(source: PipelineStage<Bindings>) {
-  return Pipeline.getInstance().distinct(source, (bindings: Bindings) => _hash(bindings))
+  return Pipeline.getInstance().distinct(source, (bindings: Bindings) =>
+    _hash(bindings),
+  )
 }

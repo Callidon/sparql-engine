@@ -28,7 +28,6 @@ import { expect } from 'chai'
 import { beforeAll, describe, it } from 'vitest'
 import { TestEngine, getGraph } from '../utils.js'
 
-
 describe('Non standard SPARQL functions', () => {
   let engine = null
   beforeAll(() => {
@@ -46,9 +45,9 @@ describe('Non standard SPARQL functions', () => {
       }`,
       results: [
         {
-          '?x': '"1.5430806348152437"^^http://www.w3.org/2001/XMLSchema#float'
-        }
-      ]
+          '?x': '"1.5430806348152437"^^http://www.w3.org/2001/XMLSchema#float',
+        },
+      ],
     },
     {
       name: 'sef:sinh',
@@ -59,9 +58,9 @@ describe('Non standard SPARQL functions', () => {
       }`,
       results: [
         {
-          '?x': '"1.1752011936438014"^^http://www.w3.org/2001/XMLSchema#float'
-        }
-      ]
+          '?x': '"1.1752011936438014"^^http://www.w3.org/2001/XMLSchema#float',
+        },
+      ],
     },
     {
       name: 'sef:tanh',
@@ -72,9 +71,9 @@ describe('Non standard SPARQL functions', () => {
       }`,
       results: [
         {
-          '?x': '"0.7615941559557649"^^http://www.w3.org/2001/XMLSchema#float'
-        }
-      ]
+          '?x': '"0.7615941559557649"^^http://www.w3.org/2001/XMLSchema#float',
+        },
+      ],
     },
     {
       name: 'sef:coth',
@@ -85,9 +84,9 @@ describe('Non standard SPARQL functions', () => {
       }`,
       results: [
         {
-          '?x': '"1.3130352854993312"^^http://www.w3.org/2001/XMLSchema#float'
-        }
-      ]
+          '?x': '"1.3130352854993312"^^http://www.w3.org/2001/XMLSchema#float',
+        },
+      ],
     },
     {
       name: 'sef:sech',
@@ -98,9 +97,9 @@ describe('Non standard SPARQL functions', () => {
       }`,
       results: [
         {
-          '?x': '"0.6480542736638853"^^http://www.w3.org/2001/XMLSchema#float'
-        }
-      ]
+          '?x': '"0.6480542736638853"^^http://www.w3.org/2001/XMLSchema#float',
+        },
+      ],
     },
     {
       name: 'sef:csch',
@@ -111,9 +110,9 @@ describe('Non standard SPARQL functions', () => {
       }`,
       results: [
         {
-          '?x': '"0.8509181282393214"^^http://www.w3.org/2001/XMLSchema#float'
-        }
-      ]
+          '?x': '"0.8509181282393214"^^http://www.w3.org/2001/XMLSchema#float',
+        },
+      ],
     },
     {
       name: 'sef:strsplit',
@@ -125,25 +124,23 @@ describe('Non standard SPARQL functions', () => {
       }`,
       results: [
         {
-          '?y': '"Thomas"'
+          '?y': '"Thomas"',
         },
         {
-          '?y': '"Minier"'
-        }
-      ]
+          '?y': '"Minier"',
+        },
+      ],
     },
   ]
 
-  data.forEach(d => {
+  data.forEach((d) => {
     it(`should evaluate the "${d.name}" SPARQL function`, async () => {
       const results = []
       const iterator = engine.execute(d.query)
-      iterator.subscribe(b => {
+      iterator.subscribe((b) => {
         results.push(b.toObject())
       })
       expect(results).to.deep.equals(d.results)
-
     })
   })
 })
-

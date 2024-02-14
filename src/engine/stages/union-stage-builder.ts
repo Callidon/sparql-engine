@@ -35,9 +35,15 @@ import StageBuilder from './stage-builder.js'
  * @author Thomas Minier
  */
 export default class UnionStageBuilder extends StageBuilder {
-  execute(source: PipelineStage<Bindings>, node: SPARQL.UnionPattern, context: ExecutionContext): PipelineStage<Bindings> {
-    return Pipeline.getInstance().merge(...node.patterns.map(patternToken => {
-      return this.builder!._buildGroup(source, patternToken, context)
-    }))
+  execute(
+    source: PipelineStage<Bindings>,
+    node: SPARQL.UnionPattern,
+    context: ExecutionContext,
+  ): PipelineStage<Bindings> {
+    return Pipeline.getInstance().merge(
+      ...node.patterns.map((patternToken) => {
+        return this.builder!._buildGroup(source, patternToken, context)
+      }),
+    )
   }
 }

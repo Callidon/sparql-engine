@@ -29,7 +29,6 @@ import { beforeEach, describe, it } from 'vitest'
 import { rdf } from '../../src/utils'
 import { TestEngine, getGraph } from '../utils.js'
 
-
 const GRAPH_IRI = rdf.createIRI('htpp://example.org#some-graph')
 
 describe('SPARQL UPDATE: INSERT DATA queries', () => {
@@ -46,15 +45,23 @@ describe('SPARQL UPDATE: INSERT DATA queries', () => {
     PREFIX dc: <http://purl.org/dc/elements/1.1/>
     INSERT DATA { <http://example/book1>  dc:title  "Fundamentals of Compiler Design" }`
 
-    await engine.execute(query)
+    await engine
+      .execute(query)
       .execute()
       .then(() => {
-        const triples = engine._graph._store.getQuads('http://example/book1', null, null)
+        const triples = engine._graph._store.getQuads(
+          'http://example/book1',
+          null,
+          null,
+        )
         expect(triples.length).to.equal(1)
         expect(triples[0].subject.value).to.equal('http://example/book1')
-        expect(triples[0].predicate.value).to.equal('http://purl.org/dc/elements/1.1/title')
-        expect(triples[0].object.value).to.equal('Fundamentals of Compiler Design')
-
+        expect(triples[0].predicate.value).to.equal(
+          'http://purl.org/dc/elements/1.1/title',
+        )
+        expect(triples[0].object.value).to.equal(
+          'Fundamentals of Compiler Design',
+        )
       })
   })
 
@@ -67,15 +74,21 @@ describe('SPARQL UPDATE: INSERT DATA queries', () => {
       }
     }`
 
-    await engine.execute(query)
+    await engine
+      .execute(query)
       .execute()
       .then(() => {
-        const triples = engine.getNamedGraph(GRAPH_IRI)._store.getQuads('http://example/book1', null, null)
+        const triples = engine
+          .getNamedGraph(GRAPH_IRI)
+          ._store.getQuads('http://example/book1', null, null)
         expect(triples.length).to.equal(1)
         expect(triples[0].subject.value).to.equal('http://example/book1')
-        expect(triples[0].predicate.value).to.equal('http://purl.org/dc/elements/1.1/title')
-        expect(triples[0].object.value).to.equal('Fundamentals of Compiler Design')
-
+        expect(triples[0].predicate.value).to.equal(
+          'http://purl.org/dc/elements/1.1/title',
+        )
+        expect(triples[0].object.value).to.equal(
+          'Fundamentals of Compiler Design',
+        )
       })
   })
 })

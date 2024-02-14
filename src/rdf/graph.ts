@@ -27,7 +27,10 @@ SOFTWARE.
 import { isNull, mean, orderBy, round, sortBy } from 'lodash'
 import * as SPARQL from 'sparqljs'
 import ExecutionContext from '../engine/context/execution-context.js'
-import { PipelineInput, PipelineStage } from '../engine/pipeline/pipeline-engine.js'
+import {
+  PipelineInput,
+  PipelineStage,
+} from '../engine/pipeline/pipeline-engine.js'
 import { Pipeline } from '../engine/pipeline/pipeline.js'
 import indexJoin from '../operators/join/index-join.js'
 import { rdf, sparql } from '../utils.js'
@@ -38,13 +41,19 @@ import { GRAPH_CAPABILITY } from './graph_capability.js'
  * Metadata used for query optimization
  */
 export interface PatternMetadata {
-  triple: SPARQL.Triple,
-  cardinality: number,
+  triple: SPARQL.Triple
+  cardinality: number
   nbVars: number
 }
 
-function parseCapabilities(registry: Map<GRAPH_CAPABILITY, boolean>, proto: any): void {
-  registry.set(GRAPH_CAPABILITY.ESTIMATE_TRIPLE_CARD, proto.estimateCardinality != null)
+function parseCapabilities(
+  registry: Map<GRAPH_CAPABILITY, boolean>,
+  proto: any,
+): void {
+  registry.set(
+    GRAPH_CAPABILITY.ESTIMATE_TRIPLE_CARD,
+    proto.estimateCardinality != null,
+  )
   registry.set(GRAPH_CAPABILITY.UNION, proto.evalUnion != null)
 }
 
@@ -108,7 +117,10 @@ export default abstract class Graph {
    * @param context - Execution options
    * @return A {@link PipelineInput} which finds RDF triples matching a triple pattern
    */
-  abstract find(pattern: SPARQL.Triple, context: ExecutionContext): PipelineInput<SPARQL.Triple>
+  abstract find(
+    pattern: SPARQL.Triple,
+    context: ExecutionContext,
+  ): PipelineInput<SPARQL.Triple>
 
   /**
    * Remove all RDF triples in the Graph
@@ -122,7 +134,9 @@ export default abstract class Graph {
    * @return A Promise fulfilled with the pattern's estimated cardinality
    */
   estimateCardinality(triple: SPARQL.Triple): Promise<number> {
-    throw new SyntaxError('Error: this graph is not capable of estimating the cardinality of a triple pattern')
+    throw new SyntaxError(
+      'Error: this graph is not capable of estimating the cardinality of a triple pattern',
+    )
   }
 
   /**
@@ -159,7 +173,17 @@ export default abstract class Graph {
    *   console.log(`Matching RDF triple ${item[0]} with score ${item[1]} and rank ${item[2]}`)
    * }, console.error, () => console.log('Search completed!'))
    */
-  fullTextSearch(pattern: SPARQL.Triple, variable: rdf.Variable, keywords: string[], matchAll: boolean, minRelevance: number | null, maxRelevance: number | null, minRank: number | null, maxRank: number | null, context: ExecutionContext): PipelineStage<[SPARQL.Triple, number, number]> {
+  fullTextSearch(
+    pattern: SPARQL.Triple,
+    variable: rdf.Variable,
+    keywords: string[],
+    matchAll: boolean,
+    minRelevance: number | null,
+    maxRelevance: number | null,
+    minRank: number | null,
+    maxRank: number | null,
+    context: ExecutionContext,
+  ): PipelineStage<[SPARQL.Triple, number, number]> {
     if (isNull(minRelevance)) {
       minRelevance = 0
     }
@@ -170,33 +194,38 @@ export default abstract class Graph {
     const source = Pipeline.getInstance().from(this.find(pattern, context))
     // compute the score of each matching RDF triple as the average number of words
     // in the RDF term that matches kewyords
-    let iterator = Pipeline.getInstance().map(source, triple => {
+    let iterator = Pipeline.getInstance().map(source, (triple) => {
       let words: string[] = []
       if (variable.equals(pattern.subject)) {
         words = triple.subject.value.split(' ')
-      } else if ((!rdf.isPropertyPath(pattern.predicate)) && variable.equals(pattern.predicate)) {
+      } else if (
+        !rdf.isPropertyPath(pattern.predicate) &&
+        variable.equals(pattern.predicate)
+      ) {
         words = (triple.predicate as SPARQL.VariableTerm).value.split(' ')
       } else if (variable.equals(pattern.object)) {
         words = triple.object.value.split(' ')
       }
       // For each keyword, compute % of words matching the keyword
-      const keywordScores = keywords.map(keyword => {
-        return words.reduce((acc, word) => {
-          if (word.includes(keyword)) {
-            acc += 1
-          }
-          return acc
-        }, 0) / words.length
+      const keywordScores = keywords.map((keyword) => {
+        return (
+          words.reduce((acc, word) => {
+            if (word.includes(keyword)) {
+              acc += 1
+            }
+            return acc
+          }, 0) / words.length
+        )
       })
       // if we should match all keyword, not matching a single keyword gives you a score of 0
-      if (matchAll && keywordScores.some(v => v === 0)) {
+      if (matchAll && keywordScores.some((v) => v === 0)) {
         return { triple, rank: -1, score: 0 }
       }
       // The relevance score is computed as the average keyword score
       return { triple, rank: -1, score: round(mean(keywordScores), 3) }
     })
     // filter by min & max relevance scores
-    iterator = Pipeline.getInstance().filter(iterator, v => {
+    iterator = Pipeline.getInstance().filter(iterator, (v) => {
       return v.score > 0 && minRelevance! <= v.score && v.score <= maxRelevance!
     })
     // if needed, rank the matches by descending score
@@ -212,19 +241,28 @@ export default abstract class Graph {
         return Pipeline.getInstance().empty()
       }
       // ranks the matches, and then only keeps the desired ranks
-      iterator = Pipeline.getInstance().flatMap(Pipeline.getInstance().collect(iterator), values => {
-        return orderBy(values, ['score'], ['desc'])
-          // add rank
-          .map((item, rank) => {
-            item.rank = rank
-            return item
-          })
-          // slice using the minRank and maxRank parameters
-          .slice(minRank!, maxRank! + 1)
-      })
+      iterator = Pipeline.getInstance().flatMap(
+        Pipeline.getInstance().collect(iterator),
+        (values) => {
+          return (
+            orderBy(values, ['score'], ['desc'])
+              // add rank
+              .map((item, rank) => {
+                item.rank = rank
+                return item
+              })
+              // slice using the minRank and maxRank parameters
+              .slice(minRank!, maxRank! + 1)
+          )
+        },
+      )
     }
     // finally, format results as tuples [RDF triple, triple's score, triple's rank]
-    return Pipeline.getInstance().map(iterator, v => [v.triple, v.score, v.rank])
+    return Pipeline.getInstance().map(iterator, (v) => [
+      v.triple,
+      v.score,
+      v.rank,
+    ])
   }
 
   /**
@@ -233,8 +271,13 @@ export default abstract class Graph {
    * @param  context - Execution options
    * @return A {@link PipelineStage} which evaluates the Basic Graph pattern on the Graph
    */
-  evalUnion(patterns: SPARQL.Triple[][], context: ExecutionContext): PipelineStage<Bindings> {
-    throw new SyntaxError('Error: this graph is not capable of evaluating UNION queries')
+  evalUnion(
+    patterns: SPARQL.Triple[][],
+    context: ExecutionContext,
+  ): PipelineStage<Bindings> {
+    throw new SyntaxError(
+      'Error: this graph is not capable of evaluating UNION queries',
+    )
   }
 
   /**
@@ -243,28 +286,46 @@ export default abstract class Graph {
    * @param  context - Execution options
    * @return A {@link PipelineStage} which evaluates the Basic Graph pattern on the Graph
    */
-  evalBGP(bgp: SPARQL.Triple[], context: ExecutionContext): PipelineStage<Bindings> {
+  evalBGP(
+    bgp: SPARQL.Triple[],
+    context: ExecutionContext,
+  ): PipelineStage<Bindings> {
     const engine = Pipeline.getInstance()
     if (this._isCapable(GRAPH_CAPABILITY.ESTIMATE_TRIPLE_CARD)) {
-      const op = engine.from(Promise.all(bgp.map(triple => {
-        return this.estimateCardinality(triple).then(c => {
-          return { triple, cardinality: c, nbVars: rdf.countVariables(triple) }
-        })
-      })))
+      const op = engine.from(
+        Promise.all(
+          bgp.map((triple) => {
+            return this.estimateCardinality(triple).then((c) => {
+              return {
+                triple,
+                cardinality: c,
+                nbVars: rdf.countVariables(triple),
+              }
+            })
+          }),
+        ),
+      )
       return engine.mergeMap(op, (results: PatternMetadata[]) => {
-        const sortedPatterns = sparql.leftLinearJoinOrdering(sortBy(results, 'cardinality').map(t => t.triple))
+        const sortedPatterns = sparql.leftLinearJoinOrdering(
+          sortBy(results, 'cardinality').map((t) => t.triple),
+        )
         const start = engine.of(new BindingBase())
-        return sortedPatterns.reduce((iter: PipelineStage<Bindings>, t: SPARQL.Triple) => {
-          return indexJoin(iter, t, this, context)
-        }, start)
+        return sortedPatterns.reduce(
+          (iter: PipelineStage<Bindings>, t: SPARQL.Triple) => {
+            return indexJoin(iter, t, this, context)
+          },
+          start,
+        )
       })
     } else {
       // FIX ME: this trick is required, otherwise ADD, COPY and MOVE queries are not evaluated correctly. We need to find why...
       return engine.mergeMap(engine.from(Promise.resolve(null)), () => {
         const start = engine.of(new BindingBase())
-        return sparql.leftLinearJoinOrdering(bgp).reduce((iter: PipelineStage<Bindings>, t: SPARQL.Triple) => {
-          return indexJoin(iter, t, this, context)
-        }, start)
+        return sparql
+          .leftLinearJoinOrdering(bgp)
+          .reduce((iter: PipelineStage<Bindings>, t: SPARQL.Triple) => {
+            return indexJoin(iter, t, this, context)
+          }, start)
       })
     }
   }

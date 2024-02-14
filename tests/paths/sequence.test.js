@@ -28,78 +28,81 @@ import { expect } from 'chai'
 import { beforeAll, describe, it } from 'vitest'
 import { getGraph, TestEngine } from '../utils.js'
 
-
 describe('SPARQL property paths: sequence paths', () => {
-    let engine = null
-    beforeAll(() => {
-        const g = getGraph('./tests/data/paths.ttl')
-        engine = new TestEngine(g)
-    })
+  let engine = null
+  beforeAll(() => {
+    const g = getGraph('./tests/data/paths.ttl')
+    engine = new TestEngine(g)
+  })
 
-    it('should evaluate sequence path of length 2', async () => {
-        const query = `
+  it('should evaluate sequence path of length 2', async () => {
+    const query = `
         PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
         PREFIX foaf: <http://xmlns.com/foaf/0.1/>
         PREFIX : <http://example.org/>
         SELECT * WHERE {
             ?s foaf:knows/rdf:type ?o.
         }`
-        const results = await engine.execute(query).toArray()
-        results.forEach(b => {
-            b = b.toObject()
-            expect(b).to.have.property('?s')
-            expect(b).to.have.property('?o')
-            expect(b['?s']).to.be.oneOf(['http://example.org/Alice', 'http://example.org/Bob', 'http://example.org/Carol'])
-            expect(b['?o']).to.be.oneOf(['http://example.org/Man', 'http://example.org/Woman'])
-
-        })
-        expect(results.length).to.equal(3)
-
+    const results = await engine.execute(query).toArray()
+    results.forEach((b) => {
+      b = b.toObject()
+      expect(b).to.have.property('?s')
+      expect(b).to.have.property('?o')
+      expect(b['?s']).to.be.oneOf([
+        'http://example.org/Alice',
+        'http://example.org/Bob',
+        'http://example.org/Carol',
+      ])
+      expect(b['?o']).to.be.oneOf([
+        'http://example.org/Man',
+        'http://example.org/Woman',
+      ])
     })
+    expect(results.length).to.equal(3)
+  })
 
-
-    it('should evaluate sequence path of length 3', async () => {
-        const query = `
+  it('should evaluate sequence path of length 3', async () => {
+    const query = `
         PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
         PREFIX foaf: <http://xmlns.com/foaf/0.1/>
         PREFIX : <http://example.org/>
         SELECT * WHERE {
             ?s foaf:knows/foaf:knows/rdf:type :Woman.
         }`
-        const results = await engine.execute(query).toArray()
-        results.forEach(b => {
-            b = b.toObject()
-            expect(b).to.have.keys('?s')
-            expect(b['?s']).to.be.oneOf(['http://example.org/Alice', 'http://example.org/Carol'])
-
-        })
-        expect(results.length).to.equal(2)
-
+    const results = await engine.execute(query).toArray()
+    results.forEach((b) => {
+      b = b.toObject()
+      expect(b).to.have.keys('?s')
+      expect(b['?s']).to.be.oneOf([
+        'http://example.org/Alice',
+        'http://example.org/Carol',
+      ])
     })
+    expect(results.length).to.equal(2)
+  })
 
-    it('should evaluate sequence of alternative paths', async () => {
-        const query = `
+  it('should evaluate sequence of alternative paths', async () => {
+    const query = `
         PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
         PREFIX foaf: <http://xmlns.com/foaf/0.1/>
         PREFIX : <http://example.org/>
         SELECT * WHERE {
             ?s (:love|:hate)/(foaf:mbox|foaf:phone) ?o.
         }`
-        const results = await engine.execute(query).toArray()
-        results.forEach(b => {
-            b = b.toObject()
-            expect(b).to.have.property('?s')
-            expect(b).to.have.property('?o')
-            switch (b['?s']) {
-                case 'http://example.org/Bob':
-                    expect(b['?o']).to.be.oneOf(['tel:0645123549'])
-                    break;
-                case 'http://example.org/Eve':
-                    expect(b['?o']).to.be.oneOf(['mailto:bob@example'])
-                    break;
-            }
-
-        })
-        expect(results.length).to.equal(2)
+    const results = await engine.execute(query).toArray()
+    results.forEach((b) => {
+      b = b.toObject()
+      expect(b).to.have.property('?s')
+      expect(b).to.have.property('?o')
+      switch (b['?s']) {
+        case 'http://example.org/Bob':
+          expect(b['?o']).to.be.oneOf(['tel:0645123549'])
+          break
+        case 'http://example.org/Eve':
+          expect(b['?o']).to.be.oneOf(['mailto:bob@example'])
+          break
+      }
     })
+    expect(results.length).to.equal(2)
+  })
 })

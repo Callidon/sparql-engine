@@ -38,14 +38,19 @@ import StageBuilder from './stage-builder.js'
  * @param  bindings - Set of bindings used to bound the triple
  * @return The bounded triple pattern
  */
-function boundPathTriple(triple: sparql.PropertyPathTriple, bindings: Bindings): sparql.PropertyPathTriple {
+function boundPathTriple(
+  triple: sparql.PropertyPathTriple,
+  bindings: Bindings,
+): sparql.PropertyPathTriple {
   const t: sparql.PropertyPathTriple = {
     subject: triple.subject,
     predicate: triple.predicate,
-    object: triple.object
+    object: triple.object,
   }
   if (rdf.isVariable(triple.subject) && bindings.has(triple.subject)) {
-    t.subject = bindings.get(triple.subject)! as sparql.PropertyPathTriple['subject']
+    t.subject = bindings.get(
+      triple.subject,
+    )! as sparql.PropertyPathTriple['subject']
   }
   if (rdf.isVariable(triple.object) && bindings.has(triple.object)) {
     t.object = bindings.get(triple.object)!
@@ -84,15 +89,28 @@ export default abstract class PathStageBuilder extends StageBuilder {
    * @param  context - Execution context
    * @return A {@link PipelineStage} which yield set of bindings from the pipeline of joins
    */
-  execute(source: PipelineStage<Bindings>, triples: sparql.PropertyPathTriple[], context: ExecutionContext): PipelineStage<Bindings> {
+  execute(
+    source: PipelineStage<Bindings>,
+    triples: sparql.PropertyPathTriple[],
+    context: ExecutionContext,
+  ): PipelineStage<Bindings> {
     // create a join pipeline between all property paths using an index join
     const engine = Pipeline.getInstance()
-    return triples.reduce((iter: PipelineStage<Bindings>, triple: sparql.PropertyPathTriple) => {
-      return engine.mergeMap(iter, bindings => {
-        const { subject, predicate, object } = boundPathTriple(triple, bindings)
-        return engine.map(this._buildIterator(subject, predicate, object, context), (b: Bindings) => bindings.union(b))
-      })
-    }, source)
+    return triples.reduce(
+      (iter: PipelineStage<Bindings>, triple: sparql.PropertyPathTriple) => {
+        return engine.mergeMap(iter, (bindings) => {
+          const { subject, predicate, object } = boundPathTriple(
+            triple,
+            bindings,
+          )
+          return engine.map(
+            this._buildIterator(subject, predicate, object, context),
+            (b: Bindings) => bindings.union(b),
+          )
+        })
+      },
+      source,
+    )
   }
 
   /**
@@ -103,9 +121,23 @@ export default abstract class PathStageBuilder extends StageBuilder {
    * @param  context - Execution context
    * @return A {@link PipelineStage} which yield set of bindings
    */
-  _buildIterator(subject: sparql.PropertyPathTriple['subject'], path: sparql.PropertyPathTriple['predicate'], obj: sparql.PropertyPathTriple['object'], context: ExecutionContext): PipelineStage<Bindings> {
-    const graph = (context.defaultGraphs.length > 0) ? this._getGraph(context.defaultGraphs as rdf.NamedNode[]) : this._dataset.getDefaultGraph()
-    const evaluator = this._executePropertyPath(subject, path, obj, graph, context)
+  _buildIterator(
+    subject: sparql.PropertyPathTriple['subject'],
+    path: sparql.PropertyPathTriple['predicate'],
+    obj: sparql.PropertyPathTriple['object'],
+    context: ExecutionContext,
+  ): PipelineStage<Bindings> {
+    const graph =
+      context.defaultGraphs.length > 0
+        ? this._getGraph(context.defaultGraphs as rdf.NamedNode[])
+        : this._dataset.getDefaultGraph()
+    const evaluator = this._executePropertyPath(
+      subject,
+      path,
+      obj,
+      graph,
+      context,
+    )
     return Pipeline.getInstance().map(evaluator, (triple: sparql.Triple) => {
       const temp = new BindingBase()
       if (rdf.isVariable(subject)) {
@@ -132,5 +164,11 @@ export default abstract class PathStageBuilder extends StageBuilder {
    * @param  context - Execution context
    * @return A {@link PipelineStage} which yield RDF triples matching the property path
    */
-  abstract _executePropertyPath(subject: sparql.PropertyPathTriple['subject'], path: sparql.PropertyPathTriple['predicate'], obj: sparql.PropertyPathTriple['object'], graph: Graph, context: ExecutionContext): PipelineStage<SPARQL.Triple>
+  abstract _executePropertyPath(
+    subject: sparql.PropertyPathTriple['subject'],
+    path: sparql.PropertyPathTriple['predicate'],
+    obj: sparql.PropertyPathTriple['object'],
+    graph: Graph,
+    context: ExecutionContext,
+  ): PipelineStage<SPARQL.Triple>
 }
