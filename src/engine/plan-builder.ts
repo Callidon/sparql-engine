@@ -237,8 +237,7 @@ export class PlanBuilder {
     }
     context.setProperty(ContextSymbols.PREFIXES, query.prefixes)
 
-    // FIXME can this be typed better
-    let variableExpressions: any[] = []
+    let variableExpressions: SPARQL.VariableExpression[] = []
 
     // rewrite a DESCRIBE query into a CONSTRUCT query
     if (query.queryType === 'DESCRIBE') {
@@ -285,14 +284,11 @@ export class PlanBuilder {
     }
 
     // Parse query variable to separate projection & aggregate variables
-    if ('variables' in query) {
-
-      // FIXME need to handle Wildcard here
-
-      const parts = partition(query.variables as SPARQL.Variable[], v => rdf.isVariable(v as rdf.Term) || rdf.isWildcard(v as rdf.Term))
+    if ('variables' in query && query.variables.length > 0 && !rdf.isWildcard(query.variables[0])) {
+      const parts = partition(query.variables as SPARQL.Variable[], v => rdf.isVariable(v as rdf.Term)) as [rdf.Variable[], SPARQL.VariableExpression[]]
       variableExpressions = parts[1]
       // add expressions variables to projection variables
-      query.variables = parts[0].concat(variableExpressions.map(agg => (agg as SPARQL.VariableExpression).variable))
+      query.variables = parts[0].concat(variableExpressions.map(agg => agg.variable))
     }
 
     // Handles SPARQL aggregations
@@ -303,7 +299,7 @@ export class PlanBuilder {
 
     if (variableExpressions.length > 0) {
       // Handles SPARQL aggregation functions
-      graphIterator = variableExpressions.reduce((prev: PipelineStage<Bindings>, agg: SPARQL.Expression) => {
+      graphIterator = variableExpressions.reduce<PipelineStage<QueryOutput>>((prev, agg) => {
         const op = this._stageBuilders.get(SPARQL_OPERATION.BIND)!.execute(prev, agg, this._customFunctions, context)
         return op as PipelineStage<Bindings>
       }, graphIterator)
@@ -429,9 +425,8 @@ export class PlanBuilder {
         }
         return iter
       case 'query':
-        /// FIXME: is this cast always valid?
         // maybe we need a separate final stage to go from Bindings to QueryOutput.
-        return this._buildQueryPlan(group as SPARQL.Query, childContext, source) as PipelineStage<Bindings>
+        return this._buildQueryPlan(group, childContext, source) as PipelineStage<Bindings>
       case 'graph':
         if (!this._stageBuilders.has(SPARQL_OPERATION.GRAPH)) {
           throw new Error('A PlanBuilder cannot evaluate a GRAPH clause without a Stage Builder for it')

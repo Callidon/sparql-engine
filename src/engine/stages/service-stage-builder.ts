@@ -59,8 +59,7 @@ export default class ServiceStageBuilder extends StageBuilder {
         where: node.patterns
       }
     }
-    // FIXME is it ok to assume these are no longer variables?
-    // Or should we allow vaiables in the Dataset
+
     const iri = node.name
     if (rdf.isNamedNode(iri)) {
       // auto-add the graph used to evaluate the SERVICE close if it is missing from the dataset

@@ -317,7 +317,7 @@ export namespace rdf {
    * @param term - RDFJS Term
    * @return True of the term is a Variable, False otherwise
    */
-  export function isWildcard(term: Term | SPARQL.PropertyPath | SPARQL.Wildcard): term is SPARQL.Wildcard {
+  export function isWildcard(term: Term | SPARQL.PropertyPath | SPARQL.Wildcard | SPARQL.Variable): term is SPARQL.Wildcard {
     return (term as SPARQL.Wildcard)?.termType === 'Wildcard'
   }
 
@@ -572,7 +572,6 @@ export namespace sparql {
   /**
    * Bounded values allowed for a triple subject, predicate or object
    */
-  // FIXME: added | BlankNode is this valid?
   export type BoundedTripleValue = rdf.NamedNode | rdf.Literal | rdf.BlankNode
 
   // A triple value which may be unbounded
@@ -584,7 +583,7 @@ export namespace sparql {
     object: SPARQL.Triple['object']
   }
 
-  //FIXME is it valid to remove quad from here?
+  //TODO Q is it valid to remove quad from here?
   export type PropertyPathTriple = {
     subject: Exclude<SPARQL.Triple['subject'], rdf.Quad>
     predicate: SPARQL.PropertyPath

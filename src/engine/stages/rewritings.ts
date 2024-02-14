@@ -118,8 +118,6 @@ function buildWhereClause(source: SPARQL.GraphOrDefault, dataset: Dataset, isSil
 export function rewriteAdd(addQuery: SPARQL.CopyMoveAddOperation, dataset: Dataset): SPARQL.InsertDeleteOperation {
   return {
     updateType: 'insertdelete',
-    // FIXME
-    // silent: addQuery.silent,
     insert: [buildGroupClause(addQuery.destination, dataset, addQuery.silent)],
     where: [buildWhereClause(addQuery.source, dataset, addQuery.silent)]
   }

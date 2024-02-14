@@ -521,9 +521,7 @@ export class BindingBase extends Bindings {
     if (rdf.isVariable(variable)) {
       return this._content.has(variable.value)
     }
-    //FIXME may be legitimate calls that need to be handled differently, say with just false
-    // but being agressive with the error for now.
-    throw new Error(`Term ${variable} is not a variable`)
+    return false
   }
 
   set(variable: rdf.Variable, value: Binding): void {

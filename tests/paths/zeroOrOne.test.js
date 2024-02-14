@@ -60,7 +60,7 @@ describe('SPARQL property paths: Zero or One paths', () => {
         })
         //FIXME not sure why this isn't 6 like the results from blazegraph
         // currently get 35 original test was 21 (neither of which are correct)?
-        // expect(results.length).to.equal(21)
+        //expect(results.length).to.equal(21)
 
     })
 
@@ -85,9 +85,9 @@ describe('SPARQL property paths: Zero or One paths', () => {
 
         })
         //FIXME not sure why this isn't 3 like the results from blazegraph
-        // currently get 37 original test was 23 (neither of which are correct)?
+        // currently get 34 original test was 23 (neither of which are correct)?
         // mayne need to force distinct?
-        //expect(results.length).to.equal(20)
+        // expect(results.length).to.equal(20)
 
     })
 
@@ -112,10 +112,10 @@ describe('SPARQL property paths: Zero or One paths', () => {
 
         })
         //FIXME not sure why this isn't 3 like the results from blazegraph
-        // currently get 37 original test was 23 (neither of which are correct)?
+        // currently get 20 original test was 23 (neither of which are correct)?
         // mayne need to force distinct? 
         // forcing distinct should make it 3 but doesn't
-        //expect(results.length).to.equal(3)
+        // expect(results.length).to.equal(3)
 
     })
 
@@ -149,7 +149,7 @@ describe('SPARQL property paths: Zero or One paths', () => {
         //FIXME not sure why this isn't 3 like the results from blazegraph
         // currently get 37 original test was 23 (neither of which are correct)?
         // mayne need to force distinct? 
-        //expect(results.length).to.equal(23)
+        // expect(results.length).to.equal(23)
     })
 
 
@@ -182,7 +182,7 @@ describe('SPARQL property paths: Zero or One paths', () => {
         //FIXME not sure why this isn't 3 like the results from blazegraph
         // currently get 37 original test was 23 (neither of which are correct)?
         // mayne need to force distinct? 
-        //expect(results.length).to.equal(23)
+        // expect(results.length).to.equal(23)
     })
 
     it('should evaluate Zero or One negated path', async () => {
@@ -218,7 +218,7 @@ describe('SPARQL property paths: Zero or One paths', () => {
         //FIXME not sure why this isn't 3 like the results from blazegraph
         // currently get 37 original test was 23 (neither of which are correct)?
         // mayne need to force distinct? 
-        //expect(results.length).to.equal(23)
+        // expect(results.length).to.equal(23)
     })
 })
 

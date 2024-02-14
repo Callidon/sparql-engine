@@ -153,7 +153,6 @@ export default class PlanVisitor {
    * @param  node - SPARQL GRAPH node
    * @return The transformed SPARQL MINUS node
    */
-  // FIXME not sure what this should do 
   visitMinus(node: SPARQL.MinusPattern): SPARQL.Pattern {
     const newNode = cloneDeep(node)
     newNode.patterns = newNode.patterns.map(p => this.visitPattern(p))

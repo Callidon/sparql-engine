@@ -71,7 +71,6 @@ export default class UpdateStageBuilder extends StageBuilder {
         switch (update.type) {
           case 'create': {
             const createNode = update as SPARQL.CreateOperation
-            //FIXME Do we know this is always present due to transformations?
             const iri = createNode.graph.name!
             if (this._dataset.hasNamedGraph(iri)) {
               if (!createNode.silent) {
@@ -155,7 +154,6 @@ export default class UpdateStageBuilder extends StageBuilder {
     let consumables: Consumable[] = []
 
     if (update.updateType === 'insertdelete') {
-      // FIXME is this correct for named graphs? and for default?
       graph = ('graph' in update) ? this._dataset.getNamedGraph(update.graph!.name!) : null
       // evaluate the WHERE clause as a classic SELECT query
       const node: SPARQL.Query = {

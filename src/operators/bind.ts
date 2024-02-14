@@ -66,7 +66,6 @@ export default function bind(source: PipelineStage<Bindings>, variable: rdf.Vari
               if (term === null) {
                 mu.set(variable, rdf.createUnbound())
               } else {
-                // FIXME is this as rdf.BoundedTripleValue cast safe?
                 mu.set(variable, term as sparql.BoundedTripleValue)
               }
               input.next(mu)
@@ -84,7 +83,6 @@ export default function bind(source: PipelineStage<Bindings>, variable: rdf.Vari
         if (value === null) {
           res.set(variable, rdf.createUnbound())
         } else {
-          // FIXME is this as rdf.BoundedTripleValue cast safe?
           res.set(variable, value as sparql.BoundedTripleValue)
         }
         return Pipeline.getInstance().of(res)

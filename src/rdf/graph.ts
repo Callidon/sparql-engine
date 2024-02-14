@@ -173,7 +173,6 @@ export default abstract class Graph {
     let iterator = Pipeline.getInstance().map(source, triple => {
       let words: string[] = []
       if (variable.equals(pattern.subject)) {
-        // FIXME: not sure this makes sense if the subject is a variable it wouldn't split
         words = triple.subject.value.split(' ')
       } else if ((!rdf.isPropertyPath(pattern.predicate)) && variable.equals(pattern.predicate)) {
         words = (triple.predicate as SPARQL.VariableTerm).value.split(' ')

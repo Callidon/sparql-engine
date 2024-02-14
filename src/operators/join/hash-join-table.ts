@@ -55,7 +55,6 @@ export default class HashJoinTable {
    * @param  bindings - Bindings to join with
    * @return Join results, or an empty list if there is none.
    */
-  //FIXME potential clash between rdf.Variable and sparql.BoundedTripleValue having same value
   join(key: rdf.Variable | sparql.BoundedTripleValue, bindings: Bindings): Bindings[] {
     if (!this._content.has(key.value)) {
       return []

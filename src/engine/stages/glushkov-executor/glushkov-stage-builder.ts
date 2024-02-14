@@ -206,7 +206,6 @@ export default class GlushkovStageBuilder extends PathStageBuilder {
       }]
       return engine.mergeMap(engine.from(graph.evalBGP(bgp, context)), (binding: Bindings) => {
         let p = binding.get(this.predicateVariable)
-        // FIXME unclear if this is always non-null
         let o = binding.get(this.objectVariable)!
         if (p !== null ? !transition.hasPredicate(p) : true) {
           let newStep
@@ -273,7 +272,6 @@ export default class GlushkovStageBuilder extends PathStageBuilder {
    * @param forward - if True the walk starts from the subject, otherwise the walk starts from the object
    * @return An Observable which yield RDF triples matching the property path
    */
-  // FIXME unclear if the automation predicate is correct type 
   startPropertyPathEvaluation(subject: sparql.UnBoundedTripleValue, obj: sparql.UnBoundedTripleValue, graph: Graph, context: ExecutionContext, automaton: Automaton<number, rdf.Term>, forward: boolean): PipelineStage<Triple> {
     const engine = Pipeline.getInstance()
     let self = this
