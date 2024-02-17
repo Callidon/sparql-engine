@@ -25,7 +25,7 @@ SOFTWARE.
 import { PipelineStage } from '../../engine/pipeline/pipeline-engine.js'
 import { Pipeline } from '../../engine/pipeline/pipeline.js'
 import { Bindings } from '../../rdf/bindings.js'
-import { rdf } from '../../utils.js'
+import { rdf } from '../../utils/index.js'
 import HashJoinTable from './hash-join-table.js'
 
 /**

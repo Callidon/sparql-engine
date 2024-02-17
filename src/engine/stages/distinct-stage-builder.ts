@@ -26,7 +26,6 @@ SOFTWARE.
 
 import sparqlDistinct from '../../operators/sparql-distinct.js'
 import { Bindings } from '../../rdf/bindings.js'
-import ExecutionContext from '../context/execution-context.js'
 import { PipelineStage } from '../pipeline/pipeline-engine.js'
 import StageBuilder from './stage-builder.js'
 
@@ -35,10 +34,7 @@ import StageBuilder from './stage-builder.js'
  * @author Thomas Minier
  */
 export default class DistinctStageBuilder extends StageBuilder {
-  execute(
-    source: PipelineStage<Bindings>,
-    context: ExecutionContext,
-  ): PipelineStage<Bindings> {
+  execute(source: PipelineStage<Bindings>): PipelineStage<Bindings> {
     return sparqlDistinct(source)
   }
 }

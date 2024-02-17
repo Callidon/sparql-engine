@@ -30,7 +30,7 @@ import { CustomFunctions } from '../../operators/expressions/sparql-expression.j
 import filter from '../../operators/sparql-filter.js'
 import groupBy from '../../operators/sparql-groupby.js'
 import { Bindings } from '../../rdf/bindings.js'
-import { rdf } from '../../utils.js'
+import { rdf } from '../../utils/index.js'
 import ExecutionContext from '../context/execution-context.js'
 import { PipelineStage } from '../pipeline/pipeline-engine.js'
 import StageBuilder from './stage-builder.js'

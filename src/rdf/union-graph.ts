@@ -28,7 +28,7 @@ import * as SPARQL from 'sparqljs'
 import ExecutionContext from '../engine/context/execution-context.js'
 import { PipelineInput } from '../engine/pipeline/pipeline-engine.js'
 import { Pipeline } from '../engine/pipeline/pipeline.js'
-import { rdf } from '../utils.js'
+import { rdf } from '../utils/index.js'
 import Graph from './graph.js'
 
 /**

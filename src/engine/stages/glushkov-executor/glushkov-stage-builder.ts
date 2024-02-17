@@ -22,12 +22,12 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-import { Triple } from 'sparqljs'
+import * as SPARQL from 'sparqljs'
 import { PipelineStage } from '../../../engine/pipeline/pipeline-engine.js'
 import { Pipeline } from '../../../engine/pipeline/pipeline.js'
 import { Bindings } from '../../../rdf/bindings.js'
 import Graph from '../../../rdf/graph.js'
-import { rdf, sparql } from '../../../utils.js'
+import { rdf, sparql } from '../../../utils/index.js'
 import ExecutionContext from '../../context/execution-context.js'
 import PathStageBuilder from '../path-stage-builder.js'
 import { Automaton, Transition } from './automaton.js'
@@ -184,11 +184,10 @@ export default class GlushkovStageBuilder extends PathStageBuilder {
     context: ExecutionContext,
     automaton: Automaton<number, rdf.Term>,
     forward: boolean,
-  ): PipelineStage<Triple> {
+  ): PipelineStage<SPARQL.Triple> {
     const engine = Pipeline.getInstance()
-    const self = this
     const lastStep = rPath.lastStep()
-    let result: PipelineStage<Triple> = engine.empty()
+    let result: PipelineStage<SPARQL.Triple> = engine.empty()
     if (forward) {
       if (
         automaton.isFinal(lastStep.state) &&
@@ -213,49 +212,51 @@ export default class GlushkovStageBuilder extends PathStageBuilder {
     } else {
       transitions = automaton.getTransitionsTo(lastStep.state)
     }
-    const obs: PipelineStage<Triple>[] = transitions.map((transition) => {
-      const reverse =
-        (forward && transition.reverse) || (!forward && !transition.reverse)
-      const bgp: Array<Triple> = [
-        {
-          subject: reverse
-            ? this.objectVariable
-            : (lastStep.node as sparql.PropertyPathTriple['subject']),
-          predicate: transition.negation
-            ? this.predicateVariable
-            : (transition.predicates[0] as sparql.NoPathTriple['predicate']),
-          object: reverse ? lastStep.node : this.objectVariable,
-        },
-      ]
-      return engine.mergeMap(
-        engine.from(graph.evalBGP(bgp, context)),
-        (binding: Bindings) => {
-          const p = binding.get(this.predicateVariable)
-          const o = binding.get(this.objectVariable)!
-          if (p !== null ? !transition.hasPredicate(p) : true) {
-            let newStep
-            if (forward) {
-              newStep = new Step(o, transition.to.name, this.isEqualTerms)
-            } else {
-              newStep = new Step(o, transition.from.name, this.isEqualTerms)
+    const obs: PipelineStage<SPARQL.Triple>[] = transitions.map(
+      (transition) => {
+        const reverse =
+          (forward && transition.reverse) || (!forward && !transition.reverse)
+        const bgp: Array<SPARQL.Triple> = [
+          {
+            subject: reverse
+              ? this.objectVariable
+              : (lastStep.node as sparql.PropertyPathTriple['subject']),
+            predicate: transition.negation
+              ? this.predicateVariable
+              : (transition.predicates[0] as sparql.NoPathTriple['predicate']),
+            object: reverse ? lastStep.node : this.objectVariable,
+          },
+        ]
+        return engine.mergeMap(
+          engine.from(graph.evalBGP(bgp, context)),
+          (binding: Bindings) => {
+            const p = binding.get(this.predicateVariable)
+            const o = binding.get(this.objectVariable)!
+            if (p !== null ? !transition.hasPredicate(p) : true) {
+              let newStep
+              if (forward) {
+                newStep = new Step(o, transition.to.name, this.isEqualTerms)
+              } else {
+                newStep = new Step(o, transition.from.name, this.isEqualTerms)
+              }
+              if (!rPath.contains(newStep)) {
+                const newPath = rPath.clone()
+                newPath.add(newStep)
+                return this.evaluatePropertyPath(
+                  newPath,
+                  obj,
+                  graph,
+                  context,
+                  automaton,
+                  forward,
+                )
+              }
             }
-            if (!rPath.contains(newStep)) {
-              const newPath = rPath.clone()
-              newPath.add(newStep)
-              return self.evaluatePropertyPath(
-                newPath,
-                obj,
-                graph,
-                context,
-                automaton,
-                forward,
-              )
-            }
-          }
-          return engine.empty()
-        },
-      )
-    })
+            return engine.empty()
+          },
+        )
+      },
+    )
     return engine.merge(...obs, result)
   }
 
@@ -272,24 +273,24 @@ export default class GlushkovStageBuilder extends PathStageBuilder {
     obj: rdf.Term,
     graph: Graph,
     context: ExecutionContext,
-  ): PipelineStage<Triple> {
+  ): PipelineStage<SPARQL.Triple> {
     const engine = Pipeline.getInstance()
     if (rdf.isVariable(subject) && !rdf.isVariable(obj)) {
-      const result: Triple = {
-        subject: obj as any,
+      const result: SPARQL.Triple = {
+        subject: obj as SPARQL.Triple['subject'],
         predicate: this.tempVariable,
         object: obj,
       }
       return engine.of(result)
     } else if (!rdf.isVariable(subject) && rdf.isVariable(obj)) {
-      const result: Triple = {
-        subject: subject as any,
+      const result: SPARQL.Triple = {
+        subject: subject as SPARQL.Triple['subject'],
         predicate: this.tempVariable,
         object: subject,
       }
       return engine.of(result)
     } else if (rdf.isVariable(subject) && rdf.isVariable(obj)) {
-      const bgp: Array<Triple> = [
+      const bgp: Array<SPARQL.Triple> = [
         {
           subject: this.subjectVariable,
           predicate: this.predicateVariable,
@@ -300,14 +301,18 @@ export default class GlushkovStageBuilder extends PathStageBuilder {
         engine.mergeMap(
           engine.from(graph.evalBGP(bgp, context)),
           (binding: Bindings) => {
-            const s = binding.get(this.subjectVariable) as any
-            const o = binding.get(this.objectVariable) as any
-            const t1: Triple = {
+            const s = binding.get(
+              this.subjectVariable,
+            ) as SPARQL.Triple['subject']
+            const o = binding.get(
+              this.objectVariable,
+            ) as SPARQL.Triple['subject']
+            const t1: SPARQL.Triple = {
               subject: s,
               predicate: this.tempVariable,
               object: s,
             }
-            const t2: Triple = {
+            const t2: SPARQL.Triple = {
               subject: o,
               predicate: this.tempVariable,
               object: o,
@@ -315,12 +320,12 @@ export default class GlushkovStageBuilder extends PathStageBuilder {
             return engine.of(t1, t2)
           },
         ),
-        (triple: Triple) => triple.subject,
+        (triple: SPARQL.Triple) => triple.subject,
       )
     }
     if (subject === obj) {
-      const result: Triple = {
-        subject: subject as any,
+      const result: SPARQL.Triple = {
+        subject: subject as SPARQL.Triple['subject'],
         predicate: this.tempVariable,
         object: obj,
       }
@@ -348,84 +353,92 @@ export default class GlushkovStageBuilder extends PathStageBuilder {
     context: ExecutionContext,
     automaton: Automaton<number, rdf.Term>,
     forward: boolean,
-  ): PipelineStage<Triple> {
+  ): PipelineStage<SPARQL.Triple> {
     const engine = Pipeline.getInstance()
-    const self = this
-    const reflexiveClosureResults: PipelineStage<Triple> = automaton.isFinal(0)
-      ? this.reflexiveClosure(subject, obj, graph, context)
-      : engine.empty()
+    const reflexiveClosureResults: PipelineStage<SPARQL.Triple> =
+      automaton.isFinal(0)
+        ? this.reflexiveClosure(subject, obj, graph, context)
+        : engine.empty()
     let transitions: Array<Transition<number, rdf.Term>>
     if (forward) {
       transitions = automaton.getTransitionsFrom(0)
     } else {
       transitions = automaton.getTransitionsToFinalStates()
     }
-    const obs: PipelineStage<Triple>[] = transitions.map((transition) => {
-      const reverse =
-        (forward && transition.reverse) || (!forward && !transition.reverse)
-      const bgp: Array<Triple> = [
-        sparql.createLooseTriple(
-          reverse ? (rdf.isVariable(obj) ? this.objectVariable : obj) : subject,
-          transition.negation
-            ? this.predicateVariable
-            : transition.predicates[0],
-          reverse ? subject : rdf.isVariable(obj) ? this.objectVariable : obj,
-        ),
-      ]
+    const obs: PipelineStage<SPARQL.Triple>[] = transitions.map(
+      (transition) => {
+        const reverse =
+          (forward && transition.reverse) || (!forward && !transition.reverse)
+        const bgp: Array<SPARQL.Triple> = [
+          sparql.createLooseTriple(
+            reverse
+              ? rdf.isVariable(obj)
+                ? this.objectVariable
+                : obj
+              : subject,
+            transition.negation
+              ? this.predicateVariable
+              : transition.predicates[0],
+            reverse ? subject : rdf.isVariable(obj) ? this.objectVariable : obj,
+          ),
+        ]
 
-      return engine.mergeMap(
-        engine.from(graph.evalBGP(bgp, context)),
-        (binding: Bindings) => {
-          const s = rdf.isVariable(subject) ? binding.get(subject)! : subject
-          const p = binding.get(this.predicateVariable)
-          const o = rdf.isVariable(obj) ? binding.get(this.objectVariable)! : obj
+        return engine.mergeMap(
+          engine.from(graph.evalBGP(bgp, context)),
+          (binding: Bindings) => {
+            const s = rdf.isVariable(subject) ? binding.get(subject)! : subject
+            const p = binding.get(this.predicateVariable)
+            const o = rdf.isVariable(obj)
+              ? binding.get(this.objectVariable)!
+              : obj
 
-          if (p !== null ? !transition.hasPredicate(p) : true) {
-            const path = new ResultPath<sparql.UnBoundedTripleValue>()
-            if (forward) {
-              path.add(
-                new Step<sparql.UnBoundedTripleValue>(
-                  s,
-                  transition.from.name,
-                  this.isEqualTerms,
-                ),
-              )
-              path.add(
-                new Step<sparql.UnBoundedTripleValue>(
-                  o,
-                  transition.to.name,
-                  this.isEqualTerms,
-                ),
-              )
-            } else {
-              path.add(
-                new Step<sparql.UnBoundedTripleValue>(
-                  s,
-                  transition.to.name,
-                  this.isEqualTerms,
-                ),
-              )
-              path.add(
-                new Step<sparql.UnBoundedTripleValue>(
-                  o,
-                  transition.from.name,
-                  this.isEqualTerms,
-                ),
+            if (p !== null ? !transition.hasPredicate(p) : true) {
+              const path = new ResultPath<sparql.UnBoundedTripleValue>()
+              if (forward) {
+                path.add(
+                  new Step<sparql.UnBoundedTripleValue>(
+                    s,
+                    transition.from.name,
+                    this.isEqualTerms,
+                  ),
+                )
+                path.add(
+                  new Step<sparql.UnBoundedTripleValue>(
+                    o,
+                    transition.to.name,
+                    this.isEqualTerms,
+                  ),
+                )
+              } else {
+                path.add(
+                  new Step<sparql.UnBoundedTripleValue>(
+                    s,
+                    transition.to.name,
+                    this.isEqualTerms,
+                  ),
+                )
+                path.add(
+                  new Step<sparql.UnBoundedTripleValue>(
+                    o,
+                    transition.from.name,
+                    this.isEqualTerms,
+                  ),
+                )
+              }
+              return this.evaluatePropertyPath(
+                path,
+                obj,
+                graph,
+                context,
+                automaton,
+                forward,
               )
             }
-            return self.evaluatePropertyPath(
-              path,
-              obj,
-              graph,
-              context,
-              automaton,
-              forward,
-            )
-          }
-          return engine.empty()
-        },
-      )
-    })
+            return engine.empty()
+          },
+        )
+      },
+    )
     return engine.merge(...obs, reflexiveClosureResults)
   }
 
@@ -444,7 +457,7 @@ export default class GlushkovStageBuilder extends PathStageBuilder {
     obj: sparql.PropertyPathTriple['object'],
     graph: Graph,
     context: ExecutionContext,
-  ): PipelineStage<Triple> {
+  ): PipelineStage<SPARQL.Triple> {
     const automaton: Automaton<number, rdf.Term> = new GlushkovBuilder(
       path,
     ).build()

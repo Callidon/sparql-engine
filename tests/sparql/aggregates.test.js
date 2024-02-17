@@ -25,7 +25,7 @@ SOFTWARE.
 'use strict'
 
 import { beforeAll, describe, expect, it } from 'vitest'
-import { rdf } from '../../src/utils'
+import { XSD } from '../../src/utils/namespace'
 import { TestEngine, getGraph } from '../utils.js'
 
 describe('SPARQL aggregates', () => {
@@ -49,13 +49,13 @@ describe('SPARQL aggregates', () => {
       switch (b['?p']) {
         case 'https://dblp.uni-trier.de/rdf/schema-2017-04-18#primaryFullPersonName':
         case 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type':
-          expect(b['?nbPreds']).toBe(`"1"^^${rdf.XSD.integer.value}`)
+          expect(b['?nbPreds']).toBe(`"1"^^${XSD.integer.value}`)
           break
         case 'https://dblp.uni-trier.de/rdf/schema-2017-04-18#authorOf':
-          expect(b['?nbPreds']).toBe(`"5"^^${rdf.XSD.integer.value}`)
+          expect(b['?nbPreds']).toBe(`"5"^^${XSD.integer.value}`)
           break
         case 'https://dblp.uni-trier.de/rdf/schema-2017-04-18#coCreatorWith':
-          expect(b['?nbPreds']).toBe(`"4"^^${rdf.XSD.integer.value}`)
+          expect(b['?nbPreds']).toBe(`"4"^^${XSD.integer.value}`)
           break
         default:
           throw Error(`Unexpected predicate found: ${b['?p']}`)
@@ -75,17 +75,17 @@ describe('SPARQL aggregates', () => {
     results.forEach((b) => {
       b = b.toObject()
       expect(b).to.have.keys('?p', '?nbPreds', '?z')
-      expect(b['?z']).toBe(`"10"^^${rdf.XSD.integer.value}`)
+      expect(b['?z']).toBe(`"10"^^${XSD.integer.value}`)
       switch (b['?p']) {
         case 'https://dblp.uni-trier.de/rdf/schema-2017-04-18#primaryFullPersonName':
         case 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type':
-          expect(b['?nbPreds']).toBe(`"1"^^${rdf.XSD.integer.value}`)
+          expect(b['?nbPreds']).toBe(`"1"^^${XSD.integer.value}`)
           break
         case 'https://dblp.uni-trier.de/rdf/schema-2017-04-18#authorOf':
-          expect(b['?nbPreds']).toBe(`"5"^^${rdf.XSD.integer.value}`)
+          expect(b['?nbPreds']).toBe(`"5"^^${XSD.integer.value}`)
           break
         case 'https://dblp.uni-trier.de/rdf/schema-2017-04-18#coCreatorWith':
-          expect(b['?nbPreds']).toBe(`"4"^^${rdf.XSD.integer.value}`)
+          expect(b['?nbPreds']).toBe(`"4"^^${XSD.integer.value}`)
           break
         default:
           throw new Error(`Unexpected predicate found: ${b['?p']}`)
@@ -104,7 +104,7 @@ describe('SPARQL aggregates', () => {
     results.forEach((b) => {
       b = b.toObject()
       expect(b).to.have.keys('?nbPreds')
-      expect(b['?nbPreds']).toBe(`"11"^^${rdf.XSD.integer.value}`)
+      expect(b['?nbPreds']).toBe(`"11"^^${XSD.integer.value}`)
     })
     expect(results).toHaveLength(1)
   })
@@ -123,13 +123,13 @@ describe('SPARQL aggregates', () => {
       switch (b['?p']) {
         case 'https://dblp.uni-trier.de/rdf/schema-2017-04-18#primaryFullPersonName':
         case 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type':
-          expect(b['?nbPreds']).toBe(`"2"^^${rdf.XSD.integer.value}`)
+          expect(b['?nbPreds']).toBe(`"2"^^${XSD.integer.value}`)
           break
         case 'https://dblp.uni-trier.de/rdf/schema-2017-04-18#authorOf':
-          expect(b['?nbPreds']).toBe(`"10"^^${rdf.XSD.integer.value}`)
+          expect(b['?nbPreds']).toBe(`"10"^^${XSD.integer.value}`)
           break
         case 'https://dblp.uni-trier.de/rdf/schema-2017-04-18#coCreatorWith':
-          expect(b['?nbPreds']).toBe(`"8"^^${rdf.XSD.integer.value}`)
+          expect(b['?nbPreds']).toBe(`"8"^^${XSD.integer.value}`)
           break
         default:
           throw new Error(`Unexpected predicate found: ${b['?p']}`)
@@ -153,10 +153,10 @@ describe('SPARQL aggregates', () => {
       expect(b).to.have.keys('?p', '?nbPreds')
       switch (b['?p']) {
         case 'https://dblp.uni-trier.de/rdf/schema-2017-04-18#authorOf':
-          expect(b['?nbPreds']).toBe(`"5"^^${rdf.XSD.integer.value}`)
+          expect(b['?nbPreds']).toBe(`"5"^^${XSD.integer.value}`)
           break
         case 'https://dblp.uni-trier.de/rdf/schema-2017-04-18#coCreatorWith':
-          expect(b['?nbPreds']).toBe(`"4"^^${rdf.XSD.integer.value}`)
+          expect(b['?nbPreds']).toBe(`"4"^^${XSD.integer.value}`)
           break
         default:
           throw new Error(`Unexpected predicate found: ${b['?p']}`)
@@ -177,7 +177,7 @@ describe('SPARQL aggregates', () => {
       b = b.toObject()
       expect(b).to.have.keys('?s', '?nbSubjects')
       expect(b['?s']).toBe('https://dblp.org/pers/m/Minier:Thomas')
-      expect(b['?nbSubjects']).toBe(`"2"^^${rdf.XSD.integer.value}`)
+      expect(b['?nbSubjects']).toBe(`"2"^^${XSD.integer.value}`)
     })
     expect(results.length).to.equal(1)
   })
@@ -193,7 +193,7 @@ describe('SPARQL aggregates', () => {
       keys: ['?count'],
       nbResults: 1,
       testFun: function (b) {
-        expect(b['?count']).toBe(`"10"^^${rdf.XSD.integer.value}`)
+        expect(b['?count']).toBe(`"10"^^${XSD.integer.value}`)
       },
     },
     {
@@ -210,13 +210,13 @@ describe('SPARQL aggregates', () => {
         switch (b['?p']) {
           case 'https://dblp.uni-trier.de/rdf/schema-2017-04-18#primaryFullPersonName':
           case 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type':
-            expect(b['?sum']).toBe(`"10"^^${rdf.XSD.integer.value}`)
+            expect(b['?sum']).toBe(`"10"^^${XSD.integer.value}`)
             break
           case 'https://dblp.uni-trier.de/rdf/schema-2017-04-18#authorOf':
-            expect(b['?sum']).toBe(`"50"^^${rdf.XSD.integer.value}`)
+            expect(b['?sum']).toBe(`"50"^^${XSD.integer.value}`)
             break
           case 'https://dblp.uni-trier.de/rdf/schema-2017-04-18#coCreatorWith':
-            expect(b['?sum']).toBe(`"40"^^${rdf.XSD.integer.value}`)
+            expect(b['?sum']).toBe(`"40"^^${XSD.integer.value}`)
             break
           default:
             throw new Error(`Unexpected predicate found: ${b['?sum']}`)
@@ -234,7 +234,7 @@ describe('SPARQL aggregates', () => {
       keys: ['?p', '?avg'],
       nbResults: 4,
       testFun: function (b) {
-        expect(b['?avg']).toBe(`"10"^^${rdf.XSD.integer.value}`)
+        expect(b['?avg']).toBe(`"10"^^${XSD.integer.value}`)
       },
     },
     {
@@ -248,7 +248,7 @@ describe('SPARQL aggregates', () => {
       keys: ['?p', '?min'],
       nbResults: 4,
       testFun: function (b) {
-        expect(b['?min']).toBe(`"10"^^${rdf.XSD.integer.value}`)
+        expect(b['?min']).toBe(`"10"^^${XSD.integer.value}`)
       },
     },
     {
@@ -262,7 +262,7 @@ describe('SPARQL aggregates', () => {
       keys: ['?p', '?max'],
       nbResults: 4,
       testFun: function (b) {
-        expect(b['?max']).toBe(`"10"^^${rdf.XSD.integer.value}`)
+        expect(b['?max']).toBe(`"10"^^${XSD.integer.value}`)
       },
     },
     {
@@ -303,7 +303,7 @@ describe('SPARQL aggregates', () => {
       keys: ['?p', '?sample'],
       nbResults: 4,
       testFun: function (b) {
-        expect(b['?sample']).toBe(`"10"^^${rdf.XSD.integer.value}`)
+        expect(b['?sample']).toBe(`"10"^^${XSD.integer.value}`)
       },
     },
   ]

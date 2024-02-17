@@ -29,7 +29,7 @@ import * as SPARQL from 'sparqljs'
 import { PipelineStage } from '../../engine/pipeline/pipeline-engine.js'
 import { Pipeline } from '../../engine/pipeline/pipeline.js'
 import { Bindings } from '../../rdf/bindings.js'
-import { rdf } from '../../utils.js'
+import { rdf } from '../../utils/index.js'
 
 /**
  * A ConstructOperator transform solution mappings into RDF triples, according to a template
@@ -39,9 +39,12 @@ import { rdf } from '../../utils.js'
  * @return A {@link PipelineStage} which evaluate the CONSTRUCT modifier
  * @author Thomas Minier
  */
-export default function construct(source: PipelineStage<Bindings>, query: any) {
+export default function construct(
+  source: PipelineStage<Bindings>,
+  query: { template: SPARQL.Triple[] },
+) {
   const rawTriples: SPARQL.Triple[] = []
-  const templates: SPARQL.Triple[] = query.template.filter((t: any) => {
+  const templates: SPARQL.Triple[] = query.template.filter((t) => {
     if (
       rdf.isVariable(t.subject) ||
       rdf.isVariable(t.predicate) ||

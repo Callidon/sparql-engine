@@ -81,5 +81,5 @@ export { default as Dataset } from './rdf/dataset.js'
 export { default as Graph } from './rdf/graph.js'
 export { default as HashMapDataset } from './rdf/hashmap-dataset.js'
 // RDF terms Utilities
-export { rdf } from './utils.js'
+export { rdf } from './utils/index.js'
 export { stages }

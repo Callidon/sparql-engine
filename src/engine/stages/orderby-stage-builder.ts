@@ -27,7 +27,6 @@ SOFTWARE.
 import * as SPARQL from 'sparqljs'
 import orderby from '../../operators/orderby.js'
 import { Bindings } from '../../rdf/bindings.js'
-import ExecutionContext from '../context/execution-context.js'
 import { PipelineStage } from '../pipeline/pipeline-engine.js'
 import StageBuilder from './stage-builder.js'
 
@@ -39,7 +38,6 @@ export default class OrderByStageBuilder extends StageBuilder {
   execute(
     source: PipelineStage<Bindings>,
     orders: SPARQL.Ordering[],
-    context: ExecutionContext,
   ): PipelineStage<Bindings> {
     return orderby(source, orders)
   }

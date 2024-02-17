@@ -33,7 +33,7 @@ import {
 } from '../engine/pipeline/pipeline-engine.js'
 import { Pipeline } from '../engine/pipeline/pipeline.js'
 import indexJoin from '../operators/join/index-join.js'
-import { rdf, sparql } from '../utils.js'
+import { rdf, sparql } from '../utils/index.js'
 import { BindingBase, Bindings } from './bindings.js'
 import { GRAPH_CAPABILITY } from './graph_capability.js'
 
@@ -48,7 +48,7 @@ export interface PatternMetadata {
 
 function parseCapabilities(
   registry: Map<GRAPH_CAPABILITY, boolean>,
-  proto: any,
+  proto: Graph,
 ): void {
   registry.set(
     GRAPH_CAPABILITY.ESTIMATE_TRIPLE_CARD,
@@ -133,7 +133,7 @@ export default abstract class Graph {
    * @param  triple - Triple pattern to estimate cardinality
    * @return A Promise fulfilled with the pattern's estimated cardinality
    */
-  estimateCardinality(triple: SPARQL.Triple): Promise<number> {
+  estimateCardinality(_triple: SPARQL.Triple): Promise<number> {
     throw new SyntaxError(
       'Error: this graph is not capable of estimating the cardinality of a triple pattern',
     )
@@ -272,8 +272,8 @@ export default abstract class Graph {
    * @return A {@link PipelineStage} which evaluates the Basic Graph pattern on the Graph
    */
   evalUnion(
-    patterns: SPARQL.Triple[][],
-    context: ExecutionContext,
+    _patterns: SPARQL.Triple[][],
+    _context: ExecutionContext,
   ): PipelineStage<Bindings> {
     throw new SyntaxError(
       'Error: this graph is not capable of evaluating UNION queries',

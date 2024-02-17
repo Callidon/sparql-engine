@@ -31,13 +31,14 @@ import boundJoin from '../../operators/join/bound-join.js'
 import { BindingBase, Bindings } from '../../rdf/bindings.js'
 import Graph from '../../rdf/graph.js'
 import { GRAPH_CAPABILITY } from '../../rdf/graph_capability.js'
-import { evaluation, rdf, sparql } from '../../utils.js'
+import { evaluation, rdf, sparql } from '../../utils/index.js'
+import { SES, XSD } from '../../utils/namespace.js'
 import ExecutionContext from '../context/execution-context.js'
 import { parseHints } from '../context/query-hints.js'
 import ContextSymbols from '../context/symbols.js'
 import { PipelineStage } from '../pipeline/pipeline-engine.js'
 import { Pipeline } from '../pipeline/pipeline.js'
-import { fts } from './rewritings.js'
+import * as fts from './rewritings-fts.js'
 import StageBuilder from './stage-builder.js'
 
 /**
@@ -297,7 +298,7 @@ export default class BGPStageBuilder extends StageBuilder {
       }
       switch ((triple.predicate as rdf.NamedNode).value) {
         // keywords: ?o ses:search “neil gaiman”
-        case rdf.SES.search.value: {
+        case SES.search.value: {
           if (!rdf.isLiteral(triple.object)) {
             throw new SyntaxError(
               `Invalid Full Text Search query: the object of the magic triple ${triple} must be a RDF Literal.`,
@@ -308,14 +309,14 @@ export default class BGPStageBuilder extends StageBuilder {
           break
         }
         // match all keywords: ?o ses:matchAllTerms "true"
-        case rdf.SES.matchAllTerms.value: {
+        case SES.matchAllTerms.value: {
           // const value = rdf.getLiteralValue(triple.object).toLowerCase()
           const value = triple.object.value.toLowerCase()
           matchAll = value === 'true' || value === '1'
           break
         }
         // min relevance score: ?o ses:minRelevance “0.25”
-        case rdf.SES.minRelevance.value: {
+        case SES.minRelevance.value: {
           if (!rdf.isLiteral(triple.object)) {
             throw new SyntaxError(
               `Invalid Full Text Search query: the object of the magic triple ${triple} must be a RDF Literal.`,
@@ -331,7 +332,7 @@ export default class BGPStageBuilder extends StageBuilder {
           break
         }
         // max relevance score: ?o ses:maxRelevance “0.75”
-        case rdf.SES.maxRelevance.value: {
+        case SES.maxRelevance.value: {
           if (!rdf.isLiteral(triple.object)) {
             throw new SyntaxError(
               `Invalid Full Text Search query: the object of the magic triple ${triple} must be a RDF Literal.`,
@@ -347,7 +348,7 @@ export default class BGPStageBuilder extends StageBuilder {
           break
         }
         // min rank: ?o ses:minRank "5" .
-        case rdf.SES.minRank.value: {
+        case SES.minRank.value: {
           if (!rdf.isLiteral(triple.object)) {
             throw new SyntaxError(
               `Invalid Full Text Search query: the object of the magic triple ${triple} must be a RDF Literal.`,
@@ -363,7 +364,7 @@ export default class BGPStageBuilder extends StageBuilder {
           break
         }
         // max rank: ?o ses:maxRank “1000” .
-        case rdf.SES.maxRank.value: {
+        case SES.maxRank.value: {
           if (!rdf.isLiteral(triple.object)) {
             throw new SyntaxError(
               `Invalid Full Text Search query: the object of the magic triple ${triple} must be a RDF Literal.`,
@@ -379,7 +380,7 @@ export default class BGPStageBuilder extends StageBuilder {
           break
         }
         // include relevance score: ?o ses:relevance ?score .
-        case rdf.SES.relevance.value: {
+        case SES.relevance.value: {
           if (!rdf.isVariable(triple.object)) {
             throw new SyntaxError(
               `Invalid Full Text Search query: the object of the magic triple ${triple} must be a SPARQL variable.`,
@@ -390,7 +391,7 @@ export default class BGPStageBuilder extends StageBuilder {
           break
         }
         // include rank: ?o ses:rank ?rank .
-        case rdf.SES.rank.value: {
+        case SES.rank.value: {
           if (!rdf.isVariable(triple.object)) {
             throw new SyntaxError(
               `Invalid Full Text Search query: the object of the magic triple ${triple} must be a SPARQL variable.`,
@@ -474,10 +475,10 @@ export default class BGPStageBuilder extends StageBuilder {
         }
         // add score and rank if required
         if (addScore) {
-          mu.set(scoreVariable!, rdf.createTypedLiteral(score, rdf.XSD.float))
+          mu.set(scoreVariable!, rdf.createTypedLiteral(score, XSD.float))
         }
         if (addRank) {
-          mu.set(rankVariable!, rdf.createTypedLiteral(rank, rdf.XSD.integer))
+          mu.set(rankVariable!, rdf.createTypedLiteral(rank, XSD.integer))
         }
         // Merge with input bindings and then return the final results
         return bindings.union(mu)

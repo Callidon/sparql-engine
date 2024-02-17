@@ -28,7 +28,7 @@ import { sortedIndexOf } from 'lodash'
 import { PipelineStage } from '../engine/pipeline/pipeline-engine.js'
 import { Pipeline } from '../engine/pipeline/pipeline.js'
 import { BindingGroup, Bindings } from '../rdf/bindings.js'
-import { rdf } from '../utils.js'
+import { rdf } from '../utils/index.js'
 
 /**
  * Hash functions for set of bindings
@@ -97,7 +97,7 @@ export default function sparqlGroupBy(
     return null
   })
   return engine.mergeMap(engine.collect(op), () => {
-    const aggregates: any[] = []
+    const aggregates: Bindings[] = []
     // transform each group in a set of bindings
     groups.forEach((group, key) => {
       // also add the GROUP BY keys to the set of bindings

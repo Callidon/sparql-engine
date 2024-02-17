@@ -28,7 +28,6 @@ import * as SPARQL from 'sparqljs'
 import bind from '../../operators/bind.js'
 import { CustomFunctions } from '../../operators/expressions/sparql-expression.js'
 import { Bindings } from '../../rdf/bindings.js'
-import ExecutionContext from '../context/execution-context.js'
 import { PipelineStage } from '../pipeline/pipeline-engine.js'
 import StageBuilder from './stage-builder.js'
 
@@ -41,7 +40,6 @@ export default class BindStageBuilder extends StageBuilder {
     source: PipelineStage<Bindings>,
     bindNode: SPARQL.BindPattern,
     customFunctions: CustomFunctions,
-    context: ExecutionContext,
   ): PipelineStage<Bindings> {
     return bind(source, bindNode.variable, bindNode.expression, customFunctions)
   }

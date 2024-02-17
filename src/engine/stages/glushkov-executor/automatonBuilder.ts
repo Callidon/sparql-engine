@@ -22,7 +22,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-import { rdf } from '../../../utils.js'
+import * as SPARQL from 'sparqljs'
+import { rdf } from '../../../utils/index.js'
 import { Automaton, State, Transition } from './automaton.js'
 
 /**
@@ -34,6 +35,21 @@ import { Automaton, State, Transition } from './automaton.js'
 interface AutomatonBuilder<T, P> {
   build(): Automaton<T, P>
 }
+
+type LeafNode = {
+  pathType: 'symbol'
+  items: Array<Node>
+  id: number
+  item: rdf.Term
+}
+
+type Node =
+  | {
+      pathType: '/' | '|' | '+' | '?' | '*' | '!' | '^'
+      items: Array<Node>
+      id: number
+    }
+  | LeafNode
 
 /**
  * Perform the union of two sets
@@ -68,7 +84,7 @@ export class GlushkovBuilder implements AutomatonBuilder<number, rdf.Term> {
     })
   }
 
-  private syntaxTree: any
+  private syntaxTree: Node
   private nullable: Map<number, boolean>
   private first: Map<number, Set<number>>
   private last: Map<number, Set<number>>
@@ -81,8 +97,8 @@ export class GlushkovBuilder implements AutomatonBuilder<number, rdf.Term> {
    * Constructor
    * @param path - Path object
    */
-  constructor(path: any) {
-    this.syntaxTree = path
+  constructor(path: SPARQL.PropertyPath) {
+    this.syntaxTree = this.createTree(path)
     this.nullable = new Map<number, boolean>()
     this.first = new Map<number, Set<number>>()
     this.last = new Map<number, Set<number>>()
@@ -92,20 +108,29 @@ export class GlushkovBuilder implements AutomatonBuilder<number, rdf.Term> {
     this.negation = new Map<number, boolean>()
   }
 
+  createTree(path: SPARQL.PropertyPath): Node {
+    // Force the type then clean up in the postfix method
+    const rootNode = path as unknown as Node
+    this.postfixNumbering(rootNode)
+    return rootNode
+  }
+
   /**
-   * Numbers the nodes in a postorder manner
+   * Numbers the nodes in a postorder manner and tree is cleaned up
    * @param node - syntactic tree's current node
    * @param num  - first identifier to be assigned
    * @return root node identifier
    */
-  postfixNumbering(node: any, num: number = 1): number {
+  postfixNumbering(node: Node, num: number = 1): number {
     if (node.pathType !== 'symbol') {
       for (let i = 0; i < node.items.length; i++) {
         if (node.items[i].pathType === undefined) {
           // it's a leaf
           node.items[i] = {
             pathType: 'symbol',
-            item: node.items[i],
+            items: [],
+            item: node.items[i] as unknown as rdf.Term,
+            id: 0, // will be assigned later
           }
         }
         num = this.postfixNumbering(node.items[i], num)
@@ -118,7 +143,7 @@ export class GlushkovBuilder implements AutomatonBuilder<number, rdf.Term> {
     return num
   }
 
-  symbolProcessing(node: any) {
+  symbolProcessing(node: LeafNode) {
     this.nullable.set(node.id, false)
     this.first.set(node.id, new Set<number>().add(node.id))
     this.last.set(node.id, new Set<number>().add(node.id))
@@ -128,7 +153,7 @@ export class GlushkovBuilder implements AutomatonBuilder<number, rdf.Term> {
     this.negation.set(node.id, false)
   }
 
-  sequenceProcessing(node: any) {
+  sequenceProcessing(node: Node) {
     let index
     let nullableChild
 
@@ -159,27 +184,26 @@ export class GlushkovBuilder implements AutomatonBuilder<number, rdf.Term> {
     } while (index > 0 && nullableChild)
     this.last.set(node.id, lastNode)
 
-    const self = this
     for (let i = 0; i < node.items.length - 1; i++) {
       const lastChild = this.last.get(node.items[i].id) as Set<number>
       lastChild.forEach((value: number) => {
         let suiv = i
-        let followChildLast = self.follow.get(value) as Set<number>
+        let followChildLast = this.follow.get(value) as Set<number>
         let nullableNextChild = false
         do {
           suiv++
-          const firstNextChild = self.first.get(
+          const firstNextChild = this.first.get(
             node.items[suiv].id,
           ) as Set<number>
           followChildLast = union(followChildLast, firstNextChild)
-          nullableNextChild = self.nullable.get(node.items[suiv].id) as boolean
+          nullableNextChild = this.nullable.get(node.items[suiv].id) as boolean
         } while (suiv < node.items.length - 1 && nullableNextChild)
-        self.follow.set(value, followChildLast)
+        this.follow.set(value, followChildLast)
       })
     }
   }
 
-  unionProcessing(node: any) {
+  unionProcessing(node: Node) {
     let nullableNode = false
     for (let i = 1; i < node.items.length; i++) {
       const nullableChild = this.nullable.get(node.items[i].id) as boolean
@@ -202,7 +226,7 @@ export class GlushkovBuilder implements AutomatonBuilder<number, rdf.Term> {
     this.last.set(node.id, lastNode)
   }
 
-  oneOrMoreProcessing(node: any) {
+  oneOrMoreProcessing(node: Node) {
     const nullableChild = this.nullable.get(node.items[0].id) as boolean
     this.nullable.set(node.id, nullableChild)
     const firstChild = this.first.get(node.items[0].id) as Set<number>
@@ -216,7 +240,7 @@ export class GlushkovBuilder implements AutomatonBuilder<number, rdf.Term> {
     })
   }
 
-  zeroOrOneProcessing(node: any) {
+  zeroOrOneProcessing(node: Node) {
     this.nullable.set(node.id, true)
     const firstChild = this.first.get(node.items[0].id) as Set<number>
     this.first.set(node.id, firstChild)
@@ -224,7 +248,7 @@ export class GlushkovBuilder implements AutomatonBuilder<number, rdf.Term> {
     this.last.set(node.id, lastChild)
   }
 
-  zeroOrMoreProcessing(node: any) {
+  zeroOrMoreProcessing(node: Node) {
     this.nullable.set(node.id, true)
     const firstChild = this.first.get(node.items[0].id) as Set<number>
     this.first.set(node.id, firstChild)
@@ -237,8 +261,8 @@ export class GlushkovBuilder implements AutomatonBuilder<number, rdf.Term> {
     })
   }
 
-  searchChild(node: any): Set<number> {
-    return node.items.reduce((acc: any, n: any) => {
+  searchChild(node: Node): Set<number> {
+    return node.items.reduce((acc: Set<number>, n: Node) => {
       if (n.pathType === 'symbol') {
         acc.add(n.id)
       } else {
@@ -248,7 +272,7 @@ export class GlushkovBuilder implements AutomatonBuilder<number, rdf.Term> {
     }, new Set())
   }
 
-  negationProcessing(node: any) {
+  negationProcessing(node: Node) {
     const negForward = new Array<rdf.Term>()
     const negBackward = new Array<rdf.Term>()
 
@@ -295,7 +319,7 @@ export class GlushkovBuilder implements AutomatonBuilder<number, rdf.Term> {
     this.last.set(node.id, lastNode)
   }
 
-  inverseProcessing(node: any) {
+  inverseProcessing(node: Node) {
     const nullableChild = this.nullable.get(node.items[0].id) as boolean
     this.nullable.set(node.id, nullableChild)
     const firstChild = this.first.get(node.items[0].id) as Set<number>
@@ -313,10 +337,12 @@ export class GlushkovBuilder implements AutomatonBuilder<number, rdf.Term> {
     childInverse.forEach((nodeToReverse: number) => {
       const isReverseNodeToReverse = this.reverse.get(nodeToReverse) as boolean
       this.reverse.set(nodeToReverse, !isReverseNodeToReverse)
-      const followeesNodeToReverse = this.follow.get(nodeToReverse) as Set<number>
+      const followeesNodeToReverse = this.follow.get(
+        nodeToReverse,
+      ) as Set<number>
       followeesNodeToReverse.forEach((followee) => {
         if (childInverse.has(followee)) {
-          (followTemp.get(followee) as Set<number>).add(nodeToReverse)
+          ;(followTemp.get(followee) as Set<number>).add(nodeToReverse)
           followeesNodeToReverse.delete(followee)
         }
       })
@@ -333,7 +359,7 @@ export class GlushkovBuilder implements AutomatonBuilder<number, rdf.Term> {
     })
   }
 
-  nodeProcessing(node: any) {
+  nodeProcessing(node: Node) {
     switch (node.pathType) {
       case 'symbol':
         this.symbolProcessing(node)
@@ -362,7 +388,7 @@ export class GlushkovBuilder implements AutomatonBuilder<number, rdf.Term> {
     }
   }
 
-  treeProcessing(node: any) {
+  treeProcessing(node: Node) {
     if (node.pathType !== 'symbol') {
       for (let i = 0; i < node.items.length; i++) {
         this.treeProcessing(node.items[i])
@@ -376,8 +402,6 @@ export class GlushkovBuilder implements AutomatonBuilder<number, rdf.Term> {
    * @return The Glushkov automaton used to evaluate the SPARQL property path
    */
   build(): Automaton<number, rdf.Term> {
-    // Assigns an id to each syntax tree's node. These ids will be used to build and name the automaton's states
-    this.postfixNumbering(this.syntaxTree)
     // computation of first, last, follow, nullable, reverse and negation
     this.treeProcessing(this.syntaxTree)
 

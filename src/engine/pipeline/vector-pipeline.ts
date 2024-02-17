@@ -52,7 +52,7 @@ export class VectorStage<T> implements PipelineStage<T> {
 
   subscribe(
     onData: (value: T) => void,
-    onError: (err: any) => void,
+    onError: (err: unknown) => void,
     onEnd: () => void,
   ): void {
     try {
@@ -95,10 +95,10 @@ export class VectorStage<T> implements PipelineStage<T> {
 
 export class VectorStreamInput<T> implements StreamPipelineInput<T> {
   private readonly _resolve: (value: T[]) => void
-  private readonly _reject: (err: any) => void
+  private readonly _reject: (err: unknown) => void
   private _content: Array<T>
 
-  constructor(resolve: any, reject: any) {
+  constructor(resolve: (value: T[]) => void, reject: (err: unknown) => void) {
     this._resolve = resolve
     this._reject = reject
     this._content = []
@@ -108,7 +108,7 @@ export class VectorStreamInput<T> implements StreamPipelineInput<T> {
     this._content.push(value)
   }
 
-  error(err: any): void {
+  error(err: unknown): void {
     this._reject(err)
   }
 

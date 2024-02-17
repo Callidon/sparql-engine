@@ -24,7 +24,7 @@ SOFTWARE.
 
 'use strict'
 
-import { rdf } from '../utils.js'
+import { rdf } from '../utils/index.js'
 import Dataset from './dataset.js'
 import Graph from './graph.js'
 

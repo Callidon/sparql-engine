@@ -26,7 +26,7 @@ SOFTWARE.
 
 import { intersectionWith, isUndefined, sum, zip } from 'lodash'
 import { BindingGroup } from '../../rdf/bindings.js'
-import { rdf } from '../../utils.js'
+import { rdf } from '../../utils/index.js'
 
 function precision(expected: rdf.Term[], predicted: rdf.Term[]): number {
   const intersection = intersectionWith(expected, predicted, (x, y) =>
@@ -81,7 +81,7 @@ export default {
         .get(variable.value)!
         .map((term) => {
           if (rdf.isLiteral(term) && rdf.literalIsNumeric(term)) {
-            return rdf.asJS(term.value, term.datatype.value)
+            return rdf.asJS<number>(term.value, term.datatype.value)
           }
           return 1
         })
@@ -113,8 +113,8 @@ export default {
         rdf.literalIsNumeric(expected)
       ) {
         return Math.pow(
-          rdf.asJS(expected.value, expected.datatype.value) -
-            rdf.asJS(predicted.value, predicted.datatype.value),
+          rdf.asJS<number>(expected.value, expected.datatype.value) -
+            rdf.asJS<number>(predicted.value, predicted.datatype.value),
           2,
         )
       }
@@ -144,8 +144,8 @@ export default {
         rdf.literalIsNumeric(expected)
       ) {
         return Math.pow(
-          rdf.asJS(expected.value, expected.datatype.value) -
-            rdf.asJS(predicted.value, predicted.datatype.value),
+          rdf.asJS<number>(expected.value, expected.datatype.value) -
+            rdf.asJS<number>(predicted.value, predicted.datatype.value),
           2,
         )
       }

@@ -24,7 +24,7 @@ SOFTWARE.
 
 'use strict'
 
-import { rdf } from '../../utils.js'
+import { rdf } from '../../utils/index.js'
 
 /**
  * Implementation of NON standard SPARQL operations offered by the framework
@@ -42,7 +42,7 @@ export default {
     x: rdf.Term,
   ): rdf.Term {
     if (rdf.isLiteral(x) && rdf.literalIsNumeric(x)) {
-      const value = rdf.asJS(x.value, x.datatype.value)
+      const value: number = rdf.asJS(x.value, x.datatype.value)
       return rdf.createFloat(Math.cosh(value))
     }
     throw new SyntaxError(
@@ -55,7 +55,7 @@ export default {
     x: rdf.Term,
   ): rdf.Term {
     if (rdf.isLiteral(x) && rdf.literalIsNumeric(x)) {
-      const value = rdf.asJS(x.value, x.datatype.value)
+      const value: number = rdf.asJS(x.value, x.datatype.value)
       return rdf.createFloat(Math.sinh(value))
     }
     throw new SyntaxError(
@@ -68,7 +68,7 @@ export default {
     x: rdf.Term,
   ): rdf.Term {
     if (rdf.isLiteral(x) && rdf.literalIsNumeric(x)) {
-      const value = rdf.asJS(x.value, x.datatype.value)
+      const value: number = rdf.asJS(x.value, x.datatype.value)
       return rdf.createFloat(Math.tanh(value))
     }
     throw new SyntaxError(
@@ -81,7 +81,7 @@ export default {
     x: rdf.Term,
   ): rdf.Term {
     if (rdf.isLiteral(x) && rdf.literalIsNumeric(x)) {
-      const value = rdf.asJS(x.value, x.datatype.value)
+      const value: number = rdf.asJS(x.value, x.datatype.value)
       if (value === 0) {
         throw new SyntaxError(
           `SPARQL expression error: cannot compute the hyperbolic cotangent of ${x}, as it is equals to 0`,
@@ -101,7 +101,7 @@ export default {
     x: rdf.Term,
   ): rdf.Term {
     if (rdf.isLiteral(x) && rdf.literalIsNumeric(x)) {
-      const value = rdf.asJS(x.value, x.datatype.value)
+      const value: number = rdf.asJS(x.value, x.datatype.value)
       return rdf.createFloat((2 * Math.exp(value)) / (Math.exp(2 * value) + 1))
     }
     throw new SyntaxError(
@@ -114,7 +114,7 @@ export default {
     x: rdf.Term,
   ): rdf.Term {
     if (rdf.isLiteral(x) && rdf.literalIsNumeric(x)) {
-      const value = rdf.asJS(x.value, x.datatype.value)
+      const value: number = rdf.asJS(x.value, x.datatype.value)
       return rdf.createFloat((2 * Math.exp(value)) / (Math.exp(2 * value) - 1))
     }
     throw new SyntaxError(
@@ -129,7 +129,7 @@ export default {
     x: rdf.Term,
   ): rdf.Term {
     if (rdf.isLiteral(x) && rdf.literalIsNumeric(x)) {
-      const value = rdf.asJS(x.value, x.datatype.value)
+      const value: number = rdf.asJS(x.value, x.datatype.value)
       return rdf.createFloat(value * (180 / Math.PI))
     }
     throw new SyntaxError(
@@ -141,7 +141,7 @@ export default {
     x: rdf.Term,
   ): rdf.Term {
     if (rdf.isLiteral(x) && rdf.literalIsNumeric(x)) {
-      const value = rdf.asJS(x.value, x.datatype.value)
+      const value: number = rdf.asJS(x.value, x.datatype.value)
       return rdf.createFloat(value * (Math.PI / 180))
     }
     throw new SyntaxError(

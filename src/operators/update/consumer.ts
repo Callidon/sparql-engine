@@ -66,17 +66,15 @@ export class ErrorConsumable implements Consumable {
  */
 export abstract class Consumer extends Writable implements Consumable {
   private readonly _source: PipelineStage<SPARQL.Triple>
-  private readonly _options: Object
 
   /**
    * Constructor
    * @param source - Input {@link PipelineStage}
    * @param options - Execution options
    */
-  constructor(source: PipelineStage<SPARQL.Triple>, options: Object) {
+  constructor(source: PipelineStage<SPARQL.Triple>) {
     super({ objectMode: true })
     this._source = source
-    this._options = options
   }
 
   execute(): Promise<void> {

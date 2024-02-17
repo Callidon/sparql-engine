@@ -183,12 +183,12 @@ export class Transition<T, P> {
         to: ${this.to.toString()},\n\t
         reverse: ${this.reverse},\n\t
         negation: ${this.negation},\n\t`
-    const self = this
+    const upper = this.predicates.length - 1
     this.predicates.forEach((pred, index) => {
       if (index === 0) {
         result += ',\n\t\tpredicates: [\n'
       }
-      if (index < self.predicates.length - 1) {
+      if (index < upper) {
         result += `\t\t\t${pred},\n`
       } else {
         result += `\t\t\t${pred}\n\t\t]`

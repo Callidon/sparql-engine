@@ -28,7 +28,7 @@ import * as SPARQL from 'sparqljs'
 import { PipelineStage } from '../engine/pipeline/pipeline-engine.js'
 import { Pipeline } from '../engine/pipeline/pipeline.js'
 import { Bindings } from '../rdf/bindings.js'
-import { rdf } from '../utils.js'
+import { rdf } from '../utils/index.js'
 import {
   CustomFunctions,
   SPARQLExpression,
@@ -50,9 +50,14 @@ export default function sparqlFilter(
 ) {
   const expr = new SPARQLExpression(expression, customFunctions)
   return Pipeline.getInstance().filter(source, (bindings: Bindings) => {
-    const value: any = expr.evaluate(bindings)
-    if (value !== null && rdf.isLiteral(value) && rdf.literalIsBoolean(value)) {
-      return rdf.asJS(value.value, value.datatype.value)
+    const value = expr.evaluate(bindings)
+    if (
+      value !== null &&
+      rdf.isLiteral(value as SPARQL.Term) &&
+      rdf.literalIsBoolean(value as rdf.Literal)
+    ) {
+      const literal = value as rdf.Literal
+      return rdf.asJS(literal.value, literal.datatype.value)
     }
     return false
   })

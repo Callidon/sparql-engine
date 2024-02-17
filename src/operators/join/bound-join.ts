@@ -32,7 +32,7 @@ import { Pipeline } from '../../engine/pipeline/pipeline.js'
 import BGPStageBuilder from '../../engine/stages/bgp-stage-builder.js'
 import { Bindings } from '../../rdf/bindings.js'
 import Graph from '../../rdf/graph.js'
-import { evaluation, rdf } from '../../utils.js'
+import { evaluation, rdf } from '../../utils/index.js'
 import rewritingOp from './rewriting-op.js'
 
 // The default size of the bucket of Basic Graph Patterns used by the Bound Join algorithm

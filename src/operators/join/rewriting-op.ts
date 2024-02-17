@@ -31,7 +31,7 @@ import { Pipeline } from '../../engine/pipeline/pipeline.js'
 import BGPStageBuilder from '../../engine/stages/bgp-stage-builder.js'
 import { Bindings } from '../../rdf/bindings.js'
 import Graph from '../../rdf/graph.js'
-import { evaluation, rdf } from '../../utils.js'
+import { evaluation, rdf } from '../../utils/index.js'
 
 /**
  * Find a rewriting key in a list of variables

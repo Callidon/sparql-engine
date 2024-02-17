@@ -28,7 +28,7 @@ import * as SPARQL from 'sparqljs'
 import { PipelineStage } from '../engine/pipeline/pipeline-engine.js'
 import { Pipeline } from '../engine/pipeline/pipeline.js'
 import { Bindings } from '../rdf/bindings.js'
-import { rdf } from '../utils.js'
+import { rdf } from '../utils/index.js'
 
 /**
  * Build a comparator function from an ORDER BY clause content
@@ -40,9 +40,9 @@ function _compileComparators(comparators: SPARQL.Ordering[]) {
   const comparatorsFuncs = comparators.map((c: SPARQL.Ordering) => {
     return (left: Bindings, right: Bindings) => {
       const variable = c.expression as rdf.Variable
-      if (left.get(variable)?.value! < right.get(variable)?.value!) {
+      if (left.get(variable)!.value < right.get(variable)!.value) {
         return c.descending ? 1 : -1
-      } else if (left.get(variable)?.value! > right.get(variable)?.value!) {
+      } else if (left.get(variable)!.value > right.get(variable)!.value) {
         return c.descending ? -1 : 1
       }
       return 0

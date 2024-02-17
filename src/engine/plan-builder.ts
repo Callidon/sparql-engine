@@ -42,7 +42,8 @@ import Optimizer from '../optimizer/optimizer.js'
 // RDF core classes
 import { BindingBase, Bindings } from '../rdf/bindings.js'
 import Dataset from '../rdf/dataset.js'
-import { deepApplyBindings, extendByBindings, rdf } from '../utils.js'
+import { deepApplyBindings, extendByBindings } from '../utils/bindings.js'
+import { rdf } from '../utils/index.js'
 // caching
 import { BGPCache, LRUBGPCache } from './cache/bgp-cache.js'
 import ExecutionContext from './context/execution-context.js'
@@ -67,7 +68,7 @@ import UpdateStageBuilder from './stages/update-stage-builder.js'
 const QUERY_MODIFIERS: {
   [key: string]: (
     source: PipelineStage<Bindings>,
-    query: any,
+    query: SPARQL.SelectQuery & SPARQL.ConstructQuery & SPARQL.AskQuery,
   ) => PipelineStage<QueryOutput>
 } = {
   SELECT: select,
@@ -120,7 +121,7 @@ export class PlanBuilder {
    */
   constructor(
     private _dataset: Dataset,
-    prefixes: any = {},
+    prefixes: SPARQL.ParserOptions = {},
     private _customFunctions?: CustomFunctions,
   ) {
     this._dataset = _dataset
@@ -201,7 +202,7 @@ export class PlanBuilder {
    * @return A {@link PipelineStage} or a {@link Consumable} that can be consumed to evaluate the query.
    */
   build(
-    query: any,
+    query: string | SPARQL.SparqlQuery,
     context?: ExecutionContext,
   ): PipelineStage<QueryOutput> | Consumable {
     // If needed, parse the string query into a logical query execution plan
@@ -212,11 +213,11 @@ export class PlanBuilder {
       context = new ExecutionContext()
       context.cache = this._currentCache
     }
-    // Optimize the logical query execution plan
-    query = this._optimizer.optimize(query)
     // build physical query execution plan, depending on the query type
     switch (query.type) {
       case 'query':
+        // Optimize the logical query execution plan
+        query = this._optimizer.optimize(query)
         return this._buildQueryPlan(query, context)
       case 'update':
         if (!this._stageBuilders.has(SPARQL_OPERATION.UPDATE)) {
@@ -228,7 +229,9 @@ export class PlanBuilder {
           .get(SPARQL_OPERATION.UPDATE)!
           .execute(query.updates, context)
       default:
-        throw new SyntaxError(`Unsupported SPARQL query type: ${query.type}`)
+        throw new SyntaxError(
+          `Unsupported SPARQL query type: ${(query as SPARQL.Query).type}`,
+        )
     }
   }
 
@@ -255,13 +258,10 @@ export class PlanBuilder {
 
     // rewrite a DESCRIBE query into a CONSTRUCT query
     if (query.queryType === 'DESCRIBE') {
-      const template: SPARQL.Triple[] = []
-      const where: any = [
-        {
-          type: 'bgp',
-          triples: [],
-        },
-      ]
+      const pattern: SPARQL.BgpPattern = {
+        type: 'bgp',
+        triples: [],
+      }
       query.variables!.forEach(
         (v: SPARQL.Wildcard | SPARQL.IriTerm | rdf.Variable) => {
           const triple = {
@@ -272,17 +272,16 @@ export class PlanBuilder {
             predicate: rdf.createVariable(`?pred__describe__${v}`),
             object: rdf.createVariable(`?obj__describe__${v}`),
           }
-          template.push(triple)
-          where[0].triples.push(triple)
+          pattern.triples.push(triple)
         },
       )
       const construct = {
         prefixes: query.prefixes,
         from: query.from,
         queryType: 'CONSTRUCT' as const,
-        template,
+        template: pattern.triples,
         type: 'query' as const,
-        where: (query.where ?? []).concat(where),
+        where: (query.where ?? []).concat([pattern]),
       }
       return this._buildQueryPlan(construct, context, source)
     }
@@ -342,7 +341,7 @@ export class PlanBuilder {
         (prev, agg) => {
           const op = this._stageBuilders
             .get(SPARQL_OPERATION.BIND)!
-            .execute(prev, agg, this._customFunctions, context)
+            .execute(prev, agg, this._customFunctions)
           return op as PipelineStage<Bindings>
         },
         graphIterator,
@@ -366,8 +365,8 @@ export class PlanBuilder {
     }
     graphIterator = QUERY_MODIFIERS[query.queryType](
       graphIterator as PipelineStage<Bindings>,
-      query as any,
-    ) //, context)
+      query as SPARQL.SelectQuery & SPARQL.ConstructQuery & SPARQL.AskQuery,
+    )
 
     // Create iterators for modifiers
     if ('distinct' in query) {
@@ -472,16 +471,15 @@ export class PlanBuilder {
     const childContext = context.clone()
 
     switch (group.type) {
-      case 'bgp':
+      case 'bgp': {
         if (!this._stageBuilders.has(SPARQL_OPERATION.BGP)) {
           throw new Error(
             'A PlanBuilder cannot evaluate a Basic Graph Pattern without a Stage Builder for it',
           )
         }
         // find possible Property paths
-        const [classicTriples, pathTriples, tempVariables] = extractPropertyPaths(
-          group as SPARQL.BgpPattern,
-        )
+        const [classicTriples, pathTriples, tempVariables] =
+          extractPropertyPaths(group as SPARQL.BgpPattern)
         if (pathTriples.length > 0) {
           if (!this._stageBuilders.has(SPARQL_OPERATION.PROPERTY_PATH)) {
             throw new Error(
@@ -509,14 +507,16 @@ export class PlanBuilder {
           })
         }
         return iter
-      case 'query':
+      }
+      case 'query': {
         // maybe we need a separate final stage to go from Bindings to QueryOutput.
         return this._buildQueryPlan(
           group,
           childContext,
           source,
         ) as PipelineStage<Bindings>
-      case 'graph':
+      }
+      case 'graph': {
         if (!this._stageBuilders.has(SPARQL_OPERATION.GRAPH)) {
           throw new Error(
             'A PlanBuilder cannot evaluate a GRAPH clause without a Stage Builder for it',
@@ -526,7 +526,8 @@ export class PlanBuilder {
         return this._stageBuilders
           .get(SPARQL_OPERATION.GRAPH)!
           .execute(source, group, childContext) as PipelineStage<Bindings>
-      case 'service':
+      }
+      case 'service': {
         if (!this._stageBuilders.has(SPARQL_OPERATION.SERVICE)) {
           throw new Error(
             'A PlanBuilder cannot evaluate a SERVICE clause without a Stage Builder for it',
@@ -535,9 +536,11 @@ export class PlanBuilder {
         return this._stageBuilders
           .get(SPARQL_OPERATION.SERVICE)!
           .execute(source, group, childContext) as PipelineStage<Bindings>
-      case 'group':
+      }
+      case 'group': {
         return this._buildWhere(source, group.patterns, childContext)
-      case 'optional':
+      }
+      case 'optional': {
         if (!this._stageBuilders.has(SPARQL_OPERATION.OPTIONAL)) {
           throw new Error(
             'A PlanBuilder cannot evaluate an OPTIONAL clause without a Stage Builder for it',
@@ -546,7 +549,8 @@ export class PlanBuilder {
         return this._stageBuilders
           .get(SPARQL_OPERATION.OPTIONAL)!
           .execute(source, group, childContext) as PipelineStage<Bindings>
-      case 'union':
+      }
+      case 'union': {
         if (!this._stageBuilders.has(SPARQL_OPERATION.UNION)) {
           throw new Error(
             'A PlanBuilder cannot evaluate an UNION clause without a Stage Builder for it',
@@ -555,7 +559,8 @@ export class PlanBuilder {
         return this._stageBuilders
           .get(SPARQL_OPERATION.UNION)!
           .execute(source, group, childContext) as PipelineStage<Bindings>
-      case 'minus':
+      }
+      case 'minus': {
         if (!this._stageBuilders.has(SPARQL_OPERATION.MINUS)) {
           throw new Error(
             'A PlanBuilder cannot evaluate a MINUS clause without a Stage Builder for it',
@@ -564,7 +569,8 @@ export class PlanBuilder {
         return this._stageBuilders
           .get(SPARQL_OPERATION.MINUS)!
           .execute(source, group, childContext) as PipelineStage<Bindings>
-      case 'filter':
+      }
+      case 'filter': {
         if (!this._stageBuilders.has(SPARQL_OPERATION.FILTER)) {
           throw new Error(
             'A PlanBuilder cannot evaluate a FILTER clause without a Stage Builder for it',
@@ -578,7 +584,8 @@ export class PlanBuilder {
             this._customFunctions,
             childContext,
           ) as PipelineStage<Bindings>
-      case 'bind':
+      }
+      case 'bind': {
         if (!this._stageBuilders.has(SPARQL_OPERATION.BIND)) {
           throw new Error(
             'A PlanBuilder cannot evaluate a BIND clause without a Stage Builder for it',
@@ -592,6 +599,7 @@ export class PlanBuilder {
             this._customFunctions,
             childContext,
           ) as PipelineStage<Bindings>
+      }
       default:
         throw new Error(
           `Unsupported SPARQL group pattern found in query: ${group.type}`,

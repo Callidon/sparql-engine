@@ -31,7 +31,7 @@ import { PipelineStage } from '../../engine/pipeline/pipeline-engine.js'
 import { Pipeline } from '../../engine/pipeline/pipeline.js'
 import { BindingBase, Bindings } from '../../rdf/bindings.js'
 import Graph from '../../rdf/graph.js'
-import { rdf, sparql } from '../../utils.js'
+import { rdf, sparql } from '../../utils/index.js'
 
 /**
  * Perform a join between a source of solution bindings (left relation)

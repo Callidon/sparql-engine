@@ -24,7 +24,15 @@ SOFTWARE.
 
 'use strict'
 
-import { concat, EMPTY, from, Observable, of, Subscriber } from 'rxjs'
+import {
+  concat,
+  EMPTY,
+  from,
+  Observable,
+  ObservableInput,
+  of,
+  Subscriber,
+} from 'rxjs'
 import {
   bufferCount,
   catchError,
@@ -46,18 +54,16 @@ import {
 } from 'rxjs/operators'
 import { PipelineEngine, StreamPipelineInput } from './pipeline-engine.js'
 
-// Declare a module with the same name as the imported module
 declare module 'rxjs' {
-  // Inside, declare an interface with the same name as the class you're extending
-  // Make sure to include the generic parameter
   interface Observable<T> {
     toArray(): Promise<T[]>
   }
 }
 
-// Now TypeScript knows about the new method, and you can add it to the prototype
 Observable.prototype.toArray = function () {
   return new Promise((resolve, reject) => {
+    // Can't avoid any here because we don't have access to the T type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const results: any[] = []
     this.subscribe(
       (b) => {
@@ -90,7 +96,7 @@ export class RxjsStreamInput<T> implements StreamPipelineInput<T> {
     this._subscriber.complete()
   }
 
-  error(err: any): void {
+  error(err: unknown): void {
     this._subscriber.error(err)
   }
 }
@@ -108,8 +114,10 @@ export default class RxjsPipeline extends PipelineEngine {
     return of(...values)
   }
 
-  from(x: any): Observable<any> {
-    return from(x)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  from(x: unknown): Observable<any> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return from(x as ObservableInput<any>)
   }
 
   fromAsync<T>(cb: (input: StreamPipelineInput<T>) => void): Observable<T> {

@@ -29,7 +29,7 @@ import * as SPARQL from 'sparqljs'
 import { PipelineStage } from '../engine/pipeline/pipeline-engine.js'
 import { Pipeline } from '../engine/pipeline/pipeline.js'
 import { Bindings } from '../rdf/bindings.js'
-import { rdf, sparql } from '../utils.js'
+import { rdf, sparql } from '../utils/index.js'
 import {
   CustomFunctions,
   SPARQLExpression,
@@ -40,8 +40,10 @@ import {
  * @param obj - Input object
  * @return True if the input obkect is an iterator, False otherwise
  */
-function isIterable(obj: Object): obj is Iterable<rdf.Term | null> {
-  // @ts-ignore
+function isIterable(
+  obj: NonNullable<unknown>,
+): obj is Iterable<rdf.Term | null> {
+  // @ts-expect-error Property 'Symbol' does not exist on type 'unknown' but exstance shows iterable
   return typeof obj[Symbol.iterator] === 'function'
 }
 

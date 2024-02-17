@@ -28,7 +28,7 @@ import * as SPARQL from 'sparqljs'
 import { PipelineStage } from '../../engine/pipeline/pipeline-engine.js'
 import { Pipeline } from '../../engine/pipeline/pipeline.js'
 import { Bindings } from '../../rdf/bindings.js'
-import { rdf } from '../../utils.js'
+import { rdf } from '../../utils/index.js'
 
 /**
  * Evaluates a SPARQL SELECT operation, i.e., perform a selection over sets of solutions bindings

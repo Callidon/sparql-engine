@@ -24,7 +24,7 @@ SOFTWARE.
 
 'use strict'
 
-import { rdf } from '../../utils.js'
+import { rdf } from '../../utils/index.js'
 import { BGPCache } from '../cache/bgp-cache.js'
 import { QueryHints } from './query-hints.js'
 
@@ -32,7 +32,7 @@ import { QueryHints } from './query-hints.js'
  * An execution context conatains control information for query execution.
  */
 export default class ExecutionContext {
-  protected _properties: Map<symbol, any>
+  protected _properties: Map<symbol, unknown>
   protected _hints: QueryHints
   protected _defaultGraphs: Array<rdf.NamedNode | rdf.Variable>
   protected _namedGraphs: rdf.NamedNode[]
@@ -125,8 +125,8 @@ export default class ExecutionContext {
    * @param  key - Key associated with the property
    * @return  The value associated with the key
    */
-  getProperty(key: symbol): any | null {
-    return this._properties.get(key)
+  getProperty<T>(key: symbol): T {
+    return this._properties.get(key) as T
   }
 
   /**
@@ -143,7 +143,7 @@ export default class ExecutionContext {
    * @param key - Key of the property
    * @param value - Value of the property
    */
-  setProperty(key: symbol, value: any): void {
+  setProperty(key: symbol, value: unknown): void {
     this._properties.set(key, value)
   }
 

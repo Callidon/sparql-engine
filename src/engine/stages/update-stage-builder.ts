@@ -35,7 +35,7 @@ import ManyConsumers from '../../operators/update/many-consumers.js'
 import NoopConsumer from '../../operators/update/nop-consumer.js'
 import { BindingBase, Bindings } from '../../rdf/bindings.js'
 import Graph from '../../rdf/graph.js'
-import { rdf } from '../../utils.js'
+import { rdf } from '../../utils/index.js'
 import ExecutionContext from '../context/execution-context.js'
 import ContextSymbols from '../context/symbols.js'
 import { PipelineStage } from '../pipeline/pipeline-engine.js'
@@ -218,7 +218,6 @@ export default class UpdateStageBuilder extends StageBuilder {
             source as PipelineStage<Bindings>,
             v,
             graph,
-            context,
           )
         }),
       )
@@ -232,7 +231,6 @@ export default class UpdateStageBuilder extends StageBuilder {
             source as PipelineStage<Bindings>,
             v,
             graph,
-            context,
           )
         }),
       )
@@ -252,7 +250,6 @@ export default class UpdateStageBuilder extends StageBuilder {
     source: PipelineStage<Bindings>,
     group: SPARQL.Quads,
     graph: Graph | null,
-    context: ExecutionContext,
   ): InsertConsumer {
     const tripleSource = construct(source, { template: group.triples })
     if (graph === null) {
@@ -261,7 +258,7 @@ export default class UpdateStageBuilder extends StageBuilder {
           ? this._dataset.getNamedGraph(group.name as rdf.NamedNode)
           : this._dataset.getDefaultGraph()
     }
-    return new InsertConsumer(tripleSource, graph, context)
+    return new InsertConsumer(tripleSource, graph)
   }
 
   /**
@@ -276,7 +273,6 @@ export default class UpdateStageBuilder extends StageBuilder {
     source: PipelineStage<Bindings>,
     group: SPARQL.Quads,
     graph: Graph | null,
-    context: ExecutionContext,
   ): DeleteConsumer {
     const tripleSource = construct(source, { template: group.triples })
     if (graph === null) {
@@ -285,7 +281,7 @@ export default class UpdateStageBuilder extends StageBuilder {
           ? this._dataset.getNamedGraph(group.name as rdf.NamedNode)
           : this._dataset.getDefaultGraph()
     }
-    return new DeleteConsumer(tripleSource, graph, context)
+    return new DeleteConsumer(tripleSource, graph)
   }
 
   /**

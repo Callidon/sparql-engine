@@ -26,8 +26,8 @@ SOFTWARE.
 
 import { isArray, merge, uniqBy } from 'lodash'
 import * as SPARQL from 'sparqljs'
-import { Bindings } from '../../rdf/bindings.js'
-import { rdf } from '../../utils.js'
+import { BindingGroup, Bindings } from '../../rdf/bindings.js'
+import { rdf } from '../../utils/index.js'
 import CUSTOM_AGGREGATES from './custom-aggregates.js'
 import CUSTOM_OPERATIONS from './custom-operations.js'
 import SPARQL_AGGREGATES from './sparql-aggregates.js'
@@ -56,11 +56,15 @@ export type ExpressionOutput =
  */
 export type CompiledExpression = (bindings: Bindings) => ExpressionOutput
 
+export type CustomFunction = (
+  ...args: (rdf.Term | rdf.Term[] | null)[]
+) => ExpressionOutput
+
 /**
  * Type alias to describe the shape of custom functions. It's basically a JSON object from an IRI (in string form) to a function of 0 to many RDFTerms that produces an RDFTerm.
  */
 export type CustomFunctions = {
-  [key: string]: (...args: (rdf.Term | rdf.Term[] | null)[]) => ExpressionOutput
+  [key: string]: CustomFunction
 }
 
 /**
@@ -161,7 +165,7 @@ export class SPARQLExpression {
       }
       const operation = SPARQL_OPERATIONS[
         expression.operator as keyof typeof SPARQL_OPERATIONS
-      ] as any
+      ] as (...args: unknown[]) => ExpressionOutput
       return (bindings: Bindings) =>
         operation(...args.map((arg) => arg(bindings)))
     } else if (isAggregation(expression)) {
@@ -178,7 +182,7 @@ export class SPARQLExpression {
       return (bindings: Bindings) => {
         if (bindings.hasProperty('__aggregate')) {
           const aggVariable = expression.expression as rdf.Variable
-          const rows = bindings.getProperty('__aggregate')
+          const rows: BindingGroup = bindings.getProperty('__aggregate')
           if (expression.distinct) {
             rows.set(
               aggVariable.value,
@@ -193,7 +197,7 @@ export class SPARQLExpression {
       }
     } else if (isFunctionCall(expression)) {
       // last case: the expression is a custom function
-      let customFunction: any
+      let customFunction: CustomFunction
       let isAggregate = false
       const functionName =
         typeof expression.function == 'string'
@@ -202,10 +206,9 @@ export class SPARQLExpression {
       // custom aggregations defined by the framework
       if (functionName.toLowerCase() in CUSTOM_AGGREGATES) {
         isAggregate = true
-        customFunction =
-          CUSTOM_AGGREGATES[
-            functionName.toLowerCase() as keyof typeof CUSTOM_AGGREGATES
-          ]
+        customFunction = CUSTOM_AGGREGATES[
+          functionName.toLowerCase() as keyof typeof CUSTOM_AGGREGATES
+        ] as unknown as CustomFunction
       } else if (functionName in customFunctions) {
         // custom operations defined by the user & the framework
         customFunction = customFunctions[functionName]
@@ -217,8 +220,11 @@ export class SPARQLExpression {
       if (isAggregate) {
         return (bindings: Bindings) => {
           if (bindings.hasProperty('__aggregate')) {
-            const rows = bindings.getProperty('__aggregate')
-            return customFunction(...expression.args, rows)
+            const rows: SPARQL.Term = bindings.getProperty('__aggregate')
+            return customFunction(
+              ...(expression.args as Parameters<CustomFunction>),
+              rows,
+            )
           }
           throw new SyntaxError(
             `SPARQL aggregation error: you are trying to use the ${functionName} SPARQL aggregate outside of an aggregation query.`,
@@ -230,7 +236,9 @@ export class SPARQLExpression {
           const args = expression.args.map((args) =>
             this._compileExpression(args, customFunctions),
           )
-          return customFunction(...args.map((arg) => arg(bindings)))
+          return customFunction(
+            ...(args.map((arg) => arg(bindings)) as Parameters<CustomFunction>),
+          )
         } catch (e) {
           // In section 10 of the sparql docs (https://www.w3.org/TR/sparql11-query/#assignment) it states:
           // "If the evaluation of the expression produces an error, the variable remains unbound for that solution but the query evaluation continues."

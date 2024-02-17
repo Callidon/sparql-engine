@@ -24,6 +24,7 @@ SOFTWARE.
 
 'use strict'
 
+import * as SPARQL from 'sparqljs'
 import ExecutionContext from '../engine/context/execution-context.js'
 import { PipelineStage } from '../engine/pipeline/pipeline-engine.js'
 import { Pipeline } from '../engine/pipeline/pipeline.js'
@@ -48,7 +49,7 @@ interface ConditionalBindings {
  */
 export default function exists(
   source: PipelineStage<Bindings>,
-  groups: any[],
+  groups: SPARQL.Pattern[],
   builder: PlanBuilder,
   notexists: boolean,
   context: ExecutionContext,

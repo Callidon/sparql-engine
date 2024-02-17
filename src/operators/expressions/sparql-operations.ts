@@ -26,9 +26,10 @@ SOFTWARE.
 
 import crypto from 'crypto'
 import { isNull } from 'lodash'
-import moment from 'moment'
+import moment, { Moment } from 'moment'
 import { v4 as uuid } from 'uuid'
-import { rdf } from '../../utils.js'
+import { rdf } from '../../utils/index.js'
+import { XSD } from '../../utils/namespace.js'
 
 /**
  * Return a high-orderpply a Hash function  to a RDF
@@ -100,20 +101,21 @@ export default {
   */
   '+': function (a: rdf.Term, b: rdf.Term): rdf.Term {
     if (rdf.isLiteral(a) && rdf.isLiteral(b)) {
-      const valueA = rdf.asJS(a.value, a.datatype.value)
-      const valueB = rdf.asJS(b.value, b.datatype.value)
+      const valueA: number = rdf.asJS(a.value, a.datatype.value)
+      const valueB: number = rdf.asJS(b.value, b.datatype.value)
       if (rdf.literalIsDate(a) && rdf.literalIsDate(b)) {
         return rdf.createDate(moment(valueA + valueB))
       }
       return rdf.createTypedLiteral(valueA + valueB, a.datatype)
     }
+    // @ts-expect-error try to add values anyway
     return rdf.createLiteral(rdf.asJS(a.value, null) + rdf.asJS(b.value, null))
   },
 
   '-': function (a: rdf.Term, b: rdf.Term): rdf.Term {
     if (rdf.isLiteral(a) && rdf.isLiteral(b)) {
-      const valueA = rdf.asJS(a.value, a.datatype.value)
-      const valueB = rdf.asJS(b.value, b.datatype.value)
+      const valueA: number = rdf.asJS(a.value, a.datatype.value)
+      const valueB: number = rdf.asJS(b.value, b.datatype.value)
       if (rdf.literalIsDate(a) && rdf.literalIsDate(b)) {
         return rdf.createDate(moment(valueA - valueB))
       }
@@ -126,8 +128,8 @@ export default {
 
   '*': function (a: rdf.Term, b: rdf.Term): rdf.Term {
     if (rdf.isLiteral(a) && rdf.isLiteral(b)) {
-      const valueA = rdf.asJS(a.value, a.datatype.value)
-      const valueB = rdf.asJS(b.value, b.datatype.value)
+      const valueA: number = rdf.asJS(a.value, a.datatype.value)
+      const valueB: number = rdf.asJS(b.value, b.datatype.value)
       if (rdf.literalIsDate(a) && rdf.literalIsDate(b)) {
         return rdf.createDate(moment(valueA * valueB))
       }
@@ -140,8 +142,8 @@ export default {
 
   '/': function (a: rdf.Term, b: rdf.Term): rdf.Term {
     if (rdf.isLiteral(a) && rdf.isLiteral(b)) {
-      const valueA = rdf.asJS(a.value, a.datatype.value)
-      const valueB = rdf.asJS(b.value, b.datatype.value)
+      const valueA: number = rdf.asJS(a.value, a.datatype.value)
+      const valueB: number = rdf.asJS(b.value, b.datatype.value)
       if (rdf.literalIsDate(a) && rdf.literalIsDate(b)) {
         return rdf.createDate(moment(valueA / valueB))
       }
@@ -162,12 +164,14 @@ export default {
 
   '<': function (a: rdf.Term, b: rdf.Term): rdf.Term {
     if (rdf.isLiteral(a) && rdf.isLiteral(b)) {
-      const valueA = rdf.asJS(a.value, a.datatype.value)
-      const valueB = rdf.asJS(b.value, b.datatype.value)
       if (rdf.literalIsDate(a) && rdf.literalIsDate(b)) {
+        const valueA: Moment = rdf.asJS(a.value, a.datatype.value)
+        const valueB: Moment = rdf.asJS(b.value, b.datatype.value)
         // use Moment.js isBefore function to compare two dates
         return rdf.createBoolean(valueA.isBefore(valueB))
       }
+      const valueA: string | number = rdf.asJS(a.value, a.datatype.value)
+      const valueB: string | number = rdf.asJS(b.value, b.datatype.value)
       return rdf.createBoolean(valueA < valueB)
     }
     return rdf.createBoolean(a.value < b.value)
@@ -175,12 +179,14 @@ export default {
 
   '<=': function (a: rdf.Term, b: rdf.Term): rdf.Term {
     if (rdf.isLiteral(a) && rdf.isLiteral(b)) {
-      const valueA = rdf.asJS(a.value, a.datatype.value)
-      const valueB = rdf.asJS(b.value, b.datatype.value)
       if (rdf.literalIsDate(a) && rdf.literalIsDate(b)) {
+        const valueA: Moment = rdf.asJS(a.value, a.datatype.value)
+        const valueB: Moment = rdf.asJS(b.value, b.datatype.value)
         // use Moment.js isSameOrBefore function to compare two dates
         return rdf.createBoolean(valueA.isSameOrBefore(valueB))
       }
+      const valueA: string | number = rdf.asJS(a.value, a.datatype.value)
+      const valueB: string | number = rdf.asJS(b.value, b.datatype.value)
       return rdf.createBoolean(valueA <= valueB)
     }
     return rdf.createBoolean(a.value <= b.value)
@@ -188,12 +194,14 @@ export default {
 
   '>': function (a: rdf.Term, b: rdf.Term): rdf.Term {
     if (rdf.isLiteral(a) && rdf.isLiteral(b)) {
-      const valueA = rdf.asJS(a.value, a.datatype.value)
-      const valueB = rdf.asJS(b.value, b.datatype.value)
       if (rdf.literalIsDate(a) && rdf.literalIsDate(b)) {
+        const valueA: Moment = rdf.asJS(a.value, a.datatype.value)
+        const valueB: Moment = rdf.asJS(b.value, b.datatype.value)
         // use Moment.js isAfter function to compare two dates
         return rdf.createBoolean(valueA.isAfter(valueB))
       }
+      const valueA: string | number = rdf.asJS(a.value, a.datatype.value)
+      const valueB: string | number = rdf.asJS(b.value, b.datatype.value)
       return rdf.createBoolean(valueA > valueB)
     }
     return rdf.createBoolean(a.value > b.value)
@@ -201,12 +209,14 @@ export default {
 
   '>=': function (a: rdf.Term, b: rdf.Term): rdf.Term {
     if (rdf.isLiteral(a) && rdf.isLiteral(b)) {
-      const valueA = rdf.asJS(a.value, a.datatype.value)
-      const valueB = rdf.asJS(b.value, b.datatype.value)
       if (rdf.literalIsDate(a) && rdf.literalIsDate(b)) {
+        const valueA: Moment = rdf.asJS(a.value, a.datatype.value)
+        const valueB: Moment = rdf.asJS(b.value, b.datatype.value)
         // use Moment.js isSameOrAfter function to compare two dates
         return rdf.createBoolean(valueA.isSameOrAfter(valueB))
       }
+      const valueA: string | number = rdf.asJS(a.value, a.datatype.value)
+      const valueB: string | number = rdf.asJS(b.value, b.datatype.value)
       return rdf.createBoolean(valueA >= valueB)
     }
     return rdf.createBoolean(a.value >= b.value)
@@ -229,8 +239,8 @@ export default {
       rdf.literalIsBoolean(b)
     ) {
       return rdf.createBoolean(
-        rdf.asJS(a.value, a.datatype.value) &&
-          rdf.asJS(b.value, b.datatype.value),
+        rdf.asJS<boolean>(a.value, a.datatype.value) &&
+          rdf.asJS<boolean>(b.value, b.datatype.value),
       )
     }
     throw new SyntaxError(
@@ -352,7 +362,7 @@ export default {
     index: rdf.Term,
     length?: rdf.Term,
   ): rdf.Term {
-    const indexValue = rdf.asJS(index.value, rdf.XSD.integer.value)
+    const indexValue = rdf.asJS<number>(index.value, XSD.integer.value)
     if (indexValue < 1) {
       throw new SyntaxError(
         'SPARQL SUBSTR error: the index of the first character in a string is 1 (according to the SPARQL W3C specs)',
@@ -360,7 +370,7 @@ export default {
     }
     let value = str.value.substring(indexValue - 1)
     if (length !== undefined) {
-      const lengthValue = rdf.asJS(length.value, rdf.XSD.integer.value)
+      const lengthValue = rdf.asJS<number>(length.value, XSD.integer.value)
       value = value.substring(0, lengthValue)
     }
     return rdf.shallowCloneTerm(str, value)
@@ -504,7 +514,7 @@ export default {
 
   year: function (a: rdf.Term): rdf.Term {
     if (rdf.isLiteral(a) && rdf.literalIsDate(a)) {
-      const value = rdf.asJS(a.value, a.datatype.value)
+      const value: Moment = rdf.asJS(a.value, a.datatype.value)
       return rdf.createInteger(value.year())
     }
     throw new SyntaxError(
@@ -514,7 +524,7 @@ export default {
 
   month: function (a: rdf.Term): rdf.Term {
     if (rdf.isLiteral(a) && rdf.literalIsDate(a)) {
-      const value = rdf.asJS(a.value, a.datatype.value)
+      const value: Moment = rdf.asJS(a.value, a.datatype.value)
       // Warning: Months are zero indexed in Moment.js, so January is month 0.
       return rdf.createInteger(value.month() + 1)
     }
@@ -525,7 +535,7 @@ export default {
 
   day: function (a: rdf.Term): rdf.Term {
     if (rdf.isLiteral(a) && rdf.literalIsDate(a)) {
-      const value = rdf.asJS(a.value, a.datatype.value)
+      const value: Moment = rdf.asJS(a.value, a.datatype.value)
       return rdf.createInteger(value.date())
     }
     throw new SyntaxError(
@@ -535,7 +545,7 @@ export default {
 
   hours: function (a: rdf.Term): rdf.Term {
     if (rdf.isLiteral(a) && rdf.literalIsDate(a)) {
-      const value = rdf.asJS(a.value, a.datatype.value)
+      const value: Moment = rdf.asJS(a.value, a.datatype.value)
       return rdf.createInteger(value.hours())
     }
     throw new SyntaxError(
@@ -545,7 +555,7 @@ export default {
 
   minutes: function (a: rdf.Term): rdf.Term {
     if (rdf.isLiteral(a) && rdf.literalIsDate(a)) {
-      const value = rdf.asJS(a.value, a.datatype.value)
+      const value: Moment = rdf.asJS(a.value, a.datatype.value)
       return rdf.createInteger(value.minutes())
     }
     throw new SyntaxError(
@@ -555,7 +565,7 @@ export default {
 
   seconds: function (a: rdf.Term): rdf.Term {
     if (rdf.isLiteral(a) && rdf.literalIsDate(a)) {
-      const value = rdf.asJS(a.value, a.datatype.value)
+      const value: Moment = rdf.asJS(a.value, a.datatype.value)
       return rdf.createInteger(value.seconds())
     }
     throw new SyntaxError(
@@ -565,7 +575,7 @@ export default {
 
   tz: function (a: rdf.Term): rdf.Term {
     if (rdf.isLiteral(a) && rdf.literalIsDate(a)) {
-      const value = rdf.asJS(a.value, a.datatype.value).utcOffset() / 60
+      const value = rdf.asJS<Moment>(a.value, a.datatype.value).utcOffset() / 60
       return rdf.createLiteral(value.toString())
     }
     throw new SyntaxError(

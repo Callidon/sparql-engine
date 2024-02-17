@@ -29,15 +29,15 @@ import xml from 'xml'
 import { PipelineStage } from '../engine/pipeline/pipeline-engine.js'
 import { Pipeline } from '../engine/pipeline/pipeline.js'
 import { Bindings } from '../rdf/bindings.js'
-import { rdf } from '../utils.js'
+import { rdf } from '../utils/index.js'
 
 type RDFBindings = { [key: string]: rdf.Term }
 
-function _writeBoolean(input: boolean, root: any) {
+function _writeBoolean(input: boolean, root: xml.ElementObject) {
   root.push({ boolean: input })
 }
 
-function _writeBindings(input: Bindings, results: any) {
+function _writeBindings(input: Bindings, results: xml.ElementObject) {
   // convert sets of bindings into objects of RDF Terms
   const bindings: RDFBindings = input
     .filter((_variable, value) => !isNull(value) && !isUndefined(value))
@@ -93,10 +93,10 @@ export default function xmlFormat(
     _attr: { xmlns: 'http://www.w3.org/2005/sparql-results#' },
     results: results,
   })
-  const stream: any = xml(
+  const stream = xml(
     { sparql: root },
-    { stream: true, indent: '\t', declaration: true },
-  )
+    { stream: true, indent: '\t' },
+  ) as NodeJS.ReadableStream
   return Pipeline.getInstance().fromAsync((input) => {
     // manually pipe the xml stream's results into the pipeline
     stream.on('error', (err: Error) => input.error(err))
@@ -133,6 +133,6 @@ export default function xmlFormat(
     )
 
     // consume the xml stream
-    stream.on('data', (x: any) => input.next(x))
+    stream.on('data', (x: string) => input.next(x))
   })
 }

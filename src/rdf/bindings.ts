@@ -27,7 +27,7 @@ SOFTWARE.
 import { isNull, isUndefined } from 'lodash'
 import { Quad_Object, Quad_Predicate, Quad_Subject } from 'n3'
 import * as SPARQL from 'sparqljs'
-import { rdf, sparql } from '../utils.js'
+import { rdf, sparql } from '../utils/index.js'
 
 export type Binding = sparql.BoundedTripleValue | rdf.Variable
 export type BindingGroup = Map<string, Binding[]>
@@ -38,7 +38,7 @@ export type BindingGroup = Map<string, Binding[]>
  * @author Thomas Minier
  */
 export abstract class Bindings {
-  private readonly _properties: Map<string, any>
+  private readonly _properties: Map<string, unknown>
 
   constructor() {
     this._properties = new Map()
@@ -135,8 +135,8 @@ export abstract class Bindings {
    * @param  key - Metadata key
    * @return The metadata associated with the given key
    */
-  getProperty(key: string): any {
-    return this._properties.get(key)
+  getProperty<T>(key: string): T {
+    return this._properties.get(key) as T
   }
 
   /**
@@ -153,7 +153,7 @@ export abstract class Bindings {
    * @param key - Key associated to the value
    * @param value - Value to attach
    */
-  setProperty(key: string, value: any): void {
+  setProperty(key: string, value: unknown): void {
     this._properties.set(key, value)
   }
 
@@ -197,7 +197,7 @@ export abstract class Bindings {
     return Bindings.toString(this)
   }
 
-  private static toString(element: any): string {
+  private static toString(element: unknown): string {
     if (element instanceof Bindings) {
       const value = element.reduce((acc, variable, value) => {
         return `${acc} ${Bindings.toString(variable)} -> ${Bindings.toString(value)},`
@@ -206,7 +206,7 @@ export abstract class Bindings {
     } else if (rdf.isTerm(element)) {
       return rdf.toN3(element)
     } else {
-      return element.toString()
+      return (element as NonNullable<unknown>).toString()
     }
   }
 

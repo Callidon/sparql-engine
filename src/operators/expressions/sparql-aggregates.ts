@@ -26,7 +26,7 @@ SOFTWARE.
 
 import { maxBy, meanBy, minBy, sample } from 'lodash'
 import { BindingGroup } from '../../rdf/bindings.js'
-import { rdf } from '../../utils.js'
+import { rdf } from '../../utils/index.js'
 
 /**
  * SPARQL Aggregation operations.
@@ -49,7 +49,7 @@ export default {
     if (rows.has(variable.value)) {
       sum = rows.get(variable.value)!.reduce((acc: number, b: rdf.Term) => {
         if (rdf.isLiteral(b) && rdf.literalIsNumeric(b)) {
-          return acc + rdf.asJS(b.value, b.datatype.value)
+          return acc + rdf.asJS<number>(b.value, b.datatype.value)
         }
         return acc
       }, 0)

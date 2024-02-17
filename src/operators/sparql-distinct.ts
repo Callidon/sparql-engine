@@ -27,7 +27,7 @@ SOFTWARE.
 import { PipelineStage } from '../engine/pipeline/pipeline-engine.js'
 import { Pipeline } from '../engine/pipeline/pipeline.js'
 import { Binding, Bindings } from '../rdf/bindings.js'
-import { rdf } from '../utils.js'
+import { rdf } from '../utils/index.js'
 
 /**
  * Hash an set of mappings and produce an unique value

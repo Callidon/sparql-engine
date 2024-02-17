@@ -26,7 +26,7 @@ SOFTWARE.
 
 import * as SPARQL from 'sparqljs'
 import { Bindings } from '../../rdf/bindings.js'
-import { rdf } from '../../utils.js'
+import { rdf } from '../../utils/index.js'
 import ExecutionContext from '../context/execution-context.js'
 import ContextSymbols from '../context/symbols.js'
 import { PipelineStage } from '../pipeline/pipeline-engine.js'

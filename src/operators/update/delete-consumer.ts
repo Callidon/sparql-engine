@@ -43,12 +43,8 @@ export default class DeleteConsumer extends Consumer {
    * @param graph - Input RDF Graph
    * @param options - Execution options
    */
-  constructor(
-    source: PipelineStage<SPARQL.Triple>,
-    graph: Graph,
-    options: Object,
-  ) {
-    super(source, options)
+  constructor(source: PipelineStage<SPARQL.Triple>, graph: Graph) {
+    super(source)
     this._graph = graph
   }
 

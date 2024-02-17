@@ -48,9 +48,21 @@ export default class FilterStageBuilder extends StageBuilder {
     if (['operation', 'functionCall'].includes(expression.type)) {
       switch (expression.operator) {
         case 'exists':
-          return exists(source, expression.args, this.builder!, false, context)
+          return exists(
+            source,
+            expression.args as SPARQL.Pattern[],
+            this.builder!,
+            false,
+            context,
+          )
         case 'notexists':
-          return exists(source, expression.args, this.builder!, true, context)
+          return exists(
+            source,
+            expression.args as SPARQL.Pattern[],
+            this.builder!,
+            true,
+            context,
+          )
         default:
           return sparqlFilter(source, expression, customFunctions)
       }

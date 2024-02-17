@@ -23,7 +23,7 @@ SOFTWARE.
 */
 
 import { Bindings } from '../../rdf/bindings.js'
-import { rdf, sparql } from '../../utils.js'
+import { rdf, sparql } from '../../utils/index.js'
 
 /**
  * A HashJoinTable is used by a Hash-based join to save set of bindings corresponding to a joinKey.
