@@ -1,13 +1,13 @@
 {
   "compilerOptions": {
-    "target": "es5",
-    "module": "commonjs",
+    "lib": ["es2023"],
+    "module": "node16",
+    "target": "es2022",
     "declaration": true,
     "outDir": "./dist/",
     "strict": true,
-    "lib": [ "ES2015" ],
+    "skipLibCheck": true,
     "allowSyntheticDefaultImports": true,
-    "suppressImplicitAnyIndexErrors": true,
     "downlevelIteration": true,
     "typeRoots": [
       "./node_modules/@types/",
@@ -15,11 +15,6 @@
       "./types/"
     ]
   },
-  "include": [
-    "src/**/*.ts"
-  ],
-  "exclude": [
-    "node_modules/",
-    "tests/"
-  ]
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules/", "tests/"]
 }

@@ -1,41 +1,44 @@
 # sparql-engine
-[![build package](https://github.com/Callidon/sparql-engine/actions/workflows/test.yaml/badge.svg?branch=master)](https://github.com/Callidon/sparql-engine/actions/workflows/test.yaml)  [![codecov](https://codecov.io/gh/Callidon/sparql-engine/branch/master/graph/badge.svg)](https://codecov.io/gh/Callidon/sparql-engine) [![npm version](https://badge.fury.io/js/sparql-engine.svg)](https://badge.fury.io/js/sparql-engine) [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
+
+[![build package](https://github.com/Callidon/sparql-engine/actions/workflows/test.yaml/badge.svg?branch=master)](https://github.com/Callidon/sparql-engine/actions/workflows/test.yaml) [![codecov](https://codecov.io/gh/Callidon/sparql-engine/branch/master/graph/badge.svg)](https://codecov.io/gh/Callidon/sparql-engine) [![npm version](https://badge.fury.io/js/sparql-engine.svg)](https://badge.fury.io/js/sparql-engine) [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
 
 An open-source framework for building SPARQL query engines in Javascript/Typescript.
 
 [Online documentation](https://callidon.github.io/sparql-engine/)
 
 **Main features**:
-* Build a [SPARQL](https://www.w3.org/TR/2013/REC-sparql11-overview-20130321/) query engine on top of any data storage system.
-* Supports [the full features of the SPARQL syntax](https://www.w3.org/TR/sparql11-query/) by *implementing a single class!*
-* Support for all [SPARQL property Paths](https://www.w3.org/TR/sparql11-query/#propertypaths).
-* Implements advanced *SPARQL query rewriting techniques* for transparently optimizing SPARQL query processing.
-* Supports [full text search queries](#full-text-search).
-* Supports [Custom SPARQL functions](#custom-functions).
-* Supports [Semantic Caching](#enable-caching), to speed up query evaluation of reccurent patterns.
-* Supports the [SPARQL UPDATE protocol](https://www.w3.org/TR/2013/REC-sparql11-update-20130321/).
-* Supports Basic [Federated SPARQL queries](https://www.w3.org/TR/2013/REC-sparql11-federated-query-20130321/) using **SERVICE clauses**.
-* Customize every step of SPARQL query processing, thanks to *a modular architecture*.
-* Support for [SPARQL Graph Management protocol](https://www.w3.org/TR/2013/REC-sparql11-update-20130321/#graphManagement).
+
+- Build a [SPARQL](https://www.w3.org/TR/2013/REC-sparql11-overview-20130321/) query engine on top of any data storage system.
+- Supports [the full features of the SPARQL syntax](https://www.w3.org/TR/sparql11-query/) by _implementing a single class!_
+- Support for all [SPARQL property Paths](https://www.w3.org/TR/sparql11-query/#propertypaths).
+- Implements advanced _SPARQL query rewriting techniques_ for transparently optimizing SPARQL query processing.
+- Supports [full text search queries](#full-text-search).
+- Supports [Custom SPARQL functions](#custom-functions).
+- Supports [Semantic Caching](#enable-caching), to speed up query evaluation of reccurent patterns.
+- Supports the [SPARQL UPDATE protocol](https://www.w3.org/TR/2013/REC-sparql11-update-20130321/).
+- Supports Basic [Federated SPARQL queries](https://www.w3.org/TR/2013/REC-sparql11-federated-query-20130321/) using **SERVICE clauses**.
+- Customize every step of SPARQL query processing, thanks to _a modular architecture_.
+- Support for [SPARQL Graph Management protocol](https://www.w3.org/TR/2013/REC-sparql11-update-20130321/#graphManagement).
 
 # Table of contents
-* [Installation](#installation)
-* [Getting started](#getting-started)
-  * [Examples](#examples)
-  * [Preliminaries](#preliminaries)
-  * [RDF Graphs](#rdf-graphs)
-  * [RDF Datasets](#rdf-datasets)
-  * [Running a SPARQL query](#running-a-sparql-query)
-* [Enable caching](#enable-caching)
-* [Full text search](#full-text-search)
-* [Federated SPARQL Queries](#federated-sparql-queries)
-* [Custom Functions](#custom-functions)
-* [Advanced Usage](#advanced-usage)
-  * [Customize the pipeline implementation](#customize-the-pipeline-implementation)
-  * [Customize query execution](#customize-query-execution)
-* [Documentation](#documentation)
-* [Aknowledgments](#aknowledgments)
-* [References](#references)
+
+- [Installation](#installation)
+- [Getting started](#getting-started)
+  - [Examples](#examples)
+  - [Preliminaries](#preliminaries)
+  - [RDF Graphs](#rdf-graphs)
+  - [RDF Datasets](#rdf-datasets)
+  - [Running a SPARQL query](#running-a-sparql-query)
+- [Enable caching](#enable-caching)
+- [Full text search](#full-text-search)
+- [Federated SPARQL Queries](#federated-sparql-queries)
+- [Custom Functions](#custom-functions)
+- [Advanced Usage](#advanced-usage)
+  - [Customize the pipeline implementation](#customize-the-pipeline-implementation)
+  - [Customize query execution](#customize-query-execution)
+- [Documentation](#documentation)
+- [Aknowledgments](#aknowledgments)
+- [References](#references)
 
 # Installation
 
@@ -48,21 +51,23 @@ npm install --save sparql-engine
 The `sparql-engine` framework allow you to build a custom SPARQL query engine on top of any data storage system.
 
 In short, to support SPARQL queries on top of your data storage system, you need to:
-* [Implements a subclass of `Graph`](#rdf-graphs), which provides access to the data storage system.
-* Gather all your Graphs as a `Dataset` (using your own implementation or [the default one](#rdf-datasets)).
-* [Instantiate a `PlanBuilder`](#running-a-sparql-query) and use it to execute SPARQL queries.
+
+- [Implements a subclass of `Graph`](#rdf-graphs), which provides access to the data storage system.
+- Gather all your Graphs as a `Dataset` (using your own implementation or [the default one](#rdf-datasets)).
+- [Instantiate a `PlanBuilder`](#running-a-sparql-query) and use it to execute SPARQL queries.
 
 ## Examples
 
 As a starting point, we provide you with two examples of integration:
-* With [N3.js](https://github.com/rdfjs/N3.js), available [here](https://github.com/Callidon/sparql-engine/tree/master/examples/n3.js).
-* With [LevelGraph](https://github.com/levelgraph/levelgraph), available [here](https://github.com/Callidon/sparql-engine/tree/master/examples/levelgraph.js).
+
+- With [N3.js](https://github.com/rdfjs/N3.js), available [here](https://github.com/Callidon/sparql-engine/tree/master/examples/n3.js).
+- With [LevelGraph](https://github.com/levelgraph/levelgraph), available [here](https://github.com/Callidon/sparql-engine/tree/master/examples/levelgraph.js).
 
 ## Preliminaries
 
 ### SPARQL.js algebra and TypeScript
 
-The `sparql-engine` framework use the [`SPARQL.js`](https://github.com/RubenVerborgh/SPARQL.js/) library for parsing and manipulating SPARQL queries as JSON objects. For TypeScript compiltation, we use a custom package [`sparqljs-legacy-type`](https://github.com/Callidon/sparqljs-legacy-type) for providing the types information. 
+The `sparql-engine` framework use the [`SPARQL.js`](https://github.com/RubenVerborgh/SPARQL.js/) library for parsing and manipulating SPARQL queries as JSON objects. For TypeScript compiltation, we use a custom package [`sparqljs-legacy-type`](https://github.com/Callidon/sparqljs-legacy-type) for providing the types information.
 
 Thus, **if you are working with `sparql-engine` in TypeScript**, you will need to install the [`sparqljs-legacy-type`](https://github.com/Callidon/sparqljs-legacy-type) package.
 
@@ -75,23 +80,25 @@ You will find below, in Java-like syntax, the "shape" of such object.
 
 ```typescript
 interface TripleObject {
-  subject: string; // The Triple's subject
-  predicate: string; // The Triple's predicate
-  object: string; // The Triple's object
+  subject: string // The Triple's subject
+  predicate: string // The Triple's predicate
+  object: string // The Triple's object
 }
 ```
 
 ### PipelineStage
 
-The `sparql-engine` framework uses a pipeline of iterators to execute SPARQL queries. Thus, many methods encountered in this framework needs to return `PipelineStage<T>`, *i.e.*, objects that generates items of type `T` in a pull-based fashion.
+The `sparql-engine` framework uses a pipeline of iterators to execute SPARQL queries. Thus, many methods encountered in this framework needs to return `PipelineStage<T>`, _i.e._, objects that generates items of type `T` in a pull-based fashion.
 
 An `PipelineStage<T>` can be easily created from one of the following:
-* An **array** of elements of type `T`
-* A [**Javascript Iterator**](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols), which yields elements of type `T`.
-* An [**EventEmitter**](https://nodejs.org/api/events.html#events_class_eventemitter) which emits elements of type `T` on a `data` event.
-* A [**Readable stream**](https://nodejs.org/api/stream.html#stream_readable_streams) which produces elements of type `T`.
+
+- An **array** of elements of type `T`
+- A [**Javascript Iterator**](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols), which yields elements of type `T`.
+- An [**EventEmitter**](https://nodejs.org/api/events.html#events_class_eventemitter) which emits elements of type `T` on a `data` event.
+- A [**Readable stream**](https://nodejs.org/api/stream.html#stream_readable_streams) which produces elements of type `T`.
 
 To create a new `PipelineStage<T>` from one of these objects, you can use the following code:
+
 ```javascript
 const { Pipeline } = require('sparql-engine')
 
@@ -114,10 +121,11 @@ Similarly, to support the [SPARQL UPDATE protocol](https://www.w3.org/TR/2013/RE
 
 Finally, the `sparql-engine` framework also let your customize how [Basic graph patterns](https://www.w3.org/TR/2013/REC-sparql11-query-20130321/#BasicGraphPatterns) (BGPs) are evaluated against
 the RDF graph. The engine provides a **default implementation** based on the `Graph.find` method and the
-*Index Nested Loop Join algorithm*. However, if you wish to supply your own implementation for BGP evaluation, you just have to implement a `Graph` with an `evalBGP(triples)` method.
+_Index Nested Loop Join algorithm_. However, if you wish to supply your own implementation for BGP evaluation, you just have to implement a `Graph` with an `evalBGP(triples)` method.
 This method must return a `PipelineStage<Bindings>`. You can find an example of such implementation in the [LevelGraph example](https://github.com/Callidon/sparql-engine/tree/master/examples/levelgraph.js).
 
 You will find below, in Java-like syntax, an example subclass of a `Graph`.
+
 ```typescript
   const { Graph } = require('sparql-engine')
 
@@ -150,19 +158,19 @@ You will find below, in Java-like syntax, an example subclass of a `Graph`.
 Once you have your subclass of `Graph` ready, you need to build a collection of RDF Graphs, called a [RDF Dataset](https://www.w3.org/TR/rdf11-concepts/#section-dataset). A default implementation, `HashMapDataset`, is made available by the framework, but you can build your own by subclassing [`Dataset`](https://callidon.github.io/sparql-engine/classes/dataset.html).
 
 ```javascript
- const { HashMapDataset } = require('sparql-engine')
- const CustomGraph = require(/* import your Graph subclass */)
+const { HashMapDataset } = require('sparql-engine')
+const CustomGraph = require(/* import your Graph subclass */)
 
- const GRAPH_A_IRI = 'http://example.org#graph-a'
- const GRAPH_B_IRI = 'http://example.org#graph-b'
- const graph_a = new CustomGraph(/* ... */)
- const graph_b = new CustomGraph(/* ... */)
+const GRAPH_A_IRI = 'http://example.org#graph-a'
+const GRAPH_B_IRI = 'http://example.org#graph-b'
+const graph_a = new CustomGraph(/* ... */)
+const graph_b = new CustomGraph(/* ... */)
 
- // we set graph_a as the Default RDF dataset
- const dataset = new HashMapDataset(GRAPH_A_IRI, graph_a)
+// we set graph_a as the Default RDF dataset
+const dataset = new HashMapDataset(GRAPH_A_IRI, graph_a)
 
- // insert graph_b as a Named Graph
- dataset.addNamedGraph(GRAPH_B_IRI, graph_b)
+// insert graph_b as a Named Graph
+dataset.addNamedGraph(GRAPH_B_IRI, graph_b)
 ```
 
 ## Running a SPARQL query
@@ -170,10 +178,10 @@ Once you have your subclass of `Graph` ready, you need to build a collection of 
 Finally, to run a SPARQL query on your RDF dataset, you need to use the `PlanBuilder` class. It is responsible for parsing SPARQL queries and building a pipeline of iterators to evaluate them.
 
 ```javascript
-  const { PlanBuilder } = require('sparql-engine')
+const { PlanBuilder } = require('sparql-engine')
 
-  // Get the name of all people in the Default Graph
-  const query = `
+// Get the name of all people in the Default Graph
+const query = `
     PREFIX foaf: <http://xmlns.com/foaf/0.1/>
     SELECT ?name
     WHERE {
@@ -181,18 +189,18 @@ Finally, to run a SPARQL query on your RDF dataset, you need to use the `PlanBui
       ?s foaf:name ?name .
     }`
 
-  // Creates a plan builder for the RDF dataset
-  const builder = new PlanBuilder(dataset)
+// Creates a plan builder for the RDF dataset
+const builder = new PlanBuilder(dataset)
 
-  // Get an iterator to evaluate the query
-  const iterator = builder.build(query)
+// Get an iterator to evaluate the query
+const iterator = builder.build(query)
 
-  // Read results
-  iterator.subscribe(
-    bindings => console.log(bindings),
-    err => console.error(err),
-    () => console.log('Query evaluation complete!')
-  )
+// Read results
+iterator.subscribe(
+  (bindings) => console.log(bindings),
+  (err) => console.error(err),
+  () => console.log('Query evaluation complete!'),
+)
 ```
 
 # Enable caching
@@ -219,6 +227,7 @@ allowing users to execute [approximate string matching](https://en.wikipedia.org
 To accomplish this integration, it follows an approach similar to [BlazeGraph](https://wiki.blazegraph.com/wiki/index.php/FullTextSearch) and defines several **magic predicates** that are given special meaning, and when encountered in a SPARQL query, they are interpreted as configuration parameters for a full text search query.
 
 The simplest way to integrate a full text search into a SPARQL query is to use the magic predicate `ses:search` inside of a SPARQL join group. In the following query, this predicate is used to search for the keywords `neil` and `gaiman` in the values binded to the `?o` position of the triple pattern.
+
 ```
 PREFIX foaf: <http://xmlns.com/foaf/0.1/>
 PREFIX ses: <https://callidon.github.io/sparql-engine/search#>
@@ -227,20 +236,23 @@ SELECT * WHERE {
   ?o ses:search “neil gaiman” .
 }
 ```
+
 In a way, full text search queries allows users to express more complex SPARQL filters that performs approximate string matching over RDF terms.
-Each result is annotated with a *relevance score* (how much it matches the keywords, higher is better) and a *rank* (they represent the descending order of relevance scores). These two values are not binded by default into the query results, but you can use magic predicates to get access to them (see below). Note that the meaning of relevance scores is specific to the implementation of the full text search.
+Each result is annotated with a _relevance score_ (how much it matches the keywords, higher is better) and a _rank_ (they represent the descending order of relevance scores). These two values are not binded by default into the query results, but you can use magic predicates to get access to them (see below). Note that the meaning of relevance scores is specific to the implementation of the full text search.
 
 The full list of magic predicates that you can use in a full text search query is:
-* `ses:search` defines keywords to search as a list of keywords separated by spaces.
-* `ses:matchAllTerms` indicates that only values that contain all of the specified search terms should be considered.
-* `ses:minRelevance`and `ses:maxRelevance` limits the search to matches with a minimum/maximum
-relevance score, respectively. In the default implementation, scores are floating numbers, ranging from 0.0 to 1.0 with a precision of 4 digits.
-* `ses:minRank` and `ses:maxRank` limits the search to matches with a minimum/maximum
-rank value, respectively. In the default implementation, ranks are positive integers starting at 0.
-* `ses:relevance` binds each term's relevance score to a SPARQL variable.
-* `ses:rank` binds each term's rank to a SPARQL variable.
+
+- `ses:search` defines keywords to search as a list of keywords separated by spaces.
+- `ses:matchAllTerms` indicates that only values that contain all of the specified search terms should be considered.
+- `ses:minRelevance`and `ses:maxRelevance` limits the search to matches with a minimum/maximum
+  relevance score, respectively. In the default implementation, scores are floating numbers, ranging from 0.0 to 1.0 with a precision of 4 digits.
+- `ses:minRank` and `ses:maxRank` limits the search to matches with a minimum/maximum
+  rank value, respectively. In the default implementation, ranks are positive integers starting at 0.
+- `ses:relevance` binds each term's relevance score to a SPARQL variable.
+- `ses:rank` binds each term's rank to a SPARQL variable.
 
 Below is a more complete example, that use most of these keywords to customize the full text search.
+
 ```
 PREFIX foaf: <http://xmlns.com/foaf/0.1/>
 PREFIX ses: <https://callidon.github.io/sparql-engine/search#>
@@ -261,7 +273,7 @@ You can find the full signature of this method in the [relevant documentation](h
 
 The `sparql-engine` framework provides a default implementation of this method, which computes relevance scores as the average ratio of keywords matched by words in the RDF terms.
 Notice that **this default implementation is not suited for production usage**.
-It will performs fine for small RDF datasets, but, 
+It will performs fine for small RDF datasets, but,
 when possible, you should always provides a dedicated implementation that leverages your backend.
 For example, for SQL databases, you could use [GIN or GIST indexes](https://www.postgresql.org/docs/12/gin-intro.html).
 
@@ -272,7 +284,7 @@ The `sparql-engine` framework provides automatic support for evaluating [federat
 To enable them, you need to set **a Graph Factory** for the RDF dataset used to evaluate SPARQL queries.
 This Graph factory is used by the dataset to create new RDF Graph on-demand.
 To set it, you need to use the [`Dataset.setGraphFactory`](https://callidon.github.io/sparql-engine/classes/dataset.html#setgraphfactory) method, as detailed below.
-It takes *a callback* as parameter, which will be invoked to create a new graph from an IRI.
+It takes _a callback_ as parameter, which will be invoked to create a new graph from an IRI.
 It's your responsibility to define the graph creation logic, depending on your application.
 
 ```typescript
@@ -284,7 +296,7 @@ const my_graph = new CustomGraph(/* ... */)
 const dataset = new HashMapDataset('http://example.org#graph-a', my_graph)
 
 // set the Graph factory of the dataset
-dataset.setGraphFactory(iri => {
+dataset.setGraphFactory((iri) => {
   // return a new graph for the provided iri
   return new CustomGraph(/* .. */)
 })
@@ -301,16 +313,18 @@ The `sparql-engine` framework provides a supports for declaring such custom func
 A SPARQL value function is an extension point of the SPARQL query language that allows URI to name a function in the query processor.
 It is defined by an `IRI` in a `FILTER`, `BIND` or `HAVING BY` expression.
 To register custom functions, you must create a JSON object that maps each function's `IRI` to a Javascript function that takes a variable number of **RDF Terms** arguments and returns one of the following:
-* A new RDF Term (an IRI, a Literal or a Blank Node) in RDF.js format.
-* An array of RDF Terms.
-* An [Iterable](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols) or a [Generator](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Generator) that yields RDF Terms.
-* The `null` value, to indicates that the function's evaluation has failed.
+
+- A new RDF Term (an IRI, a Literal or a Blank Node) in RDF.js format.
+- An array of RDF Terms.
+- An [Iterable](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols) or a [Generator](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Generator) that yields RDF Terms.
+- The `null` value, to indicates that the function's evaluation has failed.
 
 RDF Terms are represented using the [RDF.js data model](http://rdf.js.org/data-model-spec/).
 The [`rdf` subpackage](https://callidon.github.io/sparql-engine/modules/rdf.html) exposes a lot
 of utilities methods to create and manipulate RDF.js terms in the context of custom SPARQL functions.
 
 The following shows a declaration of some simple custom functions.
+
 ```javascript
 // load the utility functions used to manipulate RDF terms
 const { rdf } = require('sparql-engine')
@@ -319,12 +333,12 @@ const { rdf } = require('sparql-engine')
 const customFunctions = {
   // reverse a RDF literal
   'http://example.com#REVERSE': function (rdfTerm) {
-    const reverseValue = rdfTerm.value.split("").reverse().join("")
+    const reverseValue = rdfTerm.value.split('').reverse().join('')
     return rdf.shallowCloneTerm(rdfTerm, reverseValue)
   },
   // Test if a RDF Literal is a palindrome
   'http://example.com#IS_PALINDROME': function (rdfTerm) {
-    const result = rdfTerm.value.split("").reverse().join("") === rdfTerm.value
+    const result = rdfTerm.value.split('').reverse().join('') === rdfTerm.value
     return rdf.createBoolean(result)
   },
   // Test if a number is even
@@ -335,7 +349,7 @@ const customFunctions = {
       return rdf.createBoolean(result)
     }
     return terms.createFalse()
-  }
+  },
 }
 ```
 
@@ -390,10 +404,12 @@ Pipeline.setInstance(new CustomEngine())
 ```
 
 Two implementations of `PipelineEngine` are provided by default.
-* `RxjsPipeline`, based on [`rxjs`](https://rxjs-dev.firebaseapp.com/), which provides a pure pipeline approach. This approach is **selected by default** when loading the framework.
-* `VectorPipeline`, which materializes all intermediate results at each pipeline computation step. This approach is more efficient CPU-wise, but also consumes a lot more memory.
+
+- `RxjsPipeline`, based on [`rxjs`](https://rxjs-dev.firebaseapp.com/), which provides a pure pipeline approach. This approach is **selected by default** when loading the framework.
+- `VectorPipeline`, which materializes all intermediate results at each pipeline computation step. This approach is more efficient CPU-wise, but also consumes a lot more memory.
 
 These implementations can be imported as follows:
+
 ```javascript
 const { RxjsPipeline, VectorPipeline } = require('sparql-engine')
 ```
@@ -401,7 +417,7 @@ const { RxjsPipeline, VectorPipeline } = require('sparql-engine')
 ## Customize query execution
 
 A `PlanBuilder` implements a [Builder pattern](https://en.wikipedia.org/wiki/Builder_pattern) in order to create a physical query execution plan for a given SPARQL query.
-Internally, it defines [*stages builders*](https://callidon.github.io/sparql-engine/classes/stagebuilder) to generates operators for executing all types of SPARQL operations.
+Internally, it defines [_stages builders_](https://callidon.github.io/sparql-engine/classes/stagebuilder) to generates operators for executing all types of SPARQL operations.
 For example, the [`OrderByStageBuilder`](https://callidon.github.io/sparql-engine/classes/orderbystagebuilder.html) is invoked when the `PlanBuilder` needs to evaluate an `ORDER BY` modifier.
 
 If you want to customize how query execution plans are built, you have to implement your own stage builders, by extending existing ones.
@@ -429,26 +445,26 @@ You will find below a reference table of all stage builders used by `sparql-engi
 
 **Executors**
 
-| SPARQL Operation | Default Stage Builder | Symbol |
-|------------------|-----------------------|--------|
-| [Aggregates](https://www.w3.org/TR/sparql11-query/#aggregates) | [AggregateStageBuilder](https://callidon.github.io/sparql-engine/classes/aggregatestagebuilder.html) | `SPARQL_OPERATION.AGGREGATE` |
-| [Basic Graph Patterns](https://www.w3.org/TR/sparql11-query/#BasicGraphPatterns) | [BGPStageBuilder](https://callidon.github.io/sparql-engine/classes/bgpstagebuilder.html) | `SPARQL_OPERATION.BGP` |
-| [BIND](https://www.w3.org/TR/sparql11-query/#bind) | [BindStageBuilder](https://callidon.github.io/sparql-engine/classes/bindstagebuilder.html) | `SPARQL_OPERATION.BIND` |
-| [DISTINCT](https://www.w3.org/TR/sparql11-query/#neg-minus) | [DistinctStageBuilder](https://callidon.github.io/sparql-engine/classes/distinctstagebuilder.html) | `SPARQL_OPERATION.DISTINCT` |
-| [FILTER](https://www.w3.org/TR/sparql11-query/#expressions) | [FilterStageBuilder](https://callidon.github.io/sparql-engine/classes/filterstagebuilder.html) | `SPARQL_OPERATION.FILTER` |
-| [Property Paths](https://www.w3.org/TR/sparql11-query/#propertypaths) | [PathStageBuilder](https://callidon.github.io/sparql-engine/classes/pathstagebuilder.html) | `SPARQL_OPERATION.PROPERTY_PATH` |
-| [GRAPH](https://www.w3.org/TR/sparql11-query/#rdfDataset) | [GraphStageBuilder](https://callidon.github.io/sparql-engine/classes/graphstagebuilder.html) | `SPARQL_OPERATION.GRAPH` |
-| [MINUS](https://www.w3.org/TR/sparql11-query/#neg-minus) | [MinusStageBuilder](https://callidon.github.io/sparql-engine/classes/minusstagebuilder.html) | `SPARQL_OPERATION.MINUS` |
-| [OPTIONAL](https://www.w3.org/TR/sparql11-query/#optionals) | [OptionalStageBuilder](https://callidon.github.io/sparql-engine/classes/optionalstagebuilder.html) | `SPARQL_OPERATION.OPTIONAL` |
-| [ORDER_BY](https://www.w3.org/TR/sparql11-query/#modOrderBy) | [OrderByStageBuilder](https://callidon.github.io/sparql-engine/classes/orderbystagebuilder.html) | `SPARQL_OPERATION.ORDER_BY` |
-| [SERVICE](https://www.w3.org/TR/sparql11-query/#basic-federated-query) | [ServiceStageBuilder](https://callidon.github.io/sparql-engine/classes/servicestagebuilder.html) | `SPARQL_OPERATION.SERVICE` |
-| [UNION](https://www.w3.org/TR/sparql11-query/#alternatives) | [UnionStageBuilder](https://callidon.github.io/sparql-engine/classes/unionstagebuilder.html) | `SPARQL_OPERATION.UNION` |
-| [UPDATE](https://www.w3.org/TR/2013/REC-sparql11-update-20130321/) | [UpdateStageBuilder](https://callidon.github.io/sparql-engine/classes/updatestagebuilder.html) | `SPARQL_OPERATION.UPDATE` |
-
+| SPARQL Operation                                                                 | Default Stage Builder                                                                                | Symbol                           |
+| -------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | -------------------------------- |
+| [Aggregates](https://www.w3.org/TR/sparql11-query/#aggregates)                   | [AggregateStageBuilder](https://callidon.github.io/sparql-engine/classes/aggregatestagebuilder.html) | `SPARQL_OPERATION.AGGREGATE`     |
+| [Basic Graph Patterns](https://www.w3.org/TR/sparql11-query/#BasicGraphPatterns) | [BGPStageBuilder](https://callidon.github.io/sparql-engine/classes/bgpstagebuilder.html)             | `SPARQL_OPERATION.BGP`           |
+| [BIND](https://www.w3.org/TR/sparql11-query/#bind)                               | [BindStageBuilder](https://callidon.github.io/sparql-engine/classes/bindstagebuilder.html)           | `SPARQL_OPERATION.BIND`          |
+| [DISTINCT](https://www.w3.org/TR/sparql11-query/#neg-minus)                      | [DistinctStageBuilder](https://callidon.github.io/sparql-engine/classes/distinctstagebuilder.html)   | `SPARQL_OPERATION.DISTINCT`      |
+| [FILTER](https://www.w3.org/TR/sparql11-query/#expressions)                      | [FilterStageBuilder](https://callidon.github.io/sparql-engine/classes/filterstagebuilder.html)       | `SPARQL_OPERATION.FILTER`        |
+| [Property Paths](https://www.w3.org/TR/sparql11-query/#propertypaths)            | [PathStageBuilder](https://callidon.github.io/sparql-engine/classes/pathstagebuilder.html)           | `SPARQL_OPERATION.PROPERTY_PATH` |
+| [GRAPH](https://www.w3.org/TR/sparql11-query/#rdfDataset)                        | [GraphStageBuilder](https://callidon.github.io/sparql-engine/classes/graphstagebuilder.html)         | `SPARQL_OPERATION.GRAPH`         |
+| [MINUS](https://www.w3.org/TR/sparql11-query/#neg-minus)                         | [MinusStageBuilder](https://callidon.github.io/sparql-engine/classes/minusstagebuilder.html)         | `SPARQL_OPERATION.MINUS`         |
+| [OPTIONAL](https://www.w3.org/TR/sparql11-query/#optionals)                      | [OptionalStageBuilder](https://callidon.github.io/sparql-engine/classes/optionalstagebuilder.html)   | `SPARQL_OPERATION.OPTIONAL`      |
+| [ORDER_BY](https://www.w3.org/TR/sparql11-query/#modOrderBy)                     | [OrderByStageBuilder](https://callidon.github.io/sparql-engine/classes/orderbystagebuilder.html)     | `SPARQL_OPERATION.ORDER_BY`      |
+| [SERVICE](https://www.w3.org/TR/sparql11-query/#basic-federated-query)           | [ServiceStageBuilder](https://callidon.github.io/sparql-engine/classes/servicestagebuilder.html)     | `SPARQL_OPERATION.SERVICE`       |
+| [UNION](https://www.w3.org/TR/sparql11-query/#alternatives)                      | [UnionStageBuilder](https://callidon.github.io/sparql-engine/classes/unionstagebuilder.html)         | `SPARQL_OPERATION.UNION`         |
+| [UPDATE](https://www.w3.org/TR/2013/REC-sparql11-update-20130321/)               | [UpdateStageBuilder](https://callidon.github.io/sparql-engine/classes/updatestagebuilder.html)       | `SPARQL_OPERATION.UPDATE`        |
 
 # Documentation
 
 To generate the documentation in the `docs` director:
+
 ```bash
 git clone https://github.com/Callidon/sparql-engine.git
 cd sparql-engine
@@ -460,20 +476,20 @@ npm run doc
 
 This framework is developed since 2018 by many contributors, and we thanks them very much for their contributions to this project! Here is the full list of our amazing contributors.
 
-* [Corentin Marionneau](https://github.com/Slaanaroth) (@Slaanaroth)
-  * Corentin created the first version of `sparql-engine` during its research internship at the [Laboratoire des Sciences du Numérique de Nantes](https://www.ls2n.fr/) (LS2N). He is now a Web developer at SII Atlantique.
-* [Merlin Barzilai](https://github.com/Rintarou) (@Rintarou)
-  * Merlin designed the first SPARQL compliance tests for the framework during its research internship at the [LS2N](https://www.ls2n.fr/).
-* [Dustin Whitney](https://github.com/dwhitney) (@dwhitney)
-  * Dustin implemented the support for custom SPARQL functions and provided a lot of feedback during the early stages of development.
-* [Julien Aimonier-Davat](https://github.com/Lastshot97) (@Lastshot97)
-  * Julien implemented the support for SPARQL Property Paths evaluation during its research internship at the [LS2N](https://www.ls2n.fr/). He is now a Ph.D. Student at the University of Nantes.
-* [Arnaud Grall](https://github.com/folkvir) (@folkvir)
-  * Arnaud contributed to many bugfixes and provided a lot of feedback throughout the development of the framework. He is now a Software Engineer at SII Atlantique.
-* [Thomas Minier](https://github.com/Callidon) (@Callidon)
-  * Thomas developed the framework during his PhD thesis in the [Team "Gestion des Données Distribuées"](https://sites.google.com/site/gddlina/) (GDD) and supervise its evolution ever since. He is now a Software Engineer at SII Atlantique.
+- [Corentin Marionneau](https://github.com/Slaanaroth) (@Slaanaroth)
+  - Corentin created the first version of `sparql-engine` during its research internship at the [Laboratoire des Sciences du Numérique de Nantes](https://www.ls2n.fr/) (LS2N). He is now a Web developer at SII Atlantique.
+- [Merlin Barzilai](https://github.com/Rintarou) (@Rintarou)
+  - Merlin designed the first SPARQL compliance tests for the framework during its research internship at the [LS2N](https://www.ls2n.fr/).
+- [Dustin Whitney](https://github.com/dwhitney) (@dwhitney)
+  - Dustin implemented the support for custom SPARQL functions and provided a lot of feedback during the early stages of development.
+- [Julien Aimonier-Davat](https://github.com/Lastshot97) (@Lastshot97)
+  - Julien implemented the support for SPARQL Property Paths evaluation during its research internship at the [LS2N](https://www.ls2n.fr/). He is now a Ph.D. Student at the University of Nantes.
+- [Arnaud Grall](https://github.com/folkvir) (@folkvir)
+  - Arnaud contributed to many bugfixes and provided a lot of feedback throughout the development of the framework. He is now a Software Engineer at SII Atlantique.
+- [Thomas Minier](https://github.com/Callidon) (@Callidon)
+  - Thomas developed the framework during his PhD thesis in the [Team "Gestion des Données Distribuées"](https://sites.google.com/site/gddlina/) (GDD) and supervise its evolution ever since. He is now a Software Engineer at SII Atlantique.
 
 # References
 
-* [Official W3C RDF specification](https://www.w3.org/TR/rdf11-concepts)
-* [Official W3C SPARQL specification](https://www.w3.org/TR/2013/REC-sparql11-query-20130321/)
+- [Official W3C RDF specification](https://www.w3.org/TR/rdf11-concepts)
+- [Official W3C SPARQL specification](https://www.w3.org/TR/2013/REC-sparql11-query-20130321/)

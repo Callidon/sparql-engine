@@ -24,12 +24,15 @@ SOFTWARE.
 
 'use strict'
 
-import { Pipeline } from '../engine/pipeline/pipeline'
-import { PipelineStage } from '../engine/pipeline/pipeline-engine'
-import { CustomFunctions, SPARQLExpression } from './expressions/sparql-expression'
-import { Algebra } from 'sparqljs'
-import { Bindings } from '../rdf/bindings'
-import { rdf } from '../utils'
+import * as SPARQL from 'sparqljs'
+import { PipelineStage } from '../engine/pipeline/pipeline-engine.js'
+import { Pipeline } from '../engine/pipeline/pipeline.js'
+import { Bindings } from '../rdf/bindings.js'
+import { rdf } from '../utils/index.js'
+import {
+  CustomFunctions,
+  SPARQLExpression,
+} from './expressions/sparql-expression.js'
 
 /**
  * Evaluate SPARQL Filter clauses
@@ -40,12 +43,21 @@ import { rdf } from '../utils'
  * @param customFunctions - User-defined SPARQL functions (optional)
  * @return A {@link PipelineStage} which evaluate the FILTER operation
  */
-export default function sparqlFilter (source: PipelineStage<Bindings>, expression: Algebra.Expression, customFunctions?: CustomFunctions) {
+export default function sparqlFilter(
+  source: PipelineStage<Bindings>,
+  expression: SPARQL.Expression,
+  customFunctions?: CustomFunctions,
+) {
   const expr = new SPARQLExpression(expression, customFunctions)
   return Pipeline.getInstance().filter(source, (bindings: Bindings) => {
-    const value: any = expr.evaluate(bindings)
-    if (value !== null && rdf.termIsLiteral(value) && rdf.literalIsBoolean(value)) {
-      return rdf.asJS(value.value, value.datatype.value)
+    const value = expr.evaluate(bindings)
+    if (
+      value !== null &&
+      rdf.isLiteral(value as SPARQL.Term) &&
+      rdf.literalIsBoolean(value as rdf.Literal)
+    ) {
+      const literal = value as rdf.Literal
+      return rdf.asJS(literal.value, literal.datatype.value)
     }
     return false
   })

@@ -24,9 +24,10 @@ SOFTWARE.
 
 'use strict'
 
-import { Pipeline } from '../engine/pipeline/pipeline'
-import { PipelineStage } from '../engine/pipeline/pipeline-engine'
-import { Bindings } from '../rdf/bindings'
+import { PipelineStage } from '../engine/pipeline/pipeline-engine.js'
+import { Pipeline } from '../engine/pipeline/pipeline.js'
+import { Binding, Bindings } from '../rdf/bindings.js'
+import { rdf } from '../utils/index.js'
 
 /**
  * Hash an set of mappings and produce an unique value
@@ -34,9 +35,11 @@ import { Bindings } from '../rdf/bindings'
  * @param item - The item to hash
  * @return An unique hash which identify the item
  */
-function _hash (bindings: Bindings): string {
+function _hash(bindings: Bindings): string {
   const items: string[] = []
-  bindings.forEach((k: string, v: string) => items.push(`${k}=${encodeURIComponent(v)}`))
+  bindings.forEach((k: rdf.Variable, v: Binding) =>
+    items.push(`${k.value}=${encodeURIComponent(rdf.toN3(v))}`),
+  )
   items.sort()
   return items.join('&')
 }
@@ -48,6 +51,8 @@ function _hash (bindings: Bindings): string {
  * @param source - Input {@link PipelineStage}
  * @return A {@link PipelineStage} which evaluate the DISTINCT operation
  */
-export default function sparqlDistinct (source: PipelineStage<Bindings>) {
-  return Pipeline.getInstance().distinct(source, (bindings: Bindings) => _hash(bindings))
+export default function sparqlDistinct(source: PipelineStage<Bindings>) {
+  return Pipeline.getInstance().distinct(source, (bindings: Bindings) =>
+    _hash(bindings),
+  )
 }

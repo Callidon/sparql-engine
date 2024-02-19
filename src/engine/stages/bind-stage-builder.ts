@@ -24,20 +24,23 @@ SOFTWARE.
 
 'use strict'
 
-import StageBuilder from './stage-builder'
-import bind from '../../operators/bind'
-import { Algebra } from 'sparqljs'
-import { PipelineStage } from '../pipeline/pipeline-engine'
-import { Bindings } from '../../rdf/bindings'
-import ExecutionContext from '../context/execution-context'
-import { CustomFunctions } from '../../operators/expressions/sparql-expression'
+import * as SPARQL from 'sparqljs'
+import bind from '../../operators/bind.js'
+import { CustomFunctions } from '../../operators/expressions/sparql-expression.js'
+import { Bindings } from '../../rdf/bindings.js'
+import { PipelineStage } from '../pipeline/pipeline-engine.js'
+import StageBuilder from './stage-builder.js'
 
 /**
  * A BindStageBuilder evaluates BIND clauses
  * @author Thomas Minier
  */
 export default class BindStageBuilder extends StageBuilder {
-  execute (source: PipelineStage<Bindings>, bindNode: Algebra.BindNode, customFunctions: CustomFunctions, context: ExecutionContext): PipelineStage<Bindings> {
+  execute(
+    source: PipelineStage<Bindings>,
+    bindNode: SPARQL.BindPattern,
+    customFunctions: CustomFunctions,
+  ): PipelineStage<Bindings> {
     return bind(source, bindNode.variable, bindNode.expression, customFunctions)
   }
 }

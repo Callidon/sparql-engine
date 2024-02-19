@@ -24,10 +24,10 @@ SOFTWARE.
 
 'use strict'
 
-import { Consumer } from './consumer'
-import Graph from '../../rdf/graph'
-import { PipelineStage } from '../../engine/pipeline/pipeline-engine'
-import { Algebra } from 'sparqljs'
+import * as SPARQL from 'sparqljs'
+import { PipelineStage } from '../../engine/pipeline/pipeline-engine.js'
+import Graph from '../../rdf/graph.js'
+import { Consumer } from './consumer.js'
 
 /**
  * An InsertConsumer evaluates a SPARQL INSERT clause
@@ -43,15 +43,20 @@ export default class InsertConsumer extends Consumer {
    * @param graph - Input RDF Graph
    * @param options - Execution options
    */
-  constructor (source: PipelineStage<Algebra.TripleObject>, graph: Graph, options: Object) {
-    super(source, options)
+  constructor(source: PipelineStage<SPARQL.Triple>, graph: Graph) {
+    super(source)
     this._graph = graph
   }
 
-  _write (triple: Algebra.TripleObject, encoding: string | undefined, done: (err?: Error) => void): void {
-    this._graph.insert(triple)
+  _write(
+    triple: SPARQL.Triple,
+    encoding: string | undefined,
+    done: (err?: Error) => void,
+  ): void {
+    this._graph
+      .insert(triple)
       .then(() => done())
-      .catch(err => {
+      .catch((err) => {
         this.emit('error', err)
         done(err)
       })

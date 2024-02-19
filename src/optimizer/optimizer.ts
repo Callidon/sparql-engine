@@ -24,9 +24,9 @@ SOFTWARE.
 
 'use strict'
 
-import { Algebra } from 'sparqljs'
-import PlanVisitor from './plan-visitor'
-import UnionMerge from './visitors/union-merge'
+import * as SPARQL from 'sparqljs'
+import PlanVisitor from './plan-visitor.js'
+import UnionMerge from './visitors/union-merge.js'
 
 /**
  * An Optimizer applies a set of optimization rules, implemented using subclasses of {@link PlanVisitor}.
@@ -35,7 +35,7 @@ import UnionMerge from './visitors/union-merge'
 export default class Optimizer {
   private _visitors: PlanVisitor[]
 
-  constructor () {
+  constructor() {
     this._visitors = []
   }
 
@@ -43,7 +43,7 @@ export default class Optimizer {
    * Get an optimizer configured with the default optimization rules
    * @return A new Optimizer pre-configured with default rules
    */
-  static getDefault (): Optimizer {
+  static getDefault(): Optimizer {
     const opt = new Optimizer()
     opt.addVisitor(new UnionMerge())
     return opt
@@ -53,16 +53,16 @@ export default class Optimizer {
    * Register a new visitor, which implements an optimization rule.
    * @param visitor - Visitor
    */
-  addVisitor (visitor: PlanVisitor): void {
+  addVisitor(visitor: PlanVisitor): void {
     this._visitors.push(visitor)
   }
 
   /**
    * Optimize a SPARQL query expression tree, by applying the set of rules.
-   * @param  plan - SPARQL query expression tree to iptimize
+   * @param  plan - SPARQL query expression tree to optimize
    * @return Optimized SPARQL query expression tree
    */
-  optimize (plan: Algebra.PlanNode): Algebra.PlanNode {
+  optimize(plan: SPARQL.Query): SPARQL.Query {
     return this._visitors.reduce((current, v) => v.visit(current), plan)
   }
 }

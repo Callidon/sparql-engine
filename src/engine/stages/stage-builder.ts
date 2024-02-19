@@ -24,11 +24,11 @@ SOFTWARE.
 
 'use strict'
 
-import { PlanBuilder } from '../plan-builder'
-import { PipelineStage } from '../pipeline/pipeline-engine'
-import { Consumable } from '../../operators/update/consumer'
-import Dataset from '../../rdf/dataset'
-import { Bindings } from '../../rdf/bindings'
+import { Consumable } from '../../operators/update/consumer.js'
+import { Bindings } from '../../rdf/bindings.js'
+import Dataset from '../../rdf/dataset.js'
+import { PipelineStage } from '../pipeline/pipeline-engine.js'
+import { PlanBuilder } from '../plan-builder.js'
 
 /**
  * A StageBuilder encapsulate a strategy for executing a class of SPARQL operations
@@ -38,23 +38,23 @@ import { Bindings } from '../../rdf/bindings'
 export default abstract class StageBuilder {
   protected _builder: PlanBuilder | null = null
 
-  constructor (protected _dataset: Dataset) {}
+  constructor(protected _dataset: Dataset) {}
 
-  get builder (): PlanBuilder | null {
+  get builder(): PlanBuilder | null {
     return this._builder
   }
 
-  set builder (builder: PlanBuilder | null) {
+  set builder(builder: PlanBuilder | null) {
     this._builder = builder
   }
 
-  get dataset (): Dataset {
+  get dataset(): Dataset {
     return this._dataset
   }
 
-  set dataset (dataset: Dataset) {
+  set dataset(dataset: Dataset) {
     this._dataset = dataset
   }
 
-  abstract execute (...args: any[]): PipelineStage<Bindings> | Consumable
+  abstract execute(...args: unknown[]): PipelineStage<Bindings> | Consumable
 }

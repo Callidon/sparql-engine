@@ -24,8 +24,8 @@ SOFTWARE.
 
 'use strict'
 
-import * as LRU from 'lru-cache'
-import { Cache, AsyncCache } from './cache-interfaces'
+import LRU from 'lru-cache'
+import { AsyncCache, Cache } from './cache-interfaces.js'
 
 /**
  * An in-memory LRU cache
@@ -41,42 +41,48 @@ export class BaseLRUCache<K, T> implements Cache<K, T> {
    * @param length - Function that is used to calculate the length of stored items
    * @param onDispose - Function that is called on items when they are dropped from the cache
    */
-  constructor (maxSize: number, maxAge: number, length?: (item: T) => number, onDispose?: (key: K, item: T) => void) {
+  constructor(
+    maxSize: number,
+    maxAge: number,
+    length?: (item: T) => number,
+    onDispose?: (key: K, item: T) => void,
+  ) {
     const options = {
       max: maxSize,
       maxAge,
       length,
-      dispose: onDispose
+      dispose: onDispose,
+      noDisposeOnSet: false,
     }
     // if we set a dispose function, we need to turn 'noDisposeOnSet' to True,
     // otherwise onDispose will be called each time an item is updated (instead of when it slide out),
     // which will break any class extending BaseAsyncCache
     if (onDispose !== undefined) {
-      options['noDisposeOnSet'] = true
+      options.noDisposeOnSet = true
     }
     this._content = new LRU<K, T>(options)
   }
 
-  put (key: K, item: T): void {
+  put(key: K, item: T): void {
     this._content.set(key, item)
   }
 
-  has (key: K): boolean {
+  has(key: K): boolean {
     return this._content.has(key)
   }
 
-  get (key: K): T | null {
+  get(key: K): T | null {
     if (this._content.has(key)) {
       return this._content.get(key)!
     }
     return null
   }
 
-  delete (key: K): void {
+  delete(key: K): void {
     this._content.del(key)
   }
 
-  count (): number {
+  count(): number {
     return this._content.itemCount
   }
 }
@@ -87,11 +93,11 @@ export class BaseLRUCache<K, T> implements Cache<K, T> {
  */
 export interface AsyncCacheEntry<T, I> {
   /** The cache entry's content */
-  content: Array<T>,
+  content: Array<T>
   /** The ID of the writer that is allowed to edit the cache entry */
-  writerID: I,
+  writerID: I
   /** All reads that wait for this cache entry to be committed */
-  pendingReaders: Array<(items: Array<T>) => void>,
+  pendingReaders: Array<(items: Array<T>) => void>
   /** Whether the cache entry is availbale for read or not */
   isComplete: boolean
 }
@@ -102,17 +108,16 @@ export interface AsyncCacheEntry<T, I> {
  * @author Thomas Minier
  */
 export abstract class BaseAsyncCache<K, T, I> implements AsyncCache<K, T, I> {
-
   /**
    * Constructor
    */
-  constructor (private readonly _cache: Cache<K, AsyncCacheEntry<T, I>>) {}
+  constructor(private readonly _cache: Cache<K, AsyncCacheEntry<T, I>>) {}
 
-  has (key: K): boolean {
+  has(key: K): boolean {
     return this._cache.has(key)
   }
 
-  update (key: K, item: T, writerID: I): void {
+  update(key: K, item: T, writerID: I): void {
     if (this._cache.has(key)) {
       const entry = this._cache.get(key)!
       if (entry.writerID === writerID) {
@@ -124,12 +129,12 @@ export abstract class BaseAsyncCache<K, T, I> implements AsyncCache<K, T, I> {
         content: [item],
         writerID,
         isComplete: false,
-        pendingReaders: []
+        pendingReaders: [],
       })
     }
   }
 
-  commit (key: K, writerID: I): void {
+  commit(key: K, writerID: I): void {
     if (this._cache.has(key)) {
       const entry = this._cache.get(key)!
       if (entry.writerID === writerID) {
@@ -138,15 +143,15 @@ export abstract class BaseAsyncCache<K, T, I> implements AsyncCache<K, T, I> {
           content: entry.content,
           writerID: entry.writerID,
           isComplete: true,
-          pendingReaders: []
+          pendingReaders: [],
         })
         // resolve all pending readers
-        entry.pendingReaders.forEach(resolve => resolve(entry.content))
+        entry.pendingReaders.forEach((resolve) => resolve(entry.content))
       }
     }
   }
 
-  get (key: K): Promise<T[]> | null {
+  get(key: K): Promise<T[]> | null {
     if (this.has(key)) {
       const entry = this._cache.get(key)!
       if (entry.isComplete) {
@@ -154,25 +159,25 @@ export abstract class BaseAsyncCache<K, T, I> implements AsyncCache<K, T, I> {
       }
       // wait until the entry is complete
       // all awaiting promises will be resolved by the commit or delete method
-      return new Promise(resolve => {
+      return new Promise((resolve) => {
         entry.pendingReaders.push(resolve)
       })
     }
     return null
   }
 
-  delete (key: K, writerID: I): void {
+  delete(key: K, writerID: I): void {
     if (this._cache.has(key)) {
       const entry = this._cache.get(key)!
       if (entry.writerID === writerID) {
         this._cache.delete(key)
         // resolve all pending readers with an empty result
-        entry.pendingReaders.forEach(resolve => resolve([]))
+        entry.pendingReaders.forEach((resolve) => resolve([]))
       }
     }
   }
 
-  count (): number {
+  count(): number {
     return this._cache.count()
   }
 }
@@ -189,7 +194,19 @@ export class AsyncLRUCache<K, T, I> extends BaseAsyncCache<K, T, I> {
    * @param length - Function that is used to calculate the length of stored items
    * @param onDispose - Function that is called on items when they are dropped from the cache
    */
-  constructor (maxSize: number, maxAge: number, length?: (item: AsyncCacheEntry<T, I>) => number, onDispose?: (key: K, item: AsyncCacheEntry<T, I>) => void) {
-    super(new BaseLRUCache<K, AsyncCacheEntry<T, I>>(maxSize, maxAge, length, onDispose))
+  constructor(
+    maxSize: number,
+    maxAge: number,
+    length?: (item: AsyncCacheEntry<T, I>) => number,
+    onDispose?: (key: K, item: AsyncCacheEntry<T, I>) => void,
+  ) {
+    super(
+      new BaseLRUCache<K, AsyncCacheEntry<T, I>>(
+        maxSize,
+        maxAge,
+        length,
+        onDispose,
+      ),
+    )
   }
 }

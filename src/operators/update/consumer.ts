@@ -24,9 +24,9 @@ SOFTWARE.
 
 'use strict'
 
-import { PipelineStage } from '../../engine/pipeline/pipeline-engine'
+import * as SPARQL from 'sparqljs'
 import { Writable } from 'stream'
-import { Algebra } from 'sparqljs'
+import { PipelineStage } from '../../engine/pipeline/pipeline-engine.js'
 
 /**
  * Something whose execution can be resolved as a Promise
@@ -36,7 +36,7 @@ export interface Consumable {
    * Execute the consumable
    * @return A Promise fulfilled when the execution has been completed
    */
-  execute (): Promise<void>
+  execute(): Promise<void>
 }
 
 /**
@@ -49,11 +49,11 @@ export class ErrorConsumable implements Consumable {
    * Constructor
    * @param reason - Cause of the failure
    */
-  constructor (reason: string) {
+  constructor(reason: string) {
     this._reason = new Error(reason)
   }
 
-  execute (): Promise<void> {
+  execute(): Promise<void> {
     return Promise.reject(this._reason)
   }
 }
@@ -65,28 +65,30 @@ export class ErrorConsumable implements Consumable {
  * @author Thomas Minier
  */
 export abstract class Consumer extends Writable implements Consumable {
-  private readonly _source: PipelineStage<Algebra.TripleObject>
-  private readonly _options: Object
+  private readonly _source: PipelineStage<SPARQL.Triple>
 
   /**
    * Constructor
    * @param source - Input {@link PipelineStage}
    * @param options - Execution options
    */
-  constructor (source: PipelineStage<Algebra.TripleObject>, options: Object) {
+  constructor(source: PipelineStage<SPARQL.Triple>) {
     super({ objectMode: true })
     this._source = source
-    this._options = options
   }
 
-  execute (): Promise<void> {
+  execute(): Promise<void> {
     // if the source has already ended, no need to drain it
     return new Promise((resolve, reject) => {
-      this._source.subscribe(triple => {
-        this.write(triple)
-      }, reject, () => {
-        this.end(null, '', resolve)
-      })
+      this._source.subscribe(
+        (triple) => {
+          this.write(triple)
+        },
+        reject,
+        () => {
+          this.end(null, '', resolve)
+        },
+      )
     })
   }
 }

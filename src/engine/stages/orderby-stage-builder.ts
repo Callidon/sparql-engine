@@ -24,19 +24,21 @@ SOFTWARE.
 
 'use strict'
 
-import StageBuilder from './stage-builder'
-import { Algebra } from 'sparqljs'
-import { PipelineStage } from '../pipeline/pipeline-engine'
-import { Bindings } from '../../rdf/bindings'
-import ExecutionContext from '../context/execution-context'
-import orderby from '../../operators/orderby'
+import * as SPARQL from 'sparqljs'
+import orderby from '../../operators/orderby.js'
+import { Bindings } from '../../rdf/bindings.js'
+import { PipelineStage } from '../pipeline/pipeline-engine.js'
+import StageBuilder from './stage-builder.js'
 
 /**
  * A OrderByStageBuilder evaluates ORDER BY clauses
  * @author Thomas Minier
  */
 export default class OrderByStageBuilder extends StageBuilder {
-  execute (source: PipelineStage<Bindings>, orders: Algebra.OrderComparator[], context: ExecutionContext): PipelineStage<Bindings> {
+  execute(
+    source: PipelineStage<Bindings>,
+    orders: SPARQL.Ordering[],
+  ): PipelineStage<Bindings> {
     return orderby(source, orders)
   }
 }

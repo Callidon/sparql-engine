@@ -24,21 +24,21 @@ SOFTWARE.
 
 'use strict'
 
-import Dataset from '../../rdf/dataset'
-import { rdf } from '../../utils'
-import { Algebra } from 'sparqljs'
 import { partition } from 'lodash'
+import * as SPARQL from 'sparqljs'
+import Dataset from '../../rdf/dataset.js'
+import { rdf, sparql } from '../../utils/index.js'
 
 /**
  * Create a triple pattern that matches all RDF triples in a graph
  * @private
  * @return A triple pattern that matches all RDF triples in a graph
  */
-function allPattern (): Algebra.TripleObject {
+function allPattern(): SPARQL.Triple {
   return {
-    subject: '?s',
-    predicate: '?p',
-    object: '?o'
+    subject: rdf.createVariable('?s'),
+    predicate: rdf.createVariable('?p'),
+    object: rdf.createVariable('?o'),
   }
 }
 
@@ -47,10 +47,10 @@ function allPattern (): Algebra.TripleObject {
  * @private
  * @return A BGP that matches all RDF triples in a graph
  */
-function allBGP (): Algebra.BGPNode {
+function allBGP(): SPARQL.BgpPattern {
   return {
     type: 'bgp',
-    triples: [allPattern()]
+    triples: [allPattern()],
   }
 }
 
@@ -63,18 +63,22 @@ function allBGP (): Algebra.BGPNode {
  * @param  [isWhere=false] - True if the GROUP should belong to a WHERE clause
  * @return The SPARQL GROUP clasue
  */
-function buildGroupClause (source: Algebra.UpdateGraphTarget, dataset: Dataset, isSilent: boolean): Algebra.BGPNode | Algebra.UpdateGraphNode {
+function buildGroupClause(
+  source: SPARQL.GraphOrDefault,
+  dataset: Dataset,
+  isSilent: boolean,
+): SPARQL.Quads {
   if (source.default) {
     return allBGP()
   } else {
     // a SILENT modifier prevents errors when using an unknown graph
-    if (!(dataset.hasNamedGraph(source.name!)) && !isSilent) {
-      throw new Error(`Unknown Source Graph in ADD query ${source.name}`)
+    if (!dataset.hasNamedGraph(source.name!) && !isSilent) {
+      throw new Error(`Unknown Source Graph in ADD query ${source.name!.value}`)
     }
     return {
       type: 'graph',
       name: source.name!,
-      triples: [allPattern()]
+      triples: [allPattern()],
     }
   }
 }
@@ -88,22 +92,26 @@ function buildGroupClause (source: Algebra.UpdateGraphTarget, dataset: Dataset, 
  * @param  [isWhere=false] - True if the GROUP should belong to a WHERE clause
  * @return The SPARQL GROUP clasue
  */
-function buildWhereClause (source: Algebra.UpdateGraphTarget, dataset: Dataset, isSilent: boolean): Algebra.BGPNode | Algebra.GraphNode {
+function buildWhereClause(
+  source: SPARQL.GraphOrDefault,
+  dataset: Dataset,
+  isSilent: boolean,
+): SPARQL.BgpPattern | SPARQL.GraphPattern {
   if (source.default) {
     return allBGP()
   } else {
     // a SILENT modifier prevents errors when using an unknown graph
-    if (!(dataset.hasNamedGraph(source.name!)) && !isSilent) {
+    if (!dataset.hasNamedGraph(source.name!) && !isSilent) {
       throw new Error(`Unknown Source Graph in ADD query ${source.name}`)
     }
-    const bgp: Algebra.BGPNode = {
+    const bgp: SPARQL.BgpPattern = {
       type: 'bgp',
-      triples: [allPattern()]
+      triples: [allPattern()],
     }
     return {
       type: 'graph',
       name: source.name!,
-      patterns: [bgp]
+      patterns: [bgp],
     }
   }
 }
@@ -115,12 +123,14 @@ function buildWhereClause (source: Algebra.UpdateGraphTarget, dataset: Dataset, 
  * @param  dataset - related RDF dataset
  * @return Rewritten ADD query
  */
-export function rewriteAdd (addQuery: Algebra.UpdateCopyMoveNode, dataset: Dataset): Algebra.UpdateQueryNode {
+export function rewriteAdd(
+  addQuery: SPARQL.CopyMoveAddOperation,
+  dataset: Dataset,
+): SPARQL.InsertDeleteOperation {
   return {
     updateType: 'insertdelete',
-    silent: addQuery.silent,
     insert: [buildGroupClause(addQuery.destination, dataset, addQuery.silent)],
-    where: [buildWhereClause(addQuery.source, dataset, addQuery.silent)]
+    where: [buildWhereClause(addQuery.source, dataset, addQuery.silent)],
   }
 }
 
@@ -131,12 +141,15 @@ export function rewriteAdd (addQuery: Algebra.UpdateCopyMoveNode, dataset: Datas
  * @param dataset - related RDF dataset
  * @return Rewritten COPY query, i.e., a sequence [CLEAR query, INSERT query]
  */
-export function rewriteCopy (copyQuery: Algebra.UpdateCopyMoveNode, dataset: Dataset): [Algebra.UpdateClearNode, Algebra.UpdateQueryNode] {
+export function rewriteCopy(
+  copyQuery: SPARQL.CopyMoveAddOperation,
+  dataset: Dataset,
+): [SPARQL.ClearDropOperation, SPARQL.InsertDeleteOperation] {
   // first, build a CLEAR query to empty the destination
-  const clear: Algebra.UpdateClearNode = {
+  const clear: SPARQL.ClearDropOperation = {
     type: 'clear',
     silent: copyQuery.silent,
-    graph: { type: 'graph' }
+    graph: { type: 'graph' },
   }
   if (copyQuery.destination.default) {
     clear.graph.default = true
@@ -156,14 +169,21 @@ export function rewriteCopy (copyQuery: Algebra.UpdateCopyMoveNode, dataset: Dat
  * @param dataset - related RDF dataset
  * @return Rewritten MOVE query, i.e., a sequence [CLEAR query, INSERT query, CLEAR query]
  */
-export function rewriteMove (moveQuery: Algebra.UpdateCopyMoveNode, dataset: Dataset): [Algebra.UpdateClearNode, Algebra.UpdateQueryNode, Algebra.UpdateClearNode] {
+export function rewriteMove(
+  moveQuery: SPARQL.CopyMoveAddOperation,
+  dataset: Dataset,
+): [
+  SPARQL.ClearDropOperation,
+  SPARQL.InsertDeleteOperation,
+  SPARQL.ClearDropOperation,
+] {
   // first, build a classic COPY query
-  const [ clearBefore, update ] = rewriteCopy(moveQuery, dataset)
+  const [clearBefore, update] = rewriteCopy(moveQuery, dataset)
   // then, append a CLEAR query to clear the source graph
-  const clearAfter: Algebra.UpdateClearNode = {
+  const clearAfter: SPARQL.ClearDropOperation = {
     type: 'clear',
     silent: moveQuery.silent,
-    graph: { type: 'graph' }
+    graph: { type: 'graph' },
   }
   if (moveQuery.source.default) {
     clearAfter.graph.default = true
@@ -180,11 +200,18 @@ export function rewriteMove (moveQuery: Algebra.UpdateCopyMoveNode, dataset: Dat
  * @param  bgp - Set of RDF triples
  * @return A tuple [classic triples, triples with property paths, set of variables added during rewriting]
  */
-export function extractPropertyPaths (bgp: Algebra.BGPNode): [Algebra.TripleObject[], Algebra.PathTripleObject[], string[]] {
-  const parts = partition(bgp.triples, triple => typeof(triple.predicate) === 'string')
-  let classicTriples: Algebra.TripleObject[] = parts[0] as Algebra.TripleObject[]
-  let pathTriples: Algebra.PathTripleObject[] = parts[1] as Algebra.PathTripleObject[]
-  let variables: string[] = []
+export function extractPropertyPaths(
+  bgp: SPARQL.BgpPattern,
+): [sparql.NoPathTriple[], sparql.PropertyPathTriple[], string[]] {
+  const parts = partition(
+    bgp.triples,
+    (triple) => !rdf.isPropertyPath(triple.predicate),
+  )
+  const classicTriples: sparql.NoPathTriple[] =
+    parts[0] as sparql.NoPathTriple[]
+  const pathTriples: sparql.PropertyPathTriple[] =
+    parts[1] as sparql.PropertyPathTriple[]
+  const variables: string[] = []
 
   // TODO: change bgp evaluation's behavior for ask queries when subject and object are given
   /*if (pathTriples.length > 0) {
@@ -221,81 +248,4 @@ export function extractPropertyPaths (bgp: Algebra.BGPNode): [Algebra.TripleObje
     pathTriples = paths
   }*/
   return [classicTriples, pathTriples, variables]
-}
-
-/**
- * Rewriting utilities for Full Text Search queries
- */
-export namespace fts {
-  /**
-   * A Full Text Search query
-   */
-  export interface FullTextSearchQuery {
-    /** The pattern queried by the full text search */
-    pattern: Algebra.TripleObject,
-    /** The SPARQL varibale on which the full text search is performed */
-    variable: string,
-    /** The magic triples sued to configured the full text search query */
-    magicTriples: Algebra.TripleObject[]
-  }
-
-  /**
-   * The results of extracting full text search queries from a BGP
-   */
-  export interface ExtractionResults {
-    /** The set of full text search queries extracted from the BGP */
-    queries: FullTextSearchQuery[],
-    /** Regular triple patterns, i.e., those who should be evaluated as a regular BGP */
-    classicPatterns: Algebra.TripleObject[]
-  }
-
-  /**
-   * Extract all full text search queries from a BGP, using magic triples to identify them.
-   * A magic triple is an IRI prefixed by 'https://callidon.github.io/sparql-engine/search#' (ses:search, ses:rank, ses:minRank, etc).
-   * @param bgp - BGP to analyze
-   * @return The extraction results
-   */
-  export function extractFullTextSearchQueries (bgp: Algebra.TripleObject[]): ExtractionResults {
-    const queries: FullTextSearchQuery[] = []
-    const classicPatterns: Algebra.TripleObject[] = []
-    // find, validate and group all magic triples per query variable
-    const patterns: Algebra.TripleObject[] = []
-    const magicGroups = new Map<string, Algebra.TripleObject[]>()
-    const prefix = rdf.SES('')
-    bgp.forEach(triple => {
-      // A magic triple is an IRI prefixed by 'https://callidon.github.io/sparql-engine/search#'
-      if (rdf.isIRI(triple.predicate) && triple.predicate.startsWith(prefix)) {
-        // assert that the magic triple's subject is a variable
-        if (!rdf.isVariable(triple.subject)) {
-          throw new SyntaxError(`Invalid Full Text Search query: the subject of the magic triple ${triple} must a valid URI/IRI.`)
-        }
-        if (!magicGroups.has(triple.subject)) {
-          magicGroups.set(triple.subject, [ triple ])
-        } else {
-          magicGroups.get(triple.subject)!.push(triple)
-        }
-      } else {
-        patterns.push(triple)
-      }
-    })
-    // find all triple pattern whose object is the subject of some magic triples
-    patterns.forEach(pattern => {
-      if (magicGroups.has(pattern.subject)) {
-        queries.push({
-          pattern,
-          variable: pattern.subject,
-          magicTriples: magicGroups.get(pattern.subject)!
-        })
-      } else if (magicGroups.has(pattern.object)) {
-        queries.push({
-          pattern,
-          variable: pattern.object,
-          magicTriples: magicGroups.get(pattern.object)!
-        })
-      } else {
-        classicPatterns.push(pattern)
-      }
-    })
-    return { queries, classicPatterns }
-  }
 }

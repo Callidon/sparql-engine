@@ -24,10 +24,10 @@ SOFTWARE.
 
 'use strict'
 
-import { Pipeline } from '../engine/pipeline/pipeline'
-import { PipelineStage } from '../engine/pipeline/pipeline-engine'
 import { concat, intersection } from 'lodash'
-import { Bindings } from '../rdf/bindings'
+import { PipelineStage } from '../engine/pipeline/pipeline-engine.js'
+import { Pipeline } from '../engine/pipeline/pipeline.js'
+import { Bindings } from '../rdf/bindings.js'
 
 /**
  * Evaluates a SPARQL MINUS clause
@@ -37,19 +37,28 @@ import { Bindings } from '../rdf/bindings'
  * @param rightSource - Right input {@link PipelineStage}
  * @return A {@link PipelineStage} which evaluate the MINUS operation
  */
-export default function minus (leftSource: PipelineStage<Bindings>, rightSource: PipelineStage<Bindings>) {
+export default function minus(
+  leftSource: PipelineStage<Bindings>,
+  rightSource: PipelineStage<Bindings>,
+) {
   // first materialize the right source in a buffer, then apply difference on the left source
   const engine = Pipeline.getInstance()
-  let op = engine.reduce(rightSource, (acc: Bindings[], b: Bindings) => concat(acc, b), [])
+  const op = engine.reduce(
+    rightSource,
+    (acc: Bindings[], b: Bindings) => concat(acc, b),
+    [],
+  )
   return engine.mergeMap(op, (buffer: Bindings[]) => {
     return engine.filter(leftSource, (bindings: Bindings) => {
-      const leftKeys = Array.from(bindings.variables())
+      const leftKeys = Array.from(bindings.variables()).map((v) => v.value)
       // mu_a is compatible with mu_b if,
       // for all v in intersection(dom(mu_a), dom(mu_b)), mu_a[v] = mu_b[v]
       const isCompatible = buffer.some((b: Bindings) => {
-        const rightKeys = Array.from(b.variables())
+        const rightKeys = Array.from(b.variables()).map((v) => v.value)
         const commonKeys = intersection(leftKeys, rightKeys)
-        return commonKeys.every((k: string) => b.get(k) === bindings.get(k))
+        return commonKeys.every((k) =>
+          b.getVariable(k)?.equals(bindings.getVariable(k)),
+        )
       })
       // only output non-compatible bindings
       return !isCompatible

@@ -1,9 +1,6 @@
 {
   "head": {
-    "vars": [
-      "name",
-      "article"
-    ]
+    "vars": ["name", "article"]
   },
   "results": {
     "bindings": [

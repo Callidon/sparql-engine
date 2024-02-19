@@ -24,10 +24,14 @@ SOFTWARE.
 
 'use strict'
 
-import { PipelineStage, StreamPipelineInput } from '../engine/pipeline/pipeline-engine'
-import { Pipeline } from '../engine/pipeline/pipeline'
-import { Bindings } from '../rdf/bindings'
 import { isBoolean } from 'lodash'
+import {
+  PipelineStage,
+  StreamPipelineInput,
+} from '../engine/pipeline/pipeline-engine.js'
+import { Pipeline } from '../engine/pipeline/pipeline.js'
+import { Bindings } from '../rdf/bindings.js'
+import { rdf } from '../utils/index.js'
 
 /**
  * Write the headers and generate an ordering
@@ -37,10 +41,14 @@ import { isBoolean } from 'lodash'
  * @param input - Output where to write results
  * @return The order of variables in the header
  */
-function writeHead (bindings: Bindings, separator: string, input: StreamPipelineInput<string>): string[] {
+function writeHead(
+  bindings: Bindings,
+  separator: string,
+  input: StreamPipelineInput<string>,
+): rdf.Variable[] {
   const variables = Array.from(bindings.variables())
-    .map(v => v.startsWith('?') ? v.substring(1) : v)
-  input.next(variables.join(separator))
+  const header = variables.map((v) => v.value).join(separator)
+  input.next(header)
   input.next('\n')
   return variables
 }
@@ -52,12 +60,17 @@ function writeHead (bindings: Bindings, separator: string, input: StreamPipeline
  * @param separator - Separator to use
  * @param input - Output where to write results
  */
-function writeBindings (bindings: Bindings, separator: string, order: string[], input: StreamPipelineInput<string>): void {
-  let output: string[] = []
-  order.forEach(variable => {
-    if (bindings.has('?' + variable)) {
-      let value = bindings.get('?' + variable)!
-      output.push(value)
+function writeBindings(
+  bindings: Bindings,
+  separator: string,
+  order: rdf.Variable[],
+  input: StreamPipelineInput<string>,
+): void {
+  const output: string[] = []
+  order.forEach((variable) => {
+    if (bindings.has(variable)) {
+      const value = bindings.get(variable)!
+      output.push(rdf.toN3(value))
     }
   })
   input.next(output.join(separator))
@@ -69,31 +82,33 @@ function writeBindings (bindings: Bindings, separator: string, order: string[], 
  * @param separator - Separator to use
  * @return A function that formats query results in a pipeline fashion
  */
-function genericFormatter (separator: string) {
+function genericFormatter(separator: string) {
   return (source: PipelineStage<Bindings | boolean>): PipelineStage<string> => {
-    return Pipeline.getInstance().fromAsync(input => {
+    return Pipeline.getInstance().fromAsync((input) => {
       let warmup = true
-      let isAsk = false
-      let ordering: string[] = []
-      source.subscribe((b: Bindings | boolean) => {
-        // Build the head attribute from the first set of bindings
-        if (warmup && !isBoolean(b)) {
-          ordering = writeHead(b, separator, input)
-        } else if (warmup && isBoolean(b)) {
-          isAsk = true
-          input.next('boolean\n')
-        }
-        warmup = false
-        // handle results (boolean for ASK queries, bindings for SELECT queries)
-        if (isBoolean(b)) {
-          input.next(b ? 'true\n' : 'false\n')
-        } else {
-          writeBindings(b, separator, ordering, input)
-          input.next('\n')
-        }
-      }, err => console.error(err), () => {
-        input.complete()
-      })
+      let ordering: rdf.Variable[] = []
+      source.subscribe(
+        (b: Bindings | boolean) => {
+          // Build the head attribute from the first set of bindings
+          if (warmup && !isBoolean(b)) {
+            ordering = writeHead(b, separator, input)
+          } else if (warmup && isBoolean(b)) {
+            input.next('boolean\n')
+          }
+          warmup = false
+          // handle results (boolean for ASK queries, bindings for SELECT queries)
+          if (isBoolean(b)) {
+            input.next(b ? 'true\n' : 'false\n')
+          } else {
+            writeBindings(b, separator, ordering, input)
+            input.next('\n')
+          }
+        },
+        (err) => console.error(err),
+        () => {
+          input.complete()
+        },
+      )
     })
   }
 }

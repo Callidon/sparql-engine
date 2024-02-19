@@ -24,22 +24,29 @@ SOFTWARE.
 
 'use strict'
 
-import StageBuilder from './stage-builder'
-import { Algebra } from 'sparqljs'
-import { Pipeline } from '../../engine/pipeline/pipeline'
-import { PipelineStage } from '../pipeline/pipeline-engine'
-import { Bindings, BindingBase } from '../../rdf/bindings'
-import ExecutionContext from '../context/execution-context'
-import minus from '../../operators/minus'
-
+import * as SPARQL from 'sparqljs'
+import { Pipeline } from '../../engine/pipeline/pipeline.js'
+import minus from '../../operators/minus.js'
+import { BindingBase, Bindings } from '../../rdf/bindings.js'
+import ExecutionContext from '../context/execution-context.js'
+import { PipelineStage } from '../pipeline/pipeline-engine.js'
+import StageBuilder from './stage-builder.js'
 /**
  * A MinusStageBuilder evaluates MINUS clauses
  * @author Thomas Minier
  */
 export default class MinusStageBuilder extends StageBuilder {
-  execute (source: PipelineStage<Bindings>, node: Algebra.GroupNode, context: ExecutionContext): PipelineStage<Bindings> {
+  execute(
+    source: PipelineStage<Bindings>,
+    pattern: SPARQL.MinusPattern,
+    context: ExecutionContext,
+  ): PipelineStage<Bindings> {
     const engine = Pipeline.getInstance()
-    const rightSource = this.builder!._buildWhere(engine.of(new BindingBase()), node.patterns, context)
+    const rightSource = this.builder!._buildWhere(
+      engine.of(new BindingBase()),
+      pattern.patterns,
+      context,
+    )
     return minus(source, rightSource)
   }
 }

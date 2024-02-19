@@ -28,7 +28,7 @@ const _ = require('lodash')
 
 // rewriting rules for property paths
 
-function transformPath (bgp, group, options) {
+function transformPath(bgp, group, options) {
   let i = 0
   var queryChange = false
   var ret = [bgp, null, []]
@@ -65,7 +65,7 @@ function transformPath (bgp, group, options) {
   return ret
 }
 
-function pathSeq (bgp, pathTP, ind, group, filter, options) {
+function pathSeq(bgp, pathTP, ind, group, filter, options) {
   let s = pathTP.subject
   let p = pathTP.predicate
   let o = pathTP.object
@@ -107,7 +107,7 @@ function pathSeq (bgp, pathTP, ind, group, filter, options) {
       }
     }
     var recursedBGP = recurs[0]
-    recursedBGP.map(tp => newTPs.push(tp))
+    recursedBGP.map((tp) => newTPs.push(tp))
   }
   bgp[ind] = newTPs[0]
   for (var k = 1; k < newTPs.length; k++) {
@@ -116,12 +116,12 @@ function pathSeq (bgp, pathTP, ind, group, filter, options) {
   return [bgp, union, filter]
 }
 
-function pathInv (bgp, pathTP, ind, group, filter, options) {
+function pathInv(bgp, pathTP, ind, group, filter, options) {
   var union = null
   let s = pathTP.subject
   let p = pathTP.predicate.items[0]
   let o = pathTP.object
-  var newTP = {subject: o, predicate: p, object: s}
+  var newTP = { subject: o, predicate: p, object: s }
   var recurs = transformPath([newTP], group, options)
   if (recurs[1] != null) {
     union = recurs[1]
@@ -142,7 +142,7 @@ function pathInv (bgp, pathTP, ind, group, filter, options) {
   return [bgp, union, filter]
 }
 
-function pathAlt (bgp, pathTP, ind, group, filter, options) {
+function pathAlt(bgp, pathTP, ind, group, filter, options) {
   var pathIndex = 0
   for (let i = 0; i < group.triples.length; i++) {
     if (containsPath(group.triples[i].predicate, pathTP)) {
@@ -152,7 +152,7 @@ function pathAlt (bgp, pathTP, ind, group, filter, options) {
   // let s = pathTP.subject
   let p = pathTP.predicate.items
   // let o = pathTP.object
-  var union = {type: 'union'}
+  var union = { type: 'union' }
   union.patterns = []
   for (let i = 0; i < p.length; i++) {
     var newBGP = _.cloneDeep(group)
@@ -167,7 +167,7 @@ function pathAlt (bgp, pathTP, ind, group, filter, options) {
   return [bgp, union, filter]
 }
 
-function pathNeg (bgp, pathTP, ind, group, filter, options) {
+function pathNeg(bgp, pathTP, ind, group, filter, options) {
   var union = null
   let flt = null
   let s = pathTP.subject
@@ -178,15 +178,15 @@ function pathNeg (bgp, pathTP, ind, group, filter, options) {
     options.artificials = []
   }
   options.artificials.push(blank)
-  var newTP = {subject: s, predicate: blank, object: o}
+  var newTP = { subject: s, predicate: blank, object: o }
   if (typeof p === 'string') {
     flt = {
       type: 'filter',
       expression: {
         type: 'operation',
         operator: '!=',
-        args: [blank, p]
-      }
+        args: [blank, p],
+      },
     }
     filter.push(flt)
   } else {
@@ -198,8 +198,8 @@ function pathNeg (bgp, pathTP, ind, group, filter, options) {
         expression: {
           type: 'operation',
           operator: '!=',
-          args: [blank, pred]
-        }
+          args: [blank, pred],
+        },
       }
       filter.push(flt)
     }
@@ -208,7 +208,7 @@ function pathNeg (bgp, pathTP, ind, group, filter, options) {
   return [bgp, union, filter]
 }
 
-function containsPath (branch, path) {
+function containsPath(branch, path) {
   if (typeof branch === 'string') {
     return false
   } else if (branch === path.predicate) {
@@ -224,7 +224,7 @@ function containsPath (branch, path) {
   }
 }
 
-function replPath (tp, path, pred) {
+function replPath(tp, path, pred) {
   if (_.isEqual(tp, path.predicate)) {
     return true
   } else if (typeof tp !== 'string') {
@@ -237,5 +237,5 @@ function replPath (tp, path, pred) {
 }
 
 module.exports = {
-  transformPath
+  transformPath,
 }

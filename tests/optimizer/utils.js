@@ -24,12 +24,18 @@ SOFTWARE.
 
 'use strict'
 
+import { rdf } from '../../src/utils'
+
 module.exports = {
   query: (...where) => {
     return { type: 'query', where }
   },
   triple: (s, p, o) => {
-    return {subject: s, predicate: p, object: o}
+    return {
+      subject: rdf.fromN3(s),
+      predicate: rdf.fromN3(p),
+      object: rdf.fromN3(o),
+    }
   },
   bgp: (...triples) => {
     return { type: 'bgp', triples }
@@ -43,12 +49,19 @@ module.exports = {
   optional: (...patterns) => {
     return { type: 'optional', patterns }
   },
-  filter: expression => {
+  filter: (expression) => {
     return { type: 'filter', expression }
   },
   placeholder: (s) => {
-    return { type: 'bgp', triples: [
-      {subject: s, predicate: 'http://example.org#foo', object: '"foo"@en'}
-    ] }
-  }
+    return {
+      type: 'bgp',
+      triples: [
+        {
+          subject: rdf.fromN3(s),
+          predicate: rdf.fromN3('http://example.org#foo'),
+          object: rdf.fromN3('"foo"@en'),
+        },
+      ],
+    }
+  },
 }

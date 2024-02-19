@@ -24,25 +24,24 @@ SOFTWARE.
 
 'use strict'
 
-import { Algebra } from 'sparqljs'
+import namespace from '@rdfjs/namespace'
+import * as SPARQL from 'sparqljs'
 
 const HINT_PREFIX = 'http://callidon.github.io/sparql-engine/hints#'
 
 /**
- * Build an URI under the <http://www.bigdata.com/queryHints#> namespace
+ * Build an NamedNode under the <http://www.bigdata.com/queryHints#> namespace
  * @param  suffix - Suffix append to the HINT namespace
- * @return A new URI under the HINT namespace
+ * @return A new NamedNode under the HINT namespace
  */
-export function HINT (suffix: string) {
-  return HINT_PREFIX + suffix
-}
+export const HINT = namespace(HINT_PREFIX)
 
 /**
  * Scopes of a query hint, i.e., Query or Basic Graph pattern
  */
 export enum QUERY_HINT_SCOPE {
   QUERY,
-  BGP
+  BGP,
 }
 
 /**
@@ -51,13 +50,13 @@ export enum QUERY_HINT_SCOPE {
 export enum QUERY_HINT {
   USE_HASH_JOIN,
   USE_SYMMETRIC_HASH_JOIN,
-  SORTED_TRIPLES
+  SORTED_TRIPLES,
 }
 
 export class QueryHints {
   protected _bgpHints: Map<QUERY_HINT, boolean>
 
-  constructor () {
+  constructor() {
     this._bgpHints = new Map()
   }
 
@@ -65,7 +64,7 @@ export class QueryHints {
    * Clone the set of query hints
    * @return The cloned set of query hints
    */
-  clone (): QueryHints {
+  clone(): QueryHints {
     const res = new QueryHints()
     this._bgpHints.forEach((value, key) => res.add(QUERY_HINT_SCOPE.BGP, key))
     return res
@@ -76,7 +75,7 @@ export class QueryHints {
    * @param  other - Query hints to merge with
    * @return The merged set of query hints
    */
-  merge (other: QueryHints): QueryHints {
+  merge(other: QueryHints): QueryHints {
     const res = this.clone()
     other._bgpHints.forEach((value, key) => res.add(QUERY_HINT_SCOPE.BGP, key))
     return res
@@ -87,7 +86,7 @@ export class QueryHints {
    * @param scope - Scope of the hint (Query, BGP, etc)
    * @param hint - Type of hint
    */
-  add (scope: QUERY_HINT_SCOPE, hint: QUERY_HINT): void {
+  add(scope: QUERY_HINT_SCOPE, hint: QUERY_HINT): void {
     if (scope === QUERY_HINT_SCOPE.BGP) {
       this._bgpHints.set(hint, true)
     }
@@ -99,7 +98,7 @@ export class QueryHints {
    * @param hint - Type of hint
    * @return True if the hint exists, False otherwise
    */
-  has (scope: QUERY_HINT_SCOPE, hint: QUERY_HINT): boolean {
+  has(scope: QUERY_HINT_SCOPE, hint: QUERY_HINT): boolean {
     if (scope === QUERY_HINT_SCOPE.BGP) {
       return this._bgpHints.has(hint)
     }
@@ -110,15 +109,15 @@ export class QueryHints {
    * Serialize the set of query hints into a string
    * @return A string which represents the set of query hints
    */
-  toString (): string {
+  toString(): string {
     let res = ''
     this._bgpHints.forEach((value, key) => {
       switch (key) {
         case QUERY_HINT.USE_SYMMETRIC_HASH_JOIN:
-          res += `<${HINT('BGP')}> <${HINT('SymmetricHashJoin')}> "true"^^<http://www.w3.org/2001/XMLSchema#boolean> .\n`
+          res += `<${HINT.BGP.value}> <${HINT.SymmetricHashJoin.value}> "true"^^<http://www.w3.org/2001/XMLSchema#boolean> .\n`
           break
         default:
-          res += `<${HINT('BGP')}> _:${key} "${value}".\n`
+          res += `<${HINT.BGP.value}> _:${key} "${value}".\n`
           break
       }
     })
@@ -126,17 +125,20 @@ export class QueryHints {
   }
 }
 
-export function parseHints (bgp: Algebra.TripleObject[], previous?: QueryHints): [Algebra.TripleObject[], QueryHints] {
+export function parseHints(
+  bgp: SPARQL.Triple[],
+  previous?: QueryHints,
+): [SPARQL.Triple[], QueryHints] {
   let res = new QueryHints()
-  const regularTriples: Algebra.TripleObject[] = []
-  bgp.forEach(triple => {
-    if (triple.subject.startsWith(HINT_PREFIX)) {
-      if (triple.subject === HINT('Group')) {
+  const regularTriples: SPARQL.Triple[] = []
+  bgp.forEach((triple) => {
+    if (triple.subject.value.startsWith(HINT_PREFIX)) {
+      if (HINT.Group.equals(triple.subject)) {
         switch (triple.predicate) {
-          case HINT('HashJoin') :
+          case HINT.HashJoin:
             res.add(QUERY_HINT_SCOPE.BGP, QUERY_HINT.USE_HASH_JOIN)
             break
-          case HINT('SymmetricHashJoin') :
+          case HINT.SymmetricHashJoin:
             res.add(QUERY_HINT_SCOPE.BGP, QUERY_HINT.USE_SYMMETRIC_HASH_JOIN)
             break
           default:

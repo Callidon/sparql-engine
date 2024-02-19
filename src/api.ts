@@ -25,20 +25,20 @@ SOFTWARE.
 'use strict'
 
 // stages builders
-import { SPARQL_OPERATION } from './engine/plan-builder'
-import AggregateStageBuilder from './engine/stages/aggregate-stage-builder'
-import BGPStageBuilder from './engine/stages/bgp-stage-builder'
-import BindStageBuilder from './engine/stages/bind-stage-builder'
-import DistinctStageBuilder from './engine/stages/distinct-stage-builder'
-import FilterStageBuilder from './engine/stages/filter-stage-builder'
-import GlushkovStageBuilder from './engine/stages/glushkov-executor/glushkov-stage-builder'
-import GraphStageBuilder from './engine/stages/graph-stage-builder'
-import MinusStageBuilder from './engine/stages/minus-stage-builder'
-import ServiceStageBuilder from './engine/stages/service-stage-builder'
-import OptionalStageBuilder from './engine/stages/optional-stage-builder'
-import OrderByStageBuilder from './engine/stages/orderby-stage-builder'
-import UnionStageBuilder from './engine/stages/union-stage-builder'
-import UpdateStageBuilder from './engine/stages/update-stage-builder'
+import { SPARQL_OPERATION } from './engine/plan-builder.js'
+import AggregateStageBuilder from './engine/stages/aggregate-stage-builder.js'
+import BGPStageBuilder from './engine/stages/bgp-stage-builder.js'
+import BindStageBuilder from './engine/stages/bind-stage-builder.js'
+import DistinctStageBuilder from './engine/stages/distinct-stage-builder.js'
+import FilterStageBuilder from './engine/stages/filter-stage-builder.js'
+import GlushkovStageBuilder from './engine/stages/glushkov-executor/glushkov-stage-builder.js'
+import GraphStageBuilder from './engine/stages/graph-stage-builder.js'
+import MinusStageBuilder from './engine/stages/minus-stage-builder.js'
+import OptionalStageBuilder from './engine/stages/optional-stage-builder.js'
+import OrderByStageBuilder from './engine/stages/orderby-stage-builder.js'
+import ServiceStageBuilder from './engine/stages/service-stage-builder.js'
+import UnionStageBuilder from './engine/stages/union-stage-builder.js'
+import UpdateStageBuilder from './engine/stages/update-stage-builder.js'
 
 const stages = {
   SPARQL_OPERATION,
@@ -54,25 +54,32 @@ const stages = {
   OptionalStageBuilder,
   OrderByStageBuilder,
   UnionStageBuilder,
-  UpdateStageBuilder
+  UpdateStageBuilder,
 }
 
 // base types
-export { default as Dataset } from './rdf/dataset'
-export { Bindings, BindingBase } from './rdf/bindings'
-export { default as HashMapDataset } from './rdf/hashmap-dataset'
-export { default as Graph } from './rdf/graph'
-export { default as ExecutionContext } from './engine/context/execution-context'
-export { PlanBuilder } from './engine/plan-builder'
+export { default as ExecutionContext } from './engine/context/execution-context.js'
+export {
+  PipelineEngine,
+  PipelineInput,
+  PipelineStage,
+  StreamPipelineInput,
+} from './engine/pipeline/pipeline-engine.js'
 // pipeline
-export { Pipeline } from './engine/pipeline/pipeline'
-export { PipelineEngine, PipelineInput, PipelineStage, StreamPipelineInput } from './engine/pipeline/pipeline-engine'
-export { default as RxjsPipeline } from './engine/pipeline/rxjs-pipeline'
-export { default as VectorPipeline } from './engine/pipeline/vector-pipeline'
-// RDF terms Utilities
-export { rdf } from './utils'
+export { Pipeline } from './engine/pipeline/pipeline.js'
+export { default as RxjsPipeline } from './engine/pipeline/rxjs-pipeline.js'
+export { default as VectorPipeline } from './engine/pipeline/vector-pipeline.js'
+export { PlanBuilder } from './engine/plan-builder.js'
+export {
+  csvFormatter as CSVFormat,
+  tsvFormatter as TSVFormat,
+} from './formatters/csv-tsv-formatter.js'
 // Formatters
-export { default as JsonFormat } from './formatters/json-formatter'
-export { csvFormatter as CSVFormat, tsvFormatter as TSVFormat } from './formatters/csv-tsv-formatter'
-
+export { default as JsonFormat } from './formatters/json-formatter.js'
+export { BindingBase, Bindings } from './rdf/bindings.js'
+export { default as Dataset } from './rdf/dataset.js'
+export { default as Graph } from './rdf/graph.js'
+export { default as HashMapDataset } from './rdf/hashmap-dataset.js'
+// RDF terms Utilities
+export { rdf } from './utils/index.js'
 export { stages }

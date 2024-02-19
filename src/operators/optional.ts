@@ -24,12 +24,12 @@ SOFTWARE.
 
 'use strict'
 
-import { Pipeline } from '../engine/pipeline/pipeline'
-import { PipelineStage } from '../engine/pipeline/pipeline-engine'
-import { Algebra } from 'sparqljs'
-import { PlanBuilder } from '../engine/plan-builder'
-import { Bindings } from '../rdf/bindings'
-import ExecutionContext from '../engine/context/execution-context'
+import * as SPARQL from 'sparqljs'
+import ExecutionContext from '../engine/context/execution-context.js'
+import { PipelineStage } from '../engine/pipeline/pipeline-engine.js'
+import { Pipeline } from '../engine/pipeline/pipeline.js'
+import { PlanBuilder } from '../engine/plan-builder.js'
+import { Bindings } from '../rdf/bindings.js'
 
 /**
  * Handles an SPARQL OPTIONAL clause
@@ -41,7 +41,12 @@ import ExecutionContext from '../engine/context/execution-context'
  * @param context - Execution context
  * @return A {@link PipelineStage} which evaluate the OPTIONAL operation
  */
-export default function optional (source: PipelineStage<Bindings>, patterns: Algebra.PlanNode[], builder: PlanBuilder, context: ExecutionContext): PipelineStage<Bindings> {
+export default function optional(
+  source: PipelineStage<Bindings>,
+  patterns: SPARQL.Pattern[],
+  builder: PlanBuilder,
+  context: ExecutionContext,
+): PipelineStage<Bindings> {
   const seenBefore: Bindings[] = []
   const engine = Pipeline.getInstance()
   const start = engine.tap(source, (bindings: Bindings) => {

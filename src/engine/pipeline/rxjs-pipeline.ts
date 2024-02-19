@@ -24,7 +24,15 @@ SOFTWARE.
 
 'use strict'
 
-import { Observable, Subscriber, from, of, concat, EMPTY } from 'rxjs'
+import {
+  concat,
+  EMPTY,
+  from,
+  Observable,
+  ObservableInput,
+  of,
+  Subscriber,
+} from 'rxjs'
 import {
   bufferCount,
   catchError,
@@ -35,16 +43,39 @@ import {
   finalize,
   first,
   flatMap,
-  take,
-  skip,
   map,
   mergeMap,
+  reduce,
+  shareReplay,
+  skip,
+  take,
   tap,
   toArray,
-  shareReplay,
-  reduce
 } from 'rxjs/operators'
-import { StreamPipelineInput, PipelineEngine } from './pipeline-engine'
+import { PipelineEngine, StreamPipelineInput } from './pipeline-engine.js'
+
+declare module 'rxjs' {
+  interface Observable<T> {
+    toArray(): Promise<T[]>
+  }
+}
+
+Observable.prototype.toArray = function () {
+  return new Promise((resolve, reject) => {
+    // Can't avoid any here because we don't have access to the T type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const results: any[] = []
+    this.subscribe(
+      (b) => {
+        results.push(b)
+      },
+      reject,
+      () => {
+        resolve(results)
+      },
+    )
+  })
+}
 
 /**
  * A StreamPipelineInput implemented using Rxjs' subscribers.
@@ -53,19 +84,19 @@ import { StreamPipelineInput, PipelineEngine } from './pipeline-engine'
 export class RxjsStreamInput<T> implements StreamPipelineInput<T> {
   private readonly _subscriber: Subscriber<T>
 
-  constructor (subscriber: Subscriber<T>) {
+  constructor(subscriber: Subscriber<T>) {
     this._subscriber = subscriber
   }
 
-  next (value: T): void {
+  next(value: T): void {
     this._subscriber.next(value)
   }
 
-  complete (): void {
+  complete(): void {
     this._subscriber.complete()
   }
 
-  error (err: any): void {
+  error(err: unknown): void {
     this._subscriber.error(err)
   }
 }
@@ -75,123 +106,156 @@ export class RxjsStreamInput<T> implements StreamPipelineInput<T> {
  * @author Thomas Minier
  */
 export default class RxjsPipeline extends PipelineEngine {
-
-  empty<T> (): Observable<T> {
+  empty<T>(): Observable<T> {
     return EMPTY
   }
 
-  of<T> (...values: T[]): Observable<T> {
+  of<T>(...values: T[]): Observable<T> {
     return of(...values)
   }
 
-  from (x: any): Observable<any> {
-    return from(x)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  from(x: unknown): Observable<any> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return from(x as ObservableInput<any>)
   }
 
-  fromAsync<T> (cb: (input: StreamPipelineInput<T>) => void): Observable<T> {
-    return new Observable<T>(subscriber => cb(new RxjsStreamInput(subscriber)))
+  fromAsync<T>(cb: (input: StreamPipelineInput<T>) => void): Observable<T> {
+    return new Observable<T>((subscriber) =>
+      cb(new RxjsStreamInput(subscriber)),
+    )
   }
 
-  clone<T> (stage: Observable<T>): Observable<T> {
+  clone<T>(stage: Observable<T>): Observable<T> {
     return stage.pipe(shareReplay(5))
   }
 
-  catch<T, O> (input: Observable<T>, handler?: (err: Error) => Observable<O>): Observable<T | O> {
-    return input.pipe(catchError(err => {
-      if (handler === undefined) {
-        throw err
-      } else {
-        return handler(err)
-      }
-    }))
+  catch<T, O>(
+    input: Observable<T>,
+    handler?: (err: Error) => Observable<O>,
+  ): Observable<T | O> {
+    return input.pipe(
+      catchError((err) => {
+        if (handler === undefined) {
+          throw err
+        } else {
+          return handler(err)
+        }
+      }),
+    )
   }
 
-  merge<T> (...inputs: Array<Observable<T>>): Observable<T> {
+  merge<T>(...inputs: Array<Observable<T>>): Observable<T> {
     return concat(...inputs)
   }
 
-  map<F, T> (input: Observable<F>, mapper: (value: F) => T): Observable<T> {
+  map<F, T>(input: Observable<F>, mapper: (value: F) => T): Observable<T> {
     return input.pipe(map(mapper))
   }
 
-  flatMap<F, T> (input: Observable<F>, mapper: (value: F) => T[]): Observable<T> {
+  flatMap<F, T>(
+    input: Observable<F>,
+    mapper: (value: F) => T[],
+  ): Observable<T> {
     return input.pipe(flatMap(mapper))
   }
 
-  mergeMap<F, T> (input: Observable<F>, mapper: (value: F) => Observable<T>): Observable<T> {
+  mergeMap<F, T>(
+    input: Observable<F>,
+    mapper: (value: F) => Observable<T>,
+  ): Observable<T> {
     return input.pipe(mergeMap(mapper))
   }
 
-  filter<T> (input: Observable<T>, predicate: (value: T) => boolean): Observable<T> {
+  filter<T>(
+    input: Observable<T>,
+    predicate: (value: T) => boolean,
+  ): Observable<T> {
     return input.pipe(filter(predicate))
   }
 
-  finalize<T> (input: Observable<T>, callback: () => void): Observable<T> {
+  finalize<T>(input: Observable<T>, callback: () => void): Observable<T> {
     return input.pipe(finalize(callback))
   }
 
-  reduce<F, T> (input: Observable<F>, reducer: (acc: T, value: F) => T, initial: T): Observable<T> {
+  reduce<F, T>(
+    input: Observable<F>,
+    reducer: (acc: T, value: F) => T,
+    initial: T,
+  ): Observable<T> {
     return input.pipe(reduce(reducer, initial))
   }
 
-  limit<T> (input: Observable<T>, stopAfter: number): Observable<T> {
+  limit<T>(input: Observable<T>, stopAfter: number): Observable<T> {
     return input.pipe(take(stopAfter))
   }
 
-  skip<T> (input: Observable<T>, toSkip: number): Observable<T> {
+  skip<T>(input: Observable<T>, toSkip: number): Observable<T> {
     return input.pipe(skip(toSkip))
   }
 
-  distinct<T, K> (input: Observable<T>, selector?: (value: T) => T | K): Observable<T> {
+  distinct<T, K = T>(
+    input: Observable<T>,
+    selector?: (value: T) => K,
+  ): Observable<T> {
     return input.pipe(distinct(selector))
   }
 
-  defaultValues<T> (input: Observable<T>, ...values: T[]): Observable<T> {
+  defaultValues<T>(input: Observable<T>, ...values: T[]): Observable<T> {
     if (values.length === 0) {
       return input
     } else if (values.length === 1) {
       return input.pipe(defaultIfEmpty(values[0]))
     } else {
-      return new Observable<T>(subscriber => {
+      return new Observable<T>((subscriber) => {
         let isEmpty: boolean = true
-        return input.subscribe((x: T) => {
-          isEmpty = false
-          subscriber.next(x)
-        },
-        err => subscriber.error(err),
-        () => {
-          if (isEmpty) {
-            values.forEach((v: T) => subscriber.next(v))
-          }
-          subscriber.complete()
-        })
+        return input.subscribe(
+          (x: T) => {
+            isEmpty = false
+            subscriber.next(x)
+          },
+          (err) => subscriber.error(err),
+          () => {
+            if (isEmpty) {
+              values.forEach((v: T) => subscriber.next(v))
+            }
+            subscriber.complete()
+          },
+        )
       })
     }
   }
 
-  bufferCount<T> (input: Observable<T>, count: number): Observable<T[]> {
+  bufferCount<T>(input: Observable<T>, count: number): Observable<T[]> {
     return input.pipe(bufferCount(count))
   }
 
-  forEach<T> (input: Observable<T>, cb: (value: T) => void): void {
-    input.forEach(cb)
+  forEach<T>(input: Observable<T>, cb: (value: T) => void): void {
+    input
+      .forEach(cb)
       .then()
-      .catch(err => { throw err })
+      .catch((err) => {
+        throw err
+      })
   }
 
-  first<T> (input: Observable<T>): Observable<T> {
+  first<T>(input: Observable<T>): Observable<T> {
     return input.pipe(first())
   }
 
-  endWith<T> (input: Observable<T>, values: T[]): Observable<T> {
+  endWith<T>(input: Observable<T>, values: T[]): Observable<T> {
     return input.pipe(endWith(...values))
   }
 
-  tap<T> (input: Observable<T>, cb: (value: T) => void): Observable<T> {
+  tap<T>(input: Observable<T>, cb: (value: T) => void): Observable<T> {
     return input.pipe(tap(cb))
   }
 
-  collect<T> (input: Observable<T>): Observable<T[]> {
+  collect<T>(input: Observable<T>): Observable<T[]> {
+    return input.pipe(toArray())
+  }
+
+  toArray<T>(input: Observable<T>): Observable<T[]> {
     return input.pipe(toArray())
   }
 }

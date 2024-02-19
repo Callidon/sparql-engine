@@ -22,7 +22,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-import { Bindings } from '../../rdf/bindings'
+import { Bindings } from '../../rdf/bindings.js'
+import { rdf, sparql } from '../../utils/index.js'
 
 /**
  * A HashJoinTable is used by a Hash-based join to save set of bindings corresponding to a joinKey.
@@ -30,7 +31,7 @@ import { Bindings } from '../../rdf/bindings'
  */
 export default class HashJoinTable {
   private readonly _content: Map<string, Bindings[]>
-  constructor () {
+  constructor() {
     this._content = new Map()
   }
 
@@ -39,12 +40,12 @@ export default class HashJoinTable {
    * @param key - Key used to save the bindings
    * @param bindings - Bindings to save
    */
-  put (key: string, bindings: Bindings): void {
-    if (!this._content.has(key)) {
-      this._content.set(key, [])
+  put(key: rdf.Variable | sparql.BoundedTripleValue, bindings: Bindings): void {
+    if (!this._content.has(key.value)) {
+      this._content.set(key.value, [])
     }
-    const old: Bindings[] = this._content.get(key)!
-    this._content.set(key, old.concat([bindings]))
+    const old: Bindings[] = this._content.get(key.value)!
+    this._content.set(key.value, old.concat([bindings]))
   }
 
   /**
@@ -54,10 +55,13 @@ export default class HashJoinTable {
    * @param  bindings - Bindings to join with
    * @return Join results, or an empty list if there is none.
    */
-  join (key: string, bindings: Bindings): Bindings[] {
-    if (!this._content.has(key)) {
+  join(
+    key: rdf.Variable | sparql.BoundedTripleValue,
+    bindings: Bindings,
+  ): Bindings[] {
+    if (!this._content.has(key.value)) {
       return []
     }
-    return this._content.get(key)!.map((b: Bindings) => b.union(bindings))
+    return this._content.get(key.value)!.map((b: Bindings) => b.union(bindings))
   }
 }
